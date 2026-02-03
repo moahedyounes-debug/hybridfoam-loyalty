@@ -75,49 +75,61 @@
   <div id="result"></div>
 
   <script>
-  const form = document.getElementById('registerForm');
-  const result = document.getElementById('result');
+    const form = document.getElementById('registerForm');
+    const result = document.getElementById('result');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    // خذ العناصر صراحةً
-    const nameInput = document.getElementById('name');
-    const phoneInput = document.getElementById('phone');
-    const plateInput = document.getElementById('plate');
-    const carTypeInput = document.getElementById('carType');
-    const carModelInput = document.getElementById('carModel');
+      // أخذ القيم مع حماية كاملة من undefined
+      const nameInput = document.getElementById('name');
+      const phoneInput = document.getElementById('phone');
+      const plateInput = document.getElementById('plate');
+      const carTypeInput = document.getElementById('carType');
+      const carModelInput = document.getElementById('carModel');
 
-    const data = {
-      name: nameInput.value.trim(),
-      phone: phoneInput.value.trim(),
-      plate: plateInput.value.trim(),
-      carType: carTypeInput.value.trim(),
-      carModel: carModelInput.value.trim()
-    };
-
-    try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbztzqBSZSj52JNdtYmC6KlkK_csj_SPs5fiXw384w8usmZVWMomvi_7SzL60ZFGuJv1/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-
-      const res = await response.json();
-
-      if (res.status === "success") {
-        result.innerHTML = `✅ تم التسجيل بنجاح<br><a href="${res.card}" target="_blank">عرض بطاقة الولاء</a>`;
-        form.reset();
-      } else {
-        result.innerHTML = `❌ ${res.message}`;
+      // التأكد من وجود العناصر وأن القيم ليست فارغة
+      if (!nameInput || !phoneInput || !plateInput || !carTypeInput || !carModelInput) {
+        result.innerHTML = "❌ خطأ في تحميل النموذج.";
+        return;
       }
 
-    } catch (err) {
-      result.innerHTML = "❌ حدث خطأ أثناء الاتصال بالخادم.";
-    }
-  });
-</script>
+      const data = {
+        name: nameInput.value || '',
+        phone: phoneInput.value || '',
+        plate: plateInput.value || '',
+        carType: carTypeInput.value || '',
+        carModel: carModelInput.value || ''
+      };
 
+      // التأكد من أن البيانات ليست فارغة
+      if (!data.name || !data.phone || !data.plate || !data.carType || !data.carModel) {
+        result.innerHTML = "❌ يرجى ملء جميع الحقول.";
+        return;
+      }
+
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbztzqBSZSj52JNdtYmC6KlkK_csj_SPs5fiXw384w8usmZVWMomvi_7SzL60ZFGuJv1/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const res = await response.json();
+
+        if (res.status === "success") {
+          result.innerHTML = `✅ تم التسجيل بنجاح<br><a href="${res.card}" target="_blank" style="color:#0078d4;">عرض بطاقة الولاء</a>`;
+          form.reset();
+        } else {
+          result.innerHTML = `❌ ${res.message || 'خطأ غير معروف'}`;
+        }
+
+      } catch (err) {
+        result.innerHTML = "❌ حدث خطأ أثناء الاتصال بالخادم.";
+        console.error("Error details:", err);
+      }
+    });
+  </script>
 
 </body>
 </html>
