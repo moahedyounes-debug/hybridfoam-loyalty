@@ -1,16 +1,111 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><meta charset="UTF-8"><title>بطاقة الولاء</title>
-<style>body{font-family:'Segoe UI';background:#f0f0f0;padding:40px;text-align:center;}.card{max-width:350px;margin:auto;background:white;padding:30px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.2);}.points{font-size:50px;color:#4CAF50;}</style></head>
+<head>
+  <meta charset="UTF-8">
+  <title>بطاقة رغوة الهجين</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      padding: 20px; 
+      margin: 0; 
+      min-height: 100vh;
+      direction: rtl;
+    }
+    .card { 
+      max-width: 400px; 
+      margin: auto; 
+      background: white; 
+      border-radius: 25px; 
+      padding: 40px 30px; 
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+      text-align: center;
+    }
+    .bronze { border: 6px solid #CD7F32; }
+    .silver { border: 6px solid #C0C0C0; }
+    .gold { border: 6px solid #FFD700; }
+    .logo { font-size: 28px; color: #4CAF50; margin-bottom: 20px; }
+    .points { font-size: 50px; color: #4CAF50; font-weight: bold; margin: 20px 0; }
+    .tier { font-size: 24px; padding: 10px; border-radius: 20px; margin: 15px 0; }
+    button { 
+      padding: 18px 40px; 
+      background: linear-gradient(45deg, #FF9800, #F57C00); 
+      color: white; 
+      border: none; 
+      border-radius: 50px; 
+      font-size: 20px; 
+      cursor: pointer; 
+      margin: 15px 5px;
+      box-shadow: 0 5px 15px rgba(255,152,0,0.4);
+    }
+    button:hover { transform: translateY(-2px); }
+    button:active { transform: translateY(0); }
+    #loading { color: #666; font-style: italic; }
+    .id { background: #f0f0f0; padding: 10px; border-radius: 10px; font-family: monospace; }
+  </style>
+</head>
 <body>
-<div id="card" class="card">جاري التحميل...</div>
-<script>
-const id = new URLSearchParams(location.search).get('id');
-document.getElementById('card').innerHTML = `
-<h2>🎉 بطاقة ولاء ${id}</h2>
-<div class="points">0 نقطة</div>
-<p>اضغط غسلة لإضافة 10 نقاط</p>
-<button onclick="location.reload()">🔄 تحديث</button>`;
-</script>
+  <div id="card" class="card">
+    <div id="loading">جاري تحميل بطاقتك...</div>
+  </div>
+  <button onclick="checkIn()" style="display:none;" id="checkinBtn">🚗 غسل اليوم (+10 نقاط)</button>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    
+    if (!id) {
+      document.getElementById('card').innerHTML = '<h2>❌ ID غير صحيح</h2><p>استخدم الرابط الصحيح</p>';
+      throw new Error('No ID');
+    }
+    
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwxELwBuXqB97ztJDkntLjHYx8e2DV8HCInt5GZFD9SNIn9kIjZ5zgzl7hY2QGJ38gz/exec';  // رابطك الأخير
+    
+    async function loadCard() {
+      try {
+        const response = await fetch(`${WEBAPP_URL}?id=${id}`);
+        const data = await response.json();
+        
+        const tierClass = data.tier.toLowerCase();
+        document.getElementById('card').innerHTML = `
+          <div class="logo">🚗 رغوة الهجين</div>
+          <div class="id">ID: ${id}</div>
+          <h2>${data.name}</h2>
+          <div class="points">${data.points} <span style="font-size:30px;">نقاط</span></div>
+          <div class="tier ${tierClass}">${data.tier}</div>
+          <div>غسلات: ${data.visits}</div>
+          <small>الرياض - السعودية</small>
+        `;
+        document.getElementById('checkinBtn').style.display = 'block';
+      } catch (error) {
+        document.getElementById('card').innerHTML = `
+          <h2>🔍 ابحث عن العميل...</h2>
+          <p>تأكد من الـ ID أو سجّل في <a href="register.html">register.html</a></p>
+        `;
+      }
+    }
+    
+    async function checkIn() {
+      try {
+        document.getElementById('checkinBtn').innerHTML = '⏳ جاري...';
+        const response = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `id=${id}`
+        });
+        await response.json();
+        loadCard();  // إعادة تحميل البيانات
+        alert('✅ تم تسجيل الغسلة! +10 نقاط');
+      } catch (error) {
+        alert('❌ خطأ - تأكد من Apps Script');
+      }
+    }
+    
+    // تحميل أول مرة
+    loadCard();
+    
+    // تحديث كل 30 ثانية
+    setInterval(loadCard, 30000);
+  </script>
 </body>
 </html>
