@@ -2,57 +2,158 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسجيل عميل - رغوة الهجين</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; }
-    .container { max-width: 500px; margin: auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    h1 { text-align: center; color: #333; }
-    input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-    button { width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; }
-    #result { margin-top: 20px; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; }
-    .success { background: #d4edda; color: #155724; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, sans-serif; 
+      background: linear-gradient(135deg, #FF9800, #F57C00); 
+      min-height: 100vh; 
+      padding: 20px; 
+      direction: rtl;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container { 
+      width: 100%; 
+      max-width: 450px; 
+      background: rgba(255,255,255,0.95); 
+      border-radius: 25px; 
+      padding: 40px; 
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    h1 { 
+      text-align: center; 
+      color: #333; 
+      margin-bottom: 30px; 
+      font-size: 24px;
+    }
+    input { 
+      width: 100%; 
+      padding: 18px; 
+      margin: 12px 0; 
+      border: 2px solid #eee; 
+      border-radius: 15px; 
+      font-size: 16px; 
+      transition: border-color 0.3s;
+    }
+    input:focus { 
+      outline: none; 
+      border-color: #FF9800;
+    }
+    button { 
+      width: 100%; 
+      padding: 20px; 
+      background: linear-gradient(45deg, #4CAF50, #45a049); 
+      color: white; 
+      border: none; 
+      border-radius: 15px; 
+      font-size: 20px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      margin: 10px 0;
+      transition: transform 0.3s;
+    }
+    button:hover { transform: translateY(-2px); }
+    button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+    #result { 
+      margin-top: 25px; 
+      padding: 25px; 
+      border-radius: 15px; 
+      text-align: center; 
+      font-weight: bold; 
+      font-size: 16px;
+    }
+    .success { 
+      background: linear-gradient(45deg, #d4edda, #c3e6cb); 
+      color: #155724; 
+      border: 3px solid #28a745;
+    }
+    .qr-link { 
+      display: inline-block; 
+      background: #2196F3; 
+      color: white; 
+      padding: 12px 20px; 
+      border-radius: 10px; 
+      text-decoration: none; 
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .copy-id { 
+      background: #FF9800; 
+      color: white; 
+      padding: 8px 15px; 
+      border: none; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-size: 14px;
+    }
+    @media (max-width: 480px) {
+      .container { padding: 30px 20px; margin: 10px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎉 رغوة الهجين - تسجيل سريع</h1>
+    <h1>🚗 رغوة الهجين<br><small style="font-size: 16px; color: #666;">تسجيل عميل جديد (30 ثانية)</small></h1>
+    
     <form id="form">
-      <input type="text" id="name" placeholder="الاسم" required>
-      <input type="tel" id="phone" placeholder="الجوال" required>
-      <input type="text" id="plate" placeholder="اللوحة">
-      <input type="text" id="carType" placeholder="نوع السيارة">
-      <button type="submit">إضافة عميل</button>
+      <input type="text" id="name" placeholder="الاسم الكامل" required>
+      <input type="tel" id="phone" placeholder="الجوال (05xxxxxxxx)" pattern="05[0-9]{8}" required>
+      <input type="text" id="plate" placeholder="اللوحة (مثال: 6302)" required>
+      <input type="text" id="carType" placeholder="نوع السيارة (كامري، لكزس...)">
+      <button type="submit">✅ إضافة عميل + بطاقة QR</button>
     </form>
-    <div id="result"></div>
+    
+    <div id="result" style="display: none;"></div>
   </div>
 
   <script>
-    document.getElementById('form').addEventListener('submit', (e) => {
+    document.getElementById('form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const btn = e.target.querySelector('button');
       const result = document.getElementById('result');
       
-      // حساب ID تلقائي (يطابق Sheet)
-      const id = 10000 + Math.floor(Math.random() * 90000);
-      const row = [
-        id, document.getElementById('name').value, document.getElementById('phone').value,
-        document.getElementById('plate').value, document.getElementById('carType').value || '',
-        '', 'Bronze', 0, 'none', new Date().toISOString().split('T')[0]
-      ].join('/t');  // Tab-separated لـ Sheet
+      btn.disabled = true;
+      btn.textContent = 'جاري الإنشاء...';
+      result.style.display = 'none';
       
-      // رابط Sheet مُنشر (غيّر إلى publish link)
-      const sheetUrl = 'https://docs.google.com/spreadsheets/d/1pincgWtlrrSlf0HmbqhGQDaqtAqUpe261lkh_tJAxtI/edit#gid=0';
+      // ID متسلسل أفضل (أول 5 أرقام من الجوال + random)
+      const phone = document.getElementById('phone').value.replace(/05/, '');
+      const id = `${phone.slice(0,5)}${Math.floor(Math.random() * 1000)}`;
       
+      const data = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        plate: document.getElementById('plate').value,
+        carType: document.getElementById('carType').value || 'غير محدد',
+        id: id
+      };
+      
+      // عرض النتيجة فوراً (offline)
       result.innerHTML = `
-        ✅ تم التسجيل! ID: <b>${id}</b><br>
-        <a href="https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${id}" target="_blank">👉 بطاقة الولاء</a><br>
-        <small>تحقق من Sheet: ${sheetUrl}</small>
+        <div style="font-size: 22px; margin-bottom: 15px;">✅ تم التسجيل بنجاح!</div>
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin: 15px 0;">
+          <strong>ID العميل: <span style="color: #1976d2; font-size: 24px;">${id}</span></strong><br>
+          <button class="copy-id" onclick="navigator.clipboard.writeText('${id}'); this.textContent='مُنسخ!';">📋 نسخ ID</button>
+        </div>
+        <a class="qr-link" href="https://qr-code-generator.com/?url=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${id}" target="_blank">
+          🖨️ حمل QR جاهز للطباعة
+        </a><br>
+        <a href="loyalty.html?id=${id}" target="_blank" style="color: #2196F3; font-weight: bold;">👉 عرض بطاقة الولاء الآن</a><br><br>
+        <small style="opacity: 0.7;">
+          💡 الصق ID في Sheet > صف جديد (عمود A) > احفظ
+        </small>
       `;
       result.className = 'success';
+      result.style.display = 'block';
       document.getElementById('form').reset();
       
-      // Copy ID للـ clipboard
-      navigator.clipboard.writeText(id);
-      alert(`ID ${id} مُنسخ! ألصقه في Sheet يدويًا أو اطبع QR`);
+      btn.disabled = false;
+      btn.textContent = '✅ عميل جديد ناجح!';
+      setTimeout(() => { btn.textContent = '✅ إضافة عميل + بطاقة QR'; }, 2000);
     });
   </script>
 </body>
