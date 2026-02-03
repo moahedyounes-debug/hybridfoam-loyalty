@@ -75,41 +75,49 @@
   <div id="result"></div>
 
   <script>
-    const form = document.getElementById('registerForm');
-    const result = document.getElementById('result');
+  const form = document.getElementById('registerForm');
+  const result = document.getElementById('result');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      const data = {
-        name: name.value.trim(),
-        phone: phone.value.trim(),
-        plate: plate.value.trim(),
-        carType: carType.value.trim(),
-        carModel: carModel.value.trim()
-      };
+    // خذ العناصر صراحةً
+    const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const plateInput = document.getElementById('plate');
+    const carTypeInput = document.getElementById('carType');
+    const carModelInput = document.getElementById('carModel');
 
-      try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbztzqBSZSj52JNdtYmC6KlkK_csj_SPs5fiXw384w8usmZVWMomvi_7SzL60ZFGuJv1/exec", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
-        });
+    const data = {
+      name: nameInput.value.trim(),
+      phone: phoneInput.value.trim(),
+      plate: plateInput.value.trim(),
+      carType: carTypeInput.value.trim(),
+      carModel: carModelInput.value.trim()
+    };
 
-        const res = await response.json();
+    try {
+      const response = await fetch("https://script.google.com/macros/s/AKfycbztzqBSZSj52JNdtYmC6KlkK_csj_SPs5fiXw384w8usmZVWMomvi_7SzL60ZFGuJv1/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-        if (res.status === "success") {
-          result.innerHTML = `✅ تم التسجيل بنجاح<br><a href="${res.card}" target="_blank">عرض بطاقة الولاء</a>`;
-          form.reset();
-        } else {
-          result.innerHTML = `❌ ${res.message}`;
-        }
+      const res = await response.json();
 
-      } catch (err) {
-        result.innerHTML = "❌ حدث خطأ أثناء الاتصال بالخادم.";
+      if (res.status === "success") {
+        result.innerHTML = `✅ تم التسجيل بنجاح<br><a href="${res.card}" target="_blank">عرض بطاقة الولاء</a>`;
+        form.reset();
+      } else {
+        result.innerHTML = `❌ ${res.message}`;
       }
-    });
-  </script>
+
+    } catch (err) {
+      result.innerHTML = "❌ حدث خطأ أثناء الاتصال بالخادم.";
+    }
+  });
+</script>
+
 
 </body>
 </html>
