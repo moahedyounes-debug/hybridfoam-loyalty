@@ -2,111 +2,112 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>بطاقة رغوة الهجين</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بطاقة رغوة الهجين - ID 63002</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
-      font-family: 'Segoe UI', Tahoma, sans-serif; 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      font-family: 'Arial', sans-serif; 
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+      min-height: 100vh; 
       padding: 20px; 
-      margin: 0; 
-      min-height: 100vh;
       direction: rtl;
     }
     .card { 
-      max-width: 400px; 
-      margin: auto; 
-      background: white; 
-      border-radius: 25px; 
-      padding: 40px 30px; 
-      box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
-      text-align: center;
+      width: 350px; 
+      height: 220px; 
+      margin: 20px auto; 
+      border-radius: 15px; 
+      position: relative; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      overflow: hidden;
     }
-    .bronze { border: 6px solid #CD7F32; }
-    .silver { border: 6px solid #C0C0C0; }
-    .gold { border: 6px solid #FFD700; }
-    .logo { font-size: 28px; color: #4CAF50; margin-bottom: 20px; }
-    .points { font-size: 50px; color: #4CAF50; font-weight: bold; margin: 20px 0; }
-    .tier { font-size: 24px; padding: 10px; border-radius: 20px; margin: 15px 0; }
-    button { 
-      padding: 18px 40px; 
-      background: linear-gradient(45deg, #FF9800, #F57C00); 
+    .bronze { background: linear-gradient(135deg, #FF9800, #F57C00); }
+    .silver { background: linear-gradient(135deg, #BDBDBD, #9E9E9E); }
+    .gold { background: linear-gradient(135deg, #FFD700, #FFA000); }
+    
+    .header { 
+      height: 60px; 
+      background: rgba(255,255,255,0.2); 
+      padding: 10px 20px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
       color: white; 
-      border: none; 
-      border-radius: 50px; 
-      font-size: 20px; 
-      cursor: pointer; 
-      margin: 15px 5px;
-      box-shadow: 0 5px 15px rgba(255,152,0,0.4);
+      font-weight: bold;
     }
-    button:hover { transform: translateY(-2px); }
-    button:active { transform: translateY(0); }
-    #loading { color: #666; font-style: italic; }
-    .id { background: #f0f0f0; padding: 10px; border-radius: 10px; font-family: monospace; }
+    .logo { font-size: 18px; }
+    .id { font-size: 14px; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 12px; }
+    
+    .content { 
+      padding: 25px 20px; 
+      color: white; 
+      height: 160px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center;
+    }
+    .name { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
+    .points { 
+      font-size: 36px; 
+      font-weight: bold; 
+      margin: 10px 0; 
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .star { font-size: 32px; margin-left: 10px; }
+    .plate { font-size: 16px; opacity: 0.9; margin-top: 5px; }
+    
+    .footer { 
+      position: absolute; 
+      bottom: 10px; 
+      left: 20px; 
+      right: 20px; 
+      color: rgba(255,255,255,0.8); 
+      font-size: 12px;
+    }
+    .qr-area { 
+      position: absolute; 
+      top: 15px; 
+      left: 15px; 
+      width: 80px; 
+      height: 80px; 
+      background: rgba(255,255,255,0.2); 
+      border-radius: 10px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 28px;
+    }
+    
+    .checkin-btn { 
+      position: absolute; 
+      bottom: 80px; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      padding: 12px 30px; 
+      background: rgba(255,255,255,0.9); 
+      color: #333; 
+      border: none; 
+      border-radius: 25px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      font-size: 14px;
+    }
+    .checkin-btn:hover { background: white; }
   </style>
 </head>
 <body>
-  <div id="card" class="card">
-    <div id="loading">جاري تحميل بطاقتك...</div>
+  <div id="cardContainer">
+    <!-- البطاقات تُنشأ هنا -->
   </div>
-  <button onclick="checkIn()" style="display:none;" id="checkinBtn">🚗 غسل اليوم (+10 نقاط)</button>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
+    const ID = new URLSearchParams(location.search).get('id') || '63002';
+    const NAME = 'معاهد يونس';  // من Sheet
+    let points = 0;
+    let tier = 'bronze';
     
-    if (!id) {
-      document.getElementById('card').innerHTML = '<h2>❌ ID غير صحيح</h2><p>استخدم الرابط الصحيح</p>';
-      throw new Error('No ID');
-    }
-    
-    const WEBAPP_URL = 'const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyX1xuExmWVy9aVLUJ_Htf5hK9RhG4j5m1T4aA9jemC_C_Ebcw_ujPv7ftg4GjV3B4_/exec';
-';  // رابطك الأخير
-    
-    async function loadCard() {
-      try {
-        const response = await fetch(`${WEBAPP_URL}?id=${id}`);
-        const data = await response.json();
-        
-        const tierClass = data.tier.toLowerCase();
-        document.getElementById('card').innerHTML = `
-          <div class="logo">🚗 رغوة الهجين</div>
-          <div class="id">ID: ${id}</div>
-          <h2>${data.name}</h2>
-          <div class="points">${data.points} <span style="font-size:30px;">نقاط</span></div>
-          <div class="tier ${tierClass}">${data.tier}</div>
-          <div>غسلات: ${data.visits}</div>
-          <small>الرياض - السعودية</small>
-        `;
-        document.getElementById('checkinBtn').style.display = 'block';
-      } catch (error) {
-        document.getElementById('card').innerHTML = `
-          <h2>🔍 ابحث عن العميل...</h2>
-          <p>تأكد من الـ ID أو سجّل في <a href="register.html">register.html</a></p>
-        `;
-      }
-    }
-    
-    async function checkIn() {
-      try {
-        document.getElementById('checkinBtn').innerHTML = '⏳ جاري...';
-        const response = await fetch(WEBAPP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `id=${id}`
-        });
-        await response.json();
-        loadCard();  // إعادة تحميل البيانات
-        alert('✅ تم تسجيل الغسلة! +10 نقاط');
-      } catch (error) {
-        alert('❌ خطأ - تأكد من Apps Script');
-      }
-    }
-    
-    // تحميل أول مرة
-    loadCard();
-    
-    // تحديث كل 30 ثانية
-    setInterval(loadCard, 30000);
-  </script>
-</body>
-</html>
+    function createCard() {
+      const tiers = {
+        bronze: { color1: '#FF9800', color2: '#F57C00', star: '🥉' },
+        silver: { color1: '#BDBDBD
