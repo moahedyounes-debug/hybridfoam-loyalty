@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><title>بطاقة الولاء</title>
+<style>body{font-family:'Segoe UI';background:#f0f0f0;padding:40px;text-align:center;}.card{max-width:350px;margin:auto;background:white;padding:30px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.2);}.points{font-size:50px;color:#4CAF50;}</style></head>
+<body>
+<div id="card" class="card">جاري التحميل...</div>
+<script>
+const id = new URLSearchParams(location.search).get('id');
+document.getElementById('card').innerHTML = `
+<h2>🎉 بطاقة ولاء ${id}</h2>
+<div class="points">0 نقطة</div>
+<p>اضغط غسلة لإضافة 10 نقاط</p>
+<button onclick="location.reload()">🔄 تحديث</button>`;
+</script>
+</body>
+</html>
