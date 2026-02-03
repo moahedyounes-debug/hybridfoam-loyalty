@@ -35,7 +35,6 @@
       const result = document.getElementById('result');
       result.innerHTML = '⏳ جاري التسجيل...';
 
-      // GET parameters - NO CORS EVER!
       const params = new URLSearchParams({
         name: document.getElementById('name').value,
         phone: document.getElementById('phone').value,
@@ -45,7 +44,7 @@
       });
 
       try {
-        const response = await fetch(`https://script.google.com/macros/s/AKfycbzZQiyZ2OcmVOSw8r0ugc0XH6VADUYWRMpOiOuvyf1RLxiFKioxjtFVFYsjQG1YLQS8/exec?${params}`);
+        const response = await fetch(`https://script.google.com/macros/s/AKfycbwxELwBuXqB97ztJDkntLjHYx8e2DV8HCInt5GZFD9SNIn9kIjZ5zgzl7hY2QGJ38gz/exec?${params}`);
         const res = await response.json();
         if (res.status === 'success') {
           result.innerHTML = `✅ ${res.message} <br> <a href="${res.card}" target="_blank" style="color:blue; font-size:18px;">👉 عرض بطاقة الولاء</a>`;
@@ -56,7 +55,7 @@
           result.className = 'error';
         }
       } catch (err) {
-        result.innerHTML = '❌ خطأ: تأكد من Deploy "Anyone"';
+        result.innerHTML = `❌ خطأ: ${err.message}`;
         result.className = 'error';
         console.error(err);
       }
