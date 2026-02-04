@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>البحث عن بطاقة الولاء – رغوة الهجين</title>
+
+<style>
+  body {
+    font-family: "Tahoma", sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .box {
+    width: 350px;
+    margin: 0 auto;
+    padding: 25px;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+
+  input {
+    width: 100%;
+    padding: 14px;
+    margin: 12px 0;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    font-size: 16px;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #45a049;
+  }
+
+  .result {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    display: none;
+  }
+
+  .success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 2px solid #4CAF50;
+  }
+
+  .error {
+    background: #ffebee;
+    color: #c62828;
+    border: 2px solid #e53935;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🔍 البحث عن بطاقة الولاء</h2>
+  <p>أدخل رقم جوالك للحصول على رابط بطاقة عضويتك</p>
+
+  <input type="tel" id="phone" placeholder="05xxxxxxxx">
+  <button onclick="searchCard()">بحث</button>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+const TSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?output=tsv";
+
+async function searchCard() {
+  const phone = document.getElementById("phone").value.trim();
+  const result = document.getElementById("result");
+
+  if (!phone.startsWith("05") || phone.length !== 10) {
+    result.style.display = "block";
+    result.className = "result error";
+    result.textContent = "❌ الرجاء إدخال رقم جوال صحيح";
+    return;
+  }
+
+  try {
+    const tsv = await fetch(TSV_URL).then(r => r.text());
+    const rows = tsv.split("\n").map(r => r.split("\t"));
+
+    const header = rows[0].map(h => h.trim());
+    const data = rows.slice(1);
+
+    const colPhone = header.indexOf("phone_number");
+    const colMembership = header.indexOf("membership");
+
+    const customer = data.find(r => r[colPhone]?.trim() === phone);
+
+    if (!customer) {
+      result.style.display = "block";
+      result.className = "result error";
+      result.textContent = "❌ لم يتم العثور على رقم عضوية لهذا الجوال";
+      return;
+    }
+
+    const membership = customer[colMembership];
+
+    result.style.display = "block";
+    result.className = "result success";
+    result.innerHTML = `
+      🎉 تم العثور على عضويتك<br><br>
+      <a href="loyalty.html?id=${membership}" 
+         style="color:#1976d2; font-size:20px; font-weight:bold;">
+        👉 اضغط هنا لفتح بطاقة الولاء
+      </a>
+    `;
+  } catch (err) {
+    result.style.display = "block";
+    result.className = "result error";
+    result.textContent = "⚠️ خطأ في تحميل البيانات";
+  }
+}
+</script>
+
+</body>
+</html>
