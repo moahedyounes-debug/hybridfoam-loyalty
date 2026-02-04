@@ -129,7 +129,7 @@ async function loadCard() {
 
 function createCard(name, points, level, lastVisit, subscription) {
   let tierClass = "bronze";
-  let star = "🥉";
+  let star = "🥇";
   let tierName = "Bronze";
 
   if (level.toLowerCase().includes("silver")) {
@@ -140,7 +140,7 @@ function createCard(name, points, level, lastVisit, subscription) {
 
   if (level.toLowerCase().includes("gold")) {
     tierClass = "gold";
-    star = "🥇";
+    star = "🥉";
     tierName = "Gold";
   }
 
