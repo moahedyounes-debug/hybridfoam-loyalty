@@ -27,11 +27,24 @@
   .tier-bar {
     height: 95px;
     color: white;
-    font-size: 28px;
+    font-size: 26px;
     font-weight: bold;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+  }
+
+  /* اللوقو في اليمين – أكبر */
+  .logo {
+    width: 80px;        /* الحجم الجديد */
+    position: absolute;
+    right: 12px;
+    top: 8px;
+    background: white;
+    padding: 5px;
+    border-radius: 10px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.25);
   }
 
   .gold   { background: linear-gradient(45deg, #d4af37, #b8921b); }
@@ -41,16 +54,6 @@
   .content {
     padding: 20px;
     text-align: right;
-  }
-
-  .logo {
-    width: 80px;
-    display: block;
-    margin: -40px auto 10px auto;
-    border-radius: 10px;
-    background: white;
-    padding: 5px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.2);
   }
 
   .row {
@@ -64,11 +67,11 @@
 
   .qr-box {
     text-align: center;
-    margin: 25px 0;
+    margin: 20px 0;
   }
 
   .qr-box img {
-    width: 170px;
+    width: 100px; /* QR أصغر */
   }
 
   .error {
@@ -141,16 +144,15 @@ function createCard(name, points, level, lastVisit, subscription) {
     tierName = "Gold";
   }
 
-  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
+  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
 
   document.getElementById("cardContainer").innerHTML = `
     <div class="card">
 
       <div class="tier-bar ${tierClass}">
         ${tierName} ${star}
+        <img src="logo.png" class="logo">
       </div>
-
-      <img src="logo.png" class="logo">
 
       <div class="content">
 
