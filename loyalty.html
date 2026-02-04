@@ -13,14 +13,14 @@ async function loadCard() {
     const data = rows.slice(1);
 
     // استخراج الأعمدة باستخدام findIndex + trim
-    const colName      = header.findIndex(h => h === "الاسم - Name");
-    const colMemberId  = header.findIndex(h => h === "رقم العضوية");
-    const colLevel     = header.findIndex(h => h === "مستوى العضوية");
-    const colPoints    = header.findIndex(h => h === "عدد النقاط");
-    const colLastVisit = header.findIndex(h => h === "تاريخ اخر زيارة");
+    const colName      = header.findIndex(h => h.trim() === "الاسم - Name");
+    const colMemberNum = header.findIndex(h => h.trim() === "رقم العضوية");
+    const colLevel     = header.findIndex(h => h.trim() === "مستوى العضوية");
+    const colPoints    = header.findIndex(h => h.trim() === "عدد النقاط");
+    const colLastVisit = header.findIndex(h => h.trim() === "تاريخ اخر زيارة");
 
     // البحث عن العميل
-    const customer = data.find(r => r[colMemberId]?.trim() === ID.trim());
+    const customer = data.find(r => r[colMemberNum]?.trim() === ID.trim());
 
     if (!customer) {
       showError("لم يتم العثور على العميل");
@@ -50,4 +50,33 @@ function createCard(name, points, level, lastVisit) {
 
   if (level.includes("Gold") || level.includes("ذهبي")) {
     tierClass = "gold";
-    star
+    star = "🥇";
+  }
+
+  document.getElementById("cardContainer").innerHTML = `
+    <div class="card ${tierClass}">
+      <div class="qr-area">🚗</div>
+
+      <div class="header">
+        <div class="logo">رغوة الهجين</div>
+        <div class="id">ID: ${ID}</div>
+      </div>
+
+      <div class="content">
+        <div class="name">${name}</div>
+        <div class="points">${points} <span class="star">${star}</span></div>
+        <div class="plate">آخر زيارة: ${lastVisit}</div>
+      </div>
+
+      <div class="footer">مستوى: ${level}</div>
+    </div>
+  `;
+}
+
+function showError(msg) {
+  document.getElementById("cardContainer").innerHTML =
+    `<div class="error">${msg}</div>`;
+}
+
+loadCard();
+</script>
