@@ -8,24 +8,64 @@
 <style>
   body {
     font-family: "Tahoma", sans-serif;
-    background: #f5f5f5;
+    background: #0d0d0d;
     margin: 0;
     padding: 20px;
     text-align: center;
+    color: white;
   }
 
   .card {
     width: 360px;
     margin: 0 auto;
     border-radius: 18px;
-    background: #ffffff;
-    box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    background: #1a1a1a;
+    box-shadow: 0 0 20px rgba(255,255,255,0.1);
     overflow: hidden;
+    border: 2px solid transparent;
+  }
+
+  /* VIP Black & Gold */
+  .vip {
+    background: linear-gradient(135deg, #000000, #1a1a1a);
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 25px rgba(212,175,55,0.4);
+  }
+
+  .vip .tier-bar {
+    background: linear-gradient(45deg, #000, #2b2b2b);
+    color: #d4af37;
+    text-shadow: 0 0 8px rgba(212,175,55,0.6);
+  }
+
+  .vip .tier-bar::after {
+    content: "👑 VIP";
+    position: absolute;
+    left: 15px;
+    font-size: 22px;
+    color: #d4af37;
+  }
+
+  /* Gold */
+  .gold {
+    background: linear-gradient(135deg, #d4af37, #b8921b);
+    border: 2px solid #000;
+  }
+
+  /* Silver */
+  .silver {
+    background: linear-gradient(135deg, #c0c0c0, #9e9e9e);
+    border: 2px solid #444;
+  }
+
+  /* Bronze */
+  .bronze {
+    background: linear-gradient(135deg, #cd7f32, #a65a1a);
+    border: 2px solid #5a3a1a;
   }
 
   .tier-bar {
     height: 95px;
-    color: white;
     font-size: 26px;
     font-weight: bold;
     display: flex;
@@ -45,13 +85,10 @@
     box-shadow: 0 0 6px rgba(0,0,0,0.25);
   }
 
-  .gold   { background: linear-gradient(45deg, #d4af37, #b8921b); }
-  .silver { background: linear-gradient(45deg, #c0c0c0, #9e9e9e); }
-  .bronze { background: linear-gradient(45deg, #cd7f32, #a65a1a); }
-
   .content {
     padding: 20px;
     text-align: right;
+    color: white;
   }
 
   .row {
@@ -69,7 +106,9 @@
   }
 
   .qr-box img {
-    width: 100px;
+    width: 110px;
+    border-radius: 10px;
+    border: 3px solid #d4af37;
   }
 
   .error {
@@ -80,7 +119,7 @@
 
   .add-home {
     width: 90%;
-    margin: 15px auto;
+    margin: 20px auto 25px;
     padding: 14px;
     background: #1976d2;
     color: white;
@@ -100,7 +139,6 @@
 <script>
 const ID = new URLSearchParams(location.search).get("id");
 
-// رابط صفحة Data
 const TSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?gid=1729020190&single=true&output=tsv";
 
@@ -143,28 +181,30 @@ async function loadCard() {
 
 function createCard(name, points, level, lastVisit, subscription, freeWash) {
   let tierClass = "bronze";
-  let star = "🥉";
   let tierName = "Bronze";
 
   if (level.toLowerCase().includes("silver")) {
     tierClass = "silver";
-    star = "🥈";
     tierName = "Silver";
   }
 
   if (level.toLowerCase().includes("gold")) {
     tierClass = "gold";
-    star = "🥇";
     tierName = "Gold";
+  }
+
+  if (level.toLowerCase().includes("vip")) {
+    tierClass = "vip";
+    tierName = "VIP";
   }
 
   const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
 
   document.getElementById("cardContainer").innerHTML = `
-    <div class="card">
+    <div class="card ${tierClass}">
 
-      <div class="tier-bar ${tierClass}">
-        ${tierName} ${star}
+      <div class="tier-bar">
+        ${tierName}
         <img src="logo.png" class="logo">
       </div>
 
@@ -174,8 +214,6 @@ function createCard(name, points, level, lastVisit, subscription, freeWash) {
         <div class="row"><span class="label">رقم العضوية:</span> ${ID}</div>
         <div class="row"><span class="label">النقاط:</span> ${points}</div>
 
-        <div class="add-home" onclick="addToHome()">📱 أضف البطاقة للشاشة الرئيسية</div>
-
         <div class="qr-box">
           <img src="${qrURL}">
         </div>
@@ -183,6 +221,8 @@ function createCard(name, points, level, lastVisit, subscription, freeWash) {
         <div class="row"><span class="label">الاشتراك الشهري:</span> ${subscription}</div>
         <div class="row"><span class="label">غسيل مجاني:</span> ${freeWash}</div>
         <div class="row"><span class="label">آخر زيارة:</span> ${lastVisit}</div>
+
+        <div class="add-home" onclick="addToHome()">📱 أضف البطاقة للشاشة الرئيسية</div>
 
       </div>
     </div>
