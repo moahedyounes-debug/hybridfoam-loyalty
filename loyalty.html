@@ -15,43 +15,45 @@
   }
 
   .card {
-    width: 330px;
+    width: 350px;
     margin: 0 auto;
     padding: 20px;
-    border-radius: 16px;
-    color: #fff;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    text-align: right;
+  }
+
+  .gold   { border-top: 10px solid #d4af37; }
+  .silver { border-top: 10px solid #c0c0c0; }
+  .bronze { border-top: 10px solid #cd7f32; }
+
+  .title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 15px;
     text-align: center;
   }
 
-  .bronze { background: #cd7f32; }
-  .silver { background: #c0c0c0; color: #000; }
-  .gold   { background: #d4af37; color: #000; }
+  .row {
+    margin: 10px 0;
+    font-size: 18px;
+  }
 
-  .header {
+  .label {
+    font-weight: bold;
+  }
+
+  .qr-box {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #999;
+    margin: 15px auto;
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    font-size: 18px;
-  }
-
-  .logo {
-    font-weight: bold;
-  }
-
-  .content .name {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-
-  .points {
-    font-size: 20px;
-    margin-bottom: 10px;
-  }
-
-  .footer {
-    margin-top: 15px;
-    font-size: 18px;
+    justify-content: center;
+    align-items: center;
+    color: #777;
+    font-size: 14px;
   }
 
   .error {
@@ -67,24 +69,25 @@
 <div id="cardContainer"></div>
 
 <script>
-const ID = new URLSearchParams(location.search).get("id") || "202601";
+const ID = new URLSearchParams(location.search).get("id");
 
-const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?gid=1442675414&single=true&output=csv";
+const TSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?output=tsv";
 
 async function loadCard() {
   try {
-    const csv = await fetch(CSV_URL).then(r => r.text());
-    const rows = csv.split("\n").map(r => r.split(","));
+    const tsv = await fetch(TSV_URL).then(r => r.text());
+    const rows = tsv.split("\n").map(r => r.split("\t"));
 
     const header = rows[0].map(h => h.trim());
     const data = rows.slice(1);
 
-    const colName      = header.indexOf("الاسم - Name");
-    const colMemberNum = header.indexOf("رقم العضوية");
-    const colLevel     = header.indexOf("مستوى العضوية");
-    const colPoints    = header.indexOf("عدد النقاط");
-    const colLastVisit = header.indexOf("تاريخ اخر زيارة");
+    const colName      = header.indexOf("name");
+    const colMemberNum = header.indexOf("membership");
+    const colLevel     = header.indexOf("level");
+    const colPoints    = header.indexOf("points");
+    const colLastVisit = header.indexOf("last_visit");
+    const colSubscription = header.indexOf("Monthly Subscription");
 
     const customer = data.find(r => String(r[colMemberNum]).trim() === String(ID).trim());
 
@@ -97,42 +100,42 @@ async function loadCard() {
     const points = customer[colPoints]?.trim() || "0";
     const level = customer[colLevel]?.trim() || "Bronze";
     const lastVisit = customer[colLastVisit]?.trim() || "-";
+    const subscription = customer[colSubscription]?.trim() || "-";
 
-    createCard(name, points, level, lastVisit);
+    createCard(name, points, level, lastVisit, subscription);
 
   } catch (err) {
     showError("خطأ في تحميل البيانات");
   }
 }
 
-function createCard(name, points, level, lastVisit) {
+function createCard(name, points, level, lastVisit, subscription) {
   let tierClass = "bronze";
   let star = "🥉";
 
-  if (level.includes("Silver") || level.includes("فضي")) {
+  if (level.toLowerCase().includes("silver")) {
     tierClass = "silver";
     star = "🥈";
   }
 
-  if (level.includes("Gold") || level.includes("ذهبي")) {
+  if (level.toLowerCase().includes("gold")) {
     tierClass = "gold";
     star = "🥇";
   }
 
   document.getElementById("cardContainer").innerHTML = `
     <div class="card ${tierClass}">
-      <div class="header">
-        <div class="logo">رغوة الهجين</div>
-        <div class="id">ID: ${ID}</div>
-      </div>
+      <div class="title">بطاقة الولاء – رغوة الهجين</div>
 
-      <div class="content">
-        <div class="name">${name}</div>
-        <div class="points">${points} <span>${star}</span></div>
-        <div class="plate">آخر زيارة: ${lastVisit}</div>
-      </div>
+      <div class="row"><span class="label">الاسم:</span> ${name}</div>
+      <div class="row"><span class="label">رقم العضوية:</span> ${ID}</div>
+      <div class="row"><span class="label">المستوى:</span> ${level} ${star}</div>
+      <div class="row"><span class="label">النقاط:</span> ${points}</div>
 
-      <div class="footer">مستوى: ${level}</div>
+      <div class="qr-box">QR هنا</div>
+
+      <div class="row"><span class="label">آخر زيارة:</span> ${lastVisit}</div>
+      <div class="row"><span class="label">الاشتراك الشهري:</span> ${subscription}</div>
     </div>
   `;
 }
