@@ -1,188 +1,73 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بطاقة رغوة الهجين - ID 63002</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: 'Arial', sans-serif; 
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-      min-height: 100vh; 
-      padding: 20px; 
-      direction: rtl;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #cardContainer { width: 100%; max-width: 350px; }
-    .card { 
-      width: 100%; 
-      height: 220px; 
-      margin: 20px auto; 
-      border-radius: 15px; 
-      position: relative; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      overflow: hidden;
-    }
-    .bronze { background: linear-gradient(135deg, #FF9800, #F57C00); }
-    .silver { background: linear-gradient(135deg, #BDBDBD, #9E9E9E); }
-    .gold { background: linear-gradient(135deg, #FFD700, #FFA000); }
-    
-    .header { 
-      height: 60px; 
-      background: rgba(255,255,255,0.2); 
-      padding: 10px 20px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      color: white; 
-      font-weight: bold;
-    }
-    .logo { font-size: 18px; }
-    .id { font-size: 14px; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 12px; }
-    
-    .content { 
-      padding: 25px 20px; 
-      color: white; 
-      height: 160px; 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: center;
-    }
-    .name { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
-    .points { 
-      font-size: 36px; 
-      font-weight: bold; 
-      margin: 10px 0; 
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    .star { font-size: 32px; margin-left: 10px; }
-    .plate { font-size: 16px; opacity: 0.9; margin-top: 5px; }
-    
-    .footer { 
-      position: absolute; 
-      bottom: 10px; 
-      left: 20px; 
-      right: 20px; 
-      color: rgba(255,255,255,0.8); 
-      font-size: 12px;
-    }
-    .qr-area { 
-      position: absolute; 
-      top: 15px; 
-      left: 15px; 
-      width: 80px; 
-      height: 80px; 
-      background: rgba(255,255,255,0.2); 
-      border-radius: 10px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-size: 28px;
-    }
-    
-    .checkin-btn { 
-      position: absolute; 
-      bottom: 80px; 
-      left: 50%; 
-      transform: translateX(-50%); 
-      padding: 12px 30px; 
-      background: rgba(255,255,255,0.9); 
-      color: #333; 
-      border: none; 
-      border-radius: 25px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      font-size: 14px;
-      transition: background 0.3s;
-    }
-    .checkin-btn:hover { background: white; }
-    .loading { text-align: center; color: #666; padding: 50px; font-size: 18px; }
-    .error { color: red; text-align: center; padding: 20px; }
-  </style>
-</head>
-<body>
-  <div id="cardContainer">
-    <div class="loading">جاري تحميل بطاقتك...</div>
-  </div>
+<script>
+const ID = new URLSearchParams(location.search).get('id') || '63002';
+const TSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?output=tsv";
 
-  <script>
-    const ID = new URLSearchParams(location.search).get('id') || '63002';
-    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycby0W8oknlKPUjPczd0E8mkxKMo7gys9RJjbw0r0lRwj6T1ycu4zjNRGhLMcCf68_Jsd/exec';
+async function loadCard() {
+  try {
+    const tsv = await fetch(TSV_URL).then(r => r.text());
+    const rows = tsv.split("\n").map(r => r.split("\t"));
 
+    const header = rows[0];
+    const data = rows.slice(1);
 
-    let points = 0;
-    let tier = 'bronze';
-    let name = 'معاهد يونس';
-    let plate = '';
+    const colName = header.indexOf("الاسم - Name");
+    const colMemberId = header.indexOf("رقم العضوية");
+    const colLevel = header.indexOf("مستوى العضوية");
+    const colPoints = header.indexOf("عدد النقاط");
+    const colLastVisit = header.indexOf("تاريخ اخر زيارة");
 
-    async function loadCard() {
-      try {
-        const response = await fetch(`${WEBAPP_URL}?id=${ID}`);
-        const data = await response.json();
-        if (data.status === 'success') {
-          name = data.name || name;
-          points = data.points || 0;
-          tier = data.tier || 'bronze';
-          plate = data.plate || '';
-          createCard();
-        } else {
-          showError('عميل غير موجود - تأكد من ID');
-        }
-      } catch (error) {
-        showError('خطأ في الاتصال - جرب لاحقاً');
-      }
+    const customer = data.find(r => r[colMemberId] == ID);
+
+    if (!customer) {
+      showError("لم يتم العثور على العميل");
+      return;
     }
 
-    function createCard() {
-      const tiers = {
-        bronze: { class: 'bronze', color1: '#FF9800', color2: '#F57C00', star: '🥉' },
-        silver: { class: 'silver', color1: '#BDBDBD', color2: '#9E9E9E', star: '🥈' },
-        gold: { class: 'gold', color1: '#FFD700', color2: '#FFA000', star: '🥇' }
-      };
-      const currentTier = tiers[tier];
+    const name = customer[colName];
+    const points = customer[colPoints];
+    const level = customer[colLevel];
+    const lastVisit = customer[colLastVisit];
 
-      document.getElementById('cardContainer').innerHTML = `
-        <div class="card ${currentTier.class}">
-          <div class="qr-area">🚗</div>
-          <div class="header">
-            <div class="logo">رغوة الهجين</div>
-            <div class="id">ID: ${ID}</div>
-          </div>
-          <div class="content">
-            <div class="name">${name}</div>
-            <div class="points">${points} <span class="star">${currentTier.star}</span></div>
-            <div class="plate">${plate}</div>
-          </div>
-          <button class="checkin-btn" onclick="checkIn()">غسل اليوم (+10 نقاط)</button>
-          <div class="footer">مستوى ${tier.toUpperCase()}</div>
-        </div>
-      `;
-    }
+    createCard(name, points, level, lastVisit);
 
-    async function checkIn() {
-      try {
-        await fetch(WEBAPP_URL, {
-          method: 'POST',
-          body: new URLSearchParams({ id: ID })
-        });
-        loadCard();  // تحديث فوري
-        alert('✅ تم تسجيل الغسلة! +10 نقاط');
-      } catch (error) {
-        alert('❌ خطأ - تأكد من Apps Script');
-      }
-    }
+  } catch (err) {
+    showError("خطأ في تحميل البيانات");
+  }
+}
 
-    function showError(msg) {
-      document.getElementById('cardContainer').innerHTML = `<div class="error">${msg}</div>`;
-    }
+function createCard(name, points, level, lastVisit) {
+  let tierClass = "bronze";
+  let star = "🥉";
 
-    // تحميل أول مرة
-    loadCard();
-    // تحديث كل 30 ثانية
-    setInterval(loadCard, 30000);
-  </script>
-</body>
-</html>
+  if (level.includes("Silver") || level.includes("فضي")) {
+    tierClass = "silver";
+    star = "🥈";
+  }
+  if (level.includes("Gold") || level.includes("ذهبي")) {
+    tierClass = "gold";
+    star = "🥇";
+  }
+
+  document.getElementById('cardContainer').innerHTML = `
+    <div class="card ${tierClass}">
+      <div class="qr-area">🚗</div>
+      <div class="header">
+        <div class="logo">رغوة الهجين</div>
+        <div class="id">ID: ${ID}</div>
+      </div>
+      <div class="content">
+        <div class="name">${name}</div>
+        <div class="points">${points} <span class="star">${star}</span></div>
+        <div class="plate">آخر زيارة: ${lastVisit}</div>
+      </div>
+      <div class="footer">مستوى ${level}</div>
+    </div>
+  `;
+}
+
+function showError(msg) {
+  document.getElementById('cardContainer').innerHTML = `<div class="error">${msg}</div>`;
+}
+
+loadCard();
+</script>
