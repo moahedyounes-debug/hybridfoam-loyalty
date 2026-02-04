@@ -28,19 +28,32 @@
   /* VIP Black & Gold — حدود عريضة جدًا */
   .vip {
     background: linear-gradient(135deg, #000000, #1a1a1a);
-    border: 10px solid #d4af37; /* ← دبل الحدود */
-    box-shadow: 0 0 45px rgba(212,175,55,0.6);
+    border: 8px solid #d4af37; /* ← دبل الحدود */
+    box-shadow: 0 0 55px rgba(212,175,55,0.7);
   }
 
-  /* تاج VIP في المنتصف 100٪ */
+  /* تاج VIP في المنتصف */
   .vip .vip-crown {
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 42px;
+    font-size: 45px;
     color: #d4af37;
     text-shadow: 0 0 12px rgba(212,175,55,0.8);
+    z-index: 20;
+  }
+
+  /* كلمة VIP تحت التاج */
+  .vip .vip-text {
+    position: absolute;
+    top: 55px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
+    font-weight: bold;
+    color: #d4af37;
+    text-shadow: 0 0 8px rgba(212,175,55,0.7);
     z-index: 20;
   }
 
@@ -163,7 +176,7 @@ async function loadCard() {
     }
 
     const name = customer[colName]?.trim() || "";
-       const points = customer[colPoints]?.trim() || "0";
+    const points = customer[colPoints]?.trim() || "0";
     const level = customer[colLevel]?.trim() || "Bronze";
     const lastVisit = customer[colLastVisit]?.trim() || "-";
     const subscription = customer[colSubscription]?.trim() || "-";
@@ -188,7 +201,10 @@ function createCard(name, points, level, lastVisit, subscription, freeWash) {
   document.getElementById("cardContainer").innerHTML = `
     <div class="card ${tierClass}">
 
-      ${tierClass === "vip" ? `<div class="vip-crown">👑</div>` : ""}
+      ${tierClass === "vip" ? `
+        <div class="vip-crown">👑</div>
+        <div class="vip-text">VIP</div>
+      ` : ""}
 
       <div class="tier-bar">
         <img src="logo.png" class="logo">
