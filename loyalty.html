@@ -89,7 +89,7 @@ async function loadCard() {
     const colLastVisit = header.findIndex(h => h.trim() === "تاريخ اخر زيارة");
 
     // البحث عن العميل
-    const customer = data.find(r => r[colMemberNum]?.trim() === ID.trim());
+    const customer = data.find(r => String(r[colMemberNum]).trim() === String(ID).trim());
 
     if (!customer) {
       showError("لم يتم العثور على العميل");
