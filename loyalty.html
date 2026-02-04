@@ -22,61 +22,52 @@
     background: #1a1a1a;
     box-shadow: 0 0 20px rgba(255,255,255,0.1);
     overflow: hidden;
-    position: relative;
+    border: 2px solid transparent;
   }
 
-  /* VIP Black & Gold — حدود عريضة جدًا */
+  /* VIP Black & Gold */
   .vip {
     background: linear-gradient(135deg, #000000, #1a1a1a);
-    border: 8px solid #d4af37; /* ← دبل الحدود */
-    box-shadow: 0 0 55px rgba(212,175,55,0.7);
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 25px rgba(212,175,55,0.4);
   }
 
-  /* تاج VIP في المنتصف */
-  .vip .vip-crown {
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 45px;
+  .vip .tier-bar {
+    background: linear-gradient(45deg, #000, #2b2b2b);
     color: #d4af37;
-    text-shadow: 0 0 12px rgba(212,175,55,0.8);
-    z-index: 20;
+    text-shadow: 0 0 8px rgba(212,175,55,0.6);
   }
 
-  /* كلمة VIP تحت التاج */
-  .vip .vip-text {
+  .vip .tier-bar::after {
+    content: "👑 VIP";
     position: absolute;
-    top: 55px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 15px;
     font-size: 22px;
-    font-weight: bold;
     color: #d4af37;
-    text-shadow: 0 0 8px rgba(212,175,55,0.7);
-    z-index: 20;
   }
 
   /* Gold */
   .gold {
     background: linear-gradient(135deg, #d4af37, #b8921b);
-    border: 6px solid #000;
+    border: 2px solid #000;
   }
 
   /* Silver */
   .silver {
     background: linear-gradient(135deg, #c0c0c0, #9e9e9e);
-    border: 6px solid #444;
+    border: 2px solid #444;
   }
 
   /* Bronze */
   .bronze {
     background: linear-gradient(135deg, #cd7f32, #a65a1a);
-    border: 6px solid #5a3a1a;
+    border: 2px solid #5a3a1a;
   }
 
   .tier-bar {
     height: 95px;
+    font-size: 26px;
+    font-weight: bold;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -92,7 +83,6 @@
     padding: 5px;
     border-radius: 10px;
     box-shadow: 0 0 6px rgba(0,0,0,0.25);
-    z-index: 10;
   }
 
   .content {
@@ -191,22 +181,30 @@ async function loadCard() {
 
 function createCard(name, points, level, lastVisit, subscription, freeWash) {
   let tierClass = "bronze";
+  let tierName = "Bronze";
 
-  if (level.toLowerCase().includes("silver")) tierClass = "silver";
-  if (level.toLowerCase().includes("gold")) tierClass = "gold";
-  if (level.toLowerCase().includes("vip")) tierClass = "vip";
+  if (level.toLowerCase().includes("silver")) {
+    tierClass = "silver";
+    tierName = "Silver";
+  }
+
+  if (level.toLowerCase().includes("gold")) {
+    tierClass = "gold";
+    tierName = "Gold";
+  }
+
+  if (level.toLowerCase().includes("vip")) {
+    tierClass = "vip";
+    tierName = "VIP";
+  }
 
   const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
 
   document.getElementById("cardContainer").innerHTML = `
     <div class="card ${tierClass}">
 
-      ${tierClass === "vip" ? `
-        <div class="vip-crown">👑</div>
-        <div class="vip-text">VIP</div>
-      ` : ""}
-
       <div class="tier-bar">
+        ${tierName}
         <img src="logo.png" class="logo">
       </div>
 
@@ -240,10 +238,22 @@ function addToHome() {
   const ua = navigator.userAgent.toLowerCase();
 
   if (ua.includes("iphone") || ua.includes("ipad")) {
-    alert("لإضافة البطاقة للشاشة الرئيسية:\n\n1) اضغط زر المشاركة\n2) اختر Add to Home Screen\n3) اضغط Add");
-  } else if (ua.includes("android")) {
-    alert("لإضافة البطاقة للشاشة الرئيسية:\n\n1) اضغط على القائمة (⋮)\n2) اختر Add to Home Screen\n3) اضغط Add");
-  } else {
+    alert(
+      "لإضافة البطاقة للشاشة الرئيسية:\n\n" +
+      "1) اضغط زر المشاركة (Share)\n" +
+      "2) اختر: Add to Home Screen\n" +
+      "3) اضغط Add"
+    );
+  } 
+  else if (ua.includes("android")) {
+    alert(
+      "لإضافة البطاقة للشاشة الرئيسية:\n\n" +
+      "1) اضغط على القائمة (⋮)\n" +
+      "2) اختر: Add to Home Screen\n" +
+      "3) اضغط Add"
+    );
+  } 
+  else {
     alert("ميزة الإضافة للشاشة الرئيسية تعمل على iPhone و Android فقط.");
   }
 }
