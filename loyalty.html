@@ -15,24 +15,42 @@
   }
 
   .card {
-    width: 350px;
+    width: 360px;
     margin: 0 auto;
-    padding: 20px;
     border-radius: 18px;
     background: #ffffff;
     box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+
+  /* الشريط العلوي */
+  .tier-bar {
+    height: 90px;
+    color: white;
+    font-size: 26px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .gold   { background: linear-gradient(45deg, #d4af37, #b8921b); }
+  .silver { background: linear-gradient(45deg, #c0c0c0, #9e9e9e); }
+  .bronze { background: linear-gradient(45deg, #cd7f32, #a65a1a); }
+
+  .content {
+    padding: 20px;
     text-align: right;
   }
 
-  .gold   { border-top: 10px solid #d4af37; }
-  .silver { border-top: 10px solid #c0c0c0; }
-  .bronze { border-top: 10px solid #cd7f32; }
-
-  .title {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    text-align: center;
+  .logo {
+    width: 90px;
+    display: block;
+    margin: -45px auto 10px auto;
+    border-radius: 10px;
+    background: white;
+    padding: 5px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
   }
 
   .row {
@@ -45,15 +63,12 @@
   }
 
   .qr-box {
-    width: 120px;
-    height: 120px;
-    border: 2px dashed #999;
-    margin: 15px auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #777;
-    font-size: 14px;
+    text-align: center;
+    margin: 25px 0;
+  }
+
+  .qr-box img {
+    width: 160px;
   }
 
   .error {
@@ -112,31 +127,45 @@ async function loadCard() {
 function createCard(name, points, level, lastVisit, subscription) {
   let tierClass = "bronze";
   let star = "🥉";
+  let tierName = "Bronze";
 
   if (level.toLowerCase().includes("silver")) {
     tierClass = "silver";
     star = "🥈";
+    tierName = "Silver";
   }
 
   if (level.toLowerCase().includes("gold")) {
     tierClass = "gold";
     star = "🥇";
+    tierName = "Gold";
   }
 
-document.getElementById("cardContainer").innerHTML = `
-    <div class="card ${tierClass}">
+  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
+
+  document.getElementById("cardContainer").innerHTML = `
+    <div class="card">
+
+      <div class="tier-bar ${tierClass}">
+        ${tierName} ${star}
+      </div>
+
       <img src="logo.png" class="logo">
-      <div class="title">بطاقة الولاء – رغوة الهجين</div>
 
-      <div class="row"><span class="label">الاسم:</span> ${name}</div>
-      <div class="row"><span class="label">رقم العضوية:</span> ${ID}</div>
-      <div class="row"><span class="label">المستوى:</span> ${level} ${star}</div>
-      <div class="row"><span class="label">النقاط:</span> ${points}</div>
+      <div class="content">
 
-      <div class="qr-box">QR هنا</div>
+        <div class="row"><span class="label">الاسم:</span> ${name}</div>
+        <div class="row"><span class="label">رقم العضوية:</span> ${ID}</div>
+        <div class="row"><span class="label">النقاط:</span> ${points}</div>
 
-      <div class="row"><span class="label">آخر زيارة:</span> ${lastVisit}</div>
-      <div class="row"><span class="label">الاشتراك الشهري:</span> ${subscription}</div>
+        <div class="qr-box">
+          <img src="${qrURL}">
+        </div>
+
+        <div class="row"><span class="label">الاشتراك الشهري:</span> ${subscription}</div>
+        <div class="row"><span class="label">آخر زيارة:</span> ${lastVisit}</div>
+
+      </div>
     </div>
   `;
 }
