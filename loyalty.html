@@ -77,6 +77,19 @@
     font-size: 20px;
     margin-top: 40px;
   }
+
+  .add-home {
+    width: 90%;
+    margin: 15px auto;
+    padding: 14px;
+    background: #1976d2;
+    color: white;
+    border-radius: 12px;
+    font-size: 18px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+  }
 </style>
 </head>
 
@@ -161,6 +174,8 @@ function createCard(name, points, level, lastVisit, subscription, freeWash) {
         <div class="row"><span class="label">رقم العضوية:</span> ${ID}</div>
         <div class="row"><span class="label">النقاط:</span> ${points}</div>
 
+        <div class="add-home" onclick="addToHome()">📱 أضف البطاقة للشاشة الرئيسية</div>
+
         <div class="qr-box">
           <img src="${qrURL}">
         </div>
@@ -177,6 +192,30 @@ function createCard(name, points, level, lastVisit, subscription, freeWash) {
 function showError(msg) {
   document.getElementById("cardContainer").innerHTML =
     `<div class="error">${msg}</div>`;
+}
+
+function addToHome() {
+  const ua = navigator.userAgent.toLowerCase();
+
+  if (ua.includes("iphone") || ua.includes("ipad")) {
+    alert(
+      "لإضافة البطاقة للشاشة الرئيسية:\n\n" +
+      "1) اضغط زر المشاركة (Share)\n" +
+      "2) اختر: Add to Home Screen\n" +
+      "3) اضغط Add"
+    );
+  } 
+  else if (ua.includes("android")) {
+    alert(
+      "لإضافة البطاقة للشاشة الرئيسية:\n\n" +
+      "1) اضغط على القائمة (⋮)\n" +
+      "2) اختر: Add to Home Screen\n" +
+      "3) اضغط Add"
+    );
+  } 
+  else {
+    alert("ميزة الإضافة للشاشة الرئيسية تعمل على iPhone و Android فقط.");
+  }
 }
 
 loadCard();
