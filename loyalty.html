@@ -123,8 +123,9 @@ function createCard(name, points, level, lastVisit, subscription) {
     star = "🥇";
   }
 
-  document.getElementById("cardContainer").innerHTML = `
+document.getElementById("cardContainer").innerHTML = `
     <div class="card ${tierClass}">
+      <img src="logo.png" class="logo">
       <div class="title">بطاقة الولاء – رغوة الهجين</div>
 
       <div class="row"><span class="label">الاسم:</span> ${name}</div>
