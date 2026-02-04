@@ -68,8 +68,13 @@
       transform: translateY(-3px); 
       box-shadow: 0 12px 30px rgba(255,152,0,0.6);
     }
-    .btn-secondary { background: linear-gradient(45deg, #BDBDBD, #9E9E9E); box-shadow: 0 8px 20px rgba(189,189,189,0.4); }
-    .btn-secondary:hover { box-shadow: 0 12px 30px rgba(189,189,189,0.6); }
+    .btn-secondary { 
+      background: linear-gradient(45deg, #25D366, #1ebe5d); 
+      box-shadow: 0 8px 20px rgba(37,211,102,0.4); 
+    }
+    .btn-secondary:hover { 
+      box-shadow: 0 12px 30px rgba(37,211,102,0.6); 
+    }
     .qr-demo { 
       margin-top: 30px; 
       font-size: 12px; 
@@ -90,10 +95,19 @@
 
   <div class="container">
     <h2>اختر الخدمة</h2>
-    <p>للموظفين: تسجيل عملاء جدد<br>للعملاء: عرض بطاقة الولاء</p>
+    <p>للموظفين: تسجيل عملاء جدد<br>للعملاء: طلب بطاقة الولاء</p>
 
-    <a class="btn" href="register.html">📝 تسجيل عميل جديد</a>
-    <a class="btn btn-secondary" href="loyalty.html">⭐ عرض بطاقة الولاء</a>
+    <!-- زر تسجيل عميل جديد (Google Form) -->
+    <a class="btn" href="https://forms.gle/wvdrwvL4r4qK2Kvh8" target="_blank">
+      📝 تسجيل عميل جديد
+    </a>
+
+    <!-- زر واتساب لطلب بطاقة الولاء -->
+    <a class="btn btn-secondary"
+       href="https://wa.me/966500000000?text=السلام عليكم، أبغى بطاقة الولاء. رقم العضوية هو: _______"
+       target="_blank">
+      ⭐ طلب بطاقة الولاء عبر واتساب
+    </a>
     
     <div class="qr-demo">
       مثال QR: loyalty.html?id=63002<br>
