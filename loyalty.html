@@ -25,43 +25,39 @@
     border: 2px solid transparent;
   }
 
-  /* VIP Black & Gold */
+  /* VIP Black & Gold — حواف عريضة */
   .vip {
     background: linear-gradient(135deg, #000000, #1a1a1a);
-    border: 2px solid #d4af37;
-    box-shadow: 0 0 25px rgba(212,175,55,0.4);
+    border: 5px solid #d4af37;
+    box-shadow: 0 0 35px rgba(212,175,55,0.5);
+    position: relative;
   }
 
-  .vip .tier-bar {
-    background: linear-gradient(45deg, #000, #2b2b2b);
-    color: #d4af37;
-    text-shadow: 0 0 8px rgba(212,175,55,0.6);
-  }
-
+  /* تاج VIP في المنتصف */
   .vip .tier-bar::after {
-    content: "👑 VIP";
+    content: "👑";
     position: absolute;
-    left: 15px;
-    font-size: 22px;
+    top: 8px;
+    font-size: 32px;
     color: #d4af37;
   }
 
   /* Gold */
   .gold {
     background: linear-gradient(135deg, #d4af37, #b8921b);
-    border: 2px solid #000;
+    border: 3px solid #000;
   }
 
   /* Silver */
   .silver {
     background: linear-gradient(135deg, #c0c0c0, #9e9e9e);
-    border: 2px solid #444;
+    border: 3px solid #444;
   }
 
   /* Bronze */
   .bronze {
     background: linear-gradient(135deg, #cd7f32, #a65a1a);
-    border: 2px solid #5a3a1a;
+    border: 3px solid #5a3a1a;
   }
 
   .tier-bar {
@@ -181,21 +177,18 @@ async function loadCard() {
 
 function createCard(name, points, level, lastVisit, subscription, freeWash) {
   let tierClass = "bronze";
-  let tierName = "Bronze";
+  let tierName = "";
 
   if (level.toLowerCase().includes("silver")) {
     tierClass = "silver";
-    tierName = "Silver";
   }
 
   if (level.toLowerCase().includes("gold")) {
     tierClass = "gold";
-    tierName = "Gold";
   }
 
   if (level.toLowerCase().includes("vip")) {
     tierClass = "vip";
-    tierName = "VIP";
   }
 
   const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
