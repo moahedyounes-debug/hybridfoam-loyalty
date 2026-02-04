@@ -1,78 +1,177 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>بطاقة عضوية رغوة الهجين</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>رغوة الهجين - نظام الولاء</title>
 
-<style>
-  body {
-    font-family: "Tahoma", sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-    padding: 20px;
-    text-align: center;
-  }
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, sans-serif; 
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+      min-height: 100vh; 
+      direction: rtl;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: white;
+    }
+    header { 
+      text-align: center; 
+      margin-bottom: 40px;
+    }
+    .logo { 
+      font-size: 36px; 
+      font-weight: bold; 
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      margin-bottom: 10px;
+    }
+    .subtitle { 
+      font-size: 18px; 
+      opacity: 0.9;
+    }
+    .container { 
+      background: rgba(255,255,255,0.1); 
+      backdrop-filter: blur(10px);
+      border-radius: 20px; 
+      padding: 40px; 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      max-width: 400px;
+      width: 100%;
+    }
+    h2 { 
+      font-size: 24px; 
+      margin-bottom: 20px; 
+    }
+    p { 
+      font-size: 16px; 
+      margin-bottom: 30px; 
+      opacity: 0.9;
+      line-height: 1.8;
+    }
+    .btn { 
+      display: block; 
+      padding: 18px 30px; 
+      background: linear-gradient(45deg, #FF9800, #F57C00); 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 50px; 
+      font-size: 18px; 
+      font-weight: bold; 
+      margin: 15px 0; 
+      box-shadow: 0 8px 20px rgba(255,152,0,0.4);
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .btn:hover { 
+      transform: translateY(-3px); 
+      box-shadow: 0 12px 30px rgba(255,152,0,0.6);
+    }
+    .btn-secondary { 
+      background: linear-gradient(45deg, #25D366, #1ebe5d); 
+      box-shadow: 0 8px 20px rgba(37,211,102,0.4); 
+    }
+    .btn-secondary:hover { 
+      box-shadow: 0 12px 30px rgba(37,211,102,0.6); 
+    }
 
-  .card {
-    width: 350px;
-    margin: 0 auto;
-    padding: 20px;
-    border-radius: 18px;
-    background: #ffffff;
-    box-shadow: 0 0 12px rgba(0,0,0,0.15);
-    text-align: right;
-  }
+    input {
+      width: 100%;
+      padding: 16px;
+      margin: 12px 0;
+      border-radius: 12px;
+      border: 2px solid #ddd;
+      font-size: 16px;
+    }
 
-  .logo {
-    width: 150px;
-    display: block;
-    margin: 0 auto 15px auto;
-  }
+    button {
+      width: 100%;
+      padding: 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
 
-  .gold   { border-top: 10px solid #d4af37; }
-  .silver { border-top: 10px solid #c0c0c0; }
-  .bronze { border-top: 10px solid #cd7f32; }
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      display: none;
+    }
 
-  .title {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    text-align: center;
-  }
+    .success {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 2px solid #4CAF50;
+    }
 
-  .row {
-    margin: 10px 0;
-    font-size: 18px;
-  }
-
-  .label {
-    font-weight: bold;
-  }
-
-  .qr-box {
-    margin: 20px auto;
-  }
-
-  .error {
-    color: red;
-    font-size: 20px;
-    margin-top: 40px;
-  }
-</style>
+    .error {
+      background: #ffebee;
+      color: #c62828;
+      border: 2px solid #e53935;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="cardContainer"></div>
+  <header>
+    <div class="logo">🚗 رغوة الهجين</div>
+    <div class="subtitle">نظام الولاء الذكي لغسيل السيارات</div>
+  </header>
+
+  <div class="container">
+    <h2>اختر الخدمة</h2>
+
+    <p>
+      للعملاء: تسجيل كعميل جديد<br>
+      للعملاء: البحث عن رقم العضوية<br>
+      للعملاء: طلب بطاقة الولاء
+    </p>
+
+    <!-- زر تسجيل عميل جديد (Google Form) -->
+    <a class="btn" href="https://forms.gle/wvdrwvL4r4qK2Kvh8" target="_blank">
+      📝 تسجيل كعميل جديد
+    </a>
+
+    <!-- خانة البحث عن رقم العضوية -->
+    <input type="tel" id="phone" placeholder="أدخل رقم الجوال (05xxxxxxxx)">
+    <button onclick="searchID()">🔍 بحث عن رقم العضوية</button>
+
+    <div id="result"></div>
+
+    <!-- زر واتساب -->
+    <a class="btn btn-secondary"
+       href="https://wa.me/966582007063?text=السلام عليكم، أبغى بطاقة الولاء."
+       target="_blank">
+      ⭐ طلب بطاقة الولاء عبر واتساب
+    </a>
 
 <script>
-const ID = new URLSearchParams(location.search).get("id");
-
 const TSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?output=tsv";
 
-async function loadCard() {
+async function searchID() {
+  const phone = document.getElementById("phone").value.trim();
+  const result = document.getElementById("result");
+
+  if (!phone.startsWith("05") || phone.length !== 10) {
+    result.style.display = "block";
+    result.className = "error";
+    result.textContent = "❌ الرجاء إدخال رقم جوال صحيح";
+    return;
+  }
+
   try {
     const tsv = await fetch(TSV_URL).then(r => r.text());
     const rows = tsv.split("\n").map(r => r.split("\t"));
@@ -80,77 +179,36 @@ async function loadCard() {
     const header = rows[0].map(h => h.trim());
     const data = rows.slice(1);
 
-    const colName      = header.indexOf("name");
-    const colMemberNum = header.indexOf("membership");
-    const colLevel     = header.indexOf("level");
-    const colPoints    = header.indexOf("points");
-    const colLastVisit = header.indexOf("last_visit");
-    const colSubscription = header.indexOf("Monthly Subscription");
+    const colPhone = header.indexOf("phone_number");
+    const colMembership = header.indexOf("membership");
 
-    const customer = data.find(r => String(r[colMemberNum]).trim() === String(ID).trim());
+    const customer = data.find(r => r[colPhone]?.trim() === phone);
 
     if (!customer) {
-      showError("لم يتم العثور على العميل");
+      result.style.display = "block";
+      result.className = "error";
+      result.textContent = "❌ لم يتم العثور على رقم عضوية لهذا الجوال";
       return;
     }
 
-    const name = customer[colName]?.trim() || "";
-    const points = customer[colPoints]?.trim() || "0";
-    const level = customer[colLevel]?.trim() || "Bronze";
-    const lastVisit = customer[colLastVisit]?.trim() || "-";
-    const subscription = customer[colSubscription]?.trim() || "-";
+    const membership = customer[colMembership];
 
-    createCard(name, points, level, lastVisit, subscription);
+    result.style.display = "block";
+    result.className = "success";
+    result.innerHTML = `
+      ✅ رقم العضوية: <strong>${membership}</strong><br><br>
+      <a href="loyalty.html?id=${membership}" 
+         style="color:#1976d2; font-size:18px; font-weight:bold;">
+        👉 اضغط هنا لفتح بطاقة الولاء
+      </a>
+    `;
 
   } catch (err) {
-    showError("خطأ في تحميل البيانات");
+    result.style.display = "block";
+    result.className = "error";
+    result.textContent = "⚠️ خطأ في تحميل البيانات";
   }
 }
-
-function createCard(name, points, level, lastVisit, subscription) {
-  let tierClass = "bronze";
-  let star = "🥉";
-
-  if (level.toLowerCase().includes("silver")) {
-    tierClass = "silver";
-    star = "🥈";
-  }
-
-  if (level.toLowerCase().includes("gold")) {
-    tierClass = "gold";
-    star = "🥇";
-  }
-
-  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
-
-  document.getElementById("cardContainer").innerHTML = `
-    <div class="card ${tierClass}">
-      
-      <img src="logo.png" class="logo">
-
-      <div class="title">بطاقة الولاء – رغوة الهجين</div>
-
-      <div class="row"><span class="label">الاسم:</span> ${name}</div>
-      <div class="row"><span class="label">رقم العضوية:</span> ${ID}</div>
-      <div class="row"><span class="label">المستوى:</span> ${level} ${star}</div>
-      <div class="row"><span class="label">النقاط:</span> ${points}</div>
-
-      <div class="qr-box">
-        <img src="${qrURL}" width="160">
-      </div>
-
-      <div class="row"><span class="label">آخر زيارة:</span> ${lastVisit}</div>
-      <div class="row"><span class="label">الاشتراك الشهري:</span> ${subscription}</div>
-    </div>
-  `;
-}
-
-function showError(msg) {
-  document.getElementById("cardContainer").innerHTML =
-    `<div class="error">${msg}</div>`;
-}
-
-loadCard();
 </script>
 
 </body>
