@@ -8,17 +8,31 @@
 <style>
   body {
     font-family: "Tahoma", sans-serif;
-    background: #ffffff;
+    background: #0d0d0d;
     margin: 0;
     padding: 0;
     text-align: center;
+    color: white;
   }
 
-  /* اللوقو */
-  .logo {
-    width: 140px;
-    margin: 35px auto 10px;
-    display: block;
+  /* الهيدر */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 25px 0 10px;
+  }
+
+  .header img {
+    width: 55px;
+    height: 55px;
+    border-radius: 12px;
+  }
+
+  .header-title {
+    font-size: 28px;
+    font-weight: bold;
   }
 
   .box {
@@ -26,8 +40,8 @@
     margin: 0 auto;
     padding: 25px;
     border-radius: 18px;
-    background: #ffffff;
-    box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    background: #1a1a1a;
+    box-shadow: 0 0 12px rgba(255,255,255,0.1);
     text-align: center;
   }
 
@@ -36,14 +50,16 @@
     padding: 14px;
     margin: 12px 0;
     border-radius: 10px;
-    border: 2px solid #ccc;
+    border: 2px solid #444;
+    background: #111;
+    color: white;
     font-size: 16px;
   }
 
   button {
     width: 100%;
     padding: 14px;
-    background: #4CAF50;
+    background: #1976d2;
     color: white;
     border: none;
     border-radius: 10px;
@@ -52,7 +68,7 @@
   }
 
   button:hover {
-    background: #45a049;
+    background: #0f5fb8;
   }
 
   .result {
@@ -86,21 +102,23 @@
 
 <body>
 
-<!-- اللوقو -->
-<img src="logo.png" class="logo">
+<!-- الهيدر مع اللوقو يمين -->
+<div class="header">
+  <img src="logo.png">
+  <div class="header-title">رغوة الهجين</div>
+</div>
 
 <div class="box">
-  <h2>🔍 البحث عن بطاقة الولاء</h2>
-  <p>أدخل رقم جوالك للحصول على رابط بطاقة عضويتك</p>
+  <h3 style="margin-top:0;">استعلم عن بطاقة العضوية برقم الجوال</h3>
 
   <input type="tel" id="phone" placeholder="05xxxxxxxx">
-  <button onclick="searchCard()">بحث</button>
+  <button onclick="searchCard()">استعراض البطاقة</button>
 
   <div id="result" class="result"></div>
 </div>
 
 <script>
-// قراءة من صفحة Data
+// القراءة من صفحة Data
 const TSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?gid=1729020190&single=true&output=tsv";
 
@@ -108,7 +126,6 @@ async function searchCard() {
   const phone = document.getElementById("phone").value.trim();
   const result = document.getElementById("result");
 
-  // إظهار "جاري البحث"
   result.style.display = "block";
   result.className = "result loading";
   result.textContent = "⏳ جاري البحث...";
