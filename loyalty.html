@@ -64,31 +64,28 @@
 
 <body>
 
-<!-- مكان ظهور البطاقة -->
 <div id="cardContainer"></div>
 
 <script>
 const ID = new URLSearchParams(location.search).get("id") || "202601";
 
-const TSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?output=tsv";
+const CSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?gid=1442675414&single=true&output=csv";
 
 async function loadCard() {
   try {
-    const tsv = await fetch(TSV_URL).then(r => r.text());
-    const rows = tsv.split("\n").map(r => r.split("\t"));
+    const csv = await fetch(CSV_URL).then(r => r.text());
+    const rows = csv.split("\n").map(r => r.split(","));
 
     const header = rows[0].map(h => h.trim());
     const data = rows.slice(1);
 
-    // استخراج الأعمدة باستخدام findIndex + trim
-    const colName      = header.findIndex(h => h.trim() === "الاسم - Name");
-    const colMemberNum = header.findIndex(h => h.trim() === "رقم العضوية");
-    const colLevel     = header.findIndex(h => h.trim() === "مستوى العضوية");
-    const colPoints    = header.findIndex(h => h.trim() === "عدد النقاط");
-    const colLastVisit = header.findIndex(h => h.trim() === "تاريخ اخر زيارة");
+    const colName      = header.indexOf("الاسم - Name");
+    const colMemberNum = header.indexOf("رقم العضوية");
+    const colLevel     = header.indexOf("مستوى العضوية");
+    const colPoints    = header.indexOf("عدد النقاط");
+    const colLastVisit = header.indexOf("تاريخ اخر زيارة");
 
-    // البحث عن العميل
     const customer = data.find(r => String(r[colMemberNum]).trim() === String(ID).trim());
 
     if (!customer) {
