@@ -8,10 +8,17 @@
 <style>
   body {
     font-family: "Tahoma", sans-serif;
-    background: #f5f5f5;
+    background: #ffffff;
     margin: 0;
-    padding: 20px;
+    padding: 0;
     text-align: center;
+  }
+
+  /* اللوقو */
+  .logo {
+    width: 140px;
+    margin: 35px auto 10px;
+    display: block;
   }
 
   .box {
@@ -68,10 +75,19 @@
     color: #c62828;
     border: 2px solid #e53935;
   }
+
+  .loading {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 2px solid #64b5f6;
+  }
 </style>
 </head>
 
 <body>
+
+<!-- اللوقو -->
+<img src="logo.png" class="logo">
 
 <div class="box">
   <h2>🔍 البحث عن بطاقة الولاء</h2>
@@ -84,15 +100,20 @@
 </div>
 
 <script>
+// قراءة من صفحة Data
 const TSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?output=tsv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?gid=1729020190&single=true&output=tsv";
 
 async function searchCard() {
   const phone = document.getElementById("phone").value.trim();
   const result = document.getElementById("result");
 
+  // إظهار "جاري البحث"
+  result.style.display = "block";
+  result.className = "result loading";
+  result.textContent = "⏳ جاري البحث...";
+
   if (!phone.startsWith("05") || phone.length !== 10) {
-    result.style.display = "block";
     result.className = "result error";
     result.textContent = "❌ الرجاء إدخال رقم جوال صحيح";
     return;
@@ -111,15 +132,19 @@ async function searchCard() {
     const customer = data.find(r => r[colPhone]?.trim() === phone);
 
     if (!customer) {
-      result.style.display = "block";
       result.className = "result error";
       result.textContent = "❌ لم يتم العثور على رقم عضوية لهذا الجوال";
       return;
     }
 
-    const membership = customer[colMembership];
+    const membership = customer[colMembership]?.trim();
 
-    result.style.display = "block";
+    if (!membership) {
+      result.className = "result error";
+      result.textContent = "⚠️ رقم العضوية غير موجود في السجل";
+      return;
+    }
+
     result.className = "result success";
     result.innerHTML = `
       🎉 تم العثور على عضويتك<br><br>
@@ -129,7 +154,6 @@ async function searchCard() {
       </a>
     `;
   } catch (err) {
-    result.style.display = "block";
     result.className = "result error";
     result.textContent = "⚠️ خطأ في تحميل البيانات";
   }
