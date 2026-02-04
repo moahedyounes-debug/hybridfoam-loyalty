@@ -23,7 +23,6 @@
     overflow: hidden;
   }
 
-  /* الشريط العلوي */
   .tier-bar {
     height: 95px;
     color: white;
@@ -35,9 +34,8 @@
     position: relative;
   }
 
-  /* اللوقو في اليمين – أكبر */
   .logo {
-    width: 80px;        /* الحجم الجديد */
+    width: 80px;
     position: absolute;
     right: 12px;
     top: 8px;
@@ -71,7 +69,7 @@
   }
 
   .qr-box img {
-    width: 100px; /* QR أصغر */
+    width: 100px;
   }
 
   .error {
@@ -89,8 +87,9 @@
 <script>
 const ID = new URLSearchParams(location.search).get("id");
 
+// رابط صفحة Data
 const TSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?output=tsv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?gid=1729020190&single=true&output=tsv";
 
 async function loadCard() {
   try {
@@ -105,7 +104,8 @@ async function loadCard() {
     const colLevel     = header.indexOf("level");
     const colPoints    = header.indexOf("points");
     const colLastVisit = header.indexOf("last_visit");
-    const colSubscription = header.indexOf("Monthly Subscription");
+    const colSubscription = header.indexOf("Subscription");
+    const colFreeWash = header.indexOf("Free Wash");
 
     const customer = data.find(r => String(r[colMemberNum]).trim() === String(ID).trim());
 
@@ -116,18 +116,19 @@ async function loadCard() {
 
     const name = customer[colName]?.trim() || "";
     const points = customer[colPoints]?.trim() || "0";
-    const level = customer[colLevel]?.trim() || "Bronzer";
+    const level = customer[colLevel]?.trim() || "Bronze";
     const lastVisit = customer[colLastVisit]?.trim() || "-";
     const subscription = customer[colSubscription]?.trim() || "-";
+    const freeWash = customer[colFreeWash]?.trim() || "-";
 
-    createCard(name, points, level, lastVisit, subscription);
+    createCard(name, points, level, lastVisit, subscription, freeWash);
 
   } catch (err) {
     showError("خطأ في تحميل البيانات");
   }
 }
 
-function createCard(name, points, level, lastVisit, subscription) {
+function createCard(name, points, level, lastVisit, subscription, freeWash) {
   let tierClass = "bronze";
   let star = "🥉";
   let tierName = "Bronze";
@@ -165,6 +166,7 @@ function createCard(name, points, level, lastVisit, subscription) {
         </div>
 
         <div class="row"><span class="label">الاشتراك الشهري:</span> ${subscription}</div>
+        <div class="row"><span class="label">غسيل مجاني:</span> ${freeWash}</div>
         <div class="row"><span class="label">آخر زيارة:</span> ${lastVisit}</div>
 
       </div>
