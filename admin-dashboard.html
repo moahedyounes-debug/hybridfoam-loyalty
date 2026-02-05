@@ -219,13 +219,13 @@ async function searchCustomer() {
     showMsg("");
 }
 
-// هنا منطق النقاط والمستوى
+// حساب النقاط والمستوى
 function calculateNewValues(visits, points) {
     visits = Number(visits) || 0;
     points = Number(points) || 0;
 
     visits += 1;
-    points += 10; // مثال: كل زيارة = 10 نقاط
+    points += 10;
 
     let level = "Bronze";
     if (points >= 200) level = "Gold";
@@ -258,7 +258,7 @@ async function registerVisit() {
     document.getElementById("c_points").textContent = points;
     document.getElementById("c_level").textContent = level;
 
-    // إرسال التحديث عبر Webhook (استبدل YOUR_WEBHOOK_URL برابطك)
+    // تجهيز البيانات
     const payload = {
         phone: row[colPhone],
         membership: row[colMembership],
@@ -268,15 +268,16 @@ async function registerVisit() {
     };
 
     try {
-        await fetch("YOUR_WEBHOOK_URL", {
+        await fetch("https://script.google.com/macros/s/AKfycby-ld_TTvYfzx8FGb4MGAqek8jaeaz506cdTEjii2qFv8tCaf54RQg1oUWqOkQUJ2A/exec", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(payload)
         });
 
         showMsg("✔ تم تسجيل الزيارة وتحديث النقاط", true);
+
     } catch (e) {
-        showMsg("⚠️ تم التحديث محليًا لكن فشل إرسال التحديث إلى الشيت");
+        showMsg("⚠️ فشل إرسال التحديث إلى الشيت");
     }
 }
 </script>
