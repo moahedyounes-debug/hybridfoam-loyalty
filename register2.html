@@ -10,55 +10,56 @@
         background: #000;
         color: #d4af37;
         font-family: "Tajawal", sans-serif;
-        padding: 20px;
         text-align: center;
+        padding: 25px;
     }
-
     h1 {
-        margin-bottom: 25px;
-        font-size: 28px;
-        font-weight: bold;
+        margin-bottom: 20px;
+        font-size: 26px;
     }
-
     .form-container {
-        background: #111;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.4);
+        border-radius: 16px;
         padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #d4af37;
-        max-width: 400px;
+        max-width: 420px;
         margin: auto;
+        backdrop-filter: blur(14px);
     }
-
-    input, select, textarea {
+    input, select {
         width: 100%;
         padding: 12px;
-        margin: 10px 0;
-        border-radius: 8px;
+        margin: 8px 0;
+        border-radius: 10px;
         border: 1px solid #d4af37;
         background: #000;
         color: #fff;
-        font-size: 16px;
+        font-size: 15px;
     }
-
     button {
         width: 100%;
-        padding: 14px;
-        background: #d4af37;
-        color: #000;
-        font-size: 18px;
-        font-weight: bold;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
+        padding: 13px;
         margin-top: 10px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.25s;
     }
-
     button:hover {
-        background: #b8962f;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(212,175,55,0.55);
+    }
+    #msg {
+        margin-top: 10px;
+        min-height: 20px;
+        font-size: 14px;
     }
 </style>
 </head>
-
 <body>
 
 <h1>تسجيل عميل جديد</h1>
@@ -66,41 +67,98 @@
 <div class="form-container">
     <form id="regForm">
 
-        <input type="text" name="name" placeholder="الاسم" required>
+        <input type="text" id="name" placeholder="الاسم" required>
 
-        <input type="tel" name="phone" placeholder="رقم الجوال" required>
+        <input type="tel" id="phone" placeholder="رقم الجوال (05XXXXXXXX)" required>
 
-        <input type="text" name="car" placeholder="نوع السيارة" required>
+        <input type="text" id="car" placeholder="نوع السيارة" required>
 
-        <select name="city" required>
+        <select id="size" required>
+            <option value="">حجم السيارة</option>
+            <option value="سيدان">سيدان</option>
+            <option value="هاتشباك">هاتشباك</option>
+            <option value="SUV">SUV</option>
+            <option value="بيك أب">بيك أب</option>
+            <option value="فان">فان</option>
+        </select>
+
+        <select id="city" required>
             <option value="">اختر المدينة</option>
             <option value="مكة">مكة</option>
         </select>
 
-        <select name="subscription" required>
-            <option value="">نوع الاشتراك</option>
-            <option value="شهري">شهري</option>
-            <option value="بدون اشتراك">بدون اشتراك</option>
-        </select>
+        <input type="text" id="plate_numbers" placeholder="أرقام اللوحة (مثال: 1234)" required>
 
-        <textarea name="notes" placeholder="ملاحظات (اختياري)"></textarea>
+        <input type="text" id="plate_letters" placeholder="حروف اللوحة (مثال: أ ب ج)" required>
 
         <button type="submit">تسجيل</button>
     </form>
+
+    <div id="msg"></div>
 </div>
 
 <script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6BzRM4ZztTywwKWnD9h1NHcagC2LCVlAnAlegghDb7x1BDwL9K7mf5ySXD5IgCs_Ahw/exec";
+
 document.getElementById("regForm").addEventListener("submit", function(e){
     e.preventDefault();
 
-    const formData = new FormData(this);
+    const msg = document.getElementById("msg");
+    msg.style.color = "#d4af37";
+    msg.textContent = "⏳ جاري تسجيل العميل...";
 
-    fetch("https://script.google.com/macros/s/AKfycbxrsEJCfBoNu33TIwDf_H_yxmAvZhWKP0Qa-rMwlmHtj1uhUE6S6cmLaIhSatJvFpW5/exec", {
-        method: "POST",
-        body: formData
+    const phone = document.getElementById("phone").value.trim();
+    const plate_numbers = document.getElementById("plate_numbers").value.trim();
+
+    if (!phone.startsWith("05") || phone.length !== 10) {
+        msg.style.color = "red";
+        msg.textContent = "❌ الرجاء إدخال رقم جوال صحيح";
+        return;
+    }
+
+    if (plate_numbers.length < 3) {
+        msg.style.color = "red";
+        msg.textContent = "❌ الرجاء إدخال أرقام لوحة صحيحة";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("action", "register");
+    formData.append("name", document.getElementById("name").value);
+    formData.append("phone", phone);
+    formData.append("car", document.getElementById("car").value);
+    formData.append("size", document.getElementById("size").value);
+    formData.append("city", document.getElementById("city").value);
+    formData.append("plate_numbers", plate_numbers);
+    formData.append("plate_letters", document.getElementById("plate_letters").value);
+
+    fetch(SCRIPT_URL, { method: "POST", body: formData })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            msg.style.color = "#4cff4c";
+            msg.textContent = "✔ تم التسجيل بنجاح";
+
+            sessionStorage.setItem("login_phone", phone);
+            sessionStorage.setItem("login_plate", plate_numbers);
+
+            setTimeout(() => {
+                window.location.href = "verify.html";
+            }, 800);
+        } 
+        else if (data.error === "exists") {
+            msg.style.color = "red";
+            msg.textContent = "❌ رقم الجوال أو أرقام اللوحة مسجلة مسبقًا";
+        } 
+        else {
+            msg.style.color = "red";
+            msg.textContent = "❌ حدث خطأ غير متوقع";
+        }
     })
-    .then(res => alert("تم تسجيل العميل بنجاح"))
-    .catch(err => alert("حدث خطأ، حاول مرة أخرى"));
+    .catch(() => {
+        msg.style.color = "red";
+        msg.textContent = "❌ فشل الاتصال بالخادم";
+    });
 });
 </script>
 
