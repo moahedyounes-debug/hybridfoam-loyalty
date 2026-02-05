@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رمز التحقق</title>
+
+<style>
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .logo {
+        width: 80px;
+        margin-top: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(212,175,55,0.4);
+    }
+
+    h1 {
+        margin-top: 15px;
+        font-size: 26px;
+        text-shadow: 0 0 10px rgba(212,175,55,0.4);
+    }
+
+    .box {
+        margin-top: 35px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        backdrop-filter: blur(14px);
+        padding: 30px;
+        border-radius: 20px;
+        max-width: 380px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    input {
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 20px;
+        margin-bottom: 15px;
+        text-align: center;
+        letter-spacing: 5px;
+    }
+
+    button {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+        transition: 0.25s;
+    }
+
+    button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(212,175,55,0.55);
+    }
+
+    #msg {
+        margin-top: 15px;
+        font-size: 16px;
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<img src="logo.png" class="logo">
+<h1>رمز التحقق</h1>
+
+<div class="box">
+    <p>تم إرسال رمز التحقق إلى رقمك</p>
+    <input type="number" id="otpInput" placeholder="••••" maxlength="4">
+    <button onclick="verifyOTP()">تأكيد</button>
+    <div id="msg"></div>
+</div>
+
+<script>
+function getQueryParam(key) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(key);
+}
+
+const phone = getQueryParam("phone");
+
+function verifyOTP() {
+    const entered = document.getElementById("otpInput").value.trim();
+    const realOTP = sessionStorage.getItem("otp");
+
+    const msg = document.getElementById("msg");
+
+    if (entered === realOTP) {
+        msg.style.display = "block";
+        msg.style.color = "#d4af37";
+        msg.textContent = "✔ تم التحقق بنجاح";
+
+        setTimeout(() => {
+            window.location.href = "myaccount.html?phone=" + phone;
+        }, 1000);
+
+    } else {
+        msg.style.display = "block";
+        msg.style.color = "#ff6b6b";
+        msg.textContent = "❌ رمز التحقق غير صحيح";
+    }
+}
+</script>
+
+</body>
+</html>
