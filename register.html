@@ -140,7 +140,7 @@
     </p>
 
     <!-- زر تسجيل عميل جديد (Google Form) -->
-    <a class="btn" href="https://github.com/moahedyounes-debug/hybridfoam-loyalty/blob/main/register2.html">
+    <a class="btn" href="register2.html">
       📝 تسجيل كعميل جديد
     </a>
 
@@ -179,7 +179,7 @@ async function searchID() {
     const header = rows[0].map(h => h.trim());
     const data = rows.slice(1);
 
-    const colPhone = header.indexOf("phone_number");
+    const colPhone = header.indexOf("phone");
     const colMembership = header.indexOf("membership");
 
     const customer = data.find(r => r[colPhone]?.trim() === phone);
