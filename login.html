@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول</title>
+
+<style>
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .logo {
+        width: 80px;
+        margin-top: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(212,175,55,0.4);
+    }
+
+    h1 {
+        margin-top: 15px;
+        font-size: 26px;
+        text-shadow: 0 0 10px rgba(212,175,55,0.4);
+    }
+
+    .box {
+        margin-top: 35px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        backdrop-filter: blur(14px);
+        padding: 30px;
+        border-radius: 20px;
+        max-width: 380px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    input {
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    button {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+        transition: 0.25s;
+    }
+
+    button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(212,175,55,0.55);
+    }
+
+    #msg {
+        margin-top: 15px;
+        font-size: 16px;
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<img src="logo.png" class="logo">
+<h1>تسجيل الدخول</h1>
+
+<div class="box">
+    <input type="tel" id="phone" placeholder="أدخل رقم الجوال (05xxxxxxxx)">
+    <button onclick="sendOTP()">متابعة</button>
+    <div id="msg"></div>
+</div>
+
+<script>
+const TSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGsSQZa_qFzanpx0wxm9oX-p4UDzZ55rQVfaX-6R5AkX4JgSBZ2R_BJsw5uvf9eWPphsfYbo9vrd8E/pub?output=tsv";
+
+async function sendOTP() {
+    const phone = document.getElementById("phone").value.trim();
+    const msg = document.getElementById("msg");
+
+    if (!phone.startsWith("05") || phone.length !== 10) {
+        msg.style.display = "block";
+        msg.style.color = "#ff6b6b";
+        msg.textContent = "❌ الرجاء إدخال رقم جوال صحيح";
+        return;
+    }
+
+    try {
+        const tsv = await fetch(TSV_URL).then(r => r.text());
+        const rows = tsv.split("\n").map(r => r.split("\t"));
+
+        const header = rows[0].map(h => h.trim());
+        const data = rows.slice(1);
+
+        const colPhone = header.indexOf("phone");
+
+        const customer = data.find(r => r[colPhone]?.trim() === phone);
+
+        if (!customer) {
+            msg.style.display = "block";
+            msg.style.color = "#ff6b6b";
+            msg.textContent = "❌ رقم الجوال غير مسجل";
+            return;
+        }
+
+        // توليد رمز تحقق 4 أرقام
+        const otp = Math.floor(1000 + Math.random() * 9000);
+        sessionStorage.setItem("otp", otp);
+        sessionStorage.setItem("phone", phone);
+
+        msg.style.display = "block";
+        msg.style.color = "#d4af37";
+        msg.textContent = "✔ رمز التحقق هو: " + otp;
+
+        setTimeout(() => {
+            window.location.href = "verify.html?phone=" + phone;
+        }, 1500);
+
+    } catch (err) {
+        msg.style.display = "block";
+        msg.style.color = "#ff6b6b";
+        msg.textContent = "⚠️ خطأ في الاتصال";
+    }
+}
+</script>
+
+</body>
+</html>
