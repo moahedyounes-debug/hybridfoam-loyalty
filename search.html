@@ -1,137 +1,126 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>البحث عن بطاقة الولاء – رغوة الهجين</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>البحث عن رقم العضوية</title>
 
 <style>
-  body {
-    font-family: "Tahoma", sans-serif;
-    background: #0d0d0d;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    color: white;
-  }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* الهيدر */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 25px 0 10px;
-  }
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        padding: 25px;
+        text-align: center;
+    }
 
-  .header img {
-    width: 55px;
-    height: 55px;
-    border-radius: 12px;
-  }
+    .logo-img {
+        width: 70px;
+        border-radius: 12px;
+        margin-top: 25px;
+        box-shadow: 0 0 20px rgba(212,175,55,0.4);
+        border: 1px solid rgba(212,175,55,0.4);
+    }
 
-  .header-title {
-    font-size: 28px;
-    font-weight: bold;
-  }
+    h1 {
+        margin-top: 15px;
+        font-size: 26px;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(212,175,55,0.4);
+    }
 
-  .box {
-    width: 350px;
-    margin: 0 auto;
-    padding: 25px;
-    border-radius: 18px;
-    background: #1a1a1a;
-    box-shadow: 0 0 12px rgba(255,255,255,0.1);
-    text-align: center;
-  }
+    .box {
+        margin-top: 35px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        backdrop-filter: blur(14px);
+        padding: 30px;
+        border-radius: 20px;
+        max-width: 380px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    }
 
-  input {
-    width: 100%;
-    padding: 14px;
-    margin: 12px 0;
-    border-radius: 10px;
-    border: 2px solid #444;
-    background: #111;
-    color: white;
-    font-size: 16px;
-  }
+    input {
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
 
-  button {
-    width: 100%;
-    padding: 14px;
-    background: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 18px;
-    cursor: pointer;
-  }
+    button {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+        transition: 0.25s;
+    }
 
-  button:hover {
-    background: #0f5fb8;
-  }
+    button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(212,175,55,0.55);
+    }
 
-  .result {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 12px;
-    font-size: 18px;
-    font-weight: bold;
-    display: none;
-  }
+    #result {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        display: none;
+    }
 
-  .success {
-    background: #e8f5e9;
-    color: #2e7d32;
-    border: 2px solid #4CAF50;
-  }
+    .success {
+        background: rgba(212,175,55,0.15);
+        color: #d4af37;
+        border: 1px solid #d4af37;
+    }
 
-  .error {
-    background: #ffebee;
-    color: #c62828;
-    border: 2px solid #e53935;
-  }
-
-  .loading {
-    background: #e3f2fd;
-    color: #1565c0;
-    border: 2px solid #64b5f6;
-  }
+    .error {
+        background: rgba(255,0,0,0.15);
+        color: #ff6b6b;
+        border: 1px solid #ff6b6b;
+    }
 </style>
 </head>
 
 <body>
 
-<!-- الهيدر مع اللوقو يمين -->
-<div class="header">
-  <img src="logo.png">
-  <div class="header-title">رغوة الهجين</div>
-</div>
+<img src="logo.png" class="logo-img" alt="Logo">
+<h1>البحث عن رقم العضوية</h1>
 
 <div class="box">
-  <h3 style="margin-top:0;">استعلم عن بطاقة العضوية برقم الجوال</h3>
+    <input type="tel" id="phone" placeholder="أدخل رقم الجوال (05xxxxxxxx)">
+    <button onclick="searchID()">بحث</button>
 
-  <input type="tel" id="phone" placeholder="05xxxxxxxx">
-  <button onclick="searchCard()">استعراض البطاقة</button>
-
-  <div id="result" class="result"></div>
+    <div id="result"></div>
 </div>
 
 <script>
-// القراءة من صفحة Data
 const TSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?gid=1729020190&single=true&output=tsv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn82QQuX16qq18nCwC0EswqAzieO4rGxsCtxT2ONDax-4Mww9AVYJBWNM0ZJkancrNefNVPZVZWTxc/pub?output=tsv";
 
-async function searchCard() {
+async function searchID() {
   const phone = document.getElementById("phone").value.trim();
   const result = document.getElementById("result");
 
-  result.style.display = "block";
-  result.className = "result loading";
-  result.textContent = "⏳ جاري البحث...";
-
   if (!phone.startsWith("05") || phone.length !== 10) {
-    result.className = "result error";
+    result.style.display = "block";
+    result.className = "error";
     result.textContent = "❌ الرجاء إدخال رقم جوال صحيح";
     return;
   }
@@ -143,35 +132,33 @@ async function searchCard() {
     const header = rows[0].map(h => h.trim());
     const data = rows.slice(1);
 
-    const colPhone = header.indexOf("phone_number");
+    const colPhone = header.indexOf("phone");
     const colMembership = header.indexOf("membership");
 
     const customer = data.find(r => r[colPhone]?.trim() === phone);
 
     if (!customer) {
-      result.className = "result error";
+      result.style.display = "block";
+      result.className = "error";
       result.textContent = "❌ لم يتم العثور على رقم عضوية لهذا الجوال";
       return;
     }
 
-    const membership = customer[colMembership]?.trim();
+    const membership = customer[colMembership];
 
-    if (!membership) {
-      result.className = "result error";
-      result.textContent = "⚠️ رقم العضوية غير موجود في السجل";
-      return;
-    }
-
-    result.className = "result success";
+    result.style.display = "block";
+    result.className = "success";
     result.innerHTML = `
-      🎉 تم العثور على عضويتك<br><br>
+      ✅ رقم العضوية: <strong>${membership}</strong><br><br>
       <a href="loyalty.html?id=${membership}" 
-         style="color:#1976d2; font-size:20px; font-weight:bold;">
+         style="color:#d4af37; font-size:18px; font-weight:bold;">
         👉 اضغط هنا لفتح بطاقة الولاء
       </a>
     `;
+
   } catch (err) {
-    result.className = "result error";
+    result.style.display = "block";
+    result.className = "error";
     result.textContent = "⚠️ خطأ في تحميل البيانات";
   }
 }
