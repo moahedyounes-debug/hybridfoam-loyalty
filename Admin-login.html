@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دخول الإدارة</title>
+
+<style>
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .logo {
+        width: 80px;
+        margin-top: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(212,175,55,0.4);
+    }
+
+    h1 {
+        margin-top: 15px;
+        font-size: 26px;
+        text-shadow: 0 0 10px rgba(212,175,55,0.4);
+    }
+
+    .box {
+        margin-top: 35px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        backdrop-filter: blur(14px);
+        padding: 30px;
+        border-radius: 20px;
+        max-width: 380px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+        transition: 0.25s;
+    }
+
+    button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(212,175,55,0.55);
+    }
+
+    #msg {
+        margin-top: 15px;
+        font-size: 16px;
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<img src="logo.png" class="logo">
+<h1>دخول الإدارة</h1>
+
+<div class="box">
+    <input type="text" id="username" placeholder="اسم المستخدم">
+    <input type="password" id="password" placeholder="كلمة المرور">
+    <button onclick="adminLogin()">دخول</button>
+    <div id="msg"></div>
+</div>
+
+<script>
+const ADMIN_USER = "Hassan";
+const ADMIN_PASS = "Luffy@1995";
+
+function adminLogin() {
+    const u = document.getElementById("username").value.trim();
+    const p = document.getElementById("password").value.trim();
+    const msg = document.getElementById("msg");
+
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+        sessionStorage.setItem("admin_logged_in", "true");
+        msg.style.display = "block";
+        msg.style.color = "#d4af37";
+        msg.textContent = "✔ تم تسجيل الدخول بنجاح";
+
+        setTimeout(() => {
+            window.location.href = "admin-dashboard.html";
+        }, 800);
+    } else {
+        msg.style.display = "block";
+        msg.style.color = "#ff6b6b";
+        msg.textContent = "❌ بيانات الدخول غير صحيحة";
+    }
+}
+</script>
+
+</body>
+</html>
