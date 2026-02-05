@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الإدارة</title>
+
+<style>
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .logo {
+        width: 70px;
+        margin-top: 10px;
+        border-radius: 12px;
+        box-shadow: 0 0 18px rgba(212,175,55,0.4);
+    }
+
+    h1 {
+        margin-top: 10px;
+        font-size: 24px;
+        text-shadow: 0 0 10px rgba(212,175,55,0.4);
+    }
+
+    .box {
+        margin-top: 20px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        backdrop-filter: blur(14px);
+        padding: 20px;
+        border-radius: 18px;
+        max-width: 420px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: right;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 15px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+        transition: 0.25s;
+        margin-top: 5px;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(212,175,55,0.55);
+    }
+
+    .field {
+        margin-bottom: 8px;
+    }
+
+    .label {
+        font-size: 13px;
+        opacity: 0.8;
+    }
+
+    .value {
+        font-size: 17px;
+        font-weight: bold;
+        color: #fff;
+    }
+
+    #msg {
+        margin-top: 12px;
+        font-size: 15px;
+        text-align: center;
+    }
+</style>
+</head>
+
+<body>
+
+<img src="logo.png" class="logo">
+<h1>لوحة الإدارة</h1>
+
+<div id="msg"></div>
+
+<div class="box">
+    <h3 style="text-align:center;">بحث عن عميل</h3>
+    <input type="text" id="searchInput" placeholder="رقم الجوال أو رقم العضوية">
+    <button onclick="searchCustomer()">بحث</button>
+</div>
+
+<div id="customerBox" class="box" style="display:none;">
+    <h3 style="text-align:center;">بيانات العميل</h3>
+
+    <div class="field">
+        <div class="label">الاسم</div>
+        <div class="value" id="c_name"></div>
+    </div>
+
+    <div class="field">
+        <div class="label">رقم الجوال</div>
+        <div class="value" id="c_phone"></div>
+    </div>
+
+    <div class="field">
+        <div class="label">رقم العضوية</div>
+        <div class="value" id="c_membership"></div>
+    </div>
+
+    <div class="field">
+        <div class="label">عدد الزيارات</div>
+        <div class="value" id="c_visits"></div>
+    </div>
+
+    <div class="field">
+        <div class="label">النقاط</div>
+        <div class="value" id="c_points"></div>
+    </div>
+
+    <div class="field">
+        <div class="label">المستوى</div>
+        <div class="value" id="c_level"></div>
+    </div>
+
+    <button onclick="registerVisit()">تسجيل زيارة</button>
+</div>
+
+<script>
+const TSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGsSQZa_qFzanpx0wxm9oX-p4UDzZ55rQVfaX-6R5AkX4JgSBZ2R_BJsw5uvf9eWPphsfYbo9vrd8E/pub?output=tsv";
+
+// حماية الصفحة
+if (sessionStorage.getItem("admin_logged_in") !== "true") {
+    window.location.href = "admin-login.html";
+}
+
+let currentRowIndex = null;
+let header = [];
+let data = [];
+
+async function loadSheet() {
+    const tsv = await fetch(TSV_URL).then(r => r.text());
+    const rows = tsv.split("\n").map(r => r.split("\t"));
+    header = rows[0].map(h => h.trim());
+    data = rows.slice(1);
+}
+
+function showMsg(text, ok = false) {
+    const msg = document.getElementById("msg");
+    msg.style.display = "block";
+    msg.style.color = ok ? "#d4af37" : "#ff6b6b";
+    msg.textContent = text;
+}
+
+async function searchCustomer() {
+    const input = document.getElementById("searchInput").value.trim();
+    const box = document.getElementById("customerBox");
+
+    if (!input) {
+        showMsg("❌ أدخل رقم الجوال أو رقم العضوية");
+        return;
+    }
+
+    await loadSheet();
+
+    const colPhone = header.indexOf("phone");
+    const colMembership = header.indexOf("membership");
+    const colName = header.indexOf("name");
+    const colVisits = header.indexOf("visit_count");
+    const colPoints = header.indexOf("points");
+    const colLevel = header.indexOf("level");
+
+    currentRowIndex = null;
+
+    data.forEach((row, index) => {
+        const phone = row[colPhone]?.trim();
+        const membership = row[colMembership]?.trim();
+
+        if (phone === input || membership === input) {
+            currentRowIndex = index;
+        }
+    });
+
+    if (currentRowIndex === null) {
+        box.style.display = "none";
+        showMsg("❌ لم يتم العثور على عميل بهذا الرقم");
+        return;
+    }
+
+    const row = data[currentRowIndex];
+
+    document.getElementById("c_name").textContent = row[colName] || "-";
+    document.getElementById("c_phone").textContent = row[colPhone] || "-";
+    document.getElementById("c_membership").textContent = row[colMembership] || "-";
+    document.getElementById("c_visits").textContent = row[colVisits] || "0";
+    document.getElementById("c_points").textContent = row[colPoints] || "0";
+    document.getElementById("c_level").textContent = row[colLevel] || "-";
+
+    box.style.display = "block";
+    showMsg("");
+}
+
+// هنا منطق النقاط والمستوى
+function calculateNewValues(visits, points) {
+    visits = Number(visits) || 0;
+    points = Number(points) || 0;
+
+    visits += 1;
+    points += 10; // مثال: كل زيارة = 10 نقاط
+
+    let level = "Bronze";
+    if (points >= 200) level = "Gold";
+    else if (points >= 100) level = "Silver";
+
+    return { visits, points, level };
+}
+
+async function registerVisit() {
+    if (currentRowIndex === null) {
+        showMsg("❌ ابحث عن عميل أولاً");
+        return;
+    }
+
+    const colVisits = header.indexOf("visit_count");
+    const colPoints = header.indexOf("points");
+    const colLevel = header.indexOf("level");
+    const colMembership = header.indexOf("membership");
+    const colPhone = header.indexOf("phone");
+
+    const row = data[currentRowIndex];
+
+    const oldVisits = row[colVisits] || "0";
+    const oldPoints = row[colPoints] || "0";
+
+    const { visits, points, level } = calculateNewValues(oldVisits, oldPoints);
+
+    // تحديث العرض
+    document.getElementById("c_visits").textContent = visits;
+    document.getElementById("c_points").textContent = points;
+    document.getElementById("c_level").textContent = level;
+
+    // إرسال التحديث عبر Webhook (استبدل YOUR_WEBHOOK_URL برابطك)
+    const payload = {
+        phone: row[colPhone],
+        membership: row[colMembership],
+        visit_count: visits,
+        points: points,
+        level: level
+    };
+
+    try {
+        await fetch("YOUR_WEBHOOK_URL", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+
+        showMsg("✔ تم تسجيل الزيارة وتحديث النقاط", true);
+    } catch (e) {
+        showMsg("⚠️ تم التحديث محليًا لكن فشل إرسال التحديث إلى الشيت");
+    }
+}
+</script>
+
+</body>
+</html>
