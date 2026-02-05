@@ -1,157 +1,234 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>التحقق من الرمز</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>بطاقة عضوية رغوة الهجين</title>
 
 <style>
-    body {
-        background: #000;
-        color: #d4af37;
-        font-family: "Tajawal", sans-serif;
-        text-align: center;
-        padding: 30px;
-    }
+  body {
+    font-family: "Tahoma", sans-serif;
+    background: #0d0d0d;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+    color: white;
+  }
 
-    .box {
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(212,175,55,0.25);
-        backdrop-filter: blur(14px);
-        padding: 25px;
-        border-radius: 18px;
-        max-width: 380px;
-        margin: auto;
-        margin-top: 40px;
-        animation: fadeIn 0.8s ease;
-    }
+  .card {
+    width: 360px;
+    margin: 0 auto;
+    border-radius: 18px;
+    background: #1a1a1a;
+    box-shadow: 0 0 20px rgba(255,255,255,0.1);
+    overflow: hidden;
+    border: 2px solid transparent;
+  }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+  /* VIP Black & Gold */
+  .vip {
+    background: linear-gradient(135deg, #000000, #1a1a1a);
+    border: 5px solid #d4af37;
+    box-shadow: 0 0 25px rgba(212,175,55,0.4);
+  }
 
-    #codeBox, #pastedBox {
-        font-size: 32px;
-        font-weight: bold;
-        color: #fff;
-        margin: 15px 0;
-        letter-spacing: 6px;
-        padding: 10px;
-        border-radius: 10px;
-        background: rgba(255,255,255,0.08);
-    }
+  .vip .tier-bar {
+    background: linear-gradient(45deg, #000, #2b2b2b);
+    color: #d4af37;
+    text-shadow: 0 0 8px rgba(212,175,55,0.6);
+  }
 
-    button {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(45deg, #d4af37, #b8962f);
-        color: #000;
-        border: none;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        margin-top: 10px;
-        transition: 0.25s;
-    }
+  .vip .tier-bar::after {
+    content: "👑 ";
+    position: absolute;
+    top: 3px;
+    left: 165px;
+    font-size: 22px;
+    color: #d4af37;
+  }
 
-    button:disabled {
-        background: #444;
-        color: #777;
-        cursor: not-allowed;
-    }
+  /* Gold */
+  .gold {
+    background: linear-gradient(135deg, #d4af37, #b8921b);
+    border: 5px solid #000;
+  }
 
-    button:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(212,175,55,0.55);
-    }
+  /* Silver */
+  .silver {
+    background: linear-gradient(135deg, #c0c0c0, #9e9e9e);
+    border: 2px solid #444;
+  }
 
-    #msg {
-        margin-top: 12px;
-        font-size: 15px;
-        min-height: 20px;
-    }
+  /* Bronze */
+  .bronze {
+    background: linear-gradient(135deg, #cd7f32, #a65a1a);
+    border: 2px solid #5a3a1a;
+  }
+
+  .tier-bar {
+    height: 95px;
+    font-size: 26px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .logo {
+    width: 80px;
+    position: absolute;
+    right: 12px;
+    top: 8px;
+    background: white;
+    padding: 5px;
+    border-radius: 10px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.25);
+  }
+
+  .content {
+    padding: 20px;
+    text-align: right;
+    color: white;
+  }
+
+  .row {
+    margin: 10px 0;
+    font-size: 18px;
+  }
+
+  .label {
+    font-weight: bold;
+  }
+
+  .qr-box {
+    text-align: center;
+    margin: 20px 0;
+  }
+
+  .qr-box img {
+    width: 110px;
+    border-radius: 10px;
+    border: 3px solid #d4af37;
+  }
+
+  .small-link {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #d4af37;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .visit-box {
+    width: 360px;
+    margin: 0 auto;
+    padding: 20px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 16px;
+    border: 1px solid rgba(212,175,55,0.4);
+    display: none;
+  }
+
+  .back-btn {
+    margin-top: 20px;
+    padding: 12px;
+    background: #d4af37;
+    color: #000;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+  }
 </style>
 </head>
 
 <body>
 
-<h2>التحقق من الرمز</h2>
+<div id="cardContainer"></div>
 
-<div class="box">
-    <p>تم إنشاء رمز التحقق الخاص بك</p>
+<div class="small-link" id="loginLink">تسجيل الدخول لمراجعة الزيارات السابقة</div>
 
-    <!-- الكود الأصلي -->
-    <div id="codeBox"></div>
-
-    <button id="copyBtn" onclick="copyCode()">نسخ الرمز</button>
-
-    <button id="pasteBtn" onclick="pasteCode()" disabled>لصق الرمز</button>
-
-    <!-- الكود الملصوق يظهر هنا -->
-    <div id="pastedBox" style="display:none;"></div>
-
-    <!-- زر المتابعة موجود لكنه مقفول -->
-    <button id="continueBtn" onclick="goNext()" disabled>متابعة</button>
-
-    <div id="msg"></div>
-</div>
+<div id="visitBox" class="visit-box"></div>
 
 <script>
-    // توليد الكود
-    let code = Math.floor(1000 + Math.random() * 9000);
-    document.getElementById("codeBox").textContent = code;
+const API = "https://script.google.com/macros/s/AKfycbzgBrZRQ-CaJKw3WgFaXbQMR_UgWZUyixTuCQlkgP_zZ1i1dJlVSiO70Pqmb5aKEIi9Vw/exec";
 
-    // حفظ الكود
-    sessionStorage.setItem("verify_code", code);
+const phone = sessionStorage.getItem("login_phone");
+const plate = sessionStorage.getItem("login_plate");
 
-    // زر النسخ
-    function copyCode() {
-        navigator.clipboard.writeText(code).then(() => {
-            document.getElementById("msg").style.color = "#d4af37";
-            document.getElementById("msg").textContent = "✔ تم نسخ الرمز";
+if (!phone || !plate) {
+  document.body.innerHTML = "<h2>الرجاء التسجيل أولاً</h2>";
+}
 
-            // تفعيل زر اللصق
-            document.getElementById("pasteBtn").disabled = false;
-        });
-    }
+loadCard();
 
-    // زر اللصق
-    function pasteCode() {
-        navigator.clipboard.readText().then(text => {
+function loadCard() {
+  fetch(`${API}?action=getByPhone&phone=${phone}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
 
-            // عرض الكود الملصوق
-            const pastedBox = document.getElementById("pastedBox");
-            pastedBox.style.display = "block";
-            pastedBox.textContent = text;
+      const c = data.customer;
 
-            if (text == code) {
-                document.getElementById("msg").style.color = "#4cff4c";
-                document.getElementById("msg").textContent = "✔ الرمز مطابق";
+      const level = (c.level || "Bronze").toLowerCase();
+      let tierClass = "bronze";
+      let tierName = "Bronze";
 
-                // تفعيل زر المتابعة
-                document.getElementById("continueBtn").disabled = false;
+      if (level.includes("silver")) { tierClass = "silver"; tierName = "Silver"; }
+      if (level.includes("gold")) { tierClass = "gold"; tierName = "Gold"; }
+      if (level.includes("vip")) { tierClass = "vip"; tierName = "VIP"; }
 
-            } else {
-                document.getElementById("msg").style.color = "red";
-                document.getElementById("msg").textContent = "❌ الرمز غير مطابق";
-            }
-        });
-    }
+      const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${c.membership}`;
 
-    // الانتقال بعد الضغط على متابعة
-    function goNext() {
-        const phone = sessionStorage.getItem("login_phone");
+      document.getElementById("cardContainer").innerHTML = `
+        <div class="card ${tierClass}">
+          <div class="tier-bar">
+            ${tierName}
+            <img src="logo.png" class="logo">
+          </div>
 
-        if (!phone) {
-            alert("حدث خطأ في استرجاع رقم الجوال، الرجاء إعادة تسجيل الدخول");
-            window.location.href = "login.html";
-            return;
-        }
+          <div class="content">
+            <div class="row"><span class="label">الاسم:</span> ${c.name}</div>
+            <div class="row"><span class="label">رقم العضوية:</span> ${c.membership}</div>
+            <div class="row"><span class="label">رقم الجوال:</span> ${c.phone.replace("'", "")}</div>
+            <div class="row"><span class="label">السيارة:</span> ${c.car}</div>
+            <div class="row"><span class="label">اللوحة:</span> ${c.plate_numbers} - ${c.plate_letters}</div>
 
-        window.location.href = "myaccount.html?phone=" + phone;
-    }
+            <div class="qr-box">
+              <img src="${qrURL}">
+            </div>
+          </div>
+        </div>
+      `;
+    });
+}
+
+document.getElementById("loginLink").onclick = () => {
+  fetch(`${API}?action=getByPhone&phone=${phone}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
+
+      const c = data.customer;
+
+      document.getElementById("visitBox").style.display = "block";
+      document.getElementById("visitBox").innerHTML = `
+        <h2>سجل الزيارات</h2>
+        <div class="row"><span class="label">آخر زيارة:</span> ${c.last_visit || "-"}</div>
+        <div class="row"><span class="label">عدد الزيارات:</span> ${c.visit_count || 0}</div>
+        <div class="row"><span class="label">النقاط:</span> ${c.points || 0}</div>
+        <div class="row"><span class="label">المستوى:</span> ${c.level || "Bronze"}</div>
+        <div class="row"><span class="label">غسلة مجانية:</span> ${c.free_wash || "-"}</div>
+
+        <div class="back-btn" onclick="showCard()">إظهار البطاقة</div>
+      `;
+    });
+};
+
+function showCard() {
+  document.getElementById("visitBox").style.display = "none";
+  loadCard();
+}
 </script>
 
 </body>
