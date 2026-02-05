@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل عميل جديد</title>
+
+<style>
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        padding: 20px;
+        text-align: center;
+    }
+
+    h1 {
+        margin-bottom: 25px;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .form-container {
+        background: #111;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #d4af37;
+        max-width: 400px;
+        margin: auto;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border-radius: 8px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background: #d4af37;
+        color: #000;
+        font-size: 18px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #b8962f;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>تسجيل عميل جديد</h1>
+
+<div class="form-container">
+    <form id="regForm">
+
+        <input type="text" name="name" placeholder="الاسم" required>
+
+        <input type="tel" name="phone" placeholder="رقم الجوال" required>
+
+        <input type="text" name="car" placeholder="نوع السيارة" required>
+
+        <select name="city" required>
+            <option value="">اختر المدينة</option>
+            <option value="مكة">مكة</option>
+        </select>
+
+        <select name="subscription" required>
+            <option value="">نوع الاشتراك</option>
+            <option value="شهري">شهري</option>
+            <option value="بدون اشتراك">بدون اشتراك</option>
+        </select>
+
+        <textarea name="notes" placeholder="ملاحظات (اختياري)"></textarea>
+
+        <button type="submit">تسجيل</button>
+    </form>
+</div>
+
+<script>
+document.getElementById("regForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch("https://script.google.com/macros/s/AKfycbxrsEJCfBoNu33TIwDf_H_yxmAvZhWKP0Qa-rMwlmHtj1uhUE6S6cmLaIhSatJvFpW5/exec", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => alert("تم تسجيل العميل بنجاح"))
+    .catch(err => alert("حدث خطأ، حاول مرة أخرى"));
+});
+</script>
+
+</body>
+</html>
