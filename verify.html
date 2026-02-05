@@ -83,13 +83,13 @@
 <h2>التحقق من الرمز</h2>
 
 <div class="box">
-    <p>تم إرسال رمز التحقق إلى رقمك</p>
+    <p>تم إنشاء رمز التحقق الخاص بك</p>
 
     <div id="codeBox"></div>
 
     <button id="copyBtn" onclick="copyCode()">نسخ الرمز</button>
 
-    <button id="verifyBtn" onclick="goNext()" disabled>متابعة</button>
+    <button id="pasteBtn" onclick="pasteCode()" disabled>لصق الرمز</button>
 
     <div id="msg"></div>
 </div>
@@ -99,25 +99,39 @@
     let code = Math.floor(1000 + Math.random() * 9000);
     document.getElementById("codeBox").textContent = code;
 
-    // حفظ الكود في الجلسة
+    // حفظ الكود
     sessionStorage.setItem("verify_code", code);
 
+    // زر النسخ
     function copyCode() {
         navigator.clipboard.writeText(code).then(() => {
             const msg = document.getElementById("msg");
             msg.style.color = "#d4af37";
             msg.textContent = "✔ تم نسخ الرمز";
 
-            // انتظار قبل تفعيل زر المتابعة
-            setTimeout(() => {
-                document.getElementById("verifyBtn").disabled = false;
-                msg.textContent = "";
-            }, 1500);
+            // تفعيل زر اللصق
+            document.getElementById("pasteBtn").disabled = false;
         });
     }
 
-    function goNext() {
-        window.location.href = "myaccount.html?phone=" + sessionStorage.getItem("login_phone");
+    // زر اللصق
+    function pasteCode() {
+        navigator.clipboard.readText().then(text => {
+            if (text == code) {
+                document.getElementById("msg").style.color = "#4cff4c";
+                document.getElementById("msg").textContent = "✔ تم التحقق من الرمز";
+
+                // الانتقال تلقائيًا بعد ثانية
+                setTimeout(() => {
+                    const phone = sessionStorage.getItem("login_phone");
+                    window.location.href = "myaccount.html?phone=" + phone;
+                }, 1200);
+
+            } else {
+                document.getElementById("msg").style.color = "red";
+                document.getElementById("msg").textContent = "❌ الرمز غير مطابق";
+            }
+        });
     }
 </script>
 
