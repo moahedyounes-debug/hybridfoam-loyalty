@@ -31,18 +31,15 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    #codeBox {
-        font-size: 38px;
+    #codeBox, #pastedBox {
+        font-size: 32px;
         font-weight: bold;
         color: #fff;
-        margin: 20px 0;
-        letter-spacing: 8px;
-        animation: pop 0.6s ease;
-    }
-
-    @keyframes pop {
-        0% { transform: scale(0.6); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
+        margin: 15px 0;
+        letter-spacing: 6px;
+        padding: 10px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.08);
     }
 
     button {
@@ -85,11 +82,18 @@
 <div class="box">
     <p>تم إنشاء رمز التحقق الخاص بك</p>
 
+    <!-- الكود الأصلي -->
     <div id="codeBox"></div>
 
     <button id="copyBtn" onclick="copyCode()">نسخ الرمز</button>
 
     <button id="pasteBtn" onclick="pasteCode()" disabled>لصق الرمز</button>
+
+    <!-- الكود الملصوق يظهر هنا -->
+    <div id="pastedBox" style="display:none;"></div>
+
+    <!-- زر المتابعة موجود لكنه مقفول -->
+    <button id="continueBtn" onclick="goNext()" disabled>متابعة</button>
 
     <div id="msg"></div>
 </div>
@@ -105,9 +109,8 @@
     // زر النسخ
     function copyCode() {
         navigator.clipboard.writeText(code).then(() => {
-            const msg = document.getElementById("msg");
-            msg.style.color = "#d4af37";
-            msg.textContent = "✔ تم نسخ الرمز";
+            document.getElementById("msg").style.color = "#d4af37";
+            document.getElementById("msg").textContent = "✔ تم نسخ الرمز";
 
             // تفعيل زر اللصق
             document.getElementById("pasteBtn").disabled = false;
@@ -117,21 +120,37 @@
     // زر اللصق
     function pasteCode() {
         navigator.clipboard.readText().then(text => {
+
+            // عرض الكود الملصوق
+            const pastedBox = document.getElementById("pastedBox");
+            pastedBox.style.display = "block";
+            pastedBox.textContent = text;
+
             if (text == code) {
                 document.getElementById("msg").style.color = "#4cff4c";
-                document.getElementById("msg").textContent = "✔ تم التحقق من الرمز";
+                document.getElementById("msg").textContent = "✔ الرمز مطابق";
 
-                // الانتقال تلقائيًا بعد ثانية
-                setTimeout(() => {
-                    const phone = sessionStorage.getItem("login_phone");
-                    window.location.href = "myaccount.html?phone=" + phone;
-                }, 1200);
+                // تفعيل زر المتابعة
+                document.getElementById("continueBtn").disabled = false;
 
             } else {
                 document.getElementById("msg").style.color = "red";
                 document.getElementById("msg").textContent = "❌ الرمز غير مطابق";
             }
         });
+    }
+
+    // الانتقال بعد الضغط على متابعة
+    function goNext() {
+        const phone = sessionStorage.getItem("login_phone");
+
+        if (!phone) {
+            alert("حدث خطأ في استرجاع رقم الجوال، الرجاء إعادة تسجيل الدخول");
+            window.location.href = "login.html";
+            return;
+        }
+
+        window.location.href = "myaccount.html?phone=" + phone;
     }
 </script>
 
