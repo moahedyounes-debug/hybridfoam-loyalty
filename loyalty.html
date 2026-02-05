@@ -156,7 +156,7 @@ async function loadCard() {
     const colLevel     = header.indexOf("level");
     const colPoints    = header.indexOf("points");
     const colLastVisit = header.indexOf("last_visit");
-    const colSubscription = header.indexOf("Subscription");
+    const colsubscription = header.indexOf("subscription");
     const colFreeWash = header.indexOf("Free Wash");
 
     const customer = data.find(r => String(r[colMemberNum]).trim() === String(ID).trim());
@@ -170,7 +170,7 @@ async function loadCard() {
     const points = customer[colPoints]?.trim() || "0";
     const level = customer[colLevel]?.trim() || "Bronze";
     const lastVisit = customer[colLastVisit]?.trim() || "-";
-    const subscription = customer[colSubscription]?.trim() || "-";
+    const subscription = customer[colsubscription]?.trim() || "-";
     const freeWash = customer[colFreeWash]?.trim() || "-";
 
     createCard(name, points, level, lastVisit, subscription, freeWash);
