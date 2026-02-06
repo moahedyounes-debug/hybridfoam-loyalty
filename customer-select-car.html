@@ -5,37 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>اختيار السيارة</title>
 
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
-
 <style>
-  body {
-    font-family: "IBM Plex Sans Arabic", sans-serif;
-    background: #0d0d0d;
-    color: white;
-    padding: 20px;
-    text-align: center;
-  }
-  .box {
-    width: 360px;
-    margin: 0 auto;
-    background: #1a1a1a;
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: 0 0 20px rgba(255,255,255,0.1);
-  }
-  .car-item {
-    background: #222;
-    padding: 15px;
-    border-radius: 12px;
-    margin: 10px 0;
-    cursor: pointer;
-    border: 1px solid #444;
-    transition: 0.3s;
-  }
-  .car-item:hover {
-    border-color: #d4af37;
-    box-shadow: 0 0 10px rgba(212,175,55,0.4);
-  }
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding: 25px;
+    }
+
+    h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+    }
+
+    .box {
+        width: 360px;
+        margin: 0 auto;
+        background: rgba(0,0,0,0.65);
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(212,175,55,0.35);
+        backdrop-filter: blur(10px);
+    }
+
+    .car-item {
+        background: #111;
+        padding: 15px;
+        border-radius: 12px;
+        margin: 10px 0;
+        cursor: pointer;
+        border: 1px solid rgba(212,175,55,0.35);
+        transition: 0.3s;
+        text-align: right;
+    }
+
+    .car-item:hover {
+        border-color: #d4af37;
+        box-shadow: 0 0 10px rgba(212,175,55,0.4);
+    }
 </style>
 </head>
 
@@ -44,42 +52,44 @@
 <h2>اختر السيارة</h2>
 
 <div class="box" id="carsBox">
-  جاري التحميل...
+    جاري التحميل...
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyKLUq658Fs7FNtfNYOfKSKJBkShYNudcAeinr-rVCJ2i6fgJ12SGSDV-i3YyBZoO4rIw/exec";
+function loadCars() {
+    const carsData = sessionStorage.getItem("cars_list");
 
-async function loadCars() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const phone = urlParams.get("phone");
+    if (!carsData) {
+        document.getElementById("carsBox").innerHTML = "لا توجد سيارات مسجلة";
+        return;
+    }
 
-  if (!phone) {
-    document.getElementById("carsBox").innerHTML = "خطأ: رقم الجوال غير موجود";
-    return;
-  }
+    const cars = JSON.parse(carsData);
 
-  const res = await fetch(`${API}?action=getByPhone&phone=${phone}`);
-  const json = await res.json();
+    let html = "";
 
-  if (!json.success) {
-    document.getElementById("carsBox").innerHTML = "لا توجد سيارات مسجلة";
-    return;
-  }
+    cars.forEach((c, index) => {
+        html += `
+            <div class="car-item" onclick="selectCar(${index})">
+                <strong>${c.car}</strong><br>
+                فئة: ${c.size}<br>
+                لوحة: ${c.plate_letters} - ${c.plate_numbers}
+            </div>
+        `;
+    });
 
-  const c = json.customer;
-
-  // حالياً سيارة واحدة فقط
-  document.getElementById("carsBox").innerHTML = `
-    <div class="car-item" onclick="selectCar('${c.membership}')">
-      <strong>${c.car}</strong><br>
-      لوحة: ${c.plate_letters} - ${c.plate_numbers}
-    </div>
-  `;
+    document.getElementById("carsBox").innerHTML = html;
 }
 
-function selectCar(membership) {
-  window.location.href = `customer-dashboard.html?id=${membership}`;
+function selectCar(index) {
+    const cars = JSON.parse(sessionStorage.getItem("cars_list"));
+    const selected = cars[index];
+
+    // حفظ السيارة المختارة
+    sessionStorage.setItem("selected_car", JSON.stringify(selected));
+
+    // الانتقال لبطاقة العضوية
+    window.location.href = "verify.html";
 }
 
 loadCars();
