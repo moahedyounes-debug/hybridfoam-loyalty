@@ -12,6 +12,7 @@
         font-family: "Tajawal", sans-serif;
         text-align: center;
         padding: 25px;
+        transition: 0.25s ease;
     }
 
     .box {
@@ -48,6 +49,7 @@
         font-weight: bold;
         cursor: pointer;
         margin-top: 10px;
+        transition: 0.25s ease;
     }
 
     button:hover {
@@ -60,14 +62,84 @@
         font-size: 16px;
         text-align: center;
     }
+
+    /* زر الثيم */
+    .theme-toggle {
+        width: 42px;
+        height: 22px;
+        border-radius: 999px;
+        border: 1px solid rgba(212,175,55,0.3);
+        background: rgba(0,0,0,0.6);
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        cursor: pointer;
+        transition: 0.25s ease;
+    }
+
+    .theme-knob {
+        width: 16px;
+        height: 16px;
+        background: #d4af37;
+        border-radius: 50%;
+        position: absolute;
+        right: 3px;
+        top: 3px;
+        transition: 0.25s ease;
+    }
+
+    /* الثيم الفاتح */
+    body.light {
+        background: #f5f5f5;
+        color: #000;
+    }
+
+    body.light .box {
+        background: rgba(255,255,255,0.85);
+        border-color: rgba(0,0,0,0.15);
+    }
+
+    body.light select,
+    body.light input {
+        background: #fff;
+        color: #000;
+        border-color: #000;
+    }
+
+    body.light button {
+        background: linear-gradient(45deg, #000, #444);
+        color: #fff;
+    }
+
+    body.light .theme-knob {
+        left: 3px;
+        right: auto;
+        background: #000;
+    }
 </style>
 </head>
 
 <body>
 
+<div class="theme-toggle" onclick="toggleTheme()">
+    <div class="theme-knob"></div>
+</div>
+
 <h2>تسجيل زيارة جديدة</h2>
 
 <div class="box">
+
+    <!-- إدخال رقم الجوال -->
+    <label>رقم الجوال</label>
+    <input type="text" id="phone" placeholder="05xxxxxxxx">
+
+    <button onclick="loadCustomer()">بحث عن العميل</button>
+
+    <div id="customerInfo" style="margin:10px 0; font-size:14px; color:#0f0;"></div>
+
+    <hr style="margin:15px 0; opacity:0.3;">
+
+    <!-- اختيار الخدمة -->
     <label>الخدمة</label>
     <select id="service" onchange="updateFields()">
         <option value="">اختر الخدمة</option>
@@ -87,14 +159,72 @@
 <script>
 const API = "https://script.google.com/macros/s/AKfycbwr-Jy6trjRAw1P5QgIAC1lwB5tkBRNncWnkGwE_nutQe9IfDqkqtmYCFTgB6f1w6A6ug/exec";
 
-const membership = sessionStorage.getItem("visit_membership");
+let membership = "";
+let customerName = "";
 
-if (!membership) {
-    document.getElementById("msg").innerHTML =
-        "<span style='color:red'>❌ لا يوجد رقم عضوية</span>";
+/* -----------------------------------------
+   1) لو جاء من لوحة التحكم → نقرأ البيانات
+----------------------------------------- */
+window.onload = function () {
+    const savedPhone = sessionStorage.getItem("visit_phone");
+    const savedMembership = sessionStorage.getItem("visit_membership");
+    const savedName = sessionStorage.getItem("visit_name");
+
+    if (savedPhone && savedMembership) {
+        membership = savedMembership;
+        customerName = savedName;
+
+        document.getElementById("phone").value = savedPhone;
+        document.getElementById("customerInfo").innerHTML =
+            `✔ العميل: ${savedName} — العضوية: ${savedMembership}`;
+    }
+};
+
+/* -----------------------------------------
+   2) البحث اليدوي داخل صفحة الزيارة
+----------------------------------------- */
+async function loadCustomer() {
+    const phone = document.getElementById("phone").value.trim();
+
+    if (!phone) {
+        document.getElementById("customerInfo").innerHTML =
+            "<span style='color:red'>❌ أدخل رقم الجوال</span>";
+        return;
+    }
+
+    const url =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=0&single=true&output=tsv";
+
+    const tsv = await fetch(url).then(r => r.text());
+    const lines = tsv.trim().split("\n");
+    const headers = lines[0].split("\t");
+
+    const customers = lines.slice(1).map(line => {
+        const values = line.split("\t");
+        const obj = {};
+        headers.forEach((h, i) => obj[h.trim()] = values[i] ? values[i].trim() : "");
+        return obj;
+    });
+
+    const c = customers.find(x => x.phone == phone);
+
+    if (!c) {
+        document.getElementById("customerInfo").innerHTML =
+            "<span style='color:red'>❌ العميل غير موجود</span>";
+        membership = "";
+        return;
+    }
+
+    membership = c.membership;
+    customerName = c.name;
+
+    document.getElementById("customerInfo").innerHTML =
+        `✔ العميل: ${c.name} — العضوية: ${c.membership}`;
 }
 
-// جدول الخدمات (بدون عمولات)
+/* -----------------------------------------
+   جدول الخدمات
+----------------------------------------- */
 const services = [
     {name:"خارجي صغير", price:15},
     {name:"خارجي وداخلي صغير", price:25},
@@ -158,12 +288,20 @@ function updateFields() {
 
     document.getElementById("price").value = selected.price;
 
-    // النقاط = السعر ÷ 10 (تقريب لأسفل)
     const pts = Math.floor(selected.price / 10);
     document.getElementById("points").value = pts;
 }
 
+/* -----------------------------------------
+   حفظ الزيارة
+----------------------------------------- */
 async function saveVisit() {
+    if (!membership) {
+        document.getElementById("msg").innerHTML =
+            "<span style='color:red'>❌ ابحث عن العميل أولاً</span>";
+        return;
+    }
+
     const service = serviceSelect.value;
     const price = document.getElementById("price").value;
     const points = document.getElementById("points").value;
@@ -200,6 +338,11 @@ async function saveVisit() {
         document.getElementById("msg").innerHTML =
             "<span style='color:red'>⚠️ فشل الاتصال بالخادم</span>";
     }
+}
+
+/* الثيم */
+function toggleTheme() {
+    document.body.classList.toggle("light");
 }
 </script>
 
