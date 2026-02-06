@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول</title>
+
+<style>
+    body {
+        background: #000 url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png') center 40px no-repeat;
+        background-size: 120px;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding: 180px 25px 25px;
+    }
+
+    input {
+        width: 85%;
+        padding: 14px;
+        margin-top: 15px;
+        border-radius: 10px;
+        border: 1px solid #d4af37;
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        font-size: 18px;
+        text-align: center;
+    }
+
+    button {
+        width: 90%;
+        padding: 14px;
+        margin-top: 20px;
+        border-radius: 10px;
+        border: none;
+        background: #d4af37;
+        color: #000;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #b8922f;
+    }
+
+    .error {
+        color: red;
+        margin-top: 15px;
+        font-size: 18px;
+    }
+</style>
+</head>
+<body>
+
+<h2>تسجيل الدخول</h2>
+
+<input type="tel" id="phone" placeholder="أدخل رقم الجوال">
+<button onclick="login()">دخول</button>
+
+<div id="msg" class="error"></div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbwr-Jy6trjRAw1P5QgIAC1lwB5tkBRNncWnkGwE_nutQe9IfDqkqtmYCFTgB6f1w6A6ug/exec";
+
+function login() {
+    const phone = document.getElementById("phone").value.trim();
+    const msg = document.getElementById("msg");
+
+    if (phone.length < 10) {
+        msg.innerHTML = "الرجاء إدخال رقم جوال صحيح";
+        return;
+    }
+
+    msg.innerHTML = "جاري التحقق...";
+
+    fetch(`${API}?action=getCarsByPhone&phone=${phone}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || data.cars.length === 0) {
+                msg.innerHTML = "لا يوجد عميل بهذا الرقم";
+                return;
+            }
+
+            // حفظ الجوال
+            sessionStorage.setItem("login_phone", phone);
+
+            // حفظ السيارات
+            sessionStorage.setItem("cars_list", JSON.stringify(data.cars));
+
+            if (data.cars.length === 1) {
+                // سيارة واحدة → نرسل مباشرة للبطاقة
+                sessionStorage.setItem("selected_car", JSON.stringify(data.cars[0]));
+                window.location.href = "verify.html";
+            } else {
+                // أكثر من سيارة → نرسل لصفحة الاختيار
+                window.location.href = "customer-select-car.html";
+            }
+        })
+        .catch(() => {
+            msg.innerHTML = "خطأ في الاتصال";
+        });
+}
+</script>
+
+</body>
+</html>
