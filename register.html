@@ -37,19 +37,16 @@
         font-size: 15px;
         transition: 0.25s;
     }
-
     input:hover, select:hover {
         border-color: rgba(212,175,55,0.55);
         background: rgba(255,255,255,0.10);
     }
-
     input:focus, select:focus {
         border-color: #d4af37;
         background: rgba(255,255,255,0.15);
         box-shadow: 0 0 10px rgba(212,175,55,0.35);
         outline: none;
     }
-
     button {
         width: 100%;
         padding: 13px;
@@ -86,13 +83,81 @@
 
         <input type="tel" id="phone" placeholder="رقم الجوال (05XXXXXXXX)" required>
 
-        <input type="text" id="car" placeholder="نوع السيارة" required>
+        <!-- نوع السيارة (قائمة + بحث) -->
+        <input list="carList" id="car" placeholder="نوع السيارة (اكتب للبحث)" required>
 
+        <datalist id="carList">
+            <!-- Toyota -->
+            <option value="تويوتا كامري">
+            <option value="تويوتا كورولا">
+            <option value="تويوتا يارس">
+            <option value="تويوتا أفالون">
+            <option value="تويوتا هايلكس">
+            <option value="تويوتا لاندكروزر">
+            <option value="تويوتا برادو">
+            <option value="تويوتا فورتشنر">
+
+            <!-- Hyundai -->
+            <option value="هيونداي سوناتا">
+            <option value="هيونداي النترا">
+            <option value="هيونداي أكسنت">
+            <option value="هيونداي توسان">
+            <option value="هيونداي سنتافي">
+
+            <!-- Kia -->
+            <option value="كيا سيراتو">
+            <option value="كيا أوبتيما">
+            <option value="كيا سبورتاج">
+            <option value="كيا سيلتوس">
+
+            <!-- Nissan -->
+            <option value="نيسان ألتيما">
+            <option value="نيسان صني">
+            <option value="نيسان باترول">
+            <option value="نيسان إكس تريل">
+
+            <!-- Chevrolet -->
+            <option value="شفروليه تاهو">
+            <option value="شفروليه سوبربان">
+            <option value="شفروليه ماليبو">
+            <option value="شفروليه كابتيفا">
+
+            <!-- Ford -->
+            <option value="فورد تورس">
+            <option value="فورد إكسبلورر">
+            <option value="فورد إسكبيدشن">
+            <option value="فورد موستانج">
+
+            <!-- GMC -->
+            <option value="جي إم سي يوكن">
+            <option value="جي إم سي أكاديا">
+
+            <!-- Mercedes -->
+            <option value="مرسيدس C-Class">
+            <option value="مرسيدس E-Class">
+            <option value="مرسيدس S-Class">
+            <option value="مرسيدس G-Class">
+
+            <!-- BMW -->
+            <option value="بي إم دبليو الفئة الثالثة">
+            <option value="بي إم دبليو الفئة الخامسة">
+            <option value="بي إم دبليو X5">
+            <option value="بي إم دبليو X6">
+
+            <!-- Lexus -->
+            <option value="لكزس ES">
+            <option value="لكزس LS">
+            <option value="لكزس RX">
+            <option value="لكزس LX">
+        </datalist>
+
+        <!-- فئة السيارة -->
         <select id="size" required>
-            <option value="">حجم السيارة</option>
+            <option value="">فئة السيارة</option>
             <option value="سيدان">سيدان</option>
             <option value="هاتشباك">هاتشباك</option>
             <option value="SUV">SUV</option>
+            <option value="كوبيه">كوبيه</option>
             <option value="بيك أب">بيك أب</option>
             <option value="فان">فان</option>
         </select>
@@ -153,9 +218,6 @@ document.getElementById("regForm").addEventListener("submit", function(e){
         if (data.success) {
             msg.style.color = "#4cff4c";
             msg.textContent = "✔ تم التسجيل بنجاح";
-
-            sessionStorage.setItem("login_phone", phone);
-            sessionStorage.setItem("login_plate", plate_numbers);
 
             setTimeout(() => {
                 window.location.href = "verify.html";
