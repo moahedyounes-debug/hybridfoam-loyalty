@@ -12,24 +12,46 @@
         font-family: "Tajawal", sans-serif;
         text-align: center;
         padding: 25px;
+
+        /* خلفية اللوقو */
+        background-image: url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 420px;
+        opacity: 0.97;
     }
+
     h1 {
         margin-bottom: 20px;
         font-size: 26px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
     }
+
+    /* اللوقو بجانب العنوان */
+    .logo-title {
+        width: 38px;
+        height: 38px;
+        object-fit: contain;
+        filter: drop-shadow(0 0 6px rgba(212,175,55,0.6));
+    }
+
     .form-container {
-        background: rgba(255,255,255,0.05);
+        background: rgba(0,0,0,0.65);
         border: 1px solid rgba(212,175,55,0.35);
         border-radius: 14px;
-        padding: 18px;
-        max-width: 380px;
+        padding: 15px;
+        max-width: 350px;
         margin: auto;
         backdrop-filter: blur(10px);
     }
+
     input, select {
         width: 100%;
-        padding: 11px;
-        margin: 7px 0;
+        padding: 10px;
+        margin: 6px 0;
         border-radius: 8px;
         border: 1px solid rgba(212,175,55,0.35);
         background: #000 !important;
@@ -37,16 +59,30 @@
         font-size: 15px;
         transition: 0.25s;
     }
+
     input:hover, select:hover {
         border-color: rgba(212,175,55,0.55);
         background: rgba(255,255,255,0.08) !important;
     }
+
     input:focus, select:focus {
         border-color: #d4af37;
         background: rgba(255,255,255,0.12) !important;
         box-shadow: 0 0 10px rgba(212,175,55,0.35);
         outline: none;
     }
+
+    /* إصلاح خلفية datalist */
+    input[list] {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+    datalist option {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
     button {
         width: 100%;
         padding: 12px;
@@ -60,11 +96,13 @@
         cursor: pointer;
         transition: 0.25s;
     }
+
     button:hover {
         transform: translateY(-3px);
         box-shadow: 0 12px 30px rgba(212,175,55,0.55);
         filter: brightness(1.12);
     }
+
     #msg {
         margin-top: 10px;
         min-height: 20px;
@@ -74,7 +112,10 @@
 </head>
 <body>
 
-<h1>تسجيل عميل جديد</h1>
+<h1>
+    تسجيل عميل جديد
+    <img src="https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png" class="logo-title">
+</h1>
 
 <div class="form-container">
     <form id="regForm">
@@ -83,11 +124,10 @@
 
         <input type="tel" id="phone" placeholder="رقم الجوال (05XXXXXXXX)" required>
 
-        <!-- نوع السيارة (قائمة + بحث) -->
+        <!-- نوع السيارة -->
         <input list="carList" id="car" placeholder="نوع السيارة (اكتب للبحث)" required>
 
         <datalist id="carList">
-            <!-- Toyota -->
             <option value="تويوتا كامري">
             <option value="تويوتا كورولا">
             <option value="تويوتا يارس">
@@ -97,54 +137,45 @@
             <option value="تويوتا برادو">
             <option value="تويوتا فورتشنر">
 
-            <!-- Hyundai -->
             <option value="هيونداي سوناتا">
             <option value="هيونداي النترا">
             <option value="هيونداي أكسنت">
             <option value="هيونداي توسان">
             <option value="هيونداي سنتافي">
 
-            <!-- Kia -->
             <option value="كيا سيراتو">
             <option value="كيا أوبتيما">
             <option value="كيا سبورتاج">
             <option value="كيا سيلتوس">
 
-            <!-- Nissan -->
             <option value="نيسان ألتيما">
             <option value="نيسان صني">
             <option value="نيسان باترول">
             <option value="نيسان إكس تريل">
 
-            <!-- Chevrolet -->
             <option value="شفروليه تاهو">
             <option value="شفروليه سوبربان">
             <option value="شفروليه ماليبو">
             <option value="شفروليه كابتيفا">
 
-            <!-- Ford -->
             <option value="فورد تورس">
             <option value="فورد إكسبلورر">
             <option value="فورد إسكبيدشن">
             <option value="فورد موستانج">
 
-            <!-- GMC -->
             <option value="جي إم سي يوكن">
             <option value="جي إم سي أكاديا">
 
-            <!-- Mercedes -->
             <option value="مرسيدس C-Class">
             <option value="مرسيدس E-Class">
             <option value="مرسيدس S-Class">
             <option value="مرسيدس G-Class">
 
-            <!-- BMW -->
             <option value="بي إم دبليو الفئة الثالثة">
             <option value="بي إم دبليو الفئة الخامسة">
             <option value="بي إم دبليو X5">
             <option value="بي إم دبليو X6">
 
-            <!-- Lexus -->
             <option value="لكزس ES">
             <option value="لكزس LS">
             <option value="لكزس RX">
@@ -209,7 +240,7 @@ document.getElementById("regForm").addEventListener("submit", function(e){
     formData.append("car", document.getElementById("car").value);
     formData.append("size", document.getElementById("size").value);
     formData.append("city", document.getElementById("city").value);
-    formData.append("plate_numbers", plateNumbers);
+    formData.append("plate_numbers", plate_numbers);
     formData.append("plate_letters", document.getElementById("plate_letters").value);
 
     fetch(SCRIPT_URL, { method: "POST", body: formData })
