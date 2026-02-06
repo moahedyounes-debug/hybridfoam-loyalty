@@ -12,13 +12,6 @@
         font-family: "Tajawal", sans-serif;
         text-align: center;
         padding: 25px;
-
-        /* خلفية اللوقو */
-        background-image: url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png');
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: 420px;
-        opacity: 0.97;
     }
 
     h1 {
@@ -30,7 +23,6 @@
         gap: 8px;
     }
 
-    /* اللوقو بجانب العنوان */
     .logo-title {
         width: 38px;
         height: 38px;
@@ -43,7 +35,7 @@
         border: 1px solid rgba(212,175,55,0.35);
         border-radius: 14px;
         padding: 15px;
-        max-width: 350px;
+        max-width: 330px;
         margin: auto;
         backdrop-filter: blur(10px);
     }
@@ -58,6 +50,7 @@
         color: #fff !important;
         font-size: 15px;
         transition: 0.25s;
+        box-sizing: border-box;
     }
 
     input:hover, select:hover {
@@ -72,9 +65,9 @@
         outline: none;
     }
 
-    /* إصلاح خلفية datalist */
-    input[list] {
-        background: #000 !important;
+    /* إصلاح خلفية القوائم */
+    select, option {
+        background-color: #000 !important;
         color: #fff !important;
     }
 
@@ -124,7 +117,6 @@
 
         <input type="tel" id="phone" placeholder="رقم الجوال (05XXXXXXXX)" required>
 
-        <!-- نوع السيارة -->
         <input list="carList" id="car" placeholder="نوع السيارة (اكتب للبحث)" required>
 
         <datalist id="carList">
@@ -136,53 +128,43 @@
             <option value="تويوتا لاندكروزر">
             <option value="تويوتا برادو">
             <option value="تويوتا فورتشنر">
-
             <option value="هيونداي سوناتا">
             <option value="هيونداي النترا">
             <option value="هيونداي أكسنت">
             <option value="هيونداي توسان">
             <option value="هيونداي سنتافي">
-
             <option value="كيا سيراتو">
             <option value="كيا أوبتيما">
             <option value="كيا سبورتاج">
             <option value="كيا سيلتوس">
-
             <option value="نيسان ألتيما">
             <option value="نيسان صني">
             <option value="نيسان باترول">
             <option value="نيسان إكس تريل">
-
             <option value="شفروليه تاهو">
             <option value="شفروليه سوبربان">
             <option value="شفروليه ماليبو">
             <option value="شفروليه كابتيفا">
-
             <option value="فورد تورس">
             <option value="فورد إكسبلورر">
             <option value="فورد إسكبيدشن">
             <option value="فورد موستانج">
-
             <option value="جي إم سي يوكن">
             <option value="جي إم سي أكاديا">
-
             <option value="مرسيدس C-Class">
             <option value="مرسيدس E-Class">
             <option value="مرسيدس S-Class">
             <option value="مرسيدس G-Class">
-
             <option value="بي إم دبليو الفئة الثالثة">
             <option value="بي إم دبليو الفئة الخامسة">
             <option value="بي إم دبليو X5">
             <option value="بي إم دبليو X6">
-
             <option value="لكزس ES">
             <option value="لكزس LS">
             <option value="لكزس RX">
             <option value="لكزس LX">
         </datalist>
 
-        <!-- فئة السيارة -->
         <select id="size" required>
             <option value="">فئة السيارة</option>
             <option value="سيدان">سيدان</option>
