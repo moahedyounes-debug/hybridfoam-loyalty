@@ -7,27 +7,17 @@
 
 <style>
     body {
-        background: #000;
+        background: #000 url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png') center 40px no-repeat;
+        background-size: 120px;
         color: #d4af37;
         font-family: "Tajawal", sans-serif;
         text-align: center;
-        padding: 25px;
+        padding: 180px 25px 25px;
     }
 
     h1 {
         margin-bottom: 20px;
         font-size: 26px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .logo-title {
-        width: 38px;
-        height: 38px;
-        object-fit: contain;
-        filter: drop-shadow(0 0 6px rgba(212,175,55,0.6));
     }
 
     .form-container {
@@ -53,28 +43,6 @@
         box-sizing: border-box;
     }
 
-    input:hover, select:hover {
-        border-color: rgba(212,175,55,0.55);
-        background: rgba(255,255,255,0.08) !important;
-    }
-
-    input:focus, select:focus {
-        border-color: #d4af37;
-        background: rgba(255,255,255,0.12) !important;
-        box-shadow: 0 0 10px rgba(212,175,55,0.35);
-        outline: none;
-    }
-
-    select, option {
-        background-color: #000 !important;
-        color: #fff !important;
-    }
-
-    datalist option {
-        background: #000 !important;
-        color: #fff !important;
-    }
-
     button {
         width: 100%;
         padding: 12px;
@@ -86,13 +54,6 @@
         font-size: 17px;
         font-weight: bold;
         cursor: pointer;
-        transition: 0.25s;
-    }
-
-    button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 30px rgba(212,175,55,0.55);
-        filter: brightness(1.12);
     }
 
     #msg {
@@ -104,10 +65,7 @@
 </head>
 <body>
 
-<h1>
-    تسجيل عميل جديد
-    <img src="https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png" class="logo-title">
-</h1>
+<h1>تسجيل عميل جديد</h1>
 
 <div class="form-container">
     <form id="regForm">
@@ -116,53 +74,8 @@
 
         <input type="tel" id="phone" placeholder="رقم الجوال (05XXXXXXXX)" required>
 
-        <input list="carList" id="car" placeholder="نوع السيارة (اكتب للبحث)" required>
-
-        <datalist id="carList">
-            <option value="تويوتا كامري">
-            <option value="تويوتا كورولا">
-            <option value="تويوتا يارس">
-            <option value="تويوتا أفالون">
-            <option value="تويوتا هايلكس">
-            <option value="تويوتا لاندكروزر">
-            <option value="تويوتا برادو">
-            <option value="تويوتا فورتشنر">
-            <option value="هيونداي سوناتا">
-            <option value="هيونداي النترا">
-            <option value="هيونداي أكسنت">
-            <option value="هيونداي توسان">
-            <option value="هيونداي سنتافي">
-            <option value="كيا سيراتو">
-            <option value="كيا أوبتيما">
-            <option value="كيا سبورتاج">
-            <option value="كيا سيلتوس">
-            <option value="نيسان ألتيما">
-            <option value="نيسان صني">
-            <option value="نيسان باترول">
-            <option value="نيسان إكس تريل">
-            <option value="شفروليه تاهو">
-            <option value="شفروليه سوبربان">
-            <option value="شفروليه ماليبو">
-            <option value="شفروليه كابتيفا">
-            <option value="فورد تورس">
-            <option value="فورد إكسبلورر">
-            <option value="فورد إسكبيدشن">
-            <option value="فورد موستانج">
-            <option value="جي إم سي يوكن">
-            <option value="جي إم سي أكاديا">
-            <option value="مرسيدس C-Class">
-            <option value="مرسيدس E-Class">
-            <option value="مرسيدس S-Class">
-            <option value="مرسيدس G-Class">
-            <option value="بي إم دبليو الفئة الثالثة">
-            <option value="بي إم دبليو الفئة الخامسة">
-            <option value="بي إم دبليو X5">
-            <option value="بي إم دبليو X6">
-            <option value="لكزس ES">
-            <option value="لكزس LS">
-            <option value="لكزس RX">
-            <option value="لكزس LX">
-        </datalist>
+        <input list="carList" id="car" placeholder="نوع السيارة" required>
+        <datalist id="carList"></datalist>
 
         <select id="size" required>
             <option value="">فئة السيارة</option>
@@ -174,14 +87,8 @@
             <option value="فان">فان</option>
         </select>
 
-        <select id="city" required>
-            <option value="">اختر المدينة</option>
-            <option value="مكة">مكة</option>
-        </select>
-
-        <input type="text" id="plate_numbers" placeholder="أرقام اللوحة (مثال: 1234)" required>
-
-        <input type="text" id="plate_letters" placeholder="حروف اللوحة (مثال: أ ب ج)" required>
+        <input type="text" id="plate_numbers" placeholder="أرقام اللوحة" required>
+        <input type="text" id="plate_letters" placeholder="حروف اللوحة" required>
 
         <button type="submit">تسجيل</button>
     </form>
@@ -190,33 +97,56 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgBrZRQ-CaJKw3WgFaXbQMR_UgWZUyixTuCQlkgP_zZ1i1dJlVSiO70Pqmb5aKEIi9Vw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyURRd4OJmPYeRHJZW5ETmM47ToruBYKxe08w0RjUnKMT-m_a6YHknchCXbJBEo-o8IZw/exec";
+
+// قائمة السيارات
+const cars = [
+"تويوتا كامري","تويوتا كورولا","تويوتا يارس","تويوتا أفالون","تويوتا هايلكس",
+"تويوتا لاندكروزر","تويوتا برادو","تويوتا فورتشنر","هيونداي سوناتا","هيونداي النترا",
+"هيونداي أكسنت","هيونداي توسان","هيونداي سنتافي","كيا سيراتو","كيا أوبتيما",
+"كيا سبورتاج","كيا سيلتوس","نيسان ألتيما","نيسان صني","نيسان باترول",
+"نيسان إكس تريل","شفروليه تاهو","شفروليه سوبربان","شفروليه ماليبو","شفروليه كابتيفا",
+"فورد تورس","فورد إكسبلورر","فورد إسكبيدشن","فورد موستانج","جي إم سي يوكن",
+"جي إم سي أكاديا","مرسيدس C-Class","مرسيدس E-Class","مرسيدس S-Class","مرسيدس G-Class",
+"بي إم دبليو الفئة الثالثة","بي إم دبليو الفئة الخامسة","بي إم دبليو X5","بي إم دبليو X6",
+"لكزس ES","لكزس LS","لكزس RX","لكزس LX"
+];
+
+// تعبئة datalist
+function fillCarList(filter = "") {
+    const list = document.getElementById("carList");
+    list.innerHTML = "";
+    cars
+        .filter(c => c.includes(filter))
+        .forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c;
+            list.appendChild(opt);
+        });
+}
+
+// تقليص الخيارات حسب الكتابة
+document.getElementById("car").addEventListener("input", e => {
+    fillCarList(e.target.value.trim());
+});
+
+fillCarList(); // أول تعبئة
 
 document.getElementById("regForm").addEventListener("submit", function(e){
     e.preventDefault();
 
     const msg = document.getElementById("msg");
     msg.style.color = "#d4af37";
-    msg.textContent = "⏳ جاري تسجيل العميل...";
+    msg.textContent = "⏳ جاري التسجيل...";
 
     let phone = document.getElementById("phone").value.trim();
 
     // إصلاح مشكلة حذف الصفر
-    if (phone.length === 9 && phone.startsWith("5")) {
-        phone = "0" + phone;
-    }
+    if (phone.length === 9 && phone.startsWith("5")) phone = "0" + phone;
 
     if (!phone.startsWith("05") || phone.length !== 10) {
         msg.style.color = "red";
-        msg.textContent = "❌ الرجاء إدخال رقم جوال صحيح";
-        return;
-    }
-
-    const plate_numbers = document.getElementById("plate_numbers").value.trim();
-
-    if (plate_numbers.length < 3) {
-        msg.style.color = "red";
-        msg.textContent = "❌ الرجاء إدخال أرقام لوحة صحيحة";
+        msg.textContent = "❌ رقم الجوال غير صحيح";
         return;
     }
 
@@ -226,37 +156,26 @@ document.getElementById("regForm").addEventListener("submit", function(e){
     formData.append("phone", phone);
     formData.append("car", document.getElementById("car").value);
     formData.append("size", document.getElementById("size").value);
-    formData.append("city", document.getElementById("city").value);
-    formData.append("plate_numbers", plate_numbers);
+    formData.append("plate_numbers", document.getElementById("plate_numbers").value);
     formData.append("plate_letters", document.getElementById("plate_letters").value);
 
     fetch(SCRIPT_URL, { method: "POST", body: formData })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
+            sessionStorage.setItem("login_phone", phone);
             msg.style.color = "#4cff4c";
             msg.textContent = "✔ تم التسجيل بنجاح";
-
-            // حفظ بيانات العميل في الجلسة
-            sessionStorage.setItem("login_phone", phone);
-            sessionStorage.setItem("login_plate", plate_numbers);
-
-            setTimeout(() => {
-                window.location.href = "verify.html";
-            }, 800);
-        } 
-        else if (data.error === "exists") {
+            setTimeout(() => window.location.href = "verify.html", 700);
+        }
+        else if (data.error === "plate_exists") {
             msg.style.color = "red";
-            msg.textContent = "❌ رقم الجوال أو أرقام اللوحة مسجلة مسبقًا";
-        } 
+            msg.textContent = "❌ هذه اللوحة مسجلة مسبقًا";
+        }
         else {
             msg.style.color = "red";
-            msg.textContent = "❌ حدث خطأ غير متوقع";
+            msg.textContent = "❌ خطأ غير متوقع";
         }
-    })
-    .catch(() => {
-        msg.style.color = "red";
-        msg.textContent = "❌ فشل الاتصال بالخادم";
     });
 });
 </script>
