@@ -34,13 +34,13 @@
         backdrop-filter: blur(14px);
         padding: 20px;
         border-radius: 18px;
-        max-width: 420px;
+        max-width: 480px;
         margin-left: auto;
         margin-right: auto;
         text-align: right;
     }
 
-    input {
+    input, select {
         width: 100%;
         padding: 10px;
         border-radius: 10px;
@@ -92,6 +92,41 @@
         font-size: 15px;
         text-align: center;
     }
+
+    .stat-line {
+        font-size: 15px;
+        margin-bottom: 6px;
+    }
+
+    .list {
+        max-height: 180px;
+        overflow-y: auto;
+        border-top: 1px solid rgba(212,175,55,0.25);
+        margin-top: 10px;
+        padding-top: 8px;
+        font-size: 14px;
+    }
+
+    .list-item {
+        margin-bottom: 4px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 13px;
+    }
+
+    th, td {
+        border: 1px solid rgba(212,175,55,0.25);
+        padding: 6px;
+        text-align: center;
+    }
+
+    th {
+        background: rgba(212,175,55,0.12);
+    }
 </style>
 </head>
 
@@ -102,6 +137,7 @@
 
 <div id="msg"></div>
 
+<!-- بحث عن عميل -->
 <div class="box">
     <h3 style="text-align:center;">بحث عن عميل</h3>
     <input type="text" id="searchInput" placeholder="رقم الجوال أو رقم العضوية">
@@ -144,35 +180,109 @@
     <button onclick="registerVisit()">تسجيل زيارة</button>
 </div>
 
+<!-- التقارير العامة -->
+<div class="box">
+    <h3 style="text-align:center;">التقارير العامة</h3>
+    <button onclick="loadReports()">تحديث التقارير</button>
+
+    <div id="reportsSummary" style="margin-top:10px; display:none;">
+        <div class="stat-line" id="stat_customers"></div>
+        <div class="stat-line" id="stat_totalPaid"></div>
+    </div>
+
+    <h4 style="margin-top:12px;">أنواع السيارات</h4>
+    <div class="list" id="carTypesList"></div>
+
+    <h4 style="margin-top:12px;">أنواع الخدمات</h4>
+    <div class="list" id="servicesList"></div>
+</div>
+
+<!-- فلترة بالتاريخ -->
+<div class="box">
+    <h3 style="text-align:center;">فلترة بالتاريخ</h3>
+    <label>من تاريخ</label>
+    <input type="date" id="fromDate">
+    <label>إلى تاريخ</label>
+    <input type="date" id="toDate">
+    <button onclick="filterByDate()">عرض التقرير</button>
+
+    <div id="dateReport" style="margin-top:10px; display:none;">
+        <div class="stat-line" id="date_visits"></div>
+        <div class="stat-line" id="date_totalPaid"></div>
+        <div class="stat-line" id="date_topService"></div>
+        <div class="stat-line" id="date_topCar"></div>
+    </div>
+</div>
+
+<!-- عمليات عميل -->
+<div class="box">
+    <h3 style="text-align:center;">عمليات عميل برقم الجوال</h3>
+    <input type="text" id="opsPhone" placeholder="رقم الجوال">
+    <button onclick="loadCustomerOperations()">عرض العمليات</button>
+
+    <div id="opsBox" style="display:none;">
+        <div class="stat-line" id="opsSummary"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>التاريخ</th>
+                    <th>الخدمة</th>
+                    <th>السعر</th>
+                    <th>النقاط</th>
+                </tr>
+            </thead>
+            <tbody id="opsTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
 <script>
-const TSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGsSQZa_qFzanpx0wxm9oX-p4UDzZ55rQVfaX-6R5AkX4JgSBZ2R_BJsw5uvf9eWPphsfYbo9vrd8E/pub?output=tsv";
+const SHEET_TSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=0&single=true&output=tsv";
+
+const VISITS_TSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=1214043427&single=true&output=tsv";
 
 // حماية الصفحة
 if (sessionStorage.getItem("admin_logged_in") !== "true") {
     window.location.href = "admin-login.html";
 }
 
+let headerCustomers = [];
+let dataCustomers = [];
+let headerVisits = [];
+let dataVisits = [];
 let currentRowIndex = null;
-let header = [];
-let data = [];
-
-async function loadSheet() {
-    const tsv = await fetch(TSV_URL).then(r => r.text());
-    const rows = tsv.split("\n").map(r => r.split("\t"));
-    header = rows[0].map(h => h.trim());
-    data = rows.slice(1);
-}
 
 function showMsg(text, ok = false) {
     const msg = document.getElementById("msg");
-    msg.style.display = "block";
+    msg.style.display = text ? "block" : "none";
     msg.style.color = ok ? "#d4af37" : "#ff6b6b";
     msg.textContent = text;
 }
 
+function cleanPhone(v) {
+    if (!v) return "";
+    return v.replace(/'/g, "").replace(/\s+/g, "");
+}
+
+async function loadCustomers() {
+    const tsv = await fetch(SHEET_TSV).then(r => r.text());
+    const rows = tsv.split("\n").map(r => r.split("\t"));
+    headerCustomers = rows[0].map(h => h.trim());
+    dataCustomers = rows.slice(1);
+}
+
+async function loadVisits() {
+    const tsv = await fetch(VISITS_TSV).then(r => r.text());
+    const rows = tsv.split("\n").map(r => r.split("\t"));
+    headerVisits = rows[0].map(h => h.trim());
+    dataVisits = rows.slice(1);
+}
+
 async function searchCustomer() {
-    const input = document.getElementById("searchInput").value.trim();
+    const inputRaw = document.getElementById("searchInput").value.trim();
+    const input = cleanPhone(inputRaw);
     const box = document.getElementById("customerBox");
 
     if (!input) {
@@ -180,20 +290,20 @@ async function searchCustomer() {
         return;
     }
 
-    await loadSheet();
+    await loadCustomers();
 
-    const colPhone = header.indexOf("phone");
-    const colMembership = header.indexOf("membership");
-    const colName = header.indexOf("name");
-    const colVisits = header.indexOf("visit_count");
-    const colPoints = header.indexOf("points");
-    const colLevel = header.indexOf("level");
+    const colPhone = headerCustomers.indexOf("phone");
+    const colMembership = headerCustomers.indexOf("membership");
+    const colName = headerCustomers.indexOf("name");
+    const colVisits = headerCustomers.indexOf("visit_count");
+    const colPoints = headerCustomers.indexOf("points");
+    const colLevel = headerCustomers.indexOf("level");
 
     currentRowIndex = null;
 
-    data.forEach((row, index) => {
-        const phone = row[colPhone]?.trim();
-        const membership = row[colMembership]?.trim();
+    dataCustomers.forEach((row, index) => {
+        const phone = cleanPhone(row[colPhone]?.trim());
+        const membership = (row[colMembership] || "").trim();
 
         if (phone === input || membership === input) {
             currentRowIndex = index;
@@ -206,10 +316,10 @@ async function searchCustomer() {
         return;
     }
 
-    const row = data[currentRowIndex];
+    const row = dataCustomers[currentRowIndex];
 
     document.getElementById("c_name").textContent = row[colName] || "-";
-    document.getElementById("c_phone").textContent = row[colPhone] || "-";
+    document.getElementById("c_phone").textContent = cleanPhone(row[colPhone]) || "-";
     document.getElementById("c_membership").textContent = row[colMembership] || "-";
     document.getElementById("c_visits").textContent = row[colVisits] || "0";
     document.getElementById("c_points").textContent = row[colPoints] || "0";
@@ -219,21 +329,264 @@ async function searchCustomer() {
     showMsg("");
 }
 
-// النسخة الجديدة — فتح صفحة تسجيل الزيارة
 function registerVisit() {
     if (currentRowIndex === null) {
         showMsg("❌ ابحث عن عميل أولاً");
         return;
     }
 
-    const colMembership = header.indexOf("membership");
-    const row = data[currentRowIndex];
+    const colMembership = headerCustomers.indexOf("membership");
+    const row = dataCustomers[currentRowIndex];
 
-    // حفظ رقم العضوية للزيارة
     sessionStorage.setItem("visit_membership", row[colMembership]);
-
-    // الانتقال لصفحة إضافة الزيارة
     window.location.href = "add-visit.html";
+}
+
+// التقارير العامة
+async function loadReports() {
+    await Promise.all([loadCustomers(), loadVisits()]);
+
+    // عدد العملاء
+    const colMembership = headerCustomers.indexOf("membership");
+    const colCar = headerCustomers.indexOf("car");
+    let customersCount = 0;
+    const carCounts = {};
+
+    dataCustomers.forEach(row => {
+        const mem = (row[colMembership] || "").trim();
+        if (mem) {
+            customersCount++;
+        }
+        const car = (row[colCar] || "").trim();
+        if (car) {
+            carCounts[car] = (carCounts[car] || 0) + 1;
+        }
+    });
+
+    // إجمالي المبالغ وأنواع الخدمات
+    const colPrice = headerVisits.indexOf("price");
+    const colService = headerVisits.indexOf("service");
+    let totalPaid = 0;
+    const serviceCounts = {};
+
+    dataVisits.forEach(row => {
+        const price = parseFloat((row[colPrice] || "0").replace(",", "."));
+        if (!isNaN(price)) totalPaid += price;
+
+        const svc = (row[colService] || "").trim();
+        if (svc) {
+            serviceCounts[svc] = (serviceCounts[svc] || 0) + 1;
+        }
+    });
+
+    document.getElementById("stat_customers").textContent =
+        "عدد العملاء المسجلين: " + customersCount;
+    document.getElementById("stat_totalPaid").textContent =
+        "إجمالي المبالغ المدفوعة: " + totalPaid.toFixed(2) + " ريال";
+
+    document.getElementById("reportsSummary").style.display = "block";
+
+    const carList = document.getElementById("carTypesList");
+    carList.innerHTML = "";
+    Object.keys(carCounts).sort().forEach(car => {
+        const div = document.createElement("div");
+        div.className = "list-item";
+        div.textContent = car + " — " + carCounts[car];
+        carList.appendChild(div);
+    });
+
+    const svcList = document.getElementById("servicesList");
+    svcList.innerHTML = "";
+    Object.keys(serviceCounts).sort().forEach(svc => {
+        const div = document.createElement("div");
+        div.className = "list-item";
+        div.textContent = svc + " — " + serviceCounts[svc];
+        svcList.appendChild(div);
+    });
+
+    showMsg("✔ تم تحديث التقارير", true);
+    setTimeout(() => showMsg(""), 1200);
+}
+
+// فلترة بالتاريخ
+function parseDate(d) {
+    if (!d) return null;
+    const parts = d.split(/[\/\-]/);
+    if (parts.length === 3) {
+        // نحاول: YYYY-MM-DD أو DD/MM/YYYY
+        if (parts[0].length === 4) {
+            return new Date(parts[0], parts[1] - 1, parts[2]);
+        } else {
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+    }
+    return null;
+}
+
+async function filterByDate() {
+    const fromVal = document.getElementById("fromDate").value;
+    const toVal = document.getElementById("toDate").value;
+
+    if (!fromVal || !toVal) {
+        showMsg("❌ اختر تاريخ البداية والنهاية");
+        return;
+    }
+
+    await loadVisits();
+
+    const fromDate = new Date(fromVal);
+    const toDate = new Date(toVal);
+    toDate.setHours(23,59,59,999);
+
+    const colDate = headerVisits.indexOf("date");
+    const colPrice = headerVisits.indexOf("price");
+    const colService = headerVisits.indexOf("service");
+    const colMembership = headerVisits.indexOf("membership");
+
+    let visitsCount = 0;
+    let totalPaid = 0;
+    const serviceCounts = {};
+    const carCounts = {};
+
+    // نحتاج ربط العضوية بالسيارة من شيت العملاء
+    if (dataCustomers.length === 0) {
+        await loadCustomers();
+    }
+    const colMemC = headerCustomers.indexOf("membership");
+    const colCarC = headerCustomers.indexOf("car");
+    const membershipToCar = {};
+    dataCustomers.forEach(row => {
+        const mem = (row[colMemC] || "").trim();
+        const car = (row[colCarC] || "").trim();
+        if (mem && car) membershipToCar[mem] = car;
+    });
+
+    dataVisits.forEach(row => {
+        const dStr = (row[colDate] || "").trim();
+        const d = parseDate(dStr);
+        if (!d) return;
+        if (d < fromDate || d > toDate) return;
+
+        visitsCount++;
+
+        const price = parseFloat((row[colPrice] || "0").replace(",", "."));
+        if (!isNaN(price)) totalPaid += price;
+
+        const svc = (row[colService] || "").trim();
+        if (svc) serviceCounts[svc] = (serviceCounts[svc] || 0) + 1;
+
+        const mem = (row[colMembership] || "").trim();
+        const car = membershipToCar[mem];
+        if (car) carCounts[car] = (carCounts[car] || 0) + 1;
+    });
+
+    let topService = "-";
+    let topServiceCount = 0;
+    Object.keys(serviceCounts).forEach(svc => {
+        if (serviceCounts[svc] > topServiceCount) {
+            topServiceCount = serviceCounts[svc];
+            topService = svc + " (" + topServiceCount + ")";
+        }
+    });
+
+    let topCar = "-";
+    let topCarCount = 0;
+    Object.keys(carCounts).forEach(car => {
+        if (carCounts[car] > topCarCount) {
+            topCarCount = carCounts[car];
+            topCar = car + " (" + topCarCount + ")";
+        }
+    });
+
+    document.getElementById("date_visits").textContent =
+        "عدد الزيارات في الفترة: " + visitsCount;
+    document.getElementById("date_totalPaid").textContent =
+        "إجمالي المبالغ في الفترة: " + totalPaid.toFixed(2) + " ريال";
+    document.getElementById("date_topService").textContent =
+        "أكثر خدمة استخداماً: " + topService;
+    document.getElementById("date_topCar").textContent =
+        "أكثر نوع سيارة حضوراً: " + topCar;
+
+    document.getElementById("dateReport").style.display = "block";
+    showMsg("");
+}
+
+// عمليات عميل
+async function loadCustomerOperations() {
+    const phoneRaw = document.getElementById("opsPhone").value.trim();
+    const phone = cleanPhone(phoneRaw);
+    if (!phone) {
+        showMsg("❌ أدخل رقم الجوال للعميل");
+        return;
+    }
+
+    await Promise.all([loadCustomers(), loadVisits()]);
+
+    const colPhone = headerCustomers.indexOf("phone");
+    const colMembership = headerCustomers.indexOf("membership");
+    const colName = headerCustomers.indexOf("name");
+
+    let membership = null;
+    let customerName = "";
+
+    dataCustomers.forEach(row => {
+        const p = cleanPhone(row[colPhone]?.trim());
+        if (p === phone) {
+            membership = (row[colMembership] || "").trim();
+            customerName = (row[colName] || "").trim();
+        }
+    });
+
+    if (!membership) {
+        showMsg("❌ لم يتم العثور على عميل بهذا الرقم");
+        document.getElementById("opsBox").style.display = "none";
+        return;
+    }
+
+    const colMemV = headerVisits.indexOf("membership");
+    const colDate = headerVisits.indexOf("date");
+    const colService = headerVisits.indexOf("service");
+    const colPrice = headerVisits.indexOf("price");
+    const colPoints = headerVisits.indexOf("points");
+
+    const ops = [];
+    let totalPaid = 0;
+    let totalPoints = 0;
+
+    dataVisits.forEach(row => {
+        const mem = (row[colMemV] || "").trim();
+        if (mem === membership) {
+            const price = parseFloat((row[colPrice] || "0").replace(",", "."));
+            const pts = parseFloat(row[colPoints] || "0");
+            if (!isNaN(price)) totalPaid += price;
+            if (!isNaN(pts)) totalPoints += pts;
+
+            ops.push({
+                date: row[colDate] || "",
+                service: row[colService] || "",
+                price: isNaN(price) ? "0" : price.toFixed(2),
+                points: isNaN(pts) ? "0" : pts
+            });
+        }
+    });
+
+    const tbody = document.getElementById("opsTableBody");
+    tbody.innerHTML = "";
+    ops.forEach(o => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${o.date}</td>
+            <td>${o.service}</td>
+            <td>${o.price}</td>
+            <td>${o.points}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById("opsSummary").textContent =
+        `العميل: ${customerName} — إجمالي المبالغ: ${totalPaid.toFixed(2)} ريال — إجمالي النقاط: ${totalPoints}`;
+    document.getElementById("opsBox").style.display = "block";
+    showMsg("");
 }
 </script>
 
