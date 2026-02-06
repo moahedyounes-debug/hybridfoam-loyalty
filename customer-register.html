@@ -18,38 +18,38 @@
         font-size: 26px;
     }
     .form-container {
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(212,175,55,0.4);
-        border-radius: 16px;
-        padding: 20px;
-        max-width: 420px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(212,175,55,0.35);
+        border-radius: 14px;
+        padding: 18px;
+        max-width: 380px;
         margin: auto;
-        backdrop-filter: blur(14px);
+        backdrop-filter: blur(10px);
     }
     input, select {
         width: 100%;
-        padding: 12px;
-        margin: 8px 0;
-        border-radius: 10px;
+        padding: 11px;
+        margin: 7px 0;
+        border-radius: 8px;
         border: 1px solid rgba(212,175,55,0.35);
-        background: #000;
-        color: #fff;
+        background: #000 !important;
+        color: #fff !important;
         font-size: 15px;
         transition: 0.25s;
     }
     input:hover, select:hover {
         border-color: rgba(212,175,55,0.55);
-        background: rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.08) !important;
     }
     input:focus, select:focus {
         border-color: #d4af37;
-        background: rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.12) !important;
         box-shadow: 0 0 10px rgba(212,175,55,0.35);
         outline: none;
     }
     button {
         width: 100%;
-        padding: 13px;
+        padding: 12px;
         margin-top: 10px;
         border-radius: 10px;
         border: none;
@@ -209,7 +209,7 @@ document.getElementById("regForm").addEventListener("submit", function(e){
     formData.append("car", document.getElementById("car").value);
     formData.append("size", document.getElementById("size").value);
     formData.append("city", document.getElementById("city").value);
-    formData.append("plate_numbers", plate_numbers);
+    formData.append("plate_numbers", plateNumbers);
     formData.append("plate_letters", document.getElementById("plate_letters").value);
 
     fetch(SCRIPT_URL, { method: "POST", body: formData })
