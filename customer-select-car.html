@@ -7,11 +7,12 @@
 
 <style>
     body {
-        background: #000;
+        background: #000 url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png') center 40px no-repeat;
+        background-size: 120px;
         color: #d4af37;
         font-family: "Tajawal", sans-serif;
         text-align: center;
-        padding: 25px;
+        padding: 180px 25px 25px;
     }
 
     h2 {
@@ -19,80 +20,77 @@
         font-size: 24px;
     }
 
-    .box {
-        width: 360px;
-        margin: 0 auto;
+    .car-box {
         background: rgba(0,0,0,0.65);
-        padding: 20px;
-        border-radius: 16px;
         border: 1px solid rgba(212,175,55,0.35);
-        backdrop-filter: blur(10px);
-    }
-
-    .car-item {
-        background: #111;
+        border-radius: 14px;
         padding: 15px;
-        border-radius: 12px;
-        margin: 10px 0;
+        margin: 12px auto;
+        max-width: 330px;
         cursor: pointer;
-        border: 1px solid rgba(212,175,55,0.35);
-        transition: 0.3s;
-        text-align: right;
+        transition: 0.25s;
     }
 
-    .car-item:hover {
-        border-color: #d4af37;
-        box-shadow: 0 0 10px rgba(212,175,55,0.4);
+    .car-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(212,175,55,0.4);
+    }
+
+    .plate {
+        font-size: 18px;
+        margin-top: 6px;
     }
 </style>
 </head>
-
 <body>
 
-<h2>اختر السيارة</h2>
-
-<div class="box" id="carsBox">
-    جاري التحميل...
-</div>
+<h2>اختر السيارة اللي تبغى تشوف النقاط والعضوية حقتها</h2>
+<div id="cars">جاري التحميل...</div>
 
 <script>
-function loadCars() {
-    const carsData = sessionStorage.getItem("cars_list");
+const API = "https://script.google.com/macros/s/AKfycbyURRd4OJmPYeRHJZW5ETmM47ToruBYKxe08w0RjUnKMT-m_a6YHknchCXbJBEo-o8IZw/exec";
+const phone = sessionStorage.getItem("login_phone");
 
-    if (!carsData) {
-        document.getElementById("carsBox").innerHTML = "لا توجد سيارات مسجلة";
-        return;
-    }
+if (!phone) {
+    document.getElementById("cars").innerHTML =
+        "<div style='color:red;font-size:18px'>الرجاء التسجيل أولاً</div>";
+}
 
-    const cars = JSON.parse(carsData);
+fetch(`${API}?action=getCarsByPhone&phone=${phone}`)
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success || data.cars.length === 0) {
+            document.getElementById("cars").innerHTML =
+                "<div style='color:red;font-size:18px'>لا توجد سيارات</div>";
+            return;
+        }
 
-    let html = "";
+        const list = data.cars;
+        let html = "";
 
-    cars.forEach((c, index) => {
-        html += `
-            <div class="car-item" onclick="selectCar(${index})">
-                <strong>${c.car}</strong><br>
-                فئة: ${c.size}<br>
-                لوحة: ${c.plate_letters} - ${c.plate_numbers}
-            </div>
-        `;
+        list.forEach((c, index) => {
+            html += `
+                <div class="car-box" onclick="selectCar(${index})">
+                    <strong>${c.car}</strong><br>
+                    <div class="plate">${c.plate_letters} - ${c.plate_numbers}</div>
+                </div>
+            `;
+        });
+
+        document.getElementById("cars").innerHTML = html;
+
+        // حفظ القائمة كاملة
+        sessionStorage.setItem("cars_list", JSON.stringify(list));
     });
 
-    document.getElementById("carsBox").innerHTML = html;
-}
+function selectCar(i) {
+    const list = JSON.parse(sessionStorage.getItem("cars_list"));
+    const selected = list[i];
 
-function selectCar(index) {
-    const cars = JSON.parse(sessionStorage.getItem("cars_list"));
-    const selected = cars[index];
-
-    // حفظ السيارة المختارة
     sessionStorage.setItem("selected_car", JSON.stringify(selected));
 
-    // الانتقال لبطاقة العضوية
     window.location.href = "verify.html";
 }
-
-loadCars();
 </script>
 
 </body>
