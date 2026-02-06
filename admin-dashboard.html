@@ -219,66 +219,21 @@ async function searchCustomer() {
     showMsg("");
 }
 
-// حساب النقاط والمستوى
-function calculateNewValues(visits, points) {
-    visits = Number(visits) || 0;
-    points = Number(points) || 0;
-
-    visits += 1;
-    points += 10;
-
-    let level = "Bronze";
-    if (points >= 200) level = "Gold";
-    else if (points >= 100) level = "Silver";
-
-    return { visits, points, level };
-}
-
-async function registerVisit() {
+// النسخة الجديدة — فتح صفحة تسجيل الزيارة
+function registerVisit() {
     if (currentRowIndex === null) {
         showMsg("❌ ابحث عن عميل أولاً");
         return;
     }
 
-    const colVisits = header.indexOf("visit_count");
-    const colPoints = header.indexOf("points");
-    const colLevel = header.indexOf("level");
     const colMembership = header.indexOf("membership");
-    const colPhone = header.indexOf("phone");
-
     const row = data[currentRowIndex];
 
-    const oldVisits = row[colVisits] || "0";
-    const oldPoints = row[colPoints] || "0";
+    // حفظ رقم العضوية للزيارة
+    sessionStorage.setItem("visit_membership", row[colMembership]);
 
-    const { visits, points, level } = calculateNewValues(oldVisits, oldPoints);
-
-    // تحديث العرض
-    document.getElementById("c_visits").textContent = visits;
-    document.getElementById("c_points").textContent = points;
-    document.getElementById("c_level").textContent = level;
-
-    // تجهيز البيانات
-    const payload = {
-        phone: row[colPhone],
-        membership: row[colMembership],
-        visit_count: visits,
-        points: points,
-        level: level
-    };
-
-    try {
-        await fetch("https://script.google.com/macros/s/AKfycby-ld_TTvYfzx8FGb4MGAqek8jaeaz506cdTEjii2qFv8tCaf54RQg1oUWqOkQUJ2A/exec", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
-        });
-
-        showMsg("✔ تم تسجيل الزيارة وتحديث النقاط", true);
-
-    } catch (e) {
-        showMsg("⚠️ فشل إرسال التحديث إلى الشيت");
-    }
+    // الانتقال لصفحة إضافة الزيارة
+    window.location.href = "add-visit.html";
 }
 </script>
 
