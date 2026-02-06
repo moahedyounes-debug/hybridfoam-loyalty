@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>بطاقة عضوية رغوة الهجين</title>
 
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <style>
   body {
-    font-family: "Tahoma", sans-serif;
+    font-family: "IBM Plex Sans Arabic", sans-serif;
     background: #0d0d0d;
     margin: 0;
     padding: 20px;
@@ -18,64 +20,50 @@
   .card {
     width: 360px;
     margin: 0 auto;
-    border-radius: 18px;
-    background: #1a1a1a;
-    box-shadow: 0 0 20px rgba(255,255,255,0.1);
     overflow: hidden;
-    border: 2px solid transparent;
+    box-shadow: 0 0 25px rgba(0,0,0,0.4);
   }
 
+  /* VIP — Black & Gold (Square edges) */
   .vip {
     background: linear-gradient(135deg, #000000, #1a1a1a);
-    border: 5px solid #d4af37;
+    border: 4px solid #d4af37;
+    border-radius: 6px;
     box-shadow: 0 0 25px rgba(212,175,55,0.4);
   }
 
-  .vip .tier-bar {
-    background: linear-gradient(45deg, #000, #2b2b2b);
-    color: #d4af37;
-    text-shadow: 0 0 8px rgba(212,175,55,0.6);
-  }
-
-  .vip .tier-bar::after {
-    content: "👑 ";
-    position: absolute;
-    top: 3px;
-    left: 165px;
-    font-size: 22px;
-    color: #d4af37;
-  }
-
-  .gold {
-    background: linear-gradient(135deg, #d4af37, #b8921b);
-    border: 5px solid #000;
-  }
-
-  .silver {
-    background: linear-gradient(135deg, #c0c0c0, #9e9e9e);
-    border: 2px solid #444;
-  }
-
-  .bronze {
-    background: linear-gradient(135deg, #cd7f32, #a65a1a);
-    border: 2px solid #5a3a1a;
+  /* Gold/Silver/Bronze — Cream & Gold (Rounded edges) */
+  .cream {
+    background: linear-gradient(135deg, #f7f2e8, #efe7d9);
+    border: 3px solid #d4af37;
+    border-radius: 20px;
+    color: #3a2f1b;
   }
 
   .tier-bar {
-    height: 95px;
+    height: 90px;
     font-size: 26px;
-    font-weight: bold;
+    font-weight: 700;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
   }
 
+  .vip .tier-bar {
+    color: #d4af37;
+    text-shadow: 0 0 8px rgba(212,175,55,0.6);
+  }
+
+  .cream .tier-bar {
+    color: #b08a2e;
+  }
+
   .logo {
-    width: 80px;
+    width: 70px;
     position: absolute;
     right: 12px;
-    top: 8px;
+    top: 10px;
     background: white;
     padding: 5px;
     border-radius: 10px;
@@ -85,7 +73,6 @@
   .content {
     padding: 20px;
     text-align: right;
-    color: white;
   }
 
   .row {
@@ -94,7 +81,7 @@
   }
 
   .label {
-    font-weight: bold;
+    font-weight: 600;
   }
 
   .qr-box {
@@ -103,8 +90,8 @@
   }
 
   .qr-box img {
-    width: 110px;
-    border-radius: 10px;
+    width: 120px;
+    border-radius: 12px;
     border: 3px solid #d4af37;
   }
 
@@ -112,6 +99,19 @@
     color: red;
     font-size: 20px;
     margin-top: 40px;
+  }
+
+  .add-home {
+    width: 90%;
+    margin: 20px auto 25px;
+    padding: 14px;
+    background: #1976d2;
+    color: white;
+    border-radius: 12px;
+    font-size: 18px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
   }
 </style>
 </head>
@@ -121,72 +121,114 @@
 <div id="cardContainer"></div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzgBrZRQ-CaJKw3WgFaXbQMR_UgWZUyixTuCQlkgP_zZ1i1dJlVSiO70Pqmb5aKEIi9Vw/exec";
+const ID = new URLSearchParams(location.search).get("id");
 
-// قراءة رقم العضوية من الرابط
-const membership = new URLSearchParams(location.search).get("id");
+// API الجديد
+const API = "https://script.google.com/macros/s/AKfycbzgBrZRQ-CaJKw3WgFaXbQMR_UgWZUyixTuCQlkgP_zZ1i1dJlVSiO70Pqmb5aKEIi9Vw/exec?action=getAll";
 
-if (!membership) {
-  document.getElementById("cardContainer").innerHTML =
-    "<div class='error'>رقم العضوية غير موجود</div>";
-}
+async function loadCard() {
+  try {
+    const res = await fetch(API);
+    const json = await res.json();
 
-// تحميل بيانات العميل
-fetch(`${API}?action=getByPhone&phone=0`) // dummy to trigger API
-  .then(() => fetch(`${API}?action=getByMembership&id=${membership}`))
-  .catch(() => {})
-  
-// لكن بما إن API ما فيه getByMembership، نستخدم getByPhone workaround:
-fetch(`${API}?action=getAll`)
-  .then(r => r.json())
-  .then(all => {
-    if (!all.success) {
-      document.getElementById("cardContainer").innerHTML =
-        "<div class='error'>خطأ في تحميل البيانات</div>";
+    if (!json.success) {
+      showError("خطأ في تحميل البيانات");
       return;
     }
 
-    const customer = all.data.find(c => String(c.membership) === membership);
+    const customers = json.data;
+    const customer = customers.find(c => String(c.membership).trim() === String(ID).trim());
 
     if (!customer) {
-      document.getElementById("cardContainer").innerHTML =
-        "<div class='error'>لم يتم العثور على العميل</div>";
+      showError("لم يتم العثور على العميل");
       return;
     }
 
-    renderCard(customer);
-  });
+    createCard(customer);
 
-function renderCard(c) {
+  } catch (err) {
+    showError("خطأ في تحميل البيانات");
+  }
+}
+
+function createCard(c) {
   const level = (c.level || "Bronze").toLowerCase();
-  let tierClass = "bronze";
+
+  let tierClass = "cream";
   let tierName = "Bronze";
 
-  if (level.includes("silver")) { tierClass = "silver"; tierName = "Silver"; }
-  if (level.includes("gold")) { tierClass = "gold"; tierName = "Gold"; }
-  if (level.includes("vip")) { tierClass = "vip"; tierName = "VIP"; }
+  if (level.includes("silver")) {
+    tierName = "Silver";
+  }
+  if (level.includes("gold")) {
+    tierName = "Gold";
+  }
+  if (level.includes("vip")) {
+    tierClass = "vip";
+    tierName = "VIP";
+  }
 
-  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${membership}`;
+  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
 
   document.getElementById("cardContainer").innerHTML = `
     <div class="card ${tierClass}">
+
       <div class="tier-bar">
         ${tierName}
         <img src="logo.png" class="logo">
       </div>
 
       <div class="content">
+
         <div class="row"><span class="label">الاسم:</span> ${c.name}</div>
-        <div class="row"><span class="label">رقم العضوية:</span> ${membership}</div>
+        <div class="row"><span class="label">رقم العضوية:</span> ${ID}</div>
         <div class="row"><span class="label">النقاط:</span> ${c.points || 0}</div>
 
         <div class="qr-box">
           <img src="${qrURL}">
         </div>
+
+        <div class="row"><span class="label">الاشتراك:</span> ${c.subscription}</div>
+        <div class="row"><span class="label">غسلة مجانية:</span> ${c.free_wash || "-"}</div>
+        <div class="row"><span class="label">آخر زيارة:</span> ${c.last_visit || "-"}</div>
+
+        <div class="add-home" onclick="addToHome()">📱 أضف البطاقة للشاشة الرئيسية</div>
+
       </div>
     </div>
   `;
 }
+
+function showError(msg) {
+  document.getElementById("cardContainer").innerHTML =
+    `<div class="error">${msg}</div>`;
+}
+
+function addToHome() {
+  const ua = navigator.userAgent.toLowerCase();
+
+  if (ua.includes("iphone") || ua.includes("ipad")) {
+    alert(
+      "لإضافة البطاقة للشاشة الرئيسية:\n\n" +
+      "1) اضغط زر المشاركة (Share)\n" +
+      "2) اختر: Add to Home Screen\n" +
+      "3) اضغط Add"
+    );
+  } 
+  else if (ua.includes("android")) {
+    alert(
+      "لإضافة البطاقة للشاشة الرئيسية:\n\n" +
+      "1) اضغط على القائمة (⋮)\n" +
+      "2) اختر: Add to Home Screen\n" +
+      "3) اضغط Add"
+    );
+  } 
+  else {
+    alert("ميزة الإضافة للشاشة الرئيسية تعمل على iPhone و Android فقط.");
+  }
+}
+
+loadCard();
 </script>
 
 </body>
