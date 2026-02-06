@@ -65,7 +65,6 @@
         outline: none;
     }
 
-    /* إصلاح خلفية القوائم */
     select, option {
         background-color: #000 !important;
         color: #fff !important;
@@ -231,6 +230,10 @@ document.getElementById("regForm").addEventListener("submit", function(e){
         if (data.success) {
             msg.style.color = "#4cff4c";
             msg.textContent = "✔ تم التسجيل بنجاح";
+
+            // حفظ بيانات العميل في الجلسة
+            sessionStorage.setItem("login_phone", phone);
+            sessionStorage.setItem("login_plate", plate_numbers);
 
             setTimeout(() => {
                 window.location.href = "verify.html";
