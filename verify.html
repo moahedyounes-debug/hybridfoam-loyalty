@@ -31,68 +31,50 @@
         margin-top: 10px;
     }
 
-    .loading {
+    .btn {
+        width: 90%;
+        padding: 14px;
+        margin-top: 15px;
+        border-radius: 10px;
+        border: none;
+        background: #d4af37;
+        color: #000;
         font-size: 18px;
-        color: #d4af37;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #b8922f;
+    }
+
+    .whatsapp {
+        margin-top: 20px;
+        display: inline-block;
+        padding: 12px 20px;
+        background: #25D366;
+        color: #000;
+        font-size: 18px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: bold;
     }
 </style>
 </head>
 <body>
 
-<div id="content" class="loading">جاري التحقق من بيانات العميل...</div>
+<div id="content">جاري تحميل بيانات السيارة...</div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwr-Jy6trjRAw1P5QgIAC1lwB5tkBRNncWnkGwE_nutQe9IfDqkqtmYCFTgB6f1w6A6ug/exec";
-const phone = sessionStorage.getItem("login_phone");
+const car = JSON.parse(sessionStorage.getItem("selected_car"));
 
-if (!phone) {
+if (!car) {
     document.getElementById("content").innerHTML =
-        "<div style='color:red;font-size:18px'>الرجاء التسجيل أولاً</div>";
+        "<div style='color:red;font-size:18px'>الرجاء اختيار السيارة أولاً</div>";
+} else {
+    showCard(car);
 }
 
-// ------------------------------
-// 🔥 نظام Retry الذكي
-// ------------------------------
-let attempts = 0;
-const maxAttempts = 5;
-const retryDelay = 600; // 0.6 ثانية
-
-function fetchCustomer() {
-    attempts++;
-
-    fetch(`${API}?action=getByPhone&phone=${phone}`)
-        .then(res => res.json())
-        .then(data => {
-
-            if (data.success && data.customer) {
-                showCard(data.customer);
-                return;
-            }
-
-            if (attempts < maxAttempts) {
-                document.getElementById("content").innerHTML =
-                    `جاري التحقق... (محاولة ${attempts} من ${maxAttempts})`;
-                setTimeout(fetchCustomer, retryDelay);
-            } else {
-                document.getElementById("content").innerHTML =
-                    "<div style='color:red;font-size:18px'>لم يتم العثور على بيانات العميل</div>";
-            }
-        })
-        .catch(() => {
-            if (attempts < maxAttempts) {
-                setTimeout(fetchCustomer, retryDelay);
-            } else {
-                document.getElementById("content").innerHTML =
-                    "<div style='color:red;font-size:18px'>خطأ في الاتصال بالخادم</div>";
-            }
-        });
-}
-
-fetchCustomer();
-
-// ------------------------------
-// 🔥 عرض بطاقة العضوية
-// ------------------------------
 function showCard(c) {
     document.getElementById("content").innerHTML = `
         <div class="card">
@@ -110,8 +92,24 @@ function showCard(c) {
                 <strong>النقاط:</strong> ${c.points}<br>
                 <strong>المستوى:</strong> ${c.level}<br>
             </div>
+
+            <button class="btn" onclick="openHistory()">سجل الزيارات</button>
+            <button class="btn" onclick="goHome()">الصفحة الرئيسية</button>
+
+            <a class="whatsapp" href="https://wa.me/966543329786" target="_blank">
+                تواصل مع الإدارة
+            </a>
         </div>
     `;
+}
+
+function openHistory() {
+    sessionStorage.setItem("history_membership", car.membership);
+    window.location.href = "car-history.html";
+}
+
+function goHome() {
+    window.location.href = "index.html";
 }
 </script>
 
