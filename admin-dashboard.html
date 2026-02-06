@@ -7,7 +7,8 @@
 
 <!-- سيتم إضافة CSS هنا لاحقًا -->
 <style>
-/* RESET */
+/* سيتم وضع CSS في الرسالة التالية */
+    /* RESET */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -305,6 +306,72 @@ td {
         grid-template-columns: 1fr;
     }
 }
+    @media (max-width: 600px) {
+    .cards-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+    /* ------------------------------
+   الثيم الفاتح
+------------------------------ */
+
+body.light {
+    background: #f5f5f5;
+    color: #000;
+}
+
+body.light .panel {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(0,0,0,0.15);
+}
+
+body.light .card {
+    background: rgba(255,255,255,0.95);
+    border-color: rgba(0,0,0,0.15);
+}
+
+body.light .btn-ghost {
+    color: #000;
+    border-color: rgba(0,0,0,0.3);
+}
+
+body.light .btn-danger {
+    color: #b00000;
+    border-color: rgba(255,0,0,0.3);
+}
+
+body.light th {
+    background: #ddd;
+    color: #000;
+}
+
+body.light td {
+    border-bottom: 1px solid #ccc;
+}
+
+body.light .topbar {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(0,0,0,0.15);
+}
+
+/* حركة زر الثيم */
+.theme-toggle {
+    position: relative;
+    transition: 0.25s ease;
+}
+
+.theme-knob {
+    transition: 0.25s ease;
+}
+
+body.light .theme-knob {
+    left: 3px;
+    right: auto;
+    background: #000;
+}
 </style>
 
 </head>
@@ -576,15 +643,19 @@ td {
 
 <!-- سيتم إضافة JS هنا لاحقًا -->
 <script>
+/* سيتم وضع JavaScript في الرسالة التالية */
 /* -----------------------------------------
    روابطك الحقيقية
 ----------------------------------------- */
 
-const SHEET_CUSTOMERS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=0&single=true&output=tsv";
+const SHEET_CUSTOMERS =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=0&single=true&output=tsv";
 
-const SHEET_VISITS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=1214043427&single=true&output=tsv";
+const SHEET_VISITS =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=1214043427&single=true&output=tsv";
 
-const SHEET_ADD_VISIT = "https://script.google.com/macros/s/AKfycbwr-Jy6trjRAw1P5QgIAC1lwB5tkBRNncWnkGwE_nutQe9IfDqkqtmYCFTgB6f1w6A6ug/exec";
+const SHEET_ADD_VISIT =
+"https://script.google.com/macros/s/AKfycbwr-Jy6trjRAw1P5QgIAC1lwB5tkBRNncWnkGwE_nutQe9IfDqkqtmYCFTgB6f1w6A6ug/exec";
 
 
 /* -----------------------------------------
@@ -674,19 +745,25 @@ function percent(v, total) {
 
 
 /* -----------------------------------------
-   الرسوم البيانية
+   الرسوم البيانية — مع تدمير القديم
 ----------------------------------------- */
+
+let chart1, chart2, chart3, chart4;
 
 function updateCharts() {
 
-    /* --- أكثر الخدمات استخداماً --- */
+    if (chart1) chart1.destroy();
+    if (chart2) chart2.destroy();
+    if (chart3) chart3.destroy();
+    if (chart4) chart4.destroy();
+
     const serviceCount = {};
     visits.forEach(v => {
         if (!serviceCount[v.service]) serviceCount[v.service] = 0;
         serviceCount[v.service]++;
     });
 
-    new Chart(document.getElementById("chartServices"), {
+    chart1 = new Chart(document.getElementById("chartServices"), {
         type: "bar",
         data: {
             labels: Object.keys(serviceCount),
@@ -698,14 +775,13 @@ function updateCharts() {
         }
     });
 
-    /* --- توزيع السيارات --- */
     const carCount = {};
     customers.forEach(c => {
         if (!carCount[c.car]) carCount[c.car] = 0;
         carCount[c.car]++;
     });
 
-    new Chart(document.getElementById("chartCars"), {
+    chart2 = new Chart(document.getElementById("chartCars"), {
         type: "pie",
         data: {
             labels: Object.keys(carCount),
@@ -716,14 +792,13 @@ function updateCharts() {
         }
     });
 
-    /* --- الزيارات اليومية --- */
     const daily = {};
     visits.forEach(v => {
         if (!daily[v.date]) daily[v.date] = 0;
         daily[v.date]++;
     });
 
-    new Chart(document.getElementById("chartVisitsDaily"), {
+    chart3 = new Chart(document.getElementById("chartVisitsDaily"), {
         type: "line",
         data: {
             labels: Object.keys(daily),
@@ -735,14 +810,13 @@ function updateCharts() {
         }
     });
 
-    /* --- الإيرادات اليومية --- */
     const revenue = {};
     visits.forEach(v => {
         if (!revenue[v.date]) revenue[v.date] = 0;
         revenue[v.date] += Number(v.price || 0);
     });
 
-    new Chart(document.getElementById("chartRevenueDaily"), {
+    chart4 = new Chart(document.getElementById("chartRevenueDaily"), {
         type: "line",
         data: {
             labels: Object.keys(revenue),
@@ -877,12 +951,13 @@ function logout() {
 
 
 /* -----------------------------------------
-   الثيم
+   الثيم + الأنيميشن
 ----------------------------------------- */
 
 function toggleTheme() {
     document.body.classList.toggle("light");
 }
+    
 </script>
 
 </body>
