@@ -40,10 +40,16 @@
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
+    transition: 0.3s;
+  }
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
   .msg {
     margin-top: 15px;
     font-size: 18px;
+    min-height: 24px;
   }
 </style>
 </head>
@@ -55,7 +61,7 @@
 <div class="box">
   <input id="phone" placeholder="رقم الجوال" type="number">
 
-  <button onclick="login()">دخول</button>
+  <button id="loginBtn" onclick="login()">دخول</button>
 
   <div id="msg" class="msg"></div>
 </div>
@@ -65,24 +71,40 @@ const API = "https://script.google.com/macros/s/AKfycbyKLUq658Fs7FNtfNYOfKSKJBkS
 
 async function login() {
   const phone = document.getElementById("phone").value.trim();
+  const btn = document.getElementById("loginBtn");
+  const msg = document.getElementById("msg");
 
   if (!phone) {
-    document.getElementById("msg").innerHTML = "الرجاء إدخال رقم الجوال";
+    msg.innerHTML = "الرجاء إدخال رقم الجوال";
     return;
   }
 
-  const res = await fetch(`${API}?action=getByPhone&phone=${phone}`);
-  const json = await res.json();
+  // حالة انتظار
+  btn.disabled = true;
+  btn.innerHTML = "جاري التحقق...";
+  msg.innerHTML = "";
 
-  if (!json.success) {
-    document.getElementById("msg").innerHTML = "العميل غير موجود";
-    return;
+  try {
+    const res = await fetch(`${API}?action=getByPhone&phone=${phone}`);
+    const json = await res.json();
+
+    if (!json.success) {
+      msg.innerHTML = "العميل غير موجود";
+      btn.disabled = false;
+      btn.innerHTML = "دخول";
+      return;
+    }
+
+    const membership = json.customer.membership;
+
+    // الانتقال للوحة العميل
+    window.location.href = `customer-dashboard.html?id=${membership}`;
+
+  } catch (err) {
+    msg.innerHTML = "حدث خطأ، حاول مرة أخرى";
+    btn.disabled = false;
+    btn.innerHTML = "دخول";
   }
-
-  const membership = json.customer.membership;
-
-  // الانتقال إلى لوحة العميل
-  window.location.href = `customer-dashboard.html?id=${membership}`;
 }
 </script>
 
