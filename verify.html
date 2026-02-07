@@ -92,14 +92,16 @@
 <div id="content">جاري تحميل بيانات السيارة...</div>
 
 <script>
+// منع الدخول المباشر للصفحة
 const car = JSON.parse(sessionStorage.getItem("selected_car"));
 
 if (!car) {
-    document.getElementById("content").innerHTML =
-        "<div style='color:red;font-size:18px'>الرجاء اختيار السيارة أولاً</div>";
-} else {
-    showCard(car);
+    // إعادة التوجيه تلقائيًا
+    window.location.href = "login.html";
 }
+
+// عرض البطاقة إذا السيارة موجودة
+showCard(car);
 
 function showCard(c) {
 
