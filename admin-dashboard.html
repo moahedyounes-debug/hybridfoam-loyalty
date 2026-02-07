@@ -1,280 +1,85 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة إدارة رغوة الهجين</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم المشرف</title>
 
-    <!-- ربط ملف CSS الخارجي -->
-    <link rel="stylesheet" href="admin.css">
+<style>
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        padding: 25px;
+        text-align: center;
+    }
 
-    <!-- مكتبة Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    h1 {
+        margin-bottom: 25px;
+        font-size: 28px;
+    }
+
+    .menu {
+        max-width: 380px;
+        margin: auto;
+    }
+
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        margin: 12px 0;
+        border-radius: 12px;
+        border: 1px solid rgba(212,175,55,0.4);
+        background: rgba(255,255,255,0.06);
+        color: #d4af37;
+        font-size: 18px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: 0.25s;
+    }
+
+    .btn:hover {
+        background: #d4af37;
+        color: #000;
+        transform: translateY(-3px);
+    }
+
+    .logout {
+        margin-top: 25px;
+        color: #ff4c4c;
+        cursor: pointer;
+        font-size: 16px;
+    }
+</style>
 </head>
 
 <body>
 
-    <!-- خلفية الشعار -->
-    <div class="bg-logo"></div>
-    <div class="overlay"></div>
+<h1>لوحة تحكم المشرف</h1>
 
-    <div class="dashboard">
+<div class="menu">
 
-        <!-- الشريط العلوي -->
-        <div class="topbar">
-            <div class="topbar-left">
-                <div class="topbar-logo">
-                    <img src="logo.png" alt="Hybrid Foam">
-                </div>
-                <div class="topbar-title">
-                    <div class="topbar-title-main">لوحة إدارة رغوة الهجين</div>
-                    <div class="topbar-title-sub">نظام تقارير وزيارات وولاء العملاء</div>
-                </div>
-            </div>
+    <a class="btn" href="customer-register.html">➕ تسجيل عميل جديد</a>
 
-            <div class="topbar-right">
-                <button class="btn btn-primary" onclick="openVisitPage()">تسجيل زيارة جديدة</button>
-                <button class="btn btn-ghost" onclick="manualRefresh()">تحديث الآن</button>
+    <a class="btn" href="register-car.html">🚗 تسجيل سيارة جديدة</a>
 
-                <div class="theme-toggle" onclick="toggleTheme()">
-                    <div class="theme-icons">
-                        <span>☾</span>
-                        <span>☼</span>
-                    </div>
-                    <div class="theme-knob"></div>
-                </div>
+    <a class="btn" href="add-visit.html">🧽 تسجيل زيارة</a>
 
-                <button class="btn btn-danger" onclick="logout()">تسجيل خروج</button>
-            </div>
-        </div>
+    <a class="btn" href="visits.html">📅 سجل الزيارات</a>
 
-        <!-- نظرة عامة -->
-        <div class="panel overview-panel">
-            <div class="panel-header">
-                <div>
-                    <div class="panel-title">نظرة عامة</div>
-                    <div class="panel-sub">ملخص شامل للنظام</div>
-                </div>
-                <div id="msg"></div>
-            </div>
+    <a class="btn" href="api-test.html">🛠 اختبار API</a>
 
-            <div class="panel-body">
-                <div class="cards-grid">
+</div>
 
-                    <div class="card">
-                        <div class="card-label">عدد العملاء</div>
-                        <div class="card-value" id="card_customers">-</div>
-                        <div class="card-footer">
-                            <span>إجمالي المسجلين</span>
-                            <span class="chip" id="card_customers_new">اليوم: 0</span>
-                        </div>
-                    </div>
+<div class="logout" onclick="logout()">تسجيل خروج</div>
 
-                    <div class="card">
-                        <div class="card-label">إجمالي الزيارات</div>
-                        <div class="card-value" id="card_visits">-</div>
-                        <div class="card-footer">
-                            <span>كل الوقت</span>
-                            <span class="chip" id="card_visits_today">اليوم: 0</span>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-label">إجمالي المبالغ</div>
-                        <div class="card-value" id="card_totalPaid">-</div>
-                        <div class="card-footer">
-                            <span>إجمالي الإيرادات</span>
-                            <span class="chip" id="card_avgTicket">متوسط الفاتورة: -</span>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-label">عملاء VIP</div>
-                        <div class="card-value" id="card_vip">-</div>
-                        <div class="card-footer">
-                            <span>أعلى شريحة</span>
-                            <span class="chip" id="card_vip_ratio">-</span>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-label">عملاء Gold</div>
-                        <div class="card-value" id="card_gold">-</div>
-                        <div class="card-footer">
-                            <span>شريحة ذهبية</span>
-                            <span class="chip" id="card_gold_ratio">-</span>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-label">عملاء Silver</div>
-                        <div class="card-value" id="card_silver">-</div>
-                        <div class="card-footer">
-                            <span>شريحة فضية</span>
-                            <span class="chip" id="card_silver_ratio">-</span>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-label">عملاء Bronze</div>
-                        <div class="card-value" id="card_bronze">-</div>
-                        <div class="card-footer">
-                            <span>شريحة برونزية</span>
-                            <span class="chip" id="card_bronze_ratio">-</span>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-label">بدون مستوى</div>
-                        <div class="card-value" id="card_none">-</div>
-                        <div class="card-footer">
-                            <span>غير مصنفين</span>
-                            <span class="chip" id="card_none_ratio">-</span>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- الرسوم البيانية -->
-        <div class="panel charts-panel">
-            <div class="charts-grid">
-
-                <div class="chart-card">
-                    <div class="chart-title">أكثر الخدمات استخداماً</div>
-                    <div class="chart-container">
-                        <canvas id="chartServices"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div class="chart-title">توزيع أنواع السيارات</div>
-                    <div class="chart-container">
-                        <canvas id="chartCars"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div class="chart-title">الزيارات اليومية (آخر 14 يوم)</div>
-                    <div class="chart-container">
-                        <canvas id="chartVisitsDaily"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div class="chart-title">الإيرادات اليومية (آخر 14 يوم)</div>
-                    <div class="chart-container">
-                        <canvas id="chartRevenueDaily"></canvas>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- عمليات العميل -->
-        <div class="panel ops-panel">
-            <div class="panel-header">
-                <div>
-                    <div class="panel-title">عمليات العميل</div>
-                    <div class="panel-sub">بحث برقم الجوال أو العضوية</div>
-                </div>
-            </div>
-
-            <div class="panel-body">
-
-                <div class="input-row">
-                    <label>رقم الجوال</label>
-                    <input type="text" id="opsPhone" placeholder="05xxxxxxxx">
-                    <button class="btn btn-ghost" onclick="loadCustomerOperations()">عرض</button>
-                </div>
-
-                <div class="stat-line" id="opsSummary"></div>
-
-                <div class="table-wrapper">
-                    <div class="table-scroll">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>التاريخ</th>
-                                    <th>الخدمة</th>
-                                    <th>السعر</th>
-                                    <th>النقاط</th>
-                                </tr>
-                            </thead>
-                            <tbody id="opsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- تقرير حسب التاريخ -->
-        <div class="panel date-panel">
-            <div class="panel-header">
-                <div>
-                    <div class="panel-title">تقرير حسب التاريخ</div>
-                    <div class="panel-sub">فلترة الزيارات والإيرادات</div>
-                </div>
-            </div>
-
-            <div class="panel-body">
-
-                <div class="input-row">
-                    <label>من</label>
-                    <input type="date" id="fromDate">
-
-                    <label>إلى</label>
-                    <input type="date" id="toDate">
-
-                    <button class="btn btn-ghost" onclick="filterByDate()">عرض</button>
-                </div>
-
-                <div class="stat-line" id="date_visits"></div>
-                <div class="stat-line" id="date_totalPaid"></div>
-                <div class="stat-line" id="date_topService"></div>
-                <div class="stat-line" id="date_topCar"></div>
-
-            </div>
-        </div>
-
-        <!-- آخر الزيارات -->
-        <div class="panel last-visits-panel">
-            <div class="panel-header">
-                <div>
-                    <div class="panel-title">آخر الزيارات</div>
-                    <div class="panel-sub">آخر 20 زيارة مسجلة</div>
-                </div>
-                <div id="lastUpdate"></div>
-            </div>
-
-            <div class="panel-body">
-                <div class="table-wrapper">
-                    <div class="table-scroll">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>اسم العميل</th>
-                                    <th>العضوية</th>
-                                    <th>الخدمة</th>
-                                    <th>السعر</th>
-                                    <th>النقاط</th>
-                                    <th>التاريخ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lastVisitsBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- ربط ملف JS الخارجي -->
-    <script src="admin.js"></script>
+<script>
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "admin-login.html";
+}
+</script>
 
 </body>
 </html>
