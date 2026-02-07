@@ -101,25 +101,30 @@ async function login() {
     msg.style.color = "#d4af37";
     msg.textContent = "⏳ جاري التحقق...";
 
-    const data = await apiGet({
-        action: "getCarsByPhone",
+    const res = await apiGet({
+        action: "checkCustomer",
         phone: phone
     });
 
-    if (!data.success || data.cars.length === 0) {
+    if (res.success && res.status === "exists") {
+
+        sessionStorage.setItem("phone", phone);
+
+        msg.style.color = "#4cff4c";
+        msg.textContent = "✔ تم تسجيل الدخول";
+
+        setTimeout(() => {
+            window.location.href = "membership-card.html";
+        }, 600);
+
+    } else {
         msg.style.color = "red";
-        msg.textContent = "❌ لا يوجد حساب مرتبط بهذا الرقم";
-        return;
+        msg.textContent = "❌ لا يوجد حساب — سيتم تحويلك للتسجيل";
+
+        setTimeout(() => {
+            window.location.href = "full-register.html";
+        }, 1200);
     }
-
-    sessionStorage.setItem("login_phone", phone);
-
-    msg.style.color = "#4cff4c";
-    msg.textContent = "✔ تم التحقق";
-
-    setTimeout(() => {
-        window.location.href = "verify.html";
-    }, 600);
 }
 </script>
 
