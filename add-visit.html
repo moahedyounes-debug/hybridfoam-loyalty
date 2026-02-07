@@ -52,76 +52,15 @@
         transition: 0.25s ease;
     }
 
-    button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(212,175,55,0.55);
-    }
-
     #msg {
         margin-top: 15px;
         font-size: 16px;
         text-align: center;
     }
-
-    .theme-toggle {
-        width: 42px;
-        height: 22px;
-        border-radius: 999px;
-        border: 1px solid rgba(212,175,55,0.3);
-        background: rgba(0,0,0,0.6);
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        cursor: pointer;
-        transition: 0.25s ease;
-    }
-
-    .theme-knob {
-        width: 16px;
-        height: 16px;
-        background: #d4af37;
-        border-radius: 50%;
-        position: absolute;
-        right: 3px;
-        top: 3px;
-        transition: 0.25s ease;
-    }
-
-    body.light {
-        background: #f5f5f5;
-        color: #000;
-    }
-
-    body.light .box {
-        background: rgba(255,255,255,0.85);
-        border-color: rgba(0,0,0,0.15);
-    }
-
-    body.light select,
-    body.light input {
-        background: #fff;
-        color: #000;
-        border-color: #000;
-    }
-
-    body.light button {
-        background: linear-gradient(45deg, #000, #444);
-        color: #fff;
-    }
-
-    body.light .theme-knob {
-        left: 3px;
-        right: auto;
-        background: #000;
-    }
 </style>
 </head>
 
 <body>
-
-<div class="theme-toggle" onclick="toggleTheme()">
-    <div class="theme-knob"></div>
-</div>
 
 <h2>تسجيل زيارة جديدة</h2>
 
@@ -132,7 +71,7 @@
 
     <button onclick="loadCustomer()">بحث عن العميل</button>
 
-    <div id="customerInfo" style="margin:10px 0; font-size:14px; color:#0f0;"></div>
+    <div id="customerInfo" style="margin:10px 0; font-size:14px;"></div>
 
     <hr style="margin:15px 0; opacity:0.3;">
 
@@ -158,29 +97,13 @@ const API = "https://script.google.com/macros/s/AKfycby6gaUcMNIorB6oTmLfRA7La90f
 let membership = "";
 let customerName = "";
 
-/* تحميل بيانات من لوحة التحكم */
-window.onload = function () {
-    const savedPhone = sessionStorage.getItem("visit_phone");
-    const savedMembership = sessionStorage.getItem("visit_membership");
-    const savedName = sessionStorage.getItem("visit_name");
-
-    if (savedPhone && savedMembership) {
-        membership = savedMembership;
-        customerName = savedName;
-
-        document.getElementById("phone").value = savedPhone;
-        document.getElementById("customerInfo").innerHTML =
-            `✔ العميل: ${savedName} — العضوية: ${savedMembership}`;
-    }
-};
-
 /* البحث عن العميل */
 async function loadCustomer() {
     const phone = document.getElementById("phone").value.trim();
+    const info = document.getElementById("customerInfo");
 
     if (!phone) {
-        document.getElementById("customerInfo").innerHTML =
-            "<span style='color:red'>❌ أدخل رقم الجوال</span>";
+        info.innerHTML = "<span style='color:red'>❌ أدخل رقم الجوال</span>";
         return;
     }
 
@@ -198,20 +121,44 @@ async function loadCustomer() {
         return obj;
     });
 
-    const c = customers.find(x => x.phone == phone);
+    const matches = customers.filter(x => x.phone == phone);
 
-    if (!c) {
-        document.getElementById("customerInfo").innerHTML =
-            "<span style='color:red'>❌ العميل غير موجود</span>";
+    if (matches.length === 0) {
+        info.innerHTML = "<span style='color:red'>❌ العميل غير موجود</span>";
         membership = "";
         return;
     }
 
-    membership = c.membership;
-    customerName = c.name;
+    if (matches.length === 1) {
+        const c = matches[0];
+        membership = c.membership;
+        customerName = c.name;
+
+        info.innerHTML = `✔ العميل: ${c.name} — العضوية: ${c.membership}`;
+        return;
+    }
+
+    // أكثر من سيارة → عرض اختيار
+    let html = "<b>اختر السيارة:</b><br><br>";
+
+    matches.forEach(m => {
+        html += `
+            <button style="margin:5px; padding:10px; width:100%;"
+                onclick="selectMembership('${m.membership}', '${m.name}')">
+                ${m.car} — ${m.plate_letters} ${m.plate_numbers} — عضوية ${m.membership}
+            </button>
+        `;
+    });
+
+    info.innerHTML = html;
+}
+
+function selectMembership(mem, name) {
+    membership = mem;
+    customerName = name;
 
     document.getElementById("customerInfo").innerHTML =
-        `✔ العميل: ${c.name} — العضوية: ${c.membership}`;
+        `✔ العميل: ${name} — العضوية: ${mem}`;
 }
 
 /* جدول الخدمات */
@@ -299,6 +246,9 @@ async function saveVisit() {
         return;
     }
 
+    document.getElementById("msg").innerHTML =
+        "<span style='color:#d4af37'>⏳ جاري تسجيل الزيارة...</span>";
+
     const url = `${API}?action=addVisit&membership=${membership}&service=${encodeURIComponent(service)}&price=${price}&points=${points}`;
 
     try {
@@ -306,6 +256,8 @@ async function saveVisit() {
 
         document.getElementById("msg").innerHTML =
             "<span style='color:#0f0'>✔ تم تسجيل الزيارة بنجاح</span>";
+
+        sessionStorage.setItem("visit_membership", membership);
 
         setTimeout(() => {
             window.location.href = "car-history.html";
@@ -315,11 +267,6 @@ async function saveVisit() {
         document.getElementById("msg").innerHTML =
             "<span style='color:red'>⚠️ فشل الاتصال بالخادم</span>";
     }
-}
-
-/* الثيم */
-function toggleTheme() {
-    document.body.classList.toggle("light");
 }
 </script>
 
