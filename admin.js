@@ -273,7 +273,7 @@ function filterByDate() {
    أزرار التحكم
 ----------------------------------------- */
 function openVisitPage() {
-    window.location.href = "add-visit.html";
+    window.open("add-visit.html", "_blank");
 }
 
 function manualRefresh() {
