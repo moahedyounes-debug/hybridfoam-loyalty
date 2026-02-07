@@ -1,104 +1,127 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل الدخول</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل دخول العميل</title>
 
-  <style>
+<style>
     body {
-      background: #000 url('logo.png') center 40px no-repeat;
-      background-size: 120px;
-      color: #d4af37;
-      font-family: "Tajawal", sans-serif;
-      text-align: center;
-      padding: 180px 25px 25px;
+        background: #000 url('logo.png') center 60px no-repeat;
+        background-size: 130px;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding-top: 240px;
     }
-    input {
-      width: 85%;
-      padding: 14px;
-      margin-top: 15px;
-      border-radius: 10px;
-      border: 1px solid #d4af37;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      font-size: 18px;
-      text-align: center;
-    }
-    button {
-      width: 90%;
-      padding: 14px;
-      margin-top: 20px;
-      border-radius: 10px;
-      border: none;
-      background: #d4af37;
-      color: #000;
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #b8922f;
-    }
-    .error {
-      color: red;
-      margin-top: 15px;
-      font-size: 18px;
-    }
-  </style>
 
-  <script src="api.js"></script>
+    h1 {
+        font-size: 26px;
+        margin-bottom: 20px;
+    }
+
+    .box {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        backdrop-filter: blur(14px);
+        padding: 20px;
+        border-radius: 18px;
+        max-width: 350px;
+        margin: auto;
+        text-align: right;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.25s ease;
+    }
+
+    #msg {
+        margin-top: 15px;
+        font-size: 15px;
+        text-align: center;
+    }
+</style>
 </head>
+
 <body>
 
-  <h2>تسجيل الدخول</h2>
+<h1>تسجيل دخول العميل</h1>
 
-  <input type="tel" id="phone" placeholder="أدخل رقم الجوال (05xxxxxxxx)">
-  <button onclick="login()">دخول</button>
+<div class="box">
 
-  <div id="msg" class="error"></div>
+    <label>رقم الجوال</label>
+    <input type="text" id="phone" placeholder="05XXXXXXXX">
 
-  <script>
-    async function login() {
-      const phone = document.getElementById("phone").value.trim();
-      const msg = document.getElementById("msg");
+    <button onclick="login()">دخول</button>
 
-      if (!phone.startsWith("05") || phone.length !== 10) {
-        msg.innerHTML = "الرجاء إدخال رقم جوال يبدأ بـ 05 ويتكون من 10 أرقام";
+    <div id="msg"></div>
+</div>
+
+<script src="api.js"></script>
+
+<script>
+async function login() {
+    const phone = document.getElementById("phone").value.trim();
+    const msg = document.getElementById("msg");
+
+    if (!phone) {
+        msg.style.color = "red";
+        msg.textContent = "❌ أدخل رقم الجوال";
         return;
-      }
-
-      msg.innerHTML = "جاري التحقق...";
-
-      try {
-        const data = await apiGet({
-          action: "getByPhone",
-          phone: phone
-        });
-
-        if (!data.success || !data.customer) {
-          msg.innerHTML = "لا يوجد عميل بهذا الرقم";
-          return;
-        }
-
-        const cars = data.cars || [];
-
-        sessionStorage.setItem("customer", JSON.stringify(data.customer));
-        sessionStorage.setItem("cars_list", JSON.stringify(cars));
-
-        if (cars.length === 1) {
-          sessionStorage.setItem("selected_car", JSON.stringify(cars[0]));
-          sessionStorage.setItem("membership", cars[0].membership);
-          window.location.href = "loyalty.html";
-        } else {
-          window.location.href = "customer-select-car.html";
-        }
-
-      } catch (e) {
-        msg.innerHTML = "خطأ في الاتصال";
-      }
     }
-  </script>
+
+    if (!phone.startsWith("05") || phone.length !== 10) {
+        msg.style.color = "red";
+        msg.textContent = "❌ رقم الجوال غير صحيح";
+        return;
+    }
+
+    msg.style.color = "#d4af37";
+    msg.textContent = "⏳ جاري التحقق...";
+
+    const data = await apiGet({
+        action: "getCarsByPhone",
+        phone: phone
+    });
+
+    if (!data.success || data.cars.length === 0) {
+        msg.style.color = "red";
+        msg.textContent = "❌ لا يوجد حساب مرتبط بهذا الرقم";
+        return;
+    }
+
+    sessionStorage.setItem("login_phone", phone);
+
+    msg.style.color = "#4cff4c";
+    msg.textContent = "✔ تم التحقق";
+
+    setTimeout(() => {
+        window.location.href = "verify.html";
+    }, 600);
+}
+</script>
 
 </body>
 </html>
