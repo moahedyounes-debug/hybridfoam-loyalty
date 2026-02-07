@@ -118,35 +118,29 @@
 
 <div id="cardContainer"></div>
 
+<script src="api.js"></script>
+
 <script>
-const ID = new URLSearchParams(location.search).get("id");
-
-// 🔥 API الجديد
-const API = "https://script.google.com/macros/s/AKfycby6gaUcMNIorB6oTmLfRA7La90frLUF6NchZ4Xm_i9SFLv6QMEB8Dtwo812S5Nnib4C_g/exec";
-
 async function loadCard() {
-  try {
-    const res = await fetch(API + "?action=getAll");
-    const json = await res.json();
+  const car = JSON.parse(sessionStorage.getItem("selected_car"));
+  const membership = car?.membership;
 
-    if (!json.success) {
-      showError("خطأ في تحميل البيانات");
-      return;
-    }
-
-    const customers = json.data;
-    const customer = customers.find(c => String(c.membership).trim() === String(ID).trim());
-
-    if (!customer) {
-      showError("لم يتم العثور على العميل");
-      return;
-    }
-
-    createCard(customer);
-
-  } catch (err) {
-    showError("خطأ في تحميل البيانات");
+  if (!membership) {
+    showError("لم يتم العثور على العضوية");
+    return;
   }
+
+  const data = await apiGet({
+    action: "getByMembership",
+    membership: membership
+  });
+
+  if (!data.success || !data.customer) {
+    showError("خطأ في تحميل البيانات");
+    return;
+  }
+
+  createCard(data.customer);
 }
 
 function createCard(c) {
@@ -162,32 +156,28 @@ function createCard(c) {
     tierName = "VIP";
   }
 
-  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://moahedyounes-debug.github.io/hybridfoam-loyalty/loyalty.html?id=${ID}`;
+  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${location.href}`;
 
   document.getElementById("cardContainer").innerHTML = `
     <div class="card ${tierClass}">
-
       <div class="tier-bar">
         ${tierName}
         <img src="logo.png" class="logo">
       </div>
 
       <div class="content">
-
         <div class="row"><span class="label">الاسم:</span> ${c.name}</div>
-        <div class="row"><span class="label">رقم العضوية:</span> ${ID}</div>
+        <div class="row"><span class="label">رقم العضوية:</span> ${c.membership}</div>
         <div class="row"><span class="label">النقاط:</span> ${c.points || 0}</div>
 
         <div class="qr-box">
           <img src="${qrURL}">
         </div>
 
-        <div class="row"><span class="label">الاشتراك:</span> ${c.subscription}</div>
         <div class="row"><span class="label">غسلة مجانية:</span> ${c.free_wash || "-"}</div>
         <div class="row"><span class="label">آخر زيارة:</span> ${c.last_visit || "-"}</div>
 
         <div class="add-home" onclick="addToHome()">📱 أضف البطاقة للشاشة الرئيسية</div>
-
       </div>
     </div>
   `;
@@ -202,23 +192,11 @@ function addToHome() {
   const ua = navigator.userAgent.toLowerCase();
 
   if (ua.includes("iphone") || ua.includes("ipad")) {
-    alert(
-      "لإضافة البطاقة للشاشة الرئيسية:\n\n" +
-      "1) اضغط زر المشاركة (Share)\n" +
-      "2) اختر: Add to Home Screen\n" +
-      "3) اضغط Add"
-    );
-  } 
-  else if (ua.includes("android")) {
-    alert(
-      "لإضافة البطاقة للشاشة الرئيسية:\n\n" +
-      "1) اضغط على القائمة (⋮)\n" +
-      "2) اختر: Add to Home Screen\n" +
-      "3) اضغط Add"
-    );
-  } 
-  else {
-    alert("ميزة الإضافة للشاشة الرئيسية تعمل على iPhone و Android فقط.");
+    alert("لإضافة البطاقة للشاشة الرئيسية:\n\n1) اضغط Share\n2) اختر Add to Home Screen\n3) اضغط Add");
+  } else if (ua.includes("android")) {
+    alert("لإضافة البطاقة للشاشة الرئيسية:\n\n1) اضغط ⋮\n2) اختر Add to Home Screen\n3) اضغط Add");
+  } else {
+    alert("الميزة تعمل على iPhone و Android فقط.");
   }
 }
 
