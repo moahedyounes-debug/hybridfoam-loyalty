@@ -1,0 +1,658 @@
+// =====================================================
+// Helper: JSON Response
+// =====================================================
+function json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// =====================================================
+// Helper: Phone Validation (must start with 05)
+// =====================================================
+function validatePhone(phone) {
+  phone = String(phone).trim();
+  if (!phone.startsWith("05")) return null;
+  if (phone.length !== 10) return null;
+  return phone;
+}
+
+// =====================================================
+// GET Handler
+// =====================================================
+function doGet(e) {
+  const ss          = SpreadsheetApp.getActiveSpreadsheet();
+  const customers   = ss.getSheetByName("Customers");
+  const cars        = ss.getSheetByName("Cars");
+  const visits      = ss.getSheetByName("Visits");
+  const employees   = ss.getSheetByName("Employees");
+  const commissions = ss.getSheetByName("Commissions");
+  const branches    = ss.getSheetByName("Branches");
+
+  const action = e.parameter.action;
+
+  // ---------------------------------------------------
+  // 1) checkCustomer — هل العميل جديد أو موجود؟
+  // ---------------------------------------------------
+  if (action === "checkCustomer") {
+    let phone = validatePhone(e.parameter.phone);
+    if (!phone) return json({ success: false, error: "invalid_phone" });
+
+    const custData = customers.getDataRange().getValues();
+    const carsData = cars.getDataRange().getValues();
+
+    let customer = null;
+    let carsList = [];
+
+    // البحث عن العميل
+    for (let i = 1; i < custData.length; i++) {
+      const storedPhone = String(custData[i][1]).replace(/["']/g, "");
+      if (storedPhone === phone) {
+        customer = {
+          name: custData[i][0],
+          phone: storedPhone,
+          membership: custData[i][8]
+        };
+        break;
+      }
+    }
+
+    // إذا العميل موجود → رجّع بياناته + سياراته
+    if (customer) {
+      for (let i = 1; i < carsData.length; i++) {
+        const storedPhone = String(carsData[i][1]).replace(/["']/g, "");
+        if (storedPhone === phone) {
+          carsList.push({
+            membership:    carsData[i][0],
+            phone:         storedPhone,
+            car:           carsData[i][2],
+            size:          carsData[i][3],
+            plate_numbers: carsData[i][5],
+            plate_letters: carsData[i][4],
+            city:          carsData[i][6],
+            created_at:    carsData[i][7]
+          });
+        }
+      }
+
+      return json({
+        success: true,
+        status: "exists",
+        customer,
+        cars: carsList
+      });
+    }
+
+    // إذا العميل جديد
+    return json({
+      success: true,
+      status: "new"
+    });
+  }
+
+  // ---------------------------------------------------
+  // 2) getByPhone — جلب العميل + كل سياراته
+  // ---------------------------------------------------
+  if (action === "getByPhone") {
+    let phone = validatePhone(e.parameter.phone);
+    if (!phone) return json({ success: false, error: "invalid_phone" });
+
+    const custData = customers.getDataRange().getValues();
+    const carsData = cars.getDataRange().getValues();
+
+    let customer = null;
+    let carsList = [];
+
+    // العميل
+    for (let i = 1; i < custData.length; i++) {
+      const storedPhone = String(custData[i][1]).replace(/["']/g, "");
+      if (storedPhone === phone) {
+        customer = {
+          name:          custData[i][0],
+          phone:         storedPhone,
+          car:           custData[i][2],
+          size:          custData[i][3],
+          city:          custData[i][4],
+          plate_numbers: custData[i][5],
+          plate_letters: custData[i][6],
+          subscription:  custData[i][7],
+          membership:    custData[i][8],
+          last_visit:    custData[i][9],
+          visit_count:   custData[i][10],
+          points:        custData[i][11],
+          level:         custData[i][12],
+          free_wash:     custData[i][13]
+        };
+        break;
+      }
+    }
+
+    if (!customer) return json({ success: false, error: "not_found" });
+
+    // السيارات
+    for (let i = 1; i < carsData.length; i++) {
+      const storedPhone = String(carsData[i][1]).replace(/["']/g, "");
+      if (storedPhone === phone) {
+        carsList.push({
+          membership:    carsData[i][0],
+          phone:         storedPhone,
+          car:           carsData[i][2],
+          size:          carsData[i][3],
+          plate_numbers: carsData[i][5],
+          plate_letters: carsData[i][4],
+          city:          carsData[i][6],
+          created_at:    carsData[i][7]
+        });
+      }
+    }
+
+    return json({ success: true, customer, cars: carsList });
+  }
+
+  // ---------------------------------------------------
+  // 3) getCarsByPhone
+  // ---------------------------------------------------
+  if (action === "getCarsByPhone") {
+    let phone = validatePhone(e.parameter.phone);
+    if (!phone) return json({ success: false, error: "invalid_phone" });
+
+    const data = cars.getDataRange().getValues();
+    const result = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const storedPhone = String(data[i][1]).replace(/["']/g, "");
+      if (storedPhone === phone) {
+        result.push({
+          membership:    data[i][0],
+          phone:         storedPhone,
+          car:           data[i][2],
+          size:          data[i][3],
+          plate_numbers: data[i][5],
+          plate_letters: data[i][4],
+          city:          data[i][6],
+          created_at:    data[i][7]
+        });
+      }
+    }
+
+    return json({ success: true, cars: result });
+  }
+
+  // ---------------------------------------------------
+  // 4) getByMembership
+  // ---------------------------------------------------
+  if (action === "getByMembership") {
+    const membership = e.parameter.membership;
+
+    const custData = customers.getDataRange().getValues();
+    const carsData = cars.getDataRange().getValues();
+
+    let customer = null;
+    let car = null;
+
+    for (let i = 1; i < custData.length; i++) {
+      if (String(custData[i][8]) === membership) {
+        customer = {
+          name:          custData[i][0],
+          phone:         String(custData[i][1]).replace(/["']/g, ""),
+          car:           custData[i][2],
+          size:          custData[i][3],
+          city:          custData[i][4],
+          plate_numbers: custData[i][5],
+          plate_letters: custData[i][6],
+          subscription:  custData[i][7],
+          membership:    custData[i][8],
+          last_visit:    custData[i][9],
+          visit_count:   custData[i][10],
+          points:        custData[i][11],
+          level:         custData[i][12],
+          free_wash:     custData[i][13]
+        };
+        break;
+      }
+    }
+
+    for (let i = 1; i < carsData.length; i++) {
+      if (String(carsData[i][0]) === membership) {
+        car = {
+          membership:    carsData[i][0],
+          phone:         String(carsData[i][1]).replace(/["']/g, ""),
+          car:           carsData[i][2],
+          size:          carsData[i][3],
+          plate_numbers: carsData[i][5],
+          plate_letters: carsData[i][4],
+          city:          carsData[i][6],
+          created_at:    carsData[i][7]
+        };
+        break;
+      }
+    }
+
+    return json({ success: true, customer, car });
+  }
+
+  // ---------------------------------------------------
+  // 5) getVisits
+  // ---------------------------------------------------
+  if (action === "getVisits") {
+    const membership = e.parameter.membership;
+    const data = visits.getDataRange().getValues();
+    const result = [];
+
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === membership) {
+        result.push({
+          membership: data[i][0],
+          service:    data[i][1],
+          price:      data[i][2],
+          points:     data[i][3],
+          employee:   data[i][4],
+          branch:     data[i][5],
+          commission: data[i][6],
+          date:       data[i][7]
+        });
+      }
+    }
+
+    return json({ success: true, visits: result });
+  }
+
+  // ---------------------------------------------------
+  // 6) getVisitsByDate
+  // ---------------------------------------------------
+  if (action === "getVisitsByDate") {
+    const from = new Date(e.parameter.from);
+    const to   = new Date(e.parameter.to);
+
+    const data = visits.getDataRange().getValues();
+    const result = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const d = new Date(data[i][7]);
+      if (d >= from && d <= to) {
+        result.push({
+          membership: data[i][0],
+          service:    data[i][1],
+          price:      data[i][2],
+          points:     data[i][3],
+          employee:   data[i][4],
+          branch:     data[i][5],
+          commission: data[i][6],
+          date:       data[i][7]
+        });
+      }
+    }
+
+    return json({ success: true, visits: result });
+  }
+
+  // ---------------------------------------------------
+  // 7) getPayroll
+  // ---------------------------------------------------
+  if (action === "getPayroll") {
+    const employeeName = e.parameter.employee;
+    const from = new Date(e.parameter.from);
+    const to   = new Date(e.parameter.to);
+
+    const data = visits.getDataRange().getValues();
+
+    let totalVisits     = 0;
+    let totalCommission = 0;
+    let totalWashes     = 0;
+
+    for (let i = 1; i < data.length; i++) {
+      const d = new Date(data[i][7]);
+      if (d >= from && d <= to && data[i][4] === employeeName) {
+        totalVisits++;
+        totalCommission += Number(data[i][6]) || 0;
+        totalWashes++;
+      }
+    }
+
+    return json({
+      success:          true,
+      employee:         employeeName,
+      total_visits:     totalVisits,
+      total_commission: totalCommission,
+      total_washes:     totalWashes
+    });
+  }
+
+  // ---------------------------------------------------
+  // 8) getEmployees
+  // ---------------------------------------------------
+  if (action === "getEmployees") {
+    const data = employees.getDataRange().getValues();
+    const result = [];
+
+    for (let i = 1; i < data.length; i++) {
+      result.push({
+        employee: data[i][0],
+        status:   data[i][1],
+        phone:    data[i][2],
+        branch:   data[i][3]
+      });
+    }
+
+    return json({ success: true, employees: result });
+  }
+
+  // ---------------------------------------------------
+  // 9) getCommissions
+  // ---------------------------------------------------
+  if (action === "getCommissions") {
+    const data = commissions.getDataRange().getValues();
+    const result = [];
+
+    for (let i = 1; i < data.length; i++) {
+      result.push({
+        service:    data[i][0],
+        commission: data[i][1]
+      });
+    }
+
+    return json({ success: true, commissions: result });
+  }
+
+  // ---------------------------------------------------
+  // 10) getBranches
+  // ---------------------------------------------------
+  if (action === "getBranches") {
+    const data = branches.getDataRange().getValues();
+    const result = [];
+
+    for (let i = 1; i < data.length; i++) {
+      result.push({
+        branch:  data[i][0],
+        city:    data[i][1],
+        manager: data[i][2]
+      });
+    }
+
+    return json({ success: true, branches: result });
+  }
+
+  return json({ success: false, error: "invalid_action" });
+}
+
+// =====================================================
+// POST Handler
+// =====================================================
+function doPost(e) {
+  const ss          = SpreadsheetApp.getActiveSpreadsheet();
+  const customers   = ss.getSheetByName("Customers");
+  const cars        = ss.getSheetByName("Cars");
+  const visits      = ss.getSheetByName("Visits");
+  const employees   = ss.getSheetByName("Employees");
+  const commissions = ss.getSheetByName("Commissions");
+
+  const action = e.parameter.action;
+
+  // ---------------------------------------------------
+  // 11) registerFullCustomer — تسجيل عميل + سيارة + عضوية
+  // ---------------------------------------------------
+  if (action === "registerFullCustomer") {
+    let phone = validatePhone(e.parameter.phone);
+    if (!phone) return json({ success: false, error: "invalid_phone" });
+
+    const name          = e.parameter.name;
+    const car           = e.parameter.car;
+    const size          = e.parameter.size;
+    const city          = e.parameter.city;
+    const plate_letters = e.parameter.plate_letters;
+    const plate_numbers = e.parameter.plate_numbers;
+
+    // منع تكرار العميل
+    const custData = customers.getDataRange().getValues();
+    for (let i = 1; i < custData.length; i++) {
+      const storedPhone = String(custData[i][1]).replace(/["']/g, "");
+      if (storedPhone === phone) {
+        return json({ success: false, error: "customer_exists" });
+      }
+    }
+
+    // إنشاء عضوية جديدة تبدأ من 20260001
+    let membership;
+    const lastRow = customers.getLastRow();
+    if (lastRow > 1) {
+      const lastMembership = customers.getRange(lastRow, 9).getValue(); // I
+      membership = lastMembership ? Number(lastMembership) + 1 : 20260001;
+    } else {
+      membership = 20260001;
+    }
+
+    // تخزين رقم الجوال كنص 100%
+    const phoneText = '="' + phone + '"';
+
+    // إضافة العميل
+    customers.appendRow([
+      name,          // A name
+      phoneText,     // B phone (كنص)
+      car,           // C car
+      size,          // D size
+      city,          // E city
+      plate_numbers, // F plate_numbers
+      plate_letters, // G plate_letters
+      "",            // H subscription
+      membership,    // I membership
+      "",            // J last_visit
+      0,             // K visit_count
+      0,             // L points
+      "Bronze",      // M level
+      ""             // N free_wash
+    ]);
+
+    // إضافة السيارة
+    cars.appendRow([
+      membership,    // A membership
+      phoneText,     // B phone (كنص)
+      car,           // C car
+      size,          // D size
+      plate_letters, // E plate_letters
+      plate_numbers, // F plate_numbers
+      city,          // G city
+      new Date()     // H created_at
+    ]);
+
+    return json({ success: true, membership, phone });
+  }
+
+  // ---------------------------------------------------
+  // 12) registerCustomer — تسجيل عميل جديد (مرة واحدة)
+  // (تبقى موجودة للنظام القديم إن احتجتها)
+  // ---------------------------------------------------
+  if (action === "registerCustomer") {
+    let phone = validatePhone(e.parameter.phone);
+    if (!phone) return json({ success: false, error: "invalid_phone" });
+
+    const name = e.parameter.name;
+
+    // منع تكرار العميل
+    const custData = customers.getDataRange().getValues();
+    for (let i = 1; i < custData.length; i++) {
+      const storedPhone = String(custData[i][1]).replace(/["']/g, "");
+      if (storedPhone === phone) {
+        return json({ success: false, error: "customer_exists" });
+      }
+    }
+
+    // إنشاء عضوية جديدة تبدأ من 20260001
+    let membership;
+    const lastRow = customers.getLastRow();
+    if (lastRow > 1) {
+      const lastMembership = customers.getRange(lastRow, 9).getValue(); // I
+      membership = lastMembership ? Number(lastMembership) + 1 : 20260001;
+    } else {
+      membership = 20260001;
+    }
+
+    const phoneText = '="' + phone + '"';
+
+    customers.appendRow([
+      name,        // A name
+      phoneText,   // B phone
+      "",          // C car
+      "",          // D size
+      "",          // E city
+      "",          // F plate_numbers
+      "",          // G plate_letters
+      "",          // H subscription
+      membership,  // I membership
+      "",          // J last_visit
+      0,           // K visit_count
+      0,           // L points
+      "Bronze",    // M level
+      ""           // N free_wash
+    ]);
+
+    return json({ success: true, membership, phone });
+  }
+
+  // ---------------------------------------------------
+  // 13) registerCar — إضافة مركبة لعضوية جديدة (لكل سيارة عضوية)
+  // ---------------------------------------------------
+  if (action === "registerCar") {
+    let phone = validatePhone(e.parameter.phone);
+    if (!phone) return json({ success: false, error: "invalid_phone" });
+
+    const car           = e.parameter.car;
+    const size          = e.parameter.size;
+    const city          = e.parameter.city;
+    const plate_letters = e.parameter.plate_letters;
+    const plate_numbers = e.parameter.plate_numbers;
+
+    const phoneText = '="' + phone + '"';
+
+    // إنشاء عضوية جديدة
+    const custData = customers.getDataRange().getValues();
+    let membership;
+    const lastRow = customers.getLastRow();
+    if (lastRow > 1) {
+      const lastMembership = customers.getRange(lastRow, 9).getValue();
+      membership = lastMembership ? Number(lastMembership) + 1 : 20260001;
+    } else {
+      membership = 20260001;
+    }
+
+    // (اختياري) منع تكرار نفس اللوحة
+    const carsData = cars.getDataRange().getValues();
+    for (let i = 1; i < carsData.length; i++) {
+      const pl  = String(carsData[i][5]);
+      const plL = String(carsData[i][4]);
+      if (pl === plate_numbers && plL === plate_letters) {
+        return json({ success: false, error: "car_exists" });
+      }
+    }
+
+    // إضافة صف جديد في Customers
+    customers.appendRow([
+      "",           // name
+      phoneText,    // phone
+      car,
+      size,
+      city,
+      plate_numbers,
+      plate_letters,
+      "",
+      membership,
+      "",
+      0,
+      0,
+      "Bronze",
+      ""
+    ]);
+
+    // إضافة صف جديد في Cars
+    cars.appendRow([
+      membership,
+      phoneText,
+      car,
+      size,
+      plate_letters,
+      plate_numbers,
+      city,
+      new Date()
+    ]);
+
+    return json({ success: true, membership });
+  }
+
+  // ---------------------------------------------------
+  // 14) registerSupervisor
+  // ---------------------------------------------------
+  if (action === "registerSupervisor") {
+    const name   = e.parameter.name;
+    let phone    = e.parameter.phone ? validatePhone(e.parameter.phone) : "";
+    const branch = e.parameter.branch || "";
+
+    let storedPhone = "";
+    if (phone) storedPhone = '="' + phone + '"';
+
+    employees.appendRow([
+      name,          // A employee
+      "supervisor",  // B status
+      storedPhone,   // C phone
+      branch         // D branch
+    ]);
+
+    return json({ success: true });
+  }
+
+  // ---------------------------------------------------
+  // 15) addVisit
+  // ---------------------------------------------------
+  if (action === "addVisit") {
+    const membership = e.parameter.membership;
+    const service    = e.parameter.service;
+    const price      = Number(e.parameter.price || 0);
+    const points     = Number(e.parameter.points || 0);
+    const employee   = e.parameter.employee || "";
+    const branch     = e.parameter.branch || "";
+    const date       = new Date();
+
+    // جلب العمولة
+    const comData = commissions.getDataRange().getValues();
+    let commission = 0;
+    for (let i = 1; i < comData.length; i++) {
+      if (comData[i][0] === service) {
+        commission = Number(comData[i][1]) || 0;
+        break;
+      }
+    }
+
+    // تسجيل الزيارة
+    visits.appendRow([
+      membership, // A
+      service,    // B
+      price,      // C
+      points,     // D
+      employee,   // E
+      branch,     // F
+      commission, // G
+      date        // H
+    ]);
+
+    // تحديث بيانات العميل/العضوية
+    const custData = customers.getDataRange().getValues();
+    for (let i = 1; i < custData.length; i++) {
+      if (String(custData[i][8]) === membership) {
+        let newPoints = Number(custData[i][11]) + points;
+        let newVisits = Number(custData[i][10]) + 1;
+        let newLevel  = "Bronze";
+
+        if (newPoints >= 300) newLevel = "VIP";
+        else if (newPoints >= 200) newLevel = "Gold";
+        else if (newPoints >= 100) newLevel = "Silver";
+
+        customers.getRange(i + 1, 12).setValue(newPoints); // L points
+        customers.getRange(i + 1, 13).setValue(newLevel);  // M level
+        customers.getRange(i + 1, 10).setValue(date);      // J last_visit
+        customers.getRange(i + 1, 11).setValue(newVisits); // K visit_count
+        break;
+      }
+    }
+
+    return json({ success: true });
+  }
+
+  return json({ success: false, error: "invalid_action" });
+}
