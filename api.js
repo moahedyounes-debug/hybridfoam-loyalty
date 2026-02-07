@@ -1,22 +1,43 @@
-// رابط الـ API
-const API_URL = "https://script.google.com/macros/s/AKfycbzhV1_rDRVPmbIhxyPDKx2yTTnXU0cPLBPaJ3iodITD76aK_DX0vDD-C0rx0FaNu812tQ/exec";
+/*  
+    ملف API الرسمي للنظام الجديد  
+    جميع الصفحات تعتمد عليه  
+*/
 
-// GET Request
-async function apiGet(params) {
-    const url = API_URL + "?" + new URLSearchParams(params);
-    const res = await fetch(url);
-    return res.json();
+const API_URL = "https://script.google.com/macros/s/AKfycby6gaUcMNIorB6oTmLfRA7La90frLUF6NchZ4Xm_i9SFLv6QMEB8Dtwo812S5Nnib4C_g/exec";
+
+/*  
+    🔵 GET REQUEST  
+    apiGet({ action: "getAll" })
+*/
+async function apiGet(params = {}) {
+    const url = API_URL + "?" + new URLSearchParams(params).toString();
+
+    try {
+        const res = await fetch(url);
+        return await res.json();
+    } catch (e) {
+        return { success: false, error: "network_error" };
+    }
 }
 
-// POST Request
-async function apiPost(body) {
+/*  
+    🟡 POST REQUEST  
+    apiPost({ action: "registerCustomer", name: "..." })
+*/
+async function apiPost(params = {}) {
     const form = new FormData();
-    Object.keys(body).forEach(key => form.append(key, body[key]));
+    for (const key in params) {
+        form.append(key, params[key]);
+    }
 
-    const res = await fetch(API_URL, {
-        method: "POST",
-        body: form
-    });
+    try {
+        const res = await fetch(API_URL, {
+            method: "POST",
+            body: form
+        });
 
-    return res.json();
+        return await res.json();
+    } catch (e) {
+        return { success: false, error: "network_error" };
+    }
 }
