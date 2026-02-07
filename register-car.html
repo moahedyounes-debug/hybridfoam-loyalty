@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل سيارة جديدة</title>
+
+<style>
+    body {
+        background: #000 url('logo.png') center 40px no-repeat;
+        background-size: 120px;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding: 180px 25px 25px;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+        font-size: 26px;
+    }
+
+    .form-container {
+        background: rgba(0,0,0,0.65);
+        border: 1px solid rgba(212,175,55,0.35);
+        border-radius: 14px;
+        padding: 15px;
+        max-width: 330px;
+        margin: auto;
+        backdrop-filter: blur(10px);
+        text-align: right;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin: 6px 0;
+        border-radius: 8px;
+        border: 1px solid rgba(212,175,55,0.35);
+        background: #000;
+        color: #fff;
+        font-size: 15px;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #msg {
+        margin-top: 10px;
+        min-height: 20px;
+        font-size: 14px;
+        text-align: center;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>تسجيل سيارة جديدة</h1>
+
+<div class="form-container">
+
+    <label>رقم العضوية</label>
+    <input type="text" id="membership" placeholder="رقم العضوية">
+
+    <label>رقم الجوال</label>
+    <input type="text" id="phone" placeholder="05XXXXXXXX">
+
+    <label>نوع السيارة</label>
+    <input type="text" id="car" placeholder="مثال: كامري">
+
+    <label>فئة السيارة</label>
+    <select id="size">
+        <option value="">اختر الفئة</option>
+        <option value="صغير">صغير</option>
+        <option value="متوسط">متوسط</option>
+        <option value="كبير">كبير</option>
+        <option value="كبير جداً">كبير جداً</option>
+    </select>
+
+    <label>حروف اللوحة</label>
+    <input type="text" id="letters" placeholder="مثال: أ ب ج">
+
+    <label>أرقام اللوحة</label>
+    <input type="text" id="numbers" placeholder="1234">
+
+    <label>المدينة</label>
+    <input type="text" id="city" placeholder="مثال: الرياض">
+
+    <button onclick="registerCar()">تسجيل السيارة</button>
+
+    <div id="msg"></div>
+</div>
+
+<script src="api.js"></script>
+
+<script>
+async function registerCar() {
+    const membership = document.getElementById("membership").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const car = document.getElementById("car").value.trim();
+    const size = document.getElementById("size").value.trim();
+    const letters = document.getElementById("letters").value.trim();
+    const numbers = document.getElementById("numbers").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const msg = document.getElementById("msg");
+
+    if (!membership || !phone || !car || !size || !letters || !numbers || !city) {
+        msg.style.color = "red";
+        msg.textContent = "❌ الرجاء تعبئة جميع الحقول";
+        return;
+    }
+
+    msg.style.color = "#d4af37";
+    msg.textContent = "⏳ جاري التسجيل...";
+
+    const res = await apiPost({
+        action: "registerCar",
+        membership: membership,
+        phone: phone,
+        car: car,
+        size: size,
+        plate_letters: letters,
+        plate_numbers: numbers,
+        city: city
+    });
+
+    if (res.success) {
+        msg.style.color = "#4cff4c";
+        msg.textContent = "✔ تم تسجيل السيارة بنجاح";
+    } else {
+        msg.style.color = "red";
+        msg.textContent = "❌ فشل تسجيل السيارة";
+    }
+}
+</script>
+
+</body>
+</html>
