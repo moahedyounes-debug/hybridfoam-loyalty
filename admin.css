@@ -1,0 +1,361 @@
+/* --------------------------------------------------
+   RESET
+-------------------------------------------------- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Tajawal", sans-serif;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    overflow-x: hidden;
+}
+
+/* --------------------------------------------------
+   BACKGROUND
+-------------------------------------------------- */
+.bg-logo {
+    position: fixed;
+    inset: 0;
+    background-image: url("logo.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60%;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(212,175,55,0.18), transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* --------------------------------------------------
+   DASHBOARD LAYOUT
+-------------------------------------------------- */
+.dashboard {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 18px;
+}
+
+/* --------------------------------------------------
+   TOPBAR
+-------------------------------------------------- */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(20,20,20,0.8);
+    border: 1px solid rgba(212,175,55,0.3);
+    padding: 12px 18px;
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(212,175,55,0.5);
+    box-shadow: 0 0 20px rgba(212,175,55,0.4);
+}
+
+.topbar-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.topbar-title-main {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.topbar-title-sub {
+    font-size: 12px;
+    color: #bbb;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* --------------------------------------------------
+   BUTTONS
+-------------------------------------------------- */
+.btn {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #d4af37, #b8962f);
+    color: #000;
+    box-shadow: 0 8px 20px rgba(212,175,55,0.5);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(212,175,55,0.3);
+    color: #fff;
+}
+
+.btn-danger {
+    background: transparent;
+    border: 1px solid rgba(255,80,80,0.4);
+    color: #ff6b6b;
+}
+
+/* --------------------------------------------------
+   THEME TOGGLE
+-------------------------------------------------- */
+.theme-toggle {
+    width: 42px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(212,175,55,0.3);
+    background: rgba(0,0,0,0.6);
+    position: relative;
+    cursor: pointer;
+}
+
+.theme-icons {
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 5px;
+    color: #bbb;
+}
+
+.theme-knob {
+    width: 16px;
+    height: 16px;
+    background: #d4af37;
+    border-radius: 50%;
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    transition: 0.2s;
+}
+
+/* --------------------------------------------------
+   PANELS
+-------------------------------------------------- */
+.panel {
+    background: rgba(20,20,20,0.75);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 18px;
+    padding: 16px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+.panel-header {
+    margin-bottom: 10px;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.panel-sub {
+    font-size: 12px;
+    color: #bbb;
+}
+
+/* --------------------------------------------------
+   CARDS GRID
+-------------------------------------------------- */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap: 12px;
+}
+
+.card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    padding: 12px;
+}
+
+.card-label {
+    font-size: 12px;
+    color: #bbb;
+}
+
+.card-value {
+    font-size: 26px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.card-footer {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #d4af37;
+    display: flex;
+    justify-content: space-between;
+}
+
+.chip {
+    border: 1px solid rgba(212,175,55,0.3);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+}
+
+/* --------------------------------------------------
+   CHARTS
+-------------------------------------------------- */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+    gap: 14px;
+}
+
+.chart-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    padding: 10px;
+}
+
+.chart-title {
+    font-size: 13px;
+    color: #bbb;
+    margin-bottom: 6px;
+}
+
+.chart-container {
+    height: 220px;
+}
+
+/* --------------------------------------------------
+   TABLES
+-------------------------------------------------- */
+.table-wrapper {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.table-scroll {
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th {
+    background: rgba(0,0,0,0.6);
+    padding: 8px;
+    position: sticky;
+    top: 0;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* --------------------------------------------------
+   RESPONSIVE
+-------------------------------------------------- */
+@media (max-width: 900px) {
+    .chart-container {
+        height: 180px;
+    }
+}
+
+@media (max-width: 600px) {
+    .cards-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --------------------------------------------------
+   LIGHT THEME
+-------------------------------------------------- */
+body.light {
+    background: #f5f5f5;
+    color: #000;
+}
+
+body.light .panel {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(0,0,0,0.15);
+}
+
+body.light .card {
+    background: rgba(255,255,255,0.95);
+    border-color: rgba(0,0,0,0.15);
+}
+
+body.light .btn-ghost {
+    color: #000;
+    border-color: rgba(0,0,0,0.3);
+}
+
+body.light .btn-danger {
+    color: #b00000;
+    border-color: rgba(255,0,0,0.3);
+}
+
+body.light th {
+    background: #ddd;
+    color: #000;
+}
+
+body.light td {
+    border-bottom: 1px solid #ccc;
+}
+
+body.light .topbar {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(0,0,0,0.15);
+}
+
+body.light .theme-knob {
+    left: 3px;
+    right: auto;
+    background: #000;
+}
