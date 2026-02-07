@@ -53,36 +53,46 @@
 <script>
 const API = "https://script.google.com/macros/s/AKfycby6gaUcMNIorB6oTmLfRA7La90frLUF6NchZ4Xm_i9SFLv6QMEB8Dtwo812S5Nnib4C_g/exec";
 
-const membership = sessionStorage.getItem("history_membership");
+// العضوية تأتي من صفحة تسجيل الزيارة
+let membership = sessionStorage.getItem("visit_membership");
 
+// لو ما فيه عضوية → خطأ
 if (!membership) {
     document.getElementById("visits").innerHTML =
         "<div style='color:red;font-size:18px'>لا يوجد رقم عضوية</div>";
+} else {
+    loadVisits();
 }
 
-fetch(`${API}?action=getVisits&membership=${membership}`)
-    .then(res => res.json())
-    .then(data => {
-        if (!data.success || data.data.length === 0) {
+function loadVisits() {
+    fetch(`${API}?action=getVisits&membership=${membership}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || data.data.length === 0) {
+                document.getElementById("visits").innerHTML =
+                    "<div style='color:red;font-size:18px'>لا توجد زيارات</div>";
+                return;
+            }
+
+            let html = "";
+            data.data.forEach(v => {
+                html += `
+                    <div class="visit-box">
+                        <strong>الخدمة:</strong> ${v.service}<br>
+                        <strong>السعر:</strong> ${v.price} ريال<br>
+                        <strong>النقاط:</strong> ${v.points}<br>
+                        <strong>التاريخ:</strong> ${v.date}
+                    </div>
+                `;
+            });
+
+            document.getElementById("visits").innerHTML = html;
+        })
+        .catch(() => {
             document.getElementById("visits").innerHTML =
-                "<div style='color:red;font-size:18px'>لا توجد زيارات</div>";
-            return;
-        }
-
-        let html = "";
-        data.data.forEach(v => {
-            html += `
-                <div class="visit-box">
-                    <strong>الخدمة:</strong> ${v.service}<br>
-                    <strong>السعر:</strong> ${v.price} ريال<br>
-                    <strong>النقاط:</strong> ${v.points}<br>
-                    <strong>التاريخ:</strong> ${v.date}
-                </div>
-            `;
+                "<div style='color:red;font-size:18px'>خطأ في الاتصال بالخادم</div>";
         });
-
-        document.getElementById("visits").innerHTML = html;
-    });
+}
 </script>
 
 </body>
