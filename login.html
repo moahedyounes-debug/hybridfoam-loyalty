@@ -74,21 +74,29 @@ function login() {
 
     msg.innerHTML = "جاري التحقق...";
 
-    fetch(`${API}?action=getCarsByPhone&phone=${phone}`)
+    fetch(`${API}?action=getByPhone&phone=${phone}`)
         .then(res => res.json())
         .then(data => {
-            if (!data.success || data.cars.length === 0) {
+
+            // لا يوجد عميل
+            if (!data.success || !data.customer) {
                 msg.innerHTML = "لا يوجد عميل بهذا الرقم";
                 return;
             }
 
-            sessionStorage.setItem("login_phone", phone);
-            sessionStorage.setItem("cars_list", JSON.stringify(data.cars));
+            // العميل موجود
+            const cars = data.cars || [data.customer];
 
-            if (data.cars.length === 1) {
-                sessionStorage.setItem("selected_car", JSON.stringify(data.cars[0]));
+            sessionStorage.setItem("login_phone", phone);
+            sessionStorage.setItem("cars_list", JSON.stringify(cars));
+
+            // إذا عنده سيارة واحدة
+            if (cars.length === 1) {
+                sessionStorage.setItem("selected_car", JSON.stringify(cars[0]));
                 window.location.href = "verify.html";
-            } else {
+            } 
+            // إذا عنده أكثر من سيارة
+            else {
                 window.location.href = "customer-select-car.html";
             }
         })
