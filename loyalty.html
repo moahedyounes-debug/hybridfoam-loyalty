@@ -24,7 +24,6 @@
     box-shadow: 0 0 25px rgba(0,0,0,0.4);
   }
 
-  /* VIP — Black & Gold (Square edges) */
   .vip {
     background: linear-gradient(135deg, #000000, #1a1a1a);
     border: 4px solid #d4af37;
@@ -32,7 +31,6 @@
     box-shadow: 0 0 25px rgba(212,175,55,0.4);
   }
 
-  /* Gold/Silver/Bronze — Cream & Gold (Rounded edges) */
   .cream {
     background: linear-gradient(135deg, #f7f2e8, #efe7d9);
     border: 3px solid #d4af37;
@@ -123,12 +121,12 @@
 <script>
 const ID = new URLSearchParams(location.search).get("id");
 
-// API الجديد
-const API = "https://script.google.com/macros/s/AKfycbxiK922Nseqz6pxrc4HVh54KJ61o4ThWSu8iXn9OWL9MWZaivcgO-li2F7ClADAHgn2tA/exec?action=getAll";
+// 🔥 API الصحيح الجديد — بدون action
+const API = "https://script.google.com/macros/s/AKfycbxCBVAavtZ_gBcmgV7a4NOsfC_auwOZk-ygHAHIOl8-W3o9UcMi2OemEJ0e8s4XdKS1hw/exec";
 
 async function loadCard() {
   try {
-    const res = await fetch(API);
+    const res = await fetch(API + "?action=getAll");
     const json = await res.json();
 
     if (!json.success) {
@@ -157,12 +155,8 @@ function createCard(c) {
   let tierClass = "cream";
   let tierName = "Bronze";
 
-  if (level.includes("silver")) {
-    tierName = "Silver";
-  }
-  if (level.includes("gold")) {
-    tierName = "Gold";
-  }
+  if (level.includes("silver")) tierName = "Silver";
+  if (level.includes("gold")) tierName = "Gold";
   if (level.includes("vip")) {
     tierClass = "vip";
     tierName = "VIP";
