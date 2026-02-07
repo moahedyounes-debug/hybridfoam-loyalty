@@ -1,417 +1,53 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة إدارة رغوة الهجين</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة رغوة الهجين</title>
 
-<!-- سيتم إضافة CSS هنا لاحقًا -->
-<style>
-/* سيتم وضع CSS في الرسالة التالية */
-    /* RESET */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: "Tajawal", sans-serif;
-}
+    <!-- ربط ملف CSS الخارجي -->
+    <link rel="stylesheet" href="admin.css">
 
-body {
-    background: #000;
-    color: #fff;
-    overflow-x: hidden;
-}
-
-/* BACKGROUND */
-.bg-logo {
-    position: fixed;
-    inset: 0;
-    background-image: url("logo.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 60%;
-    opacity: 0.04;
-    pointer-events: none;
-    z-index: 0;
-}
-
-.overlay {
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(circle at top, rgba(212,175,55,0.18), transparent 55%);
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* DASHBOARD GRID */
-.dashboard {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 18px;
-}
-
-/* TOPBAR */
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(20,20,20,0.8);
-    border: 1px solid rgba(212,175,55,0.3);
-    padding: 12px 18px;
-    border-radius: 16px;
-    backdrop-filter: blur(12px);
-}
-
-.topbar-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.topbar-logo {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid rgba(212,175,55,0.5);
-    box-shadow: 0 0 20px rgba(212,175,55,0.4);
-}
-
-.topbar-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.topbar-title-main {
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.topbar-title-sub {
-    font-size: 12px;
-    color: #bbb;
-}
-
-.topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* BUTTONS */
-.btn {
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: none;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #d4af37, #b8962f);
-    color: #000;
-    box-shadow: 0 8px 20px rgba(212,175,55,0.5);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-}
-
-.btn-ghost {
-    background: transparent;
-    border: 1px solid rgba(212,175,55,0.3);
-    color: #fff;
-}
-
-.btn-danger {
-    background: transparent;
-    border: 1px solid rgba(255,80,80,0.4);
-    color: #ff6b6b;
-}
-
-/* THEME TOGGLE */
-.theme-toggle {
-    width: 42px;
-    height: 22px;
-    border-radius: 999px;
-    border: 1px solid rgba(212,175,55,0.3);
-    background: rgba(0,0,0,0.6);
-    position: relative;
-    cursor: pointer;
-}
-
-.theme-icons {
-    font-size: 10px;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 5px;
-    color: #bbb;
-}
-
-.theme-knob {
-    width: 16px;
-    height: 16px;
-    background: #d4af37;
-    border-radius: 50%;
-    position: absolute;
-    right: 3px;
-    top: 3px;
-    transition: 0.2s;
-}
-
-/* PANELS */
-.panel {
-    background: rgba(20,20,20,0.75);
-    border: 1px solid rgba(212,175,55,0.25);
-    border-radius: 18px;
-    padding: 16px;
-    backdrop-filter: blur(14px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-}
-
-.panel-header {
-    margin-bottom: 10px;
-}
-
-.panel-title {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.panel-sub {
-    font-size: 12px;
-    color: #bbb;
-}
-
-/* OVERVIEW GRID */
-.cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
-    gap: 12px;
-}
-
-.card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(212,175,55,0.25);
-    border-radius: 14px;
-    padding: 12px;
-    position: relative;
-    overflow: hidden;
-}
-
-.card-label {
-    font-size: 12px;
-    color: #bbb;
-}
-
-.card-value {
-    font-size: 26px;
-    font-weight: 700;
-    margin-top: 4px;
-}
-
-.card-footer {
-    margin-top: 6px;
-    font-size: 11px;
-    color: #d4af37;
-    display: flex;
-    justify-content: space-between;
-}
-
-.chip {
-    border: 1px solid rgba(212,175,55,0.3);
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 10px;
-}
-
-/* CHARTS */
-.charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-    gap: 14px;
-}
-
-.chart-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(212,175,55,0.25);
-    border-radius: 14px;
-    padding: 10px;
-}
-
-.chart-title {
-    font-size: 13px;
-    color: #bbb;
-    margin-bottom: 6px;
-}
-
-.chart-container {
-    height: 220px;
-}
-
-/* TABLES */
-.table-wrapper {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(212,175,55,0.25);
-    border-radius: 14px;
-    overflow: hidden;
-}
-
-.table-scroll {
-    max-height: 260px;
-    overflow-y: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-}
-
-th {
-    background: rgba(0,0,0,0.6);
-    padding: 8px;
-    position: sticky;
-    top: 0;
-}
-
-td {
-    padding: 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-/* LAST VISITS FULL WIDTH */
-.last-visits-panel {
-    width: 100%;
-}
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-    .chart-container {
-        height: 180px;
-    }
-}
-
-@media (max-width: 600px) {
-    .cards-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
-}
-    @media (max-width: 600px) {
-    .cards-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
-}
-    /* ------------------------------
-   الثيم الفاتح
------------------------------- */
-
-body.light {
-    background: #f5f5f5;
-    color: #000;
-}
-
-body.light .panel {
-    background: rgba(255,255,255,0.85);
-    border-color: rgba(0,0,0,0.15);
-}
-
-body.light .card {
-    background: rgba(255,255,255,0.95);
-    border-color: rgba(0,0,0,0.15);
-}
-
-body.light .btn-ghost {
-    color: #000;
-    border-color: rgba(0,0,0,0.3);
-}
-
-body.light .btn-danger {
-    color: #b00000;
-    border-color: rgba(255,0,0,0.3);
-}
-
-body.light th {
-    background: #ddd;
-    color: #000;
-}
-
-body.light td {
-    border-bottom: 1px solid #ccc;
-}
-
-body.light .topbar {
-    background: rgba(255,255,255,0.9);
-    border-color: rgba(0,0,0,0.15);
-}
-
-/* حركة زر الثيم */
-.theme-toggle {
-    position: relative;
-    transition: 0.25s ease;
-}
-
-.theme-knob {
-    transition: 0.25s ease;
-}
-
-body.light .theme-knob {
-    left: 3px;
-    right: auto;
-    background: #000;
-}
-</style>
-
+    <!-- مكتبة Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
 
-<div class="bg-logo"></div>
-<div class="overlay"></div>
+    <!-- خلفية الشعار -->
+    <div class="bg-logo"></div>
+    <div class="overlay"></div>
 
-<div class="dashboard">
+    <div class="dashboard">
 
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div class="topbar-left">
-            <div class="topbar-logo">
-                <img src="logo.png" alt="Hybrid Foam">
-            </div>
-            <div class="topbar-title">
-                <div class="topbar-title-main">لوحة إدارة رغوة الهجين</div>
-                <div class="topbar-title-sub">نظام تقارير وزيارات وولاء العملاء</div>
-            </div>
-        </div>
-
-        <div class="topbar-right">
-            <button class="btn btn-primary" onclick="openVisitPage()">تسجيل زيارة جديدة</button>
-            <button class="btn btn-ghost" onclick="manualRefresh()">تحديث الآن</button>
-
-            <div class="theme-toggle" onclick="toggleTheme()">
-                <div class="theme-icons">
-                    <span>☾</span>
-                    <span>☼</span>
+        <!-- الشريط العلوي -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <div class="topbar-logo">
+                    <img src="logo.png" alt="Hybrid Foam">
                 </div>
-                <div class="theme-knob"></div>
+                <div class="topbar-title">
+                    <div class="topbar-title-main">لوحة إدارة رغوة الهجين</div>
+                    <div class="topbar-title-sub">نظام تقارير وزيارات وولاء العملاء</div>
+                </div>
             </div>
 
-            <button class="btn btn-danger" onclick="logout()">تسجيل خروج</button>
-        </div>
-    </div>
+            <div class="topbar-right">
+                <button class="btn btn-primary" onclick="openVisitPage()">تسجيل زيارة جديدة</button>
+                <button class="btn btn-ghost" onclick="manualRefresh()">تحديث الآن</button>
 
-    <!-- MAIN GRID -->
-    <div class="main-grid">
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <div class="theme-icons">
+                        <span>☾</span>
+                        <span>☼</span>
+                    </div>
+                    <div class="theme-knob"></div>
+                </div>
+
+                <button class="btn btn-danger" onclick="logout()">تسجيل خروج</button>
+            </div>
+        </div>
 
         <!-- نظرة عامة -->
         <div class="panel overview-panel">
@@ -426,7 +62,6 @@ body.light .theme-knob {
             <div class="panel-body">
                 <div class="cards-grid">
 
-                    <!-- العملاء -->
                     <div class="card">
                         <div class="card-label">عدد العملاء</div>
                         <div class="card-value" id="card_customers">-</div>
@@ -436,7 +71,6 @@ body.light .theme-knob {
                         </div>
                     </div>
 
-                    <!-- الزيارات -->
                     <div class="card">
                         <div class="card-label">إجمالي الزيارات</div>
                         <div class="card-value" id="card_visits">-</div>
@@ -446,7 +80,6 @@ body.light .theme-knob {
                         </div>
                     </div>
 
-                    <!-- المبالغ -->
                     <div class="card">
                         <div class="card-label">إجمالي المبالغ</div>
                         <div class="card-value" id="card_totalPaid">-</div>
@@ -456,7 +89,6 @@ body.light .theme-knob {
                         </div>
                     </div>
 
-                    <!-- VIP -->
                     <div class="card">
                         <div class="card-label">عملاء VIP</div>
                         <div class="card-value" id="card_vip">-</div>
@@ -466,7 +98,6 @@ body.light .theme-knob {
                         </div>
                     </div>
 
-                    <!-- Gold -->
                     <div class="card">
                         <div class="card-label">عملاء Gold</div>
                         <div class="card-value" id="card_gold">-</div>
@@ -476,7 +107,6 @@ body.light .theme-knob {
                         </div>
                     </div>
 
-                    <!-- Silver -->
                     <div class="card">
                         <div class="card-label">عملاء Silver</div>
                         <div class="card-value" id="card_silver">-</div>
@@ -486,7 +116,6 @@ body.light .theme-knob {
                         </div>
                     </div>
 
-                    <!-- Bronze -->
                     <div class="card">
                         <div class="card-label">عملاء Bronze</div>
                         <div class="card-value" id="card_bronze">-</div>
@@ -496,7 +125,6 @@ body.light .theme-knob {
                         </div>
                     </div>
 
-                    <!-- بدون مستوى -->
                     <div class="card">
                         <div class="card-label">بدون مستوى</div>
                         <div class="card-value" id="card_none">-</div>
@@ -555,6 +183,7 @@ body.light .theme-knob {
             </div>
 
             <div class="panel-body">
+
                 <div class="input-row">
                     <label>رقم الجوال</label>
                     <input type="text" id="opsPhone" placeholder="05xxxxxxxx">
@@ -578,6 +207,7 @@ body.light .theme-knob {
                         </table>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -591,11 +221,14 @@ body.light .theme-knob {
             </div>
 
             <div class="panel-body">
+
                 <div class="input-row">
                     <label>من</label>
                     <input type="date" id="fromDate">
+
                     <label>إلى</label>
                     <input type="date" id="toDate">
+
                     <button class="btn btn-ghost" onclick="filterByDate()">عرض</button>
                 </div>
 
@@ -603,362 +236,45 @@ body.light .theme-knob {
                 <div class="stat-line" id="date_totalPaid"></div>
                 <div class="stat-line" id="date_topService"></div>
                 <div class="stat-line" id="date_topCar"></div>
+
             </div>
         </div>
 
-    </div>
-
-    <!-- آخر الزيارات -->
-    <div class="panel last-visits-panel">
-        <div class="panel-header">
-            <div>
-                <div class="panel-title">آخر الزيارات</div>
-                <div class="panel-sub">آخر 20 زيارة مسجلة</div>
+        <!-- آخر الزيارات -->
+        <div class="panel last-visits-panel">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">آخر الزيارات</div>
+                    <div class="panel-sub">آخر 20 زيارة مسجلة</div>
+                </div>
+                <div id="lastUpdate"></div>
             </div>
-            <div id="lastUpdate"></div>
-        </div>
 
-        <div class="panel-body">
-            <div class="table-wrapper">
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>اسم العميل</th>
-                                <th>العضوية</th>
-                                <th>الخدمة</th>
-                                <th>السعر</th>
-                                <th>النقاط</th>
-                                <th>التاريخ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lastVisitsBody"></tbody>
-                    </table>
+            <div class="panel-body">
+                <div class="table-wrapper">
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>اسم العميل</th>
+                                    <th>العضوية</th>
+                                    <th>الخدمة</th>
+                                    <th>السعر</th>
+                                    <th>النقاط</th>
+                                    <th>التاريخ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lastVisitsBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 
-</div>
-
-<!-- سيتم إضافة JS هنا لاحقًا -->
-<script>
-/* سيتم وضع JavaScript في الرسالة التالية */
-/* -----------------------------------------
-   روابطك الحقيقية
------------------------------------------ */
-
-const SHEET_CUSTOMERS =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=0&single=true&output=tsv";
-
-const SHEET_VISITS =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=1214043427&single=true&output=tsv";
-
-const SHEET_ADD_VISIT =
-"https://script.google.com/macros/s/AKfycbwr-Jy6trjRAw1P5QgIAC1lwB5tkBRNncWnkGwE_nutQe9IfDqkqtmYCFTgB6f1w6A6ug/exec";
-
-
-/* -----------------------------------------
-   تحويل TSV → JSON
------------------------------------------ */
-
-function parseTSV(tsv) {
-    const lines = tsv.trim().split("\n");
-    const headers = lines[0].split("\t");
-
-    return lines.slice(1).map(line => {
-        const values = line.split("\t");
-        const obj = {};
-        headers.forEach((h, i) => obj[h.trim()] = values[i] ? values[i].trim() : "");
-        return obj;
-    });
-}
-
-
-/* -----------------------------------------
-   تحميل البيانات
------------------------------------------ */
-
-let customers = [];
-let visits = [];
-
-async function loadData() {
-    try {
-        const c = await fetch(SHEET_CUSTOMERS).then(r => r.text());
-        const v = await fetch(SHEET_VISITS).then(r => r.text());
-
-        customers = parseTSV(c);
-        visits = parseTSV(v);
-
-        updateOverview();
-        updateCharts();
-        updateLastVisits();
-
-        document.getElementById("lastUpdate").innerText =
-            "آخر تحديث: " + new Date().toLocaleTimeString("ar-SA");
-
-    } catch (err) {
-        console.error("خطأ في تحميل البيانات:", err);
-    }
-}
-
-loadData();
-setInterval(loadData, 60000);
-
-
-/* -----------------------------------------
-   نظرة عامة
------------------------------------------ */
-
-function updateOverview() {
-    const totalCustomers = customers.length;
-    const totalVisits = visits.length;
-    const totalPaid = visits.reduce((s, v) => s + Number(v.price || 0), 0);
-
-    const vip = customers.filter(c => c.level === "VIP").length;
-    const gold = customers.filter(c => c.level === "Gold").length;
-    const silver = customers.filter(c => c.level === "Silver").length;
-    const bronze = customers.filter(c => c.level === "Bronze").length;
-    const none = customers.filter(c => !c.level || c.level === "-").length;
-
-    document.getElementById("card_customers").innerText = totalCustomers;
-    document.getElementById("card_visits").innerText = totalVisits;
-    document.getElementById("card_totalPaid").innerText = totalPaid + " ريال";
-
-    document.getElementById("card_vip").innerText = vip;
-    document.getElementById("card_gold").innerText = gold;
-    document.getElementById("card_silver").innerText = silver;
-    document.getElementById("card_bronze").innerText = bronze;
-    document.getElementById("card_none").innerText = none;
-
-    document.getElementById("card_vip_ratio").innerText = percent(vip, totalCustomers);
-    document.getElementById("card_gold_ratio").innerText = percent(gold, totalCustomers);
-    document.getElementById("card_silver_ratio").innerText = percent(silver, totalCustomers);
-    document.getElementById("card_bronze_ratio").innerText = percent(bronze, totalCustomers);
-    document.getElementById("card_none_ratio").innerText = percent(none, totalCustomers);
-}
-
-function percent(v, total) {
-    if (total === 0) return "0%";
-    return ((v / total) * 100).toFixed(1) + "%";
-}
-
-
-/* -----------------------------------------
-   الرسوم البيانية — مع تدمير القديم
------------------------------------------ */
-
-let chart1, chart2, chart3, chart4;
-
-function updateCharts() {
-
-    if (chart1) chart1.destroy();
-    if (chart2) chart2.destroy();
-    if (chart3) chart3.destroy();
-    if (chart4) chart4.destroy();
-
-    const serviceCount = {};
-    visits.forEach(v => {
-        if (!serviceCount[v.service]) serviceCount[v.service] = 0;
-        serviceCount[v.service]++;
-    });
-
-    chart1 = new Chart(document.getElementById("chartServices"), {
-        type: "bar",
-        data: {
-            labels: Object.keys(serviceCount),
-            datasets: [{
-                label: "عدد المرات",
-                data: Object.values(serviceCount),
-                backgroundColor: "#d4af37"
-            }]
-        }
-    });
-
-    const carCount = {};
-    customers.forEach(c => {
-        if (!carCount[c.car]) carCount[c.car] = 0;
-        carCount[c.car]++;
-    });
-
-    chart2 = new Chart(document.getElementById("chartCars"), {
-        type: "pie",
-        data: {
-            labels: Object.keys(carCount),
-            datasets: [{
-                data: Object.values(carCount),
-                backgroundColor: ["#d4af37", "#b8962f", "#8a6f1f", "#6b5518"]
-            }]
-        }
-    });
-
-    const daily = {};
-    visits.forEach(v => {
-        if (!daily[v.date]) daily[v.date] = 0;
-        daily[v.date]++;
-    });
-
-    chart3 = new Chart(document.getElementById("chartVisitsDaily"), {
-        type: "line",
-        data: {
-            labels: Object.keys(daily),
-            datasets: [{
-                label: "زيارات",
-                data: Object.values(daily),
-                borderColor: "#d4af37"
-            }]
-        }
-    });
-
-    const revenue = {};
-    visits.forEach(v => {
-        if (!revenue[v.date]) revenue[v.date] = 0;
-        revenue[v.date] += Number(v.price || 0);
-    });
-
-    chart4 = new Chart(document.getElementById("chartRevenueDaily"), {
-        type: "line",
-        data: {
-            labels: Object.keys(revenue),
-            datasets: [{
-                label: "ريال",
-                data: Object.values(revenue),
-                borderColor: "#d4af37"
-            }]
-        }
-    });
-}
-
-
-/* -----------------------------------------
-   آخر الزيارات
------------------------------------------ */
-
-function updateLastVisits() {
-    const tbody = document.getElementById("lastVisitsBody");
-    tbody.innerHTML = "";
-
-    visits.slice(-20).reverse().forEach(v => {
-        const c = customers.find(x => x.membership == v.membership);
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${c ? c.name : "-"}</td>
-            <td>${v.membership}</td>
-            <td>${v.service}</td>
-            <td>${v.price}</td>
-            <td>${v.points}</td>
-            <td>${v.date}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-
-/* -----------------------------------------
-   عمليات العميل
------------------------------------------ */
-
-function loadCustomerOperations() {
-    const phone = document.getElementById("opsPhone").value.trim();
-    if (!phone) return;
-
-    const c = customers.find(x => x.phone == phone);
-    const tbody = document.getElementById("opsTableBody");
-    tbody.innerHTML = "";
-
-    if (!c) {
-        document.getElementById("opsSummary").innerText = "العميل غير موجود";
-        return;
-    }
-
-    const list = visits.filter(v => v.membership == c.membership);
-
-    document.getElementById("opsSummary").innerText =
-        `العميل: ${c.name} — إجمالي المبلغ: ${list.reduce((s,v)=>s+Number(v.price||0),0)} ريال — النقاط: ${c.points}`;
-
-    list.forEach(v => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${v.date}</td>
-            <td>${v.service}</td>
-            <td>${v.price}</td>
-            <td>${v.points}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-
-/* -----------------------------------------
-   تقرير حسب التاريخ
------------------------------------------ */
-
-function filterByDate() {
-    const f = document.getElementById("fromDate").value;
-    const t = document.getElementById("toDate").value;
-
-    if (!f || !t) return;
-
-    const list = visits.filter(v => v.date >= f && v.date <= t);
-
-    document.getElementById("date_visits").innerText =
-        "عدد الزيارات: " + list.length;
-
-    document.getElementById("date_totalPaid").innerText =
-        "إجمالي المبالغ: " + list.reduce((s,v)=>s+Number(v.price||0),0) + " ريال";
-
-    const serviceCount = {};
-    list.forEach(v => {
-        if (!serviceCount[v.service]) serviceCount[v.service] = 0;
-        serviceCount[v.service]++;
-    });
-
-    const topService = Object.entries(serviceCount).sort((a,b)=>b[1]-a[1])[0];
-    document.getElementById("date_topService").innerText =
-        "أكثر خدمة: " + (topService ? topService[0] : "-");
-
-    const carCount = {};
-    list.forEach(v => {
-        const c = customers.find(x => x.membership == v.membership);
-        if (!c) return;
-        if (!carCount[c.car]) carCount[c.car] = 0;
-        carCount[c.car]++;
-    });
-
-    const topCar = Object.entries(carCount).sort((a,b)=>b[1]-a[1])[0];
-    document.getElementById("date_topCar").innerText =
-        "أكثر سيارة: " + (topCar ? topCar[0] : "-");
-}
-
-
-/* -----------------------------------------
-   أزرار التحكم
------------------------------------------ */
-
-function openVisitPage() {
-    window.location.href = "add-visit.html";
-}
-
-function manualRefresh() {
-    loadData();
-}
-
-function logout() {
-    sessionStorage.clear();
-    window.location.href = "index.html";
-}
-
-
-/* -----------------------------------------
-   الثيم + الأنيميشن
------------------------------------------ */
-
-function toggleTheme() {
-    document.body.classList.toggle("light");
-}
-    
-</script>
+    <!-- ربط ملف JS الخارجي -->
+    <script src="admin.js"></script>
 
 </body>
 </html>
