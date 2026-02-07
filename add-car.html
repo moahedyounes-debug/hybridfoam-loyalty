@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إضافة مركبة</title>
+
+<style>
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        padding: 20px;
+        text-align: center;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    .form-box {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.35);
+        padding: 20px;
+        border-radius: 16px;
+        max-width: 350px;
+        margin: auto;
+        backdrop-filter: blur(10px);
+    }
+
+    input, select {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 10px;
+        border: 1px solid rgba(212,175,55,0.35);
+        background: #000;
+        color: #fff;
+        font-size: 15px;
+        text-align: center;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    #msg {
+        margin-top: 10px;
+        font-size: 14px;
+        min-height: 20px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>إضافة مركبة جديدة</h1>
+
+<div class="form-box">
+
+    <input type="text" id="car" placeholder="نوع السيارة">
+
+    <select id="size">
+        <option value="">اختر حجم السيارة</option>
+        <option value="Small">صغيرة</option>
+        <option value="Medium">متوسطة</option>
+        <option value="Large">كبيرة</option>
+    </select>
+
+    <select id="city">
+        <option value="">اختر المدينة</option>
+        <option value="الرياض">الرياض</option>
+        <option value="مكة">مكة</option>
+        <option value="جدة">جدة</option>
+        <option value="الدمام">الدمام</option>
+        <option value="المدينة">المدينة</option>
+    </select>
+
+    <input type="text" id="plate_numbers" placeholder="أرقام اللوحة">
+    <input type="text" id="plate_letters" placeholder="حروف اللوحة">
+
+    <button onclick="addCar()">إضافة المركبة</button>
+
+    <div id="msg"></div>
+</div>
+
+<script src="api.js"></script>
+
+<script>
+async function addCar() {
+
+    const phone = sessionStorage.getItem("phone");
+    const msg = document.getElementById("msg");
+
+    if (!phone) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    const car = document.getElementById("car").value.trim();
+    const size = document.getElementById("size").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const plate_numbers = document.getElementById("plate_numbers").value.trim();
+    const plate_letters = document.getElementById("plate_letters").value.trim();
+
+    if (!car || !size || !city || !plate_numbers || !plate_letters) {
+        msg.style.color = "red";
+        msg.textContent = "❌ الرجاء تعبئة جميع الحقول";
+        return;
+    }
+
+    msg.style.color = "#d4af37";
+    msg.textContent = "⏳ جاري الإضافة...";
+
+    const res = await apiPost({
+        action: "registerCar",
+        phone,
+        car,
+        size,
+        city,
+        plate_numbers,
+        plate_letters
+    });
+
+    if (res.success) {
+        msg.style.color = "#4cff4c";
+        msg.textContent = "✔ تمت إضافة المركبة";
+
+        setTimeout(() => {
+            window.location.href = "membership-card.html";
+        }, 800);
+
+    } else if (res.error === "car_exists") {
+        msg.style.color = "red";
+        msg.textContent = "⚠️ هذه اللوحة مسجلة مسبقًا";
+
+    } else {
+        msg.style.color = "red";
+        msg.textContent = "❌ فشل الإضافة";
+    }
+}
+</script>
+
+</body>
+</html>
