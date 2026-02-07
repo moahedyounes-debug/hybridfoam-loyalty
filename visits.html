@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل الزيارات</title>
+
+<style>
+    body {
+        background: #000;
+        color: #d4af37;
+        font-family: "Tajawal", sans-serif;
+        text-align: center;
+        padding: 25px;
+    }
+
+    h2 {
+        margin-bottom: 20px;
+        font-size: 26px;
+    }
+
+    .box {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        backdrop-filter: blur(14px);
+        padding: 20px;
+        border-radius: 18px;
+        max-width: 450px;
+        margin: auto;
+        text-align: right;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.25s ease;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+        color: #fff;
+        font-size: 15px;
+    }
+
+    th, td {
+        border: 1px solid rgba(212,175,55,0.3);
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background: rgba(212,175,55,0.2);
+        color: #d4af37;
+    }
+
+    #msg {
+        margin-top: 15px;
+        font-size: 16px;
+        text-align: center;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>سجل الزيارات</h2>
+
+<div class="box">
+
+    <label>من تاريخ</label>
+    <input type="date" id="from">
+
+    <label>إلى تاريخ</label>
+    <input type="date" id="to">
+
+    <button onclick="loadVisits()">عرض الزيارات</button>
+</div>
+
+<div id="msg"></div>
+
+<table id="visitsTable" style="display:none;">
+    <thead>
+        <tr>
+            <th>الخدمة</th>
+            <th>السعر</th>
+            <th>النقاط</th>
+            <th>الموظف</th>
+            <th>الفرع</th>
+            <th>التاريخ</th>
+        </tr>
+    </thead>
+    <tbody id="visitsBody"></tbody>
+</table>
+
+<script src="api.js"></script>
+
+<script>
+async function loadVisits() {
+    const from = document.getElementById("from").value;
+    const to = document.getElementById("to").value;
+    const msg = document.getElementById("msg");
+    const table = document.getElementById("visitsTable");
+    const body = document.getElementById("visitsBody");
+
+    if (!from || !to) {
+        msg.innerHTML = "<span style='color:red'>❌ اختر التاريخين</span>";
+        return;
+    }
+
+    msg.innerHTML = "<span style='color:#d4af37'>⏳ جاري التحميل...</span>";
+    table.style.display = "none";
+    body.innerHTML = "";
+
+    const data = await apiGet({
+        action: "getVisitsByDate",
+        from: from,
+        to: to
+    });
+
+    if (!data.success || data.visits.length === 0) {
+        msg.innerHTML = "<span style='color:red'>لا توجد زيارات في هذه الفترة</span>";
+        return;
+    }
+
+    msg.innerHTML = "";
+    table.style.display = "table";
+
+    data.visits.forEach(v => {
+        body.innerHTML += `
+            <tr>
+                <td>${v.service}</td>
+                <td>${v.price}</td>
+                <td>${v.points}</td>
+                <td>${v.employee || "-"}</td>
+                <td>${v.branch || "-"}</td>
+                <td>${v.date}</td>
+            </tr>
+        `;
+    });
+}
+</script>
+
+</body>
+</html>
