@@ -96,78 +96,85 @@
 const car = JSON.parse(sessionStorage.getItem("selected_car"));
 
 if (!car) {
-    // إعادة التوجيه تلقائيًا
     window.location.href = "login.html";
 }
 
-// عرض البطاقة إذا السيارة موجودة
+// عرض البطاقة
 showCard(car);
 
 function showCard(c) {
 
     const isVIP = (c.level === "VIP");
 
-    if (isVIP) {
-        document.getElementById("content").innerHTML = `
-            <div class="vip-card">
-                <div class="vip-crown">👑</div>
-                <div class="vip-title">عضوية VIP</div>
+    const cardHTML = isVIP ? `
+        <div class="vip-card">
+            <div class="vip-crown">👑</div>
+            <div class="vip-title">عضوية VIP</div>
 
-                <div class="info">
-                    <strong>الاسم:</strong> ${c.name}<br>
-                    <strong>رقم الجوال:</strong> ${c.phone.replace("'", "")}<br>
-                    <strong>نوع السيارة:</strong> ${c.car}<br>
-                    <strong>فئة السيارة:</strong> ${c.size}<br>
-                    <strong>رقم اللوحة:</strong> ${c.plate_letters} - ${c.plate_numbers}<br>
-                    <strong>رقم العضوية:</strong> ${c.membership}<br>
-                    <strong>آخر زيارة:</strong> ${c.last_visit || "—"}<br>
-                    <strong>عدد الزيارات:</strong> ${c.visit_count}<br>
-                    <strong>النقاط:</strong> ${c.points}<br>
-                    <strong>المستوى:</strong> VIP<br>
-                </div>
-
-                <button class="btn" onclick="openHistory()">سجل الزيارات</button>
-                <button class="btn" onclick="goHome()">الصفحة الرئيسية</button>
-
-                <a class="whatsapp" href="https://wa.me/966543329786" target="_blank">
-                    تواصل مع الإدارة
-                </a>
+            <div class="info">
+                <strong>الاسم:</strong> ${c.name}<br>
+                <strong>رقم الجوال:</strong> ${c.phone.replace("'", "")}<br>
+                <strong>نوع السيارة:</strong> ${c.car}<br>
+                <strong>فئة السيارة:</strong> ${c.size}<br>
+                <strong>رقم اللوحة:</strong> ${c.plate_letters} - ${c.plate_numbers}<br>
+                <strong>رقم العضوية:</strong> ${c.membership}<br>
+                <strong>آخر زيارة:</strong> ${c.last_visit || "—"}<br>
+                <strong>عدد الزيارات:</strong> ${c.visit_count}<br>
+                <strong>النقاط:</strong> ${c.points}<br>
+                <strong>المستوى:</strong> VIP<br>
             </div>
-        `;
-    } else {
-        document.getElementById("content").innerHTML = `
-            <div class="card">
-                <h2>بطاقة العضوية</h2>
 
-                <div class="info">
-                    <strong>الاسم:</strong> ${c.name}<br>
-                    <strong>رقم الجوال:</strong> ${c.phone.replace("'", "")}<br>
-                    <strong>نوع السيارة:</strong> ${c.car}<br>
-                    <strong>فئة السيارة:</strong> ${c.size}<br>
-                    <strong>رقم اللوحة:</strong> ${c.plate_letters} - ${c.plate_numbers}<br>
-                    <strong>رقم العضوية:</strong> ${c.membership}<br>
-                    <strong>آخر زيارة:</strong> ${c.last_visit || "—"}<br>
-                    <strong>عدد الزيارات:</strong> ${c.visit_count}<br>
-                    <strong>النقاط:</strong> ${c.points}<br>
-                    <strong>المستوى:</strong> ${c.level}<br>
-                </div>
+            <button class="btn" onclick="openLoyaltyCard()">🎫 عرض بطاقة الولاء</button>
+            <button class="btn" onclick="openHistory()">سجل الزيارات</button>
+            <button class="btn" onclick="goHome()">الصفحة الرئيسية</button>
 
-                <button class="btn" onclick="openHistory()">سجل الزيارات</button>
-                <button class="btn" onclick="goHome()">الصفحة الرئيسية</button>
+            <a class="whatsapp" href="https://wa.me/966543329786" target="_blank">
+                تواصل مع الإدارة
+            </a>
+        </div>
+    ` : `
+        <div class="card">
+            <h2>بطاقة العضوية</h2>
 
-                <a class="whatsapp" href="https://wa.me/966543329786" target="_blank">
-                    تواصل مع الإدارة
-                </a>
+            <div class="info">
+                <strong>الاسم:</strong> ${c.name}<br>
+                <strong>رقم الجوال:</strong> ${c.phone.replace("'", "")}<br>
+                <strong>نوع السيارة:</strong> ${c.car}<br>
+                <strong>فئة السيارة:</strong> ${c.size}<br>
+                <strong>رقم اللوحة:</strong> ${c.plate_letters} - ${c.plate_numbers}<br>
+                <strong>رقم العضوية:</strong> ${c.membership}<br>
+                <strong>آخر زيارة:</strong> ${c.last_visit || "—"}<br>
+                <strong>عدد الزيارات:</strong> ${c.visit_count}<br>
+                <strong>النقاط:</strong> ${c.points}<br>
+                <strong>المستوى:</strong> ${c.level}<br>
             </div>
-        `;
-    }
+
+            <button class="btn" onclick="openLoyaltyCard()">🎫 عرض بطاقة الولاء</button>
+            <button class="btn" onclick="openHistory()">سجل الزيارات</button>
+            <button class="btn" onclick="goHome()">الصفحة الرئيسية</button>
+
+            <a class="whatsapp" href="https://wa.me/966543329786" target="_blank">
+                تواصل مع الإدارة
+            </a>
+        </div>
+    `;
+
+    document.getElementById("content").innerHTML = cardHTML;
 }
 
+// فتح بطاقة الولاء
+function openLoyaltyCard() {
+    const membership = car.membership;
+    window.location.href = `loyalty.html?id=${membership}`;
+}
+
+// سجل الزيارات
 function openHistory() {
     sessionStorage.setItem("history_membership", car.membership);
     window.location.href = "car-history.html";
 }
 
+// الصفحة الرئيسية
 function goHome() {
     window.location.href = "index.html";
 }
