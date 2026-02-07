@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>بطاقة عضوية رغوة الهجين</title>
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    font-family: "IBM Plex Sans Arabic", sans-serif;
+    background: #0d0d0d;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+    color: white;
+  }
+
+  .card {
+    width: 360px;
+    margin: 0 auto;
+    overflow: hidden;
+    box-shadow: 0 0 25px rgba(0,0,0,0.4);
+  }
+
+  .vip {
+    background: linear-gradient(135deg, #000000, #1a1a1a);
+    border: 4px solid #d4af37;
+    border-radius: 6px;
+    box-shadow: 0 0 25px rgba(212,175,55,0.4);
+  }
+
+  .cream {
+    background: linear-gradient(135deg, #f7f2e8, #efe7d9);
+    border: 3px solid #d4af37;
+    border-radius: 20px;
+    color: #3a2f1b;
+  }
+
+  .tier-bar {
+    height: 90px;
+    font-size: 26px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .vip .tier-bar {
+    color: #d4af37;
+    text-shadow: 0 0 8px rgba(212,175,55,0.6);
+  }
+
+  .cream .tier-bar {
+    color: #b08a2e;
+  }
+
+  .logo {
+    width: 70px;
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    background: white;
+    padding: 5px;
+    border-radius: 10px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.25);
+  }
+
+  .content {
+    padding: 20px;
+    text-align: right;
+  }
+
+  .row {
+    margin: 10px 0;
+    font-size: 18px;
+  }
+
+  .label {
+    font-weight: 600;
+  }
+
+  .qr-box {
+    text-align: center;
+    margin: 20px 0;
+  }
+
+  .qr-box img {
+    width: 120px;
+    border-radius: 12px;
+    border: 3px solid #d4af37;
+  }
+
+  .error {
+    color: red;
+    font-size: 20px;
+    margin-top: 40px;
+  }
+
+  .add-home {
+    width: 90%;
+    margin: 20px auto 25px;
+    padding: 14px;
+    background: #1976d2;
+    color: white;
+    border-radius: 12px;
+    font-size: 18px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  /* ⭐ التاج الذهبي فوق الاسم */
+  .crown {
+    width: 22px;
+    display: block;
+    margin: 0 auto 6px;
+    filter: drop-shadow(0 0 4px rgba(212,175,55,0.6));
+  }
+</style>
+</head>
+
+<body>
+
+<div id="cardContainer"></div>
+
+<script src="api.js"></script>
+
+<script>
+async function loadCard() {
+  const car = JSON.parse(sessionStorage.getItem("selected_car"));
+  const membership = car?.membership;
+
+  if (!membership) {
+    showError("لم يتم العثور على العضوية");
+    return;
+  }
+
+  const data = await apiGet({
+    action: "getByMembership",
+    membership: membership
+  });
+
+  if (!data.success || !data.customer) {
+    showError("خطأ في تحميل البيانات");
+    return;
+  }
+
+  createCard(data.customer);
+}
+
+function createCard(c) {
+  const level = (c.level || "Bronze").toLowerCase();
+
+  let tierClass = "cream";
+  let tierName = "Bronze";
+
+  if (level.includes("silver")) tierName = "Silver";
+  if (level.includes("gold")) tierName = "Gold";
+  if (level.includes("vip")) {
+    tierClass = "vip";
+    tierName = "VIP";
+  }
+
+  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${location.href}`;
+
+  document.getElementById("cardContainer").innerHTML = `
+    <div class="card ${tierClass}">
+      <div class="tier-bar">
+        ${tierName}
+        <img src="logo.png" class="logo">
+      </div>
+
+      <div class="content">
+
+        <!-- ⭐ التاج فوق الاسم -->
+        <div class="row" style="text-align:center;">
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" class="crown">
+          <span class="label">الاسم:</span> ${c.name}
+        </div>
+
+        <div class="row"><span class="label">رقم العضوية:</span> ${c.membership}</div>
+        <div class="row"><span class="label">النقاط:</span> ${c.points || 0}</div>
+
+        <div class="qr-box">
+          <img src="${qrURL}">
+        </div>
+
+        <div class="row"><span class="label">غسلة مجانية:</span> ${c.free_wash || "-"}</div>
+        <div class="row"><span class="label">آخر زيارة:</span> ${c.last_visit || "-"}</div>
+
+        <div class="add-home" onclick="addToHome()">📱 أضف البطاقة للشاشة الرئيسية</div>
+      </div>
+    </div>
+  `;
+}
+
+function showError(msg) {
+  document.getElementById("cardContainer").innerHTML =
+    `<div class="error">${msg}</div>`;
+}
+
+function addToHome() {
+  const ua = navigator.userAgent.toLowerCase();
+
+  if (ua.includes("iphone") || ua.includes("ipad")) {
+    alert("لإضافة البطاقة للشاشة الرئيسية:\n\n1) اضغط Share\n2) اختر Add to Home Screen\n3) اضغط Add");
+  } else if (ua.includes("android")) {
+    alert("لإضافة البطاقة للشاشة الرئيسية:\n\n1) اضغط ⋮\n2) اختر Add to Home Screen\n3) اضغط Add");
+  } else {
+    alert("الميزة تعمل على iPhone و Android فقط.");
+  }
+}
+
+loadCard();
+</script>
+
+</body>
+</html>
