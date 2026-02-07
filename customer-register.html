@@ -7,7 +7,7 @@
 
 <style>
     body {
-        background: #000 url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png') center 40px no-repeat;
+        background: #000 url('logo.png') center 40px no-repeat;
         background-size: 120px;
         color: #d4af37;
         font-family: "Tajawal", sans-serif;
@@ -30,16 +30,16 @@
         backdrop-filter: blur(10px);
     }
 
-    input, select {
+    input {
         width: 100%;
         padding: 10px;
         margin: 6px 0;
         border-radius: 8px;
         border: 1px solid rgba(212,175,55,0.35);
-        background: #000 !important;
-        color: #fff !important;
+        background: #000;
+        color: #fff;
         font-size: 15px;
-        transition: 0.25s;
+        text-align: center;
         box-sizing: border-box;
     }
 
@@ -63,86 +63,35 @@
     }
 </style>
 </head>
+
 <body>
 
 <h1>تسجيل عميل جديد</h1>
 
 <div class="form-container">
-    <form id="regForm">
 
-        <input type="text" id="name" placeholder="الاسم" required>
+    <input type="text" id="name" placeholder="اسم العميل">
 
-        <input type="tel" id="phone" placeholder="رقم الجوال (05XXXXXXXX)" required>
+    <input type="tel" id="phone" placeholder="رقم الجوال (05XXXXXXXX)">
 
-        <input list="carList" id="car" placeholder="نوع السيارة" required>
-        <datalist id="carList"></datalist>
-
-        <select id="size" required>
-            <option value="">فئة السيارة</option>
-            <option value="سيدان">سيدان</option>
-            <option value="هاتشباك">هاتشباك</option>
-            <option value="SUV">SUV</option>
-            <option value="كوبيه">كوبيه</option>
-            <option value="بيك أب">بيك أب</option>
-            <option value="فان">فان</option>
-        </select>
-
-        <input type="text" id="plate_numbers" placeholder="أرقام اللوحة" required>
-        <input type="text" id="plate_letters" placeholder="حروف اللوحة" required>
-
-        <button type="submit">تسجيل</button>
-    </form>
+    <button onclick="registerCustomer()">تسجيل العميل</button>
 
     <div id="msg"></div>
 </div>
 
+<script src="api.js"></script>
+
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymDAk00QPgz7H0QPwpQ9Jgi5tGfNwf7Lf5KD6Mt_bS6b-uC91Yvu1PAd2S8-W-S4fJ0w/exec";
-
-// قائمة السيارات
-const cars = [
-"تويوتا كامري","تويوتا كورولا","تويوتا يارس","تويوتا أفالون","تويوتا هايلكس",
-"تويوتا لاندكروزر","تويوتا برادو","تويوتا فورتشنر","هيونداي سوناتا","هيونداي النترا",
-"هيونداي أكسنت","هيونداي توسان","هيونداي سنتافي","كيا سيراتو","كيا أوبتيما",
-"كيا سبورتاج","كيا سيلتوس","نيسان ألتيما","نيسان صني","نيسان باترول",
-"نيسان إكس تريل","شفروليه تاهو","شفروليه سوبربان","شفروليه ماليبو","شفروليه كابتيفا",
-"فورد تورس","فورد إكسبلورر","فورد إسكبيدشن","فورد موستانج","جي إم سي يوكن",
-"جي إم سي أكاديا","مرسيدس C-Class","مرسيدس E-Class","مرسيدس S-Class","مرسيدس G-Class",
-"بي إم دبليو الفئة الثالثة","بي إم دبليو الفئة الخامسة","بي إم دبليو X5","بي إم دبليو X6",
-"لكزس ES","لكزس LS","لكزس RX","لكزس LX"
-];
-
-// تعبئة datalist
-function fillCarList(filter = "") {
-    const list = document.getElementById("carList");
-    list.innerHTML = "";
-    cars
-        .filter(c => c.includes(filter))
-        .forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c;
-            list.appendChild(opt);
-        });
-}
-
-// تقليص الخيارات حسب الكتابة
-document.getElementById("car").addEventListener("input", e => {
-    fillCarList(e.target.value.trim());
-});
-
-fillCarList(); // أول تعبئة
-
-document.getElementById("regForm").addEventListener("submit", function(e){
-    e.preventDefault();
-
+async function registerCustomer() {
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
     const msg = document.getElementById("msg");
-    msg.style.color = "#d4af37";
-    msg.textContent = "⏳ جاري التسجيل...";
 
-    let phone = document.getElementById("phone").value.trim();
-
-    // إصلاح مشكلة حذف الصفر
-    if (phone.length === 9 && phone.startsWith("5")) phone = "0" + phone;
+    if (!name || !phone) {
+        msg.style.color = "red";
+        msg.textContent = "❌ الرجاء تعبئة جميع الحقول";
+        return;
+    }
 
     if (!phone.startsWith("05") || phone.length !== 10) {
         msg.style.color = "red";
@@ -150,34 +99,23 @@ document.getElementById("regForm").addEventListener("submit", function(e){
         return;
     }
 
-    const formData = new FormData();
-    formData.append("action", "register");
-    formData.append("name", document.getElementById("name").value);
-    formData.append("phone", phone);
-    formData.append("car", document.getElementById("car").value);
-    formData.append("size", document.getElementById("size").value);
-    formData.append("plate_numbers", document.getElementById("plate_numbers").value);
-    formData.append("plate_letters", document.getElementById("plate_letters").value);
+    msg.style.color = "#d4af37";
+    msg.textContent = "⏳ جاري التسجيل...";
 
-    fetch(SCRIPT_URL, { method: "POST", body: formData })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            sessionStorage.setItem("login_phone", phone);
-            msg.style.color = "#4cff4c";
-            msg.textContent = "✔ تم التسجيل بنجاح";
-            setTimeout(() => window.location.href = "verify.html", 700);
-        }
-        else if (data.error === "plate_exists") {
-            msg.style.color = "red";
-            msg.textContent = "❌ هذه اللوحة مسجلة مسبقًا";
-        }
-        else {
-            msg.style.color = "red";
-            msg.textContent = "❌ خطأ غير متوقع";
-        }
+    const res = await apiPost({
+        action: "registerCustomer",
+        name: name,
+        phone: phone
     });
-});
+
+    if (res.success) {
+        msg.style.color = "#4cff4c";
+        msg.textContent = "✔ تم التسجيل — رقم العضوية: " + res.membership;
+    } else {
+        msg.style.color = "red";
+        msg.textContent = "❌ فشل التسجيل";
+    }
+}
 </script>
 
 </body>
