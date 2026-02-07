@@ -63,7 +63,6 @@
         text-align: center;
     }
 
-    /* زر الثيم */
     .theme-toggle {
         width: 42px;
         height: 22px;
@@ -88,7 +87,6 @@
         transition: 0.25s ease;
     }
 
-    /* الثيم الفاتح */
     body.light {
         background: #f5f5f5;
         color: #000;
@@ -129,7 +127,6 @@
 
 <div class="box">
 
-    <!-- إدخال رقم الجوال -->
     <label>رقم الجوال</label>
     <input type="text" id="phone" placeholder="05xxxxxxxx">
 
@@ -139,7 +136,6 @@
 
     <hr style="margin:15px 0; opacity:0.3;">
 
-    <!-- اختيار الخدمة -->
     <label>الخدمة</label>
     <select id="service" onchange="updateFields()">
         <option value="">اختر الخدمة</option>
@@ -157,14 +153,12 @@
 <div id="msg"></div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycby9mvg6g8_HuSt86jLhf5Q98m60Z9hFreeV0jOzjImvHw9LJGQOdtgKBiq8bRBQOgNjxw/exec";
+const API = "https://script.google.com/macros/s/AKfycbwRTDpjWGMZFF-TYxi4OgKr9OS1kRaafT_6M2UFZuvriV6WevBt1y3xdBkTakZ6POowJQ/exec";
 
 let membership = "";
 let customerName = "";
 
-/* -----------------------------------------
-   1) لو جاء من لوحة التحكم → نقرأ البيانات
------------------------------------------ */
+/* تحميل بيانات من لوحة التحكم */
 window.onload = function () {
     const savedPhone = sessionStorage.getItem("visit_phone");
     const savedMembership = sessionStorage.getItem("visit_membership");
@@ -180,9 +174,7 @@ window.onload = function () {
     }
 };
 
-/* -----------------------------------------
-   2) البحث اليدوي داخل صفحة الزيارة
------------------------------------------ */
+/* البحث عن العميل */
 async function loadCustomer() {
     const phone = document.getElementById("phone").value.trim();
 
@@ -222,9 +214,7 @@ async function loadCustomer() {
         `✔ العميل: ${c.name} — العضوية: ${c.membership}`;
 }
 
-/* -----------------------------------------
-   جدول الخدمات
------------------------------------------ */
+/* جدول الخدمات */
 const services = [
     {name:"خارجي صغير", price:15},
     {name:"خارجي وداخلي صغير", price:25},
@@ -273,7 +263,6 @@ const services = [
     {name:"سحب موية", price:20}
 ];
 
-// تعبئة القائمة
 const serviceSelect = document.getElementById("service");
 services.forEach(s => {
     const opt = document.createElement("option");
@@ -292,9 +281,7 @@ function updateFields() {
     document.getElementById("points").value = pts;
 }
 
-/* -----------------------------------------
-   حفظ الزيارة
------------------------------------------ */
+/* حفظ الزيارة */
 async function saveVisit() {
     if (!membership) {
         document.getElementById("msg").innerHTML =
@@ -312,20 +299,10 @@ async function saveVisit() {
         return;
     }
 
-    const payload = {
-        action: "addVisit",
-        membership: membership,
-        service: service,
-        price: price,
-        points: points
-    };
+    const url = `${API}?action=addVisit&membership=${membership}&service=${encodeURIComponent(service)}&price=${price}&points=${points}`;
 
     try {
-        await fetch(API, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
-        });
+        await fetch(url);
 
         document.getElementById("msg").innerHTML =
             "<span style='color:#0f0'>✔ تم تسجيل الزيارة بنجاح</span>";
