@@ -1,658 +1,642 @@
-// =====================================================
-// Helper: JSON Response
-// =====================================================
-function json(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة إدارة رغوة الهجين</title>
+
+<!-- سيتم إضافة CSS هنا لاحقًا -->
+<style>
+/* سيتم وضع CSS في الرسالة التالية */
+    /* RESET */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Tajawal", sans-serif;
 }
 
-// =====================================================
-// Helper: Phone Validation (must start with 05)
-// =====================================================
-function validatePhone(phone) {
-  phone = String(phone).trim();
-  if (!phone.startsWith("05")) return null;
-  if (phone.length !== 10) return null;
-  return phone;
+body {
+    background: #000;
+    color: #fff;
+    overflow-x: hidden;
 }
 
-// =====================================================
-// GET Handler
-// =====================================================
-function doGet(e) {
-  const ss          = SpreadsheetApp.getActiveSpreadsheet();
-  const customers   = ss.getSheetByName("Customers");
-  const cars        = ss.getSheetByName("Cars");
-  const visits      = ss.getSheetByName("Visits");
-  const employees   = ss.getSheetByName("Employees");
-  const commissions = ss.getSheetByName("Commissions");
-  const branches    = ss.getSheetByName("Branches");
-
-  const action = e.parameter.action;
-
-  // ---------------------------------------------------
-  // 1) checkCustomer — هل العميل جديد أو موجود؟
-  // ---------------------------------------------------
-  if (action === "checkCustomer") {
-    let phone = validatePhone(e.parameter.phone);
-    if (!phone) return json({ success: false, error: "invalid_phone" });
-
-    const custData = customers.getDataRange().getValues();
-    const carsData = cars.getDataRange().getValues();
-
-    let customer = null;
-    let carsList = [];
-
-    // البحث عن العميل
-    for (let i = 1; i < custData.length; i++) {
-      const storedPhone = String(custData[i][1]).replace(/["']/g, "");
-      if (storedPhone === phone) {
-        customer = {
-          name: custData[i][0],
-          phone: storedPhone,
-          membership: custData[i][8]
-        };
-        break;
-      }
-    }
-
-    // إذا العميل موجود → رجّع بياناته + سياراته
-    if (customer) {
-      for (let i = 1; i < carsData.length; i++) {
-        const storedPhone = String(carsData[i][1]).replace(/["']/g, "");
-        if (storedPhone === phone) {
-          carsList.push({
-            membership:    carsData[i][0],
-            phone:         storedPhone,
-            car:           carsData[i][2],
-            size:          carsData[i][3],
-            plate_numbers: carsData[i][5],
-            plate_letters: carsData[i][4],
-            city:          carsData[i][6],
-            created_at:    carsData[i][7]
-          });
-        }
-      }
-
-      return json({
-        success: true,
-        status: "exists",
-        customer,
-        cars: carsList
-      });
-    }
-
-    // إذا العميل جديد
-    return json({
-      success: true,
-      status: "new"
-    });
-  }
-
-  // ---------------------------------------------------
-  // 2) getByPhone — جلب العميل + كل سياراته
-  // ---------------------------------------------------
-  if (action === "getByPhone") {
-    let phone = validatePhone(e.parameter.phone);
-    if (!phone) return json({ success: false, error: "invalid_phone" });
-
-    const custData = customers.getDataRange().getValues();
-    const carsData = cars.getDataRange().getValues();
-
-    let customer = null;
-    let carsList = [];
-
-    // العميل
-    for (let i = 1; i < custData.length; i++) {
-      const storedPhone = String(custData[i][1]).replace(/["']/g, "");
-      if (storedPhone === phone) {
-        customer = {
-          name:          custData[i][0],
-          phone:         storedPhone,
-          car:           custData[i][2],
-          size:          custData[i][3],
-          city:          custData[i][4],
-          plate_numbers: custData[i][5],
-          plate_letters: custData[i][6],
-          subscription:  custData[i][7],
-          membership:    custData[i][8],
-          last_visit:    custData[i][9],
-          visit_count:   custData[i][10],
-          points:        custData[i][11],
-          level:         custData[i][12],
-          free_wash:     custData[i][13]
-        };
-        break;
-      }
-    }
-
-    if (!customer) return json({ success: false, error: "not_found" });
-
-    // السيارات
-    for (let i = 1; i < carsData.length; i++) {
-      const storedPhone = String(carsData[i][1]).replace(/["']/g, "");
-      if (storedPhone === phone) {
-        carsList.push({
-          membership:    carsData[i][0],
-          phone:         storedPhone,
-          car:           carsData[i][2],
-          size:          carsData[i][3],
-          plate_numbers: carsData[i][5],
-          plate_letters: carsData[i][4],
-          city:          carsData[i][6],
-          created_at:    carsData[i][7]
-        });
-      }
-    }
-
-    return json({ success: true, customer, cars: carsList });
-  }
-
-  // ---------------------------------------------------
-  // 3) getCarsByPhone
-  // ---------------------------------------------------
-  if (action === "getCarsByPhone") {
-    let phone = validatePhone(e.parameter.phone);
-    if (!phone) return json({ success: false, error: "invalid_phone" });
-
-    const data = cars.getDataRange().getValues();
-    const result = [];
-
-    for (let i = 1; i < data.length; i++) {
-      const storedPhone = String(data[i][1]).replace(/["']/g, "");
-      if (storedPhone === phone) {
-        result.push({
-          membership:    data[i][0],
-          phone:         storedPhone,
-          car:           data[i][2],
-          size:          data[i][3],
-          plate_numbers: data[i][5],
-          plate_letters: data[i][4],
-          city:          data[i][6],
-          created_at:    data[i][7]
-        });
-      }
-    }
-
-    return json({ success: true, cars: result });
-  }
-
-  // ---------------------------------------------------
-  // 4) getByMembership
-  // ---------------------------------------------------
-  if (action === "getByMembership") {
-    const membership = e.parameter.membership;
-
-    const custData = customers.getDataRange().getValues();
-    const carsData = cars.getDataRange().getValues();
-
-    let customer = null;
-    let car = null;
-
-    for (let i = 1; i < custData.length; i++) {
-      if (String(custData[i][8]) === membership) {
-        customer = {
-          name:          custData[i][0],
-          phone:         String(custData[i][1]).replace(/["']/g, ""),
-          car:           custData[i][2],
-          size:          custData[i][3],
-          city:          custData[i][4],
-          plate_numbers: custData[i][5],
-          plate_letters: custData[i][6],
-          subscription:  custData[i][7],
-          membership:    custData[i][8],
-          last_visit:    custData[i][9],
-          visit_count:   custData[i][10],
-          points:        custData[i][11],
-          level:         custData[i][12],
-          free_wash:     custData[i][13]
-        };
-        break;
-      }
-    }
-
-    for (let i = 1; i < carsData.length; i++) {
-      if (String(carsData[i][0]) === membership) {
-        car = {
-          membership:    carsData[i][0],
-          phone:         String(carsData[i][1]).replace(/["']/g, ""),
-          car:           carsData[i][2],
-          size:          carsData[i][3],
-          plate_numbers: carsData[i][5],
-          plate_letters: carsData[i][4],
-          city:          carsData[i][6],
-          created_at:    carsData[i][7]
-        };
-        break;
-      }
-    }
-
-    return json({ success: true, customer, car });
-  }
-
-  // ---------------------------------------------------
-  // 5) getVisits
-  // ---------------------------------------------------
-  if (action === "getVisits") {
-    const membership = e.parameter.membership;
-    const data = visits.getDataRange().getValues();
-    const result = [];
-
-    for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === membership) {
-        result.push({
-          membership: data[i][0],
-          service:    data[i][1],
-          price:      data[i][2],
-          points:     data[i][3],
-          employee:   data[i][4],
-          branch:     data[i][5],
-          commission: data[i][6],
-          date:       data[i][7]
-        });
-      }
-    }
-
-    return json({ success: true, visits: result });
-  }
-
-  // ---------------------------------------------------
-  // 6) getVisitsByDate
-  // ---------------------------------------------------
-  if (action === "getVisitsByDate") {
-    const from = new Date(e.parameter.from);
-    const to   = new Date(e.parameter.to);
-
-    const data = visits.getDataRange().getValues();
-    const result = [];
-
-    for (let i = 1; i < data.length; i++) {
-      const d = new Date(data[i][7]);
-      if (d >= from && d <= to) {
-        result.push({
-          membership: data[i][0],
-          service:    data[i][1],
-          price:      data[i][2],
-          points:     data[i][3],
-          employee:   data[i][4],
-          branch:     data[i][5],
-          commission: data[i][6],
-          date:       data[i][7]
-        });
-      }
-    }
-
-    return json({ success: true, visits: result });
-  }
-
-  // ---------------------------------------------------
-  // 7) getPayroll
-  // ---------------------------------------------------
-  if (action === "getPayroll") {
-    const employeeName = e.parameter.employee;
-    const from = new Date(e.parameter.from);
-    const to   = new Date(e.parameter.to);
-
-    const data = visits.getDataRange().getValues();
-
-    let totalVisits     = 0;
-    let totalCommission = 0;
-    let totalWashes     = 0;
-
-    for (let i = 1; i < data.length; i++) {
-      const d = new Date(data[i][7]);
-      if (d >= from && d <= to && data[i][4] === employeeName) {
-        totalVisits++;
-        totalCommission += Number(data[i][6]) || 0;
-        totalWashes++;
-      }
-    }
-
-    return json({
-      success:          true,
-      employee:         employeeName,
-      total_visits:     totalVisits,
-      total_commission: totalCommission,
-      total_washes:     totalWashes
-    });
-  }
-
-  // ---------------------------------------------------
-  // 8) getEmployees
-  // ---------------------------------------------------
-  if (action === "getEmployees") {
-    const data = employees.getDataRange().getValues();
-    const result = [];
-
-    for (let i = 1; i < data.length; i++) {
-      result.push({
-        employee: data[i][0],
-        status:   data[i][1],
-        phone:    data[i][2],
-        branch:   data[i][3]
-      });
-    }
-
-    return json({ success: true, employees: result });
-  }
-
-  // ---------------------------------------------------
-  // 9) getCommissions
-  // ---------------------------------------------------
-  if (action === "getCommissions") {
-    const data = commissions.getDataRange().getValues();
-    const result = [];
-
-    for (let i = 1; i < data.length; i++) {
-      result.push({
-        service:    data[i][0],
-        commission: data[i][1]
-      });
-    }
-
-    return json({ success: true, commissions: result });
-  }
-
-  // ---------------------------------------------------
-  // 10) getBranches
-  // ---------------------------------------------------
-  if (action === "getBranches") {
-    const data = branches.getDataRange().getValues();
-    const result = [];
-
-    for (let i = 1; i < data.length; i++) {
-      result.push({
-        branch:  data[i][0],
-        city:    data[i][1],
-        manager: data[i][2]
-      });
-    }
-
-    return json({ success: true, branches: result });
-  }
-
-  return json({ success: false, error: "invalid_action" });
+/* BACKGROUND */
+.bg-logo {
+    position: fixed;
+    inset: 0;
+    background-image: url("logo.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60%;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
 }
 
-// =====================================================
-// POST Handler
-// =====================================================
-function doPost(e) {
-  const ss          = SpreadsheetApp.getActiveSpreadsheet();
-  const customers   = ss.getSheetByName("Customers");
-  const cars        = ss.getSheetByName("Cars");
-  const visits      = ss.getSheetByName("Visits");
-  const employees   = ss.getSheetByName("Employees");
-  const commissions = ss.getSheetByName("Commissions");
-
-  const action = e.parameter.action;
-
-  // ---------------------------------------------------
-  // 11) registerFullCustomer — تسجيل عميل + سيارة + عضوية
-  // ---------------------------------------------------
-  if (action === "registerFullCustomer") {
-    let phone = validatePhone(e.parameter.phone);
-    if (!phone) return json({ success: false, error: "invalid_phone" });
-
-    const name          = e.parameter.name;
-    const car           = e.parameter.car;
-    const size          = e.parameter.size;
-    const city          = e.parameter.city;
-    const plate_letters = e.parameter.plate_letters;
-    const plate_numbers = e.parameter.plate_numbers;
-
-    // منع تكرار العميل
-    const custData = customers.getDataRange().getValues();
-    for (let i = 1; i < custData.length; i++) {
-      const storedPhone = String(custData[i][1]).replace(/["']/g, "");
-      if (storedPhone === phone) {
-        return json({ success: false, error: "customer_exists" });
-      }
-    }
-
-    // إنشاء عضوية جديدة تبدأ من 20260001
-    let membership;
-    const lastRow = customers.getLastRow();
-    if (lastRow > 1) {
-      const lastMembership = customers.getRange(lastRow, 9).getValue(); // I
-      membership = lastMembership ? Number(lastMembership) + 1 : 20260001;
-    } else {
-      membership = 20260001;
-    }
-
-    // تخزين رقم الجوال كنص 100%
-    const phoneText = '="' + phone + '"';
-
-    // إضافة العميل
-    customers.appendRow([
-      name,          // A name
-      phoneText,     // B phone (كنص)
-      car,           // C car
-      size,          // D size
-      city,          // E city
-      plate_numbers, // F plate_numbers
-      plate_letters, // G plate_letters
-      "",            // H subscription
-      membership,    // I membership
-      "",            // J last_visit
-      0,             // K visit_count
-      0,             // L points
-      "Bronze",      // M level
-      ""             // N free_wash
-    ]);
-
-    // إضافة السيارة
-    cars.appendRow([
-      membership,    // A membership
-      phoneText,     // B phone (كنص)
-      car,           // C car
-      size,          // D size
-      plate_letters, // E plate_letters
-      plate_numbers, // F plate_numbers
-      city,          // G city
-      new Date()     // H created_at
-    ]);
-
-    return json({ success: true, membership, phone });
-  }
-
-  // ---------------------------------------------------
-  // 12) registerCustomer — تسجيل عميل جديد (مرة واحدة)
-  // (تبقى موجودة للنظام القديم إن احتجتها)
-  // ---------------------------------------------------
-  if (action === "registerCustomer") {
-    let phone = validatePhone(e.parameter.phone);
-    if (!phone) return json({ success: false, error: "invalid_phone" });
-
-    const name = e.parameter.name;
-
-    // منع تكرار العميل
-    const custData = customers.getDataRange().getValues();
-    for (let i = 1; i < custData.length; i++) {
-      const storedPhone = String(custData[i][1]).replace(/["']/g, "");
-      if (storedPhone === phone) {
-        return json({ success: false, error: "customer_exists" });
-      }
-    }
-
-    // إنشاء عضوية جديدة تبدأ من 20260001
-    let membership;
-    const lastRow = customers.getLastRow();
-    if (lastRow > 1) {
-      const lastMembership = customers.getRange(lastRow, 9).getValue(); // I
-      membership = lastMembership ? Number(lastMembership) + 1 : 20260001;
-    } else {
-      membership = 20260001;
-    }
-
-    const phoneText = '="' + phone + '"';
-
-    customers.appendRow([
-      name,        // A name
-      phoneText,   // B phone
-      "",          // C car
-      "",          // D size
-      "",          // E city
-      "",          // F plate_numbers
-      "",          // G plate_letters
-      "",          // H subscription
-      membership,  // I membership
-      "",          // J last_visit
-      0,           // K visit_count
-      0,           // L points
-      "Bronze",    // M level
-      ""           // N free_wash
-    ]);
-
-    return json({ success: true, membership, phone });
-  }
-
-  // ---------------------------------------------------
-  // 13) registerCar — إضافة مركبة لعضوية جديدة (لكل سيارة عضوية)
-  // ---------------------------------------------------
-  if (action === "registerCar") {
-    let phone = validatePhone(e.parameter.phone);
-    if (!phone) return json({ success: false, error: "invalid_phone" });
-
-    const car           = e.parameter.car;
-    const size          = e.parameter.size;
-    const city          = e.parameter.city;
-    const plate_letters = e.parameter.plate_letters;
-    const plate_numbers = e.parameter.plate_numbers;
-
-    const phoneText = '="' + phone + '"';
-
-    // إنشاء عضوية جديدة
-    const custData = customers.getDataRange().getValues();
-    let membership;
-    const lastRow = customers.getLastRow();
-    if (lastRow > 1) {
-      const lastMembership = customers.getRange(lastRow, 9).getValue();
-      membership = lastMembership ? Number(lastMembership) + 1 : 20260001;
-    } else {
-      membership = 20260001;
-    }
-
-    // (اختياري) منع تكرار نفس اللوحة
-    const carsData = cars.getDataRange().getValues();
-    for (let i = 1; i < carsData.length; i++) {
-      const pl  = String(carsData[i][5]);
-      const plL = String(carsData[i][4]);
-      if (pl === plate_numbers && plL === plate_letters) {
-        return json({ success: false, error: "car_exists" });
-      }
-    }
-
-    // إضافة صف جديد في Customers
-    customers.appendRow([
-      "",           // name
-      phoneText,    // phone
-      car,
-      size,
-      city,
-      plate_numbers,
-      plate_letters,
-      "",
-      membership,
-      "",
-      0,
-      0,
-      "Bronze",
-      ""
-    ]);
-
-    // إضافة صف جديد في Cars
-    cars.appendRow([
-      membership,
-      phoneText,
-      car,
-      size,
-      plate_letters,
-      plate_numbers,
-      city,
-      new Date()
-    ]);
-
-    return json({ success: true, membership });
-  }
-
-  // ---------------------------------------------------
-  // 14) registerSupervisor
-  // ---------------------------------------------------
-  if (action === "registerSupervisor") {
-    const name   = e.parameter.name;
-    let phone    = e.parameter.phone ? validatePhone(e.parameter.phone) : "";
-    const branch = e.parameter.branch || "";
-
-    let storedPhone = "";
-    if (phone) storedPhone = '="' + phone + '"';
-
-    employees.appendRow([
-      name,          // A employee
-      "supervisor",  // B status
-      storedPhone,   // C phone
-      branch         // D branch
-    ]);
-
-    return json({ success: true });
-  }
-
-  // ---------------------------------------------------
-  // 15) addVisit
-  // ---------------------------------------------------
-  if (action === "addVisit") {
-    const membership = e.parameter.membership;
-    const service    = e.parameter.service;
-    const price      = Number(e.parameter.price || 0);
-    const points     = Number(e.parameter.points || 0);
-    const employee   = e.parameter.employee || "";
-    const branch     = e.parameter.branch || "";
-    const date       = new Date();
-
-    // جلب العمولة
-    const comData = commissions.getDataRange().getValues();
-    let commission = 0;
-    for (let i = 1; i < comData.length; i++) {
-      if (comData[i][0] === service) {
-        commission = Number(comData[i][1]) || 0;
-        break;
-      }
-    }
-
-    // تسجيل الزيارة
-    visits.appendRow([
-      membership, // A
-      service,    // B
-      price,      // C
-      points,     // D
-      employee,   // E
-      branch,     // F
-      commission, // G
-      date        // H
-    ]);
-
-    // تحديث بيانات العميل/العضوية
-    const custData = customers.getDataRange().getValues();
-    for (let i = 1; i < custData.length; i++) {
-      if (String(custData[i][8]) === membership) {
-        let newPoints = Number(custData[i][11]) + points;
-        let newVisits = Number(custData[i][10]) + 1;
-        let newLevel  = "Bronze";
-
-        if (newPoints >= 300) newLevel = "VIP";
-        else if (newPoints >= 200) newLevel = "Gold";
-        else if (newPoints >= 100) newLevel = "Silver";
-
-        customers.getRange(i + 1, 12).setValue(newPoints); // L points
-        customers.getRange(i + 1, 13).setValue(newLevel);  // M level
-        customers.getRange(i + 1, 10).setValue(date);      // J last_visit
-        customers.getRange(i + 1, 11).setValue(newVisits); // K visit_count
-        break;
-      }
-    }
-
-    return json({ success: true });
-  }
-
-  return json({ success: false, error: "invalid_action" });
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(212,175,55,0.18), transparent 55%);
+    pointer-events: none;
+    z-index: 0;
 }
+
+/* DASHBOARD GRID */
+.dashboard {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 18px;
+}
+
+/* TOPBAR */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(20,20,20,0.8);
+    border: 1px solid rgba(212,175,55,0.3);
+    padding: 12px 18px;
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(212,175,55,0.5);
+    box-shadow: 0 0 20px rgba(212,175,55,0.4);
+}
+
+.topbar-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.topbar-title-main {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.topbar-title-sub {
+    font-size: 12px;
+    color: #bbb;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* BUTTONS */
+.btn {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #d4af37, #b8962f);
+    color: #000;
+    box-shadow: 0 8px 20px rgba(212,175,55,0.5);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(212,175,55,0.3);
+    color: #fff;
+}
+
+.btn-danger {
+    background: transparent;
+    border: 1px solid rgba(255,80,80,0.4);
+    color: #ff6b6b;
+}
+
+/* THEME TOGGLE */
+.theme-toggle {
+    width: 42px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(212,175,55,0.3);
+    background: rgba(0,0,0,0.6);
+    position: relative;
+    cursor: pointer;
+}
+
+.theme-icons {
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 5px;
+    color: #bbb;
+}
+
+.theme-knob {
+    width: 16px;
+    height: 16px;
+    background: #d4af37;
+    border-radius: 50%;
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    transition: 0.2s;
+}
+
+/* PANELS */
+.panel {
+    background: rgba(20,20,20,0.75);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 18px;
+    padding: 16px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+.panel-header {
+    margin-bottom: 10px;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.panel-sub {
+    font-size: 12px;
+    color: #bbb;
+}
+
+/* OVERVIEW GRID */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap: 12px;
+}
+
+.card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-label {
+    font-size: 12px;
+    color: #bbb;
+}
+
+.card-value {
+    font-size: 26px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.card-footer {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #d4af37;
+    display: flex;
+    justify-content: space-between;
+}
+
+.chip {
+    border: 1px solid rgba(212,175,55,0.3);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+}
+
+/* CHARTS */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+    gap: 14px;
+}
+
+.chart-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    padding: 10px;
+}
+
+.chart-title {
+    font-size: 13px;
+    color: #bbb;
+    margin-bottom: 6px;
+}
+
+.chart-container {
+    height: 220px;
+}
+
+/* TABLES */
+.table-wrapper {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.table-scroll {
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th {
+    background: rgba(0,0,0,0.6);
+    padding: 8px;
+    position: sticky;
+    top: 0;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* LAST VISITS FULL WIDTH */
+.last-visits-panel {
+    width: 100%;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .chart-container {
+        height: 180px;
+    }
+}
+
+@media (max-width: 600px) {
+    .cards-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+    @media (max-width: 600px) {
+    .cards-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+    /* ------------------------------
+   الثيم الفاتح
+------------------------------ */
+
+body.light {
+    background: #f5f5f5;
+    color: #000;
+}
+
+body.light .panel {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(0,0,0,0.15);
+}
+
+body.light .card {
+    background: rgba(255,255,255,0.95);
+    border-color: rgba(0,0,0,0.15);
+}
+
+body.light .btn-ghost {
+    color: #000;
+    border-color: rgba(0,0,0,0.3);
+}
+
+body.light .btn-danger {
+    color: #b00000;
+    border-color: rgba(255,0,0,0.3);
+}
+
+body.light th {
+    background: #ddd;
+    color: #000;
+}
+
+body.light td {
+    border-bottom: 1px solid #ccc;
+}
+
+body.light .topbar {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(0,0,0,0.15);
+}
+
+/* حركة زر الثيم */
+.theme-toggle {
+    position: relative;
+    transition: 0.25s ease;
+}
+
+.theme-knob {
+    transition: 0.25s ease;
+}
+
+body.light .theme-knob {
+    left: 3px;
+    right: auto;
+    background: #000;
+}
+</style>
+
+</head>
+<body>
+
+<div class="bg-logo"></div>
+<div class="overlay"></div>
+
+<div class="dashboard">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="topbar-logo">
+                <img src="logo.png" alt="Hybrid Foam">
+            </div>
+            <div class="topbar-title">
+                <div class="topbar-title-main">لوحة إدارة رغوة الهجين</div>
+                <div class="topbar-title-sub">نظام تقارير وزيارات وولاء العملاء</div>
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <button class="btn btn-primary" onclick="openVisitPage()">تسجيل زيارة جديدة</button>
+            <button class="btn btn-ghost" onclick="manualRefresh()">تحديث الآن</button>
+
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <div class="theme-icons">
+                    <span>☾</span>
+                    <span>☼</span>
+                </div>
+                <div class="theme-knob"></div>
+            </div>
+
+            <button class="btn btn-danger" onclick="logout()">تسجيل خروج</button>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+        <!-- نظرة عامة -->
+        <div class="panel overview-panel">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">نظرة عامة</div>
+                    <div class="panel-sub">ملخص شامل للنظام</div>
+                </div>
+                <div id="msg"></div>
+            </div>
+
+            <div class="panel-body">
+                <div class="cards-grid">
+
+                    <!-- العملاء -->
+                    <div class="card">
+                        <div class="card-label">عدد العملاء</div>
+                        <div class="card-value" id="card_customers">-</div>
+                        <div class="card-footer">
+                            <span>إجمالي المسجلين</span>
+                            <span class="chip" id="card_customers_new">اليوم: 0</span>
+                        </div>
+                    </div>
+
+                    <!-- الزيارات -->
+                    <div class="card">
+                        <div class="card-label">إجمالي الزيارات</div>
+                        <div class="card-value" id="card_visits">-</div>
+                        <div class="card-footer">
+                            <span>كل الوقت</span>
+                            <span class="chip" id="card_visits_today">اليوم: 0</span>
+                        </div>
+                    </div>
+
+                    <!-- المبالغ -->
+                    <div class="card">
+                        <div class="card-label">إجمالي المبالغ</div>
+                        <div class="card-value" id="card_totalPaid">-</div>
+                        <div class="card-footer">
+                            <span>إجمالي الإيرادات</span>
+                            <span class="chip" id="card_avgTicket">متوسط الفاتورة: -</span>
+                        </div>
+                    </div>
+
+                    <!-- VIP -->
+                    <div class="card">
+                        <div class="card-label">عملاء VIP</div>
+                        <div class="card-value" id="card_vip">-</div>
+                        <div class="card-footer">
+                            <span>أعلى شريحة</span>
+                            <span class="chip" id="card_vip_ratio">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Gold -->
+                    <div class="card">
+                        <div class="card-label">عملاء Gold</div>
+                        <div class="card-value" id="card_gold">-</div>
+                        <div class="card-footer">
+                            <span>شريحة ذهبية</span>
+                            <span class="chip" id="card_gold_ratio">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Silver -->
+                    <div class="card">
+                        <div class="card-label">عملاء Silver</div>
+                        <div class="card-value" id="card_silver">-</div>
+                        <div class="card-footer">
+                            <span>شريحة فضية</span>
+                            <span class="chip" id="card_silver_ratio">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Bronze -->
+                    <div class="card">
+                        <div class="card-label">عملاء Bronze</div>
+                        <div class="card-value" id="card_bronze">-</div>
+                        <div class="card-footer">
+                            <span>شريحة برونزية</span>
+                            <span class="chip" id="card_bronze_ratio">-</span>
+                        </div>
+                    </div>
+
+                    <!-- بدون مستوى -->
+                    <div class="card">
+                        <div class="card-label">بدون مستوى</div>
+                        <div class="card-value" id="card_none">-</div>
+                        <div class="card-footer">
+                            <span>غير مصنفين</span>
+                            <span class="chip" id="card_none_ratio">-</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- الرسوم البيانية -->
+        <div class="panel charts-panel">
+            <div class="charts-grid">
+
+                <div class="chart-card">
+                    <div class="chart-title">أكثر الخدمات استخداماً</div>
+                    <div class="chart-container">
+                        <canvas id="chartServices"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">توزيع أنواع السيارات</div>
+                    <div class="chart-container">
+                        <canvas id="chartCars"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">الزيارات اليومية (آخر 14 يوم)</div>
+                    <div class="chart-container">
+                        <canvas id="chartVisitsDaily"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">الإيرادات اليومية (آخر 14 يوم)</div>
+                    <div class="chart-container">
+                        <canvas id="chartRevenueDaily"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- عمليات العميل -->
+        <div class="panel ops-panel">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">عمليات العميل</div>
+                    <div class="panel-sub">بحث برقم الجوال أو العضوية</div>
+                </div>
+            </div>
+
+            <div class="panel-body">
+                <div class="input-row">
+                    <label>رقم الجوال</label>
+                    <input type="text" id="opsPhone" placeholder="05xxxxxxxx">
+                    <button class="btn btn-ghost" onclick="loadCustomerOperations()">عرض</button>
+                </div>
+
+                <div class="stat-line" id="opsSummary"></div>
+
+                <div class="table-wrapper">
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>الخدمة</th>
+                                    <th>السعر</th>
+                                    <th>النقاط</th>
+                                </tr>
+                            </thead>
+                            <tbody id="opsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تقرير حسب التاريخ -->
+        <div class="panel date-panel">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">تقرير حسب التاريخ</div>
+                    <div class="panel-sub">فلترة الزيارات والإيرادات</div>
+                </div>
+            </div>
+
+            <div class="panel-body">
+                <div class="input-row">
+                    <label>من</label>
+                    <input type="date" id="fromDate">
+                    <label>إلى</label>
+                    <input type="date" id="toDate">
+                    <button class="btn btn-ghost" onclick="filterByDate()">عرض</button>
+                </div>
+
+                <div class="stat-line" id="date_visits"></div>
+                <div class="stat-line" id="date_totalPaid"></div>
+                <div class="stat-line" id="date_topService"></div>
+                <div class="stat-line" id="date_topCar"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- آخر الزيارات -->
+    <div class="panel last-visits-panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">آخر الزيارات</div>
+                <div class="panel-sub">آخر 20 زيارة مسجلة</div>
+            </div>
+            <div id="lastUpdate"></div>
+        </div>
+
+        <div class="panel-body">
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>اسم العميل</th>
+                                <th>العضوية</th>
+                                <th>الخدمة</th>
+                                <th>السعر</th>
+                                <th>النقاط</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lastVisitsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
