@@ -7,7 +7,7 @@
 
 <style>
     body {
-        background: #000 url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png') center 40px no-repeat;
+        background: #000 url('logo.png') center 40px no-repeat;
         background-size: 120px;
         color: #d4af37;
         font-family: "Tajawal", sans-serif;
@@ -41,54 +41,46 @@
         margin-top: 6px;
     }
 </style>
+
+<script src="api.js"></script>
 </head>
 <body>
 
-<h2>اختر السيارة اللي تبغى تشوف النقاط والعضوية حقتها</h2>
+<h2>اختر السيارة اللي تبغى تشوف عضويتها</h2>
 <div id="cars">جاري التحميل...</div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycby6gaUcMNIorB6oTmLfRA7La90frLUF6NchZ4Xm_i9SFLv6QMEB8Dtwo812S5Nnib4C_g/exec";
-const phone = sessionStorage.getItem("login_phone");
+window.onload = async () => {
+    const cars = JSON.parse(sessionStorage.getItem("cars_list")) || [];
+    const container = document.getElementById("cars");
 
-if (!phone) {
-    document.getElementById("cars").innerHTML =
-        "<div style='color:red;font-size:18px'>الرجاء التسجيل أولاً</div>";
-}
+    if (cars.length === 0) {
+        container.innerHTML = "<div style='color:red;font-size:18px'>لا توجد سيارات</div>";
+        return;
+    }
 
-fetch(`${API}?action=getCarsByPhone&phone=${phone}`)
-    .then(res => res.json())
-    .then(data => {
-        if (!data.success || data.cars.length === 0) {
-            document.getElementById("cars").innerHTML =
-                "<div style='color:red;font-size:18px'>لا توجد سيارات</div>";
-            return;
-        }
+    let html = "";
 
-        const list = data.cars;
-        let html = "";
-
-        list.forEach((c, index) => {
-            html += `
-                <div class="car-box" onclick="selectCar(${index})">
-                    <strong>${c.car}</strong><br>
-                    <div class="plate">${c.plate_letters} - ${c.plate_numbers}</div>
-                </div>
-            `;
-        });
-
-        document.getElementById("cars").innerHTML = html;
-
-        sessionStorage.setItem("cars_list", JSON.stringify(list));
+    cars.forEach((c, index) => {
+        html += `
+            <div class="car-box" onclick="selectCar(${index})">
+                <strong>${c.car}</strong><br>
+                <div class="plate">${c.plate_letters} - ${c.plate_numbers}</div>
+            </div>
+        `;
     });
+
+    container.innerHTML = html;
+};
 
 function selectCar(i) {
     const list = JSON.parse(sessionStorage.getItem("cars_list"));
     const selected = list[i];
 
     sessionStorage.setItem("selected_car", JSON.stringify(selected));
+    sessionStorage.setItem("membership", selected.membership);
 
-    window.location.href = "verify.html";
+    window.location.href = "loyalty.html";
 }
 </script>
 
