@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>بطاقة العضوية</title>
+<title>التحقق من الرمز</title>
 
 <style>
     body {
-        background: #000 url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png') center 40px no-repeat;
+        background: #000 url('logo.png') center 40px no-repeat;
         background-size: 120px;
         color: #d4af37;
         font-family: "Tajawal", sans-serif;
@@ -15,168 +15,109 @@
         padding: 180px 25px 25px;
     }
 
-    .card {
+    h1 {
+        margin-bottom: 20px;
+        font-size: 26px;
+    }
+
+    .form-container {
         background: rgba(0,0,0,0.65);
         border: 1px solid rgba(212,175,55,0.35);
         border-radius: 14px;
-        padding: 20px;
-        max-width: 350px;
+        padding: 15px;
+        max-width: 330px;
         margin: auto;
         backdrop-filter: blur(10px);
     }
 
-    .vip-card {
-        background: linear-gradient(135deg, #f7d778, #d4af37, #b88a2f);
-        border: 2px solid #000;
-        border-radius: 16px;
-        padding: 25px;
-        max-width: 350px;
-        margin: auto;
-        color: #000;
-        box-shadow: 0 0 25px rgba(255,215,0,0.45);
-        position: relative;
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 6px 0;
+        border-radius: 8px;
+        border: 1px solid rgba(212,175,55,0.35);
+        background: #000;
+        color: #fff;
+        font-size: 15px;
+        text-align: center;
+        box-sizing: border-box;
+        letter-spacing: 4px;
+        font-size: 20px;
     }
 
-    .vip-crown {
-        font-size: 48px;
-        margin-bottom: 10px;
-        text-shadow: 0 0 10px rgba(255,255,255,0.6);
-    }
-
-    .vip-title {
-        font-size: 26px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        text-shadow: 0 0 8px rgba(255,255,255,0.5);
-    }
-
-    .info {
-        text-align: right;
-        line-height: 1.8;
+    button {
+        width: 100%;
+        padding: 12px;
         margin-top: 10px;
-        font-size: 17px;
-    }
-
-    .btn {
-        width: 90%;
-        padding: 14px;
-        margin-top: 15px;
         border-radius: 10px;
         border: none;
-        background: #d4af37;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
         color: #000;
-        font-size: 18px;
+        font-size: 17px;
         font-weight: bold;
         cursor: pointer;
     }
 
-    .btn:hover {
-        background: #b8922f;
-    }
-
-    .whatsapp {
-        margin-top: 20px;
-        display: inline-block;
-        padding: 12px 20px;
-        background: #25D366;
-        color: #000;
-        font-size: 18px;
-        border-radius: 50px;
-        text-decoration: none;
-        font-weight: bold;
+    #msg {
+        margin-top: 10px;
+        min-height: 20px;
+        font-size: 14px;
     }
 </style>
 </head>
+
 <body>
 
-<div id="content">جاري تحميل بيانات السيارة...</div>
+<h1>التحقق من الرمز</h1>
+
+<div class="form-container">
+
+    <p style="text-align:center; font-size:15px; opacity:0.8;">
+        تم إرسال رمز التحقق إلى رقمك
+    </p>
+
+    <input type="text" id="code" maxlength="4" placeholder="••••">
+
+    <button onclick="verifyCode()">تحقق</button>
+
+    <div id="msg"></div>
+</div>
+
+<script src="api.js"></script>
 
 <script>
-// منع الدخول المباشر للصفحة
-const car = JSON.parse(sessionStorage.getItem("selected_car"));
+async function verifyCode() {
+    const code = document.getElementById("code").value.trim();
+    const phone = sessionStorage.getItem("login_phone");
+    const msg = document.getElementById("msg");
 
-if (!car) {
-    window.location.href = "login.html";
-}
+    if (!code || code.length !== 4) {
+        msg.style.color = "red";
+        msg.textContent = "❌ أدخل رمز مكوّن من 4 أرقام";
+        return;
+    }
 
-// عرض البطاقة
-showCard(car);
+    msg.style.color = "#d4af37";
+    msg.textContent = "⏳ جاري التحقق...";
 
-function showCard(c) {
+    const res = await apiGet({
+        action: "verifyCode",
+        phone: phone,
+        code: code
+    });
 
-    const isVIP = (c.level === "VIP");
+    if (res.success) {
+        msg.style.color = "#4cff4c";
+        msg.textContent = "✔ تم التحقق";
 
-    const cardHTML = isVIP ? `
-        <div class="vip-card">
-            <div class="vip-crown">👑</div>
-            <div class="vip-title">عضوية VIP</div>
+        setTimeout(() => {
+            window.location.href = "customer-select-car.html";
+        }, 600);
 
-            <div class="info">
-                <strong>الاسم:</strong> ${c.name}<br>
-                <strong>رقم الجوال:</strong> ${c.phone.replace("'", "")}<br>
-                <strong>نوع السيارة:</strong> ${c.car}<br>
-                <strong>فئة السيارة:</strong> ${c.size}<br>
-                <strong>رقم اللوحة:</strong> ${c.plate_letters} - ${c.plate_numbers}<br>
-                <strong>رقم العضوية:</strong> ${c.membership}<br>
-                <strong>آخر زيارة:</strong> ${c.last_visit || "—"}<br>
-                <strong>عدد الزيارات:</strong> ${c.visit_count}<br>
-                <strong>النقاط:</strong> ${c.points}<br>
-                <strong>المستوى:</strong> VIP<br>
-            </div>
-
-            <button class="btn" onclick="openLoyaltyCard()">🎫 عرض بطاقة الولاء</button>
-            <button class="btn" onclick="openHistory()">سجل الزيارات</button>
-            <button class="btn" onclick="goHome()">الصفحة الرئيسية</button>
-
-            <a class="whatsapp" href="https://wa.me/966543329786" target="_blank">
-                تواصل مع الإدارة
-            </a>
-        </div>
-    ` : `
-        <div class="card">
-            <h2>بطاقة العضوية</h2>
-
-            <div class="info">
-                <strong>الاسم:</strong> ${c.name}<br>
-                <strong>رقم الجوال:</strong> ${c.phone.replace("'", "")}<br>
-                <strong>نوع السيارة:</strong> ${c.car}<br>
-                <strong>فئة السيارة:</strong> ${c.size}<br>
-                <strong>رقم اللوحة:</strong> ${c.plate_letters} - ${c.plate_numbers}<br>
-                <strong>رقم العضوية:</strong> ${c.membership}<br>
-                <strong>آخر زيارة:</strong> ${c.last_visit || "—"}<br>
-                <strong>عدد الزيارات:</strong> ${c.visit_count}<br>
-                <strong>النقاط:</strong> ${c.points}<br>
-                <strong>المستوى:</strong> ${c.level}<br>
-            </div>
-
-            <button class="btn" onclick="openLoyaltyCard()">🎫 عرض بطاقة الولاء</button>
-            <button class="btn" onclick="openHistory()">سجل الزيارات</button>
-            <button class="btn" onclick="goHome()">الصفحة الرئيسية</button>
-
-            <a class="whatsapp" href="https://wa.me/966543329786" target="_blank">
-                تواصل مع الإدارة
-            </a>
-        </div>
-    `;
-
-    document.getElementById("content").innerHTML = cardHTML;
-}
-
-// فتح بطاقة الولاء
-function openLoyaltyCard() {
-    const membership = car.membership;
-    window.location.href = `loyalty.html?id=${membership}`;
-}
-
-// سجل الزيارات
-function openHistory() {
-    sessionStorage.setItem("history_membership", car.membership);
-    window.location.href = "car-history.html";
-}
-
-// الصفحة الرئيسية
-function goHome() {
-    window.location.href = "index.html";
+    } else {
+        msg.style.color = "red";
+        msg.textContent = "❌ الرمز غير صحيح";
+    }
 }
 </script>
 
