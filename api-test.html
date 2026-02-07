@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اختبار API</title>
+
+<style>
+    body {
+        font-family: "Tajawal", sans-serif;
+        background: #111;
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+    }
+    h1 {
+        color: #d4af37;
+    }
+    button {
+        width: 90%;
+        padding: 14px;
+        margin: 10px 0;
+        border: none;
+        border-radius: 10px;
+        background: #d4af37;
+        color: #000;
+        font-size: 18px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    button:hover {
+        background: #b8922f;
+    }
+    #output {
+        margin-top: 25px;
+        background: #222;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: left;
+        white-space: pre-wrap;
+        direction: ltr;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🔧 اختبار API — رغوة الهجين</h1>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxCBVAavtZ_gBcmgV7a4NOsfC_auwOZk-ygHAHIOl8-W3o9UcMi2OemEJ0e8s4XdKS1hw/exec";
+
+async function test(action) {
+    let url = API + "?action=" + action;
+
+    // بعض الاختبارات تحتاج باراميترات
+    if (action === "getByPhone") {
+        const phone = prompt("أدخل رقم الجوال للاختبار:");
+        url += "&phone=" + phone;
+    }
+
+    if (action === "getVisits") {
+        const mem = prompt("أدخل رقم العضوية للاختبار:");
+        url += "&membership=" + mem;
+    }
+
+    if (action === "addVisit") {
+        const mem = prompt("رقم العضوية:");
+        url += "&membership=" + mem + "&service=Test&price=10&points=1";
+    }
+
+    document.getElementById("output").innerText = "جاري الاتصال...\n" + url;
+
+    try {
+        const res = await fetch(url);
+        const json = await res.json();
+        document.getElementById("output").innerText =
+            "🔗 URL:\n" + url + "\n\n📌 Response:\n" + JSON.stringify(json, null, 2);
+    } catch (err) {
+        document.getElementById("output").innerText = "خطأ في الاتصال:\n" + err;
+    }
+}
+</script>
+
+<button onclick="test('getAll')">📌 اختبار getAll (جلب كل العملاء)</button>
+<button onclick="test('getAllVisits')">📌 اختبار getAllVisits (جلب كل الزيارات)</button>
+<button onclick="test('getByPhone')">📌 اختبار getByPhone (بحث برقم الجوال)</button>
+<button onclick="test('getVisits')">📌 اختبار getVisits (زيارات عضوية)</button>
+<button onclick="test('addVisit')">📌 اختبار addVisit (إضافة زيارة)</button>
+
+<div id="output">النتائج ستظهر هنا...</div>
+
+</body>
+</html>
