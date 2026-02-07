@@ -78,13 +78,11 @@ function login() {
         .then(res => res.json())
         .then(data => {
 
-            // لا يوجد عميل
             if (!data.success || !data.customer) {
                 msg.innerHTML = "لا يوجد عميل بهذا الرقم";
                 return;
             }
 
-            // العميل موجود
             const cars = data.cars || [data.customer];
 
             sessionStorage.setItem("login_phone", phone);
@@ -92,7 +90,11 @@ function login() {
 
             // إذا عنده سيارة واحدة
             if (cars.length === 1) {
-                sessionStorage.setItem("selected_car", JSON.stringify(cars[0]));
+                const car = cars[0];
+
+                sessionStorage.setItem("selected_car", JSON.stringify(car));
+                sessionStorage.setItem("membership", car.membership);  // 🔥 مهم لعرض بطاقة الولاء
+
                 window.location.href = "verify.html";
             } 
             // إذا عنده أكثر من سيارة
