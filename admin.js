@@ -4,17 +4,19 @@
 const API = "https://script.google.com/macros/s/AKfycbw3ar3WZGtJ8REDF-35elnzUav7fc6dumy2pK8JACeVihxLnnqWKJTs4UvQJ7UXhI0J_g/exec";
 
 /* -----------------------------------------
-   تحميل البيانات من API
+   تحميل البيانات
 ----------------------------------------- */
 let customers = [];
 let visits = [];
 
 async function loadData() {
     try {
+        // جلب العملاء
         const c = await fetch(API + "?action=getAll").then(r => r.json());
-        const v = await fetch(API + "?action=getVisits").then(r => r.json());
-
         if (c.success) customers = c.data;
+
+        // جلب كل الزيارات
+        const v = await fetch(API + "?action=getAllVisits").then(r => r.json());
         if (v.success) visits = v.data;
 
         updateOverview();
@@ -119,8 +121,9 @@ function updateCharts() {
     /* الزيارات اليومية */
     const daily = {};
     visits.forEach(v => {
-        if (!daily[v.date]) daily[v.date] = 0;
-        daily[v.date]++;
+        const d = String(v.date).split("T")[0];
+        if (!daily[d]) daily[d] = 0;
+        daily[d]++;
     });
 
     chart3 = new Chart(document.getElementById("chartVisitsDaily"), {
@@ -138,8 +141,9 @@ function updateCharts() {
     /* الإيرادات اليومية */
     const revenue = {};
     visits.forEach(v => {
-        if (!revenue[v.date]) revenue[v.date] = 0;
-        revenue[v.date] += Number(v.price || 0);
+        const d = String(v.date).split("T")[0];
+        if (!revenue[d]) revenue[d] = 0;
+        revenue[d] += Number(v.price || 0);
     });
 
     chart4 = new Chart(document.getElementById("chartRevenueDaily"), {
@@ -172,7 +176,7 @@ function updateLastVisits() {
             <td>${v.service}</td>
             <td>${v.price}</td>
             <td>${v.points}</td>
-            <td>${v.date}</td>
+            <td>${String(v.date).split("T")[0]}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -185,36 +189,38 @@ async function loadCustomerOperations() {
     const phone = document.getElementById("opsPhone").value.trim();
     if (!phone) return;
 
-    const res = await fetch(API + "?action=getCarsByPhone&phone=" + phone).then(r => r.json());
+    const res = await fetch(API + "?action=getByPhone&phone=" + phone).then(r => r.json());
 
     const tbody = document.getElementById("opsTableBody");
     tbody.innerHTML = "";
 
-    if (!res.success || res.data.length === 0) {
+    if (!res.success) {
         document.getElementById("opsSummary").innerText = "العميل غير موجود";
         return;
     }
 
+    const customer = res.customer;
+
+    // جلب زيارات العضوية
+    const v = await fetch(API + "?action=getVisits&membership=" + customer.membership).then(r => r.json());
+
     let total = 0;
-    let points = 0;
+    let points = Number(customer.points || 0);
 
-    res.data.forEach(car => {
-        const list = visits.filter(v => v.membership == car.membership);
+    if (v.success) {
+        v.data.forEach(vis => {
+            total += Number(vis.price || 0);
 
-        total += list.reduce((s, v) => s + Number(v.price || 0), 0);
-        points += Number(car.points || 0);
-
-        list.forEach(v => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>${v.date}</td>
-                <td>${v.service}</td>
-                <td>${v.price}</td>
-                <td>${v.points}</td>
+                <td>${String(vis.date).split("T")[0]}</td>
+                <td>${vis.service}</td>
+                <td>${vis.price}</td>
+                <td>${vis.points}</td>
             `;
             tbody.appendChild(tr);
         });
-    });
+    }
 
     document.getElementById("opsSummary").innerText =
         `إجمالي المبلغ: ${total} ريال — إجمالي النقاط: ${points}`;
@@ -229,7 +235,10 @@ function filterByDate() {
 
     if (!f || !t) return;
 
-    const list = visits.filter(v => v.date >= f && v.date <= t);
+    const list = visits.filter(v => {
+        const d = String(v.date).split("T")[0];
+        return d >= f && d <= t;
+    });
 
     document.getElementById("date_visits").innerText =
         "عدد الزيارات: " + list.length;
