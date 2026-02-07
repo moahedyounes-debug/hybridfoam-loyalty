@@ -100,8 +100,30 @@ async function registerCustomer() {
     }
 
     msg.style.color = "#d4af37";
-    msg.textContent = "⏳ جاري التسجيل...";
+    msg.textContent = "⏳ جاري التحقق...";
 
+    // أول شيء: نتحقق هل العميل موجود
+    const check = await apiGet({
+        action: "checkCustomer",
+        phone: phone
+    });
+
+    // 🔵 العميل موجود مسبقًا
+    if (check.success && check.status === "exists") {
+        msg.style.color = "red";
+        msg.innerHTML = `
+            ❌ هذا العميل مسجل مسبقًا<br><br>
+            <button onclick="goLogin()" style="width:100%;padding:12px;margin-top:8px;border-radius:10px;border:none;background:#d4af37;color:#000;font-weight:bold;">تسجيل دخول</button>
+            <button onclick="goAddCar()" style="width:100%;padding:12px;margin-top:8px;border-radius:10px;border:none;background:#b8962f;color:#000;font-weight:bold;">إضافة مركبة</button>
+        `;
+
+        // حفظ بياناته
+        sessionStorage.setItem("membership", check.customer.membership);
+        sessionStorage.setItem("phone", check.customer.phone);
+        return;
+    }
+
+    // 🟢 العميل جديد → نسجله
     const res = await apiPost({
         action: "registerCustomer",
         name: name,
@@ -112,24 +134,25 @@ async function registerCustomer() {
         msg.style.color = "#4cff4c";
         msg.textContent = "✔ تم التسجيل — رقم العضوية: " + res.membership;
 
-        // حفظ البيانات للخطوة الثانية
         sessionStorage.setItem("membership", res.membership);
         sessionStorage.setItem("phone", res.phone);
 
-        // الانتقال لصفحة تسجيل السيارة
         setTimeout(() => {
             window.location.href = "car-register.html";
         }, 800);
 
     } else {
         msg.style.color = "red";
-
-        if (res.error === "customer_exists") {
-            msg.textContent = "❌ هذا العميل مسجل مسبقًا";
-        } else {
-            msg.textContent = "❌ فشل التسجيل";
-        }
+        msg.textContent = "❌ فشل التسجيل";
     }
+}
+
+function goLogin() {
+    window.location.href = "membership-card.html";
+}
+
+function goAddCar() {
+    window.location.href = "car-register.html";
 }
 </script>
 
