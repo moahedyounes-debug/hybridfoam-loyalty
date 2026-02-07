@@ -12,7 +12,6 @@
         font-family: "Tajawal", sans-serif;
         text-align: center;
         padding: 25px;
-        transition: 0.25s ease;
     }
 
     .box {
@@ -66,15 +65,6 @@
 
 <div class="box">
 
-    <label>رقم الجوال</label>
-    <input type="text" id="phone" placeholder="05xxxxxxxx">
-
-    <button onclick="loadCustomer()">بحث عن العميل</button>
-
-    <div id="customerInfo" style="margin:10px 0; font-size:14px;"></div>
-
-    <hr style="margin:15px 0; opacity:0.3;">
-
     <label>الخدمة</label>
     <select id="service" onchange="updateFields()">
         <option value="">اختر الخدمة</option>
@@ -86,82 +76,21 @@
     <label>النقاط المكتسبة</label>
     <input type="text" id="points" readonly>
 
+    <label>اسم الموظف (اختياري)</label>
+    <input type="text" id="employee">
+
+    <label>الفرع (اختياري)</label>
+    <input type="text" id="branch">
+
     <button onclick="saveVisit()">تسجيل الزيارة</button>
 </div>
 
 <div id="msg"></div>
 
+<script src="api.js"></script>
+
 <script>
-const API = "https://script.google.com/macros/s/AKfycby6gaUcMNIorB6oTmLfRA7La90frLUF6NchZ4Xm_i9SFLv6QMEB8Dtwo812S5Nnib4C_g/exec";
-
-let membership = "";
-let customerName = "";
-
-/* البحث عن العميل */
-async function loadCustomer() {
-    const phone = document.getElementById("phone").value.trim();
-    const info = document.getElementById("customerInfo");
-
-    if (!phone) {
-        info.innerHTML = "<span style='color:red'>❌ أدخل رقم الجوال</span>";
-        return;
-    }
-
-    const url =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vR9Iyp2bUAw2ZBijUhHHy878zOY9YvPHjjE0HrpKrKy29hAGTU7o71D0h_pFRwDnx3NomhY9A8LI9Tj/pub?gid=0&single=true&output=tsv";
-
-    const tsv = await fetch(url).then(r => r.text());
-    const lines = tsv.trim().split("\n");
-    const headers = lines[0].split("\t");
-
-    const customers = lines.slice(1).map(line => {
-        const values = line.split("\t");
-        const obj = {};
-        headers.forEach((h, i) => obj[h.trim()] = values[i] ? values[i].trim() : "");
-        return obj;
-    });
-
-    const matches = customers.filter(x => x.phone == phone);
-
-    if (matches.length === 0) {
-        info.innerHTML = "<span style='color:red'>❌ العميل غير موجود</span>";
-        membership = "";
-        return;
-    }
-
-    if (matches.length === 1) {
-        const c = matches[0];
-        membership = c.membership;
-        customerName = c.name;
-
-        info.innerHTML = `✔ العميل: ${c.name} — العضوية: ${c.membership}`;
-        return;
-    }
-
-    // أكثر من سيارة → عرض اختيار
-    let html = "<b>اختر السيارة:</b><br><br>";
-
-    matches.forEach(m => {
-        html += `
-            <button style="margin:5px; padding:10px; width:100%;"
-                onclick="selectMembership('${m.membership}', '${m.name}')">
-                ${m.car} — ${m.plate_letters} ${m.plate_numbers} — عضوية ${m.membership}
-            </button>
-        `;
-    });
-
-    info.innerHTML = html;
-}
-
-function selectMembership(mem, name) {
-    membership = mem;
-    customerName = name;
-
-    document.getElementById("customerInfo").innerHTML =
-        `✔ العميل: ${name} — العضوية: ${mem}`;
-}
-
-/* جدول الخدمات */
+/* الخدمات */
 const services = [
     {name:"خارجي صغير", price:15},
     {name:"خارجي وداخلي صغير", price:25},
@@ -218,54 +147,51 @@ services.forEach(s => {
     serviceSelect.appendChild(opt);
 });
 
+/* تحديث السعر والنقاط */
 function updateFields() {
     const selected = services.find(s => s.name === serviceSelect.value);
     if (!selected) return;
 
     document.getElementById("price").value = selected.price;
-
-    const pts = Math.floor(selected.price / 10);
-    document.getElementById("points").value = pts;
+    document.getElementById("points").value = Math.floor(selected.price / 10);
 }
 
 /* حفظ الزيارة */
 async function saveVisit() {
-    if (!membership) {
-        document.getElementById("msg").innerHTML =
-            "<span style='color:red'>❌ ابحث عن العميل أولاً</span>";
-        return;
-    }
-
+    const membership = sessionStorage.getItem("membership");
     const service = serviceSelect.value;
     const price = document.getElementById("price").value;
     const points = document.getElementById("points").value;
+    const employee = document.getElementById("employee").value;
+    const branch = document.getElementById("branch").value;
+    const msg = document.getElementById("msg");
 
-    if (!service) {
-        document.getElementById("msg").innerHTML =
-            "<span style='color:red'>❌ اختر الخدمة</span>";
+    if (!membership) {
+        msg.innerHTML = "<span style='color:red'>❌ لا توجد عضوية</span>";
         return;
     }
 
-    document.getElementById("msg").innerHTML =
-        "<span style='color:#d4af37'>⏳ جاري تسجيل الزيارة...</span>";
+    if (!service) {
+        msg.innerHTML = "<span style='color:red'>❌ اختر الخدمة</span>";
+        return;
+    }
 
-    const url = `${API}?action=addVisit&membership=${membership}&service=${encodeURIComponent(service)}&price=${price}&points=${points}`;
+    msg.innerHTML = "<span style='color:#d4af37'>⏳ جاري تسجيل الزيارة...</span>";
 
-    try {
-        await fetch(url);
+    const res = await apiPost({
+        action: "addVisit",
+        membership: membership,
+        service: service,
+        price: price,
+        points: points,
+        employee: employee,
+        branch: branch
+    });
 
-        document.getElementById("msg").innerHTML =
-            "<span style='color:#0f0'>✔ تم تسجيل الزيارة بنجاح</span>";
-
-        sessionStorage.setItem("visit_membership", membership);
-
-        setTimeout(() => {
-            window.location.href = "car-history.html";
-        }, 800);
-
-    } catch (e) {
-        document.getElementById("msg").innerHTML =
-            "<span style='color:red'>⚠️ فشل الاتصال بالخادم</span>";
+    if (res.success) {
+        msg.innerHTML = "<span style='color:#0f0'>✔ تم تسجيل الزيارة بنجاح</span>";
+    } else {
+        msg.innerHTML = "<span style='color:red'>⚠️ فشل تسجيل الزيارة</span>";
     }
 }
 </script>
