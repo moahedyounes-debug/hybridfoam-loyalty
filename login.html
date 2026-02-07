@@ -1,112 +1,104 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل الدخول</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول</title>
 
-<style>
+  <style>
     body {
-        background: #000 url('https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png') center 40px no-repeat;
-        background-size: 120px;
-        color: #d4af37;
-        font-family: "Tajawal", sans-serif;
-        text-align: center;
-        padding: 180px 25px 25px;
+      background: #000 url('logo.png') center 40px no-repeat;
+      background-size: 120px;
+      color: #d4af37;
+      font-family: "Tajawal", sans-serif;
+      text-align: center;
+      padding: 180px 25px 25px;
     }
-
     input {
-        width: 85%;
-        padding: 14px;
-        margin-top: 15px;
-        border-radius: 10px;
-        border: 1px solid #d4af37;
-        background: rgba(0,0,0,0.6);
-        color: #fff;
-        font-size: 18px;
-        text-align: center;
+      width: 85%;
+      padding: 14px;
+      margin-top: 15px;
+      border-radius: 10px;
+      border: 1px solid #d4af37;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 18px;
+      text-align: center;
     }
-
     button {
-        width: 90%;
-        padding: 14px;
-        margin-top: 20px;
-        border-radius: 10px;
-        border: none;
-        background: #d4af37;
-        color: #000;
-        font-size: 20px;
-        font-weight: bold;
-        cursor: pointer;
+      width: 90%;
+      padding: 14px;
+      margin-top: 20px;
+      border-radius: 10px;
+      border: none;
+      background: #d4af37;
+      color: #000;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
     }
-
     button:hover {
-        background: #b8922f;
+      background: #b8922f;
     }
-
     .error {
-        color: red;
-        margin-top: 15px;
-        font-size: 18px;
+      color: red;
+      margin-top: 15px;
+      font-size: 18px;
     }
-</style>
+  </style>
+
+  <script src="api.js"></script>
 </head>
 <body>
 
-<h2>تسجيل الدخول</h2>
+  <h2>تسجيل الدخول</h2>
 
-<input type="tel" id="phone" placeholder="أدخل رقم الجوال">
-<button onclick="login()">دخول</button>
+  <input type="tel" id="phone" placeholder="أدخل رقم الجوال (05xxxxxxxx)">
+  <button onclick="login()">دخول</button>
 
-<div id="msg" class="error"></div>
+  <div id="msg" class="error"></div>
 
-<script>
-const API = "https://script.google.com/macros/s/AKfycby6gaUcMNIorB6oTmLfRA7La90frLUF6NchZ4Xm_i9SFLv6QMEB8Dtwo812S5Nnib4C_g/exec";
+  <script>
+    async function login() {
+      const phone = document.getElementById("phone").value.trim();
+      const msg = document.getElementById("msg");
 
-function login() {
-    const phone = document.getElementById("phone").value.trim();
-    const msg = document.getElementById("msg");
-
-    if (phone.length < 10) {
-        msg.innerHTML = "الرجاء إدخال رقم جوال صحيح";
+      if (!phone.startsWith("05") || phone.length !== 10) {
+        msg.innerHTML = "الرجاء إدخال رقم جوال يبدأ بـ 05 ويتكون من 10 أرقام";
         return;
-    }
+      }
 
-    msg.innerHTML = "جاري التحقق...";
+      msg.innerHTML = "جاري التحقق...";
 
-    fetch(`${API}?action=getByPhone&phone=${phone}`)
-        .then(res => res.json())
-        .then(data => {
-
-            if (!data.success || !data.customer) {
-                msg.innerHTML = "لا يوجد عميل بهذا الرقم";
-                return;
-            }
-
-            const cars = data.cars || [data.customer];
-
-            sessionStorage.setItem("login_phone", phone);
-            sessionStorage.setItem("cars_list", JSON.stringify(cars));
-
-            // إذا عنده سيارة واحدة
-            if (cars.length === 1) {
-                const car = cars[0];
-
-                sessionStorage.setItem("selected_car", JSON.stringify(car));
-                sessionStorage.setItem("membership", car.membership);  // 🔥 مهم لعرض بطاقة الولاء
-
-                window.location.href = "verify.html";
-            } 
-            // إذا عنده أكثر من سيارة
-            else {
-                window.location.href = "customer-select-car.html";
-            }
-        })
-        .catch(() => {
-            msg.innerHTML = "خطأ في الاتصال";
+      try {
+        const data = await apiGet({
+          action: "getByPhone",
+          phone: phone
         });
-}
-</script>
+
+        if (!data.success || !data.customer) {
+          msg.innerHTML = "لا يوجد عميل بهذا الرقم";
+          return;
+        }
+
+        const cars = data.cars || [];
+
+        sessionStorage.setItem("customer", JSON.stringify(data.customer));
+        sessionStorage.setItem("cars_list", JSON.stringify(cars));
+
+        if (cars.length === 1) {
+          sessionStorage.setItem("selected_car", JSON.stringify(cars[0]));
+          sessionStorage.setItem("membership", cars[0].membership);
+          window.location.href = "loyalty.html";
+        } else {
+          window.location.href = "customer-select-car.html";
+        }
+
+      } catch (e) {
+        msg.innerHTML = "خطأ في الاتصال";
+      }
+    }
+  </script>
 
 </body>
 </html>
