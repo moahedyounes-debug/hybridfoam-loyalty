@@ -111,9 +111,24 @@ async function registerCustomer() {
     if (res.success) {
         msg.style.color = "#4cff4c";
         msg.textContent = "✔ تم التسجيل — رقم العضوية: " + res.membership;
+
+        // حفظ البيانات للخطوة الثانية
+        sessionStorage.setItem("membership", res.membership);
+        sessionStorage.setItem("phone", res.phone);
+
+        // الانتقال لصفحة تسجيل السيارة
+        setTimeout(() => {
+            window.location.href = "car-register.html";
+        }, 800);
+
     } else {
         msg.style.color = "red";
-        msg.textContent = "❌ فشل التسجيل";
+
+        if (res.error === "customer_exists") {
+            msg.textContent = "❌ هذا العميل مسجل مسبقًا";
+        } else {
+            msg.textContent = "❌ فشل التسجيل";
+        }
     }
 }
 </script>
