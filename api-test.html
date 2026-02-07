@@ -7,87 +7,122 @@
 
 <style>
     body {
+        background: #000;
+        color: #d4af37;
         font-family: "Tajawal", sans-serif;
-        background: #111;
-        color: #fff;
-        padding: 20px;
+        padding: 25px;
         text-align: center;
     }
+
     h1 {
-        color: #d4af37;
+        margin-bottom: 25px;
+        font-size: 26px;
     }
+
+    .box {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        backdrop-filter: blur(14px);
+        padding: 20px;
+        border-radius: 18px;
+        max-width: 450px;
+        margin: auto;
+        text-align: right;
+    }
+
+    select, input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #d4af37;
+        background: #000;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
     button {
-        width: 90%;
+        width: 100%;
         padding: 14px;
-        margin: 10px 0;
+        background: linear-gradient(45deg, #d4af37, #b8962f);
+        color: #000;
         border: none;
         border-radius: 10px;
-        background: #d4af37;
-        color: #000;
         font-size: 18px;
-        cursor: pointer;
         font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.25s ease;
     }
-    button:hover {
-        background: #b8922f;
-    }
+
     #output {
-        margin-top: 25px;
-        background: #222;
+        margin-top: 20px;
+        background: rgba(255,255,255,0.08);
         padding: 15px;
-        border-radius: 10px;
+        border-radius: 12px;
+        font-size: 14px;
         text-align: left;
-        white-space: pre-wrap;
         direction: ltr;
+        color: #fff;
+        white-space: pre-wrap;
     }
 </style>
 </head>
 
 <body>
 
-<h1>🔧 اختبار API — رغوة الهجين</h1>
+<h1>اختبار API</h1>
+
+<div class="box">
+
+    <label>اختر العملية</label>
+    <select id="action">
+        <option value="">اختر...</option>
+        <option value="getAll">getAll</option>
+        <option value="getByMembership">getByMembership</option>
+        <option value="getCarsByPhone">getCarsByPhone</option>
+        <option value="registerCustomer">registerCustomer</option>
+        <option value="registerCar">registerCar</option>
+        <option value="addVisit">addVisit</option>
+        <option value="getVisitsByDate">getVisitsByDate</option>
+    </select>
+
+    <input type="text" id="param1" placeholder="param1 (اختياري)">
+    <input type="text" id="param2" placeholder="param2 (اختياري)">
+    <input type="text" id="param3" placeholder="param3 (اختياري)">
+
+    <button onclick="runTest()">تشغيل</button>
+</div>
+
+<div id="output"></div>
+
+<script src="api.js"></script>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycby6gaUcMNIorB6oTmLfRA7La90frLUF6NchZ4Xm_i9SFLv6QMEB8Dtwo812S5Nnib4C_g/exec";
+async function runTest() {
+    const action = document.getElementById("action").value;
+    const p1 = document.getElementById("param1").value;
+    const p2 = document.getElementById("param2").value;
+    const p3 = document.getElementById("param3").value;
 
-async function test(action) {
-    let url = API + "?action=" + action;
-
-    if (action === "getByPhone") {
-        const phone = prompt("أدخل رقم الجوال للاختبار:");
-        url += "&phone=" + phone;
+    if (!action) {
+        document.getElementById("output").textContent = "❌ اختر العملية أولاً";
+        return;
     }
 
-    if (action === "getVisits") {
-        const mem = prompt("أدخل رقم العضوية للاختبار:");
-        url += "&membership=" + mem;
-    }
+    const params = { action: action };
 
-    if (action === "addVisit") {
-        const mem = prompt("رقم العضوية:");
-        url += "&membership=" + mem + "&service=Test&price=10&points=1";
-    }
+    if (p1) params.param1 = p1;
+    if (p2) params.param2 = p2;
+    if (p3) params.param3 = p3;
 
-    document.getElementById("output").innerText = "جاري الاتصال...\n" + url;
+    const result = await apiGet(params);
 
-    try {
-        const res = await fetch(url);
-        const json = await res.json();
-        document.getElementById("output").innerText =
-            "🔗 URL:\n" + url + "\n\n📌 Response:\n" + JSON.stringify(json, null, 2);
-    } catch (err) {
-        document.getElementById("output").innerText = "خطأ في الاتصال:\n" + err;
-    }
+    document.getElementById("output").textContent =
+        JSON.stringify(result, null, 2);
 }
 </script>
-
-<button onclick="test('getAll')">📌 اختبار getAll (جلب كل العملاء)</button>
-<button onclick="test('getAllVisits')">📌 اختبار getAllVisits (جلب كل الزيارات)</button>
-<button onclick="test('getByPhone')">📌 اختبار getByPhone (بحث برقم الجوال)</button>
-<button onclick="test('getVisits')">📌 اختبار getVisits (زيارات عضوية)</button>
-<button onclick="test('addVisit')">📌 اختبار addVisit (إضافة زيارة)</button>
-
-<div id="output">النتائج ستظهر هنا...</div>
 
 </body>
 </html>
