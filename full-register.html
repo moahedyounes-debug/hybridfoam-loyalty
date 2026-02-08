@@ -55,7 +55,7 @@
     }
 </style>
 
-<script src="api.js"></script>
+<script src="api.js?v=3"></script>
 </head>
 <body>
 
@@ -69,50 +69,60 @@
     <label>الرقم</label>
     <input type="text" id="phone">
 
-<label>نوع السيارة</label>
-<select id="carType" onchange="toggleCustomCarType()">
-    <option value="">اختر نوع السيارة</option>
-    <option value="سيدان">سيدان</option>
-    <option value="SUV">دفع رباعي (SUV)</option>
-    <option value="فان">فان</option>
-    <option value="بيك أب">بيك أب</option>
-    <option value="هاتشباك">هاتشباك</option>
-    <option value="كوبيه">كوبيه</option>
-    <option value="شاحنة خفيفة">شاحنة خفيفة</option>
-    <option value="other">أخرى</option>
-</select>
+    <label>نوع السيارة</label>
+    <input list="carsList" id="car" placeholder="ابدأ بالكتابة...">
+    <datalist id="carsList">
+        <option value="كامري">
+        <option value="كورولا">
+        <option value="يارس">
+        <option value="سوناتا">
+        <option value="النترا">
+        <option value="أكورد">
+        <option value="سيفيك">
+        <option value="سبورتاج">
+        <option value="توسان">
+        <option value="رانجلر">
+        <option value="جيب">
+        <option value="GMC">
+        <option value="فورد">
+        <option value="بيك أب">
+        <option value="فان">
+        <option value="هاتشباك">
+        <option value="أخرى">
+    </datalist>
 
-<input type="text" id="customCarType" placeholder="اكتب نوع السيارة" style="display:none; margin-top:10px;">
+    <label>الحجم</label>
+    <select id="size">
+        <option value="">اختر الحجم</option>
+        <option value="Small">Small</option>
+        <option value="Medium">Medium</option>
+        <option value="Large">Large</option>
+        <option value="XL">XL</option>
+    </select>
 
-<label>المدينة</label>
-<select id="city"></select>
+    <label>المدينة</label>
+    <select id="city"></select>
     
-<label>رقم اللوحة</label>
-<input type="text" id="plate_numbers" placeholder="1234">
+    <label>رقم اللوحة</label>
+    <input type="text" id="plate_numbers" placeholder="1234">
 
-<label>حروف اللوحة</label>
-<input type="text" id="plate_letters" placeholder="أ ب ج">
+    <label>حروف اللوحة</label>
+    <input type="text" id="plate_letters" placeholder="أ ب ج">
 
     <button onclick="register()">تسجيل</button>
 </div>
 
 <script>
-let phone = localStorage.getItem("customer_phone");
-
-if (!phone) {
-    alert("يرجى تسجيل الدخول أولاً");
-    window.location.href = "login.html";
-}
-
 async function register() {
     const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
     const car = document.getElementById("car").value.trim();
     const size = document.getElementById("size").value;
     const city = document.getElementById("city").value.trim();
-    const letters = document.getElementById("letters").value.trim();
-    const numbers = document.getElementById("numbers").value.trim();
+    const plate_numbers = document.getElementById("plate_numbers").value.trim();
+    const plate_letters = document.getElementById("plate_letters").value.trim();
 
-    if (!name || !car || !letters || !numbers) {
+    if (!name || !phone || !car || !plate_numbers || !plate_letters) {
         alert("يرجى تعبئة جميع الحقول");
         return;
     }
@@ -124,8 +134,8 @@ async function register() {
         car,
         size,
         city,
-        plate_letters: letters,
-        plate_numbers: numbers
+        plate_letters,
+        plate_numbers
     });
 
     if (res.success) {
@@ -135,18 +145,8 @@ async function register() {
         alert("حدث خطأ أثناء التسجيل");
     }
 }
-    function toggleCustomCarType() {
-    const select = document.getElementById("carType");
-    const custom = document.getElementById("customCarType");
 
-    if (select.value === "other") {
-        custom.style.display = "block";
-    } else {
-        custom.style.display = "none";
-    }
-}
-
-    async function loadCities() {
+async function loadCities() {
     const res = await apiGet({ action: "getBranches" });
 
     const citySelect = document.getElementById("city");
@@ -161,7 +161,8 @@ async function register() {
         citySelect.appendChild(opt);
     });
 }
-    loadCities();
+
+loadCities();
 </script>
 
 </body>
