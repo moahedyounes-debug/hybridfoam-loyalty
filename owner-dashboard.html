@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>لوحة المالك</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="api.js?v=3"></script>
+
+<style>
+body {
+    font-family: "Tajawal", sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 15px;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.stat {
+    background: #2563eb;
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>لوحة المالك</h2>
+
+<!-- الإحصائيات -->
+<div class="grid" id="statsGrid"></div>
+
+<!-- الشارتات -->
+<div class="card">
+    <h3>الدخل اليومي</h3>
+    <canvas id="dailyChart"></canvas>
+</div>
+
+<div class="card">
+    <h3>الخدمات الأكثر طلبًا</h3>
+    <canvas id="servicesChart"></canvas>
+</div>
+
+<div class="card">
+    <h3>أحجام السيارات الأكثر زيارة</h3>
+    <canvas id="sizesChart"></canvas>
+</div>
+
+<!-- التقارير -->
+<div class="card">
+    <h3>تنزيل التقارير</h3>
+    <button onclick="downloadReport('daily')">تقرير اليوم</button>
+    <button onclick="downloadReport('weekly')">تقرير الأسبوع</button>
+    <button onclick="downloadReport('monthly')">تقرير الشهر</button>
+    <button onclick="downloadReport('yearly')">تقرير السنة</button>
+</div>
+
+<script>
+async function loadDashboard() {
+    const res = await apiGet({ action: "getOwnersDashboard" });
+
+    const stats = res.totals;
+
+    document.getElementById("statsGrid").innerHTML = `
+        <div class="stat">العملاء<br>${stats.customers}</div>
+        <div class="stat">السيارات<br>${stats.cars}</div>
+        <div class="stat">الزيارات<br>${stats.visits}</div>
+        <div class="stat">الدخل<br>${stats.amount} ريال</div>
+        <div class="stat">الجدد هذا الشهر<br>${stats.new_customers_this_month}</div>
+        <div class="stat">العائدين<br>${stats.returning_customers}</div>
+        <div class="stat">الاحتفاظ<br>${stats.retention_rate.toFixed(1)}%</div>
+    `;
+
+    loadCharts(res);
+}
+
+function loadCharts(data) {
+    // Daily Revenue Chart
+    new Chart(document.getElementById("dailyChart"), {
+        type: "line",
+        data: {
+            labels: data.visits_per_day.map(v => v.date),
+            datasets: [{
+                label: "الدخل",
+                data: data.visits_per_day.map(v => v.count),
+                borderColor: "#2563eb",
+                fill: false
+            }]
+        }
+    });
+
+    // Services Chart
+    new Chart(document.getElementById("servicesChart"), {
+        type: "bar",
+        data: {
+            labels: data.services_breakdown.map(s => s.service),
+            datasets: [{
+                label: "عدد المرات",
+                data: data.services_breakdown.map(s => s.count),
+                backgroundColor: "#16a34a"
+            }]
+        }
+    });
+
+    // Car Sizes Chart
+    new Chart(document.getElementById("sizesChart"), {
+        type: "pie",
+        data: {
+            labels: data.cars_stats.top_sizes.map(s => s.size),
+            datasets: [{
+                data: data.cars_stats.top_sizes.map(s => s.count),
+                backgroundColor: ["#2563eb", "#16a34a", "#dc2626"]
+            }]
+        }
+    });
+}
+
+function downloadReport(type) {
+    alert("سيتم إضافة التحميل لاحقًا");
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>
