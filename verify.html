@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>التحقق من الكود</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
     body {
-        font-family: sans-serif;
+        font-family: "Tajawal", sans-serif;
         background: #f5f5f5;
         margin: 0;
         padding: 0;
@@ -18,16 +19,29 @@
 
     .container {
         background: white;
-        padding: 30px;
+        padding: 28px;
         width: 90%;
-        max-width: 400px;
+        max-width: 380px;
         border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         text-align: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     h2 {
-        margin-bottom: 20px;
+        margin-bottom: 10px;
+        font-size: 22px;
+    }
+
+    p {
+        margin: 0 0 12px 0;
+        color: #666;
+        font-size: 14px;
     }
 
     input {
@@ -35,10 +49,16 @@
         padding: 14px;
         border-radius: 10px;
         border: 1px solid #ccc;
-        margin-top: 10px;
-        font-size: 18px;
+        margin-top: 12px;
+        font-size: 20px;
         text-align: center;
         letter-spacing: 4px;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #000;
+        background: #fafafa;
     }
 
     button {
@@ -51,6 +71,30 @@
         margin-top: 20px;
         font-size: 16px;
         cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button:active {
+        opacity: 0.85;
+    }
+
+    .resend {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #2563eb;
+        cursor: pointer;
+        display: inline-block;
+    }
+
+    .disabled {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+
+    .timer {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #444;
     }
 </style>
 
@@ -60,23 +104,50 @@
 
 <div class="container">
     <h2>أدخل رمز التحقق</h2>
+    <p>تم إرسال رمز التحقق إلى رقم جوالك</p>
 
     <input type="text" id="code" maxlength="6" placeholder="••••••">
 
     <button onclick="verifyCode()">تأكيد</button>
+
+    <div class="timer" id="timerBox">ينتهي خلال: <span id="timer">60</span> ثانية</div>
+
+    <div class="resend disabled" id="resendBtn" onclick="resendCode()">إعادة إرسال الكود</div>
 </div>
 
 <script>
 let phone = localStorage.getItem("customer_phone");
+let attempts = 0;
+let maxAttempts = 5;
+let countdown = 60;
+let timerInterval;
 
 if (!phone) {
     alert("يرجى تسجيل الدخول أولاً");
     window.location.href = "login.html";
 }
 
-// -----------------------------
+// بدء العدّاد
+startTimer();
+
+function startTimer() {
+    countdown = 60;
+    document.getElementById("timer").textContent = countdown;
+
+    document.getElementById("resendBtn").classList.add("disabled");
+
+    timerInterval = setInterval(() => {
+        countdown--;
+        document.getElementById("timer").textContent = countdown;
+
+        if (countdown <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById("resendBtn").classList.remove("disabled");
+        }
+    }, 1000);
+}
+
 // التحقق من الكود
-// -----------------------------
 async function verifyCode() {
     const code = document.getElementById("code").value.trim();
 
@@ -85,29 +156,68 @@ async function verifyCode() {
         return;
     }
 
+    attempts++;
+    if (attempts > maxAttempts) {
+        alert("تم تجاوز عدد المحاولات المسموح بها");
+        window.location.href = "login.html";
+        return;
+    }
+
     const res = await apiGet({
         action: "getNotifications",
         phone
     });
 
-    if (!res.success) {
+    if (!res.success || !res.notifications) {
         alert("خطأ في التحقق");
         return;
     }
 
-    // البحث عن كود التحقق
-    const match = res.notifications.find(n =>
-        n.type === "login_code" &&
-        n.message.includes(code)
-    );
+    // نبحث عن آخر كود login_code مطابق تمامًا
+    const codes = res.notifications
+        .filter(n => n.type === "login_code")
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    if (!match) {
+    const latest = codes[0];
+
+    if (!latest) {
+        alert("لا يوجد كود تحقق");
+        return;
+    }
+
+    // التحقق من انتهاء الصلاحية (5 دقائق)
+    const codeTime = new Date(latest.date);
+    const now = new Date();
+    const diffMinutes = (now - codeTime) / 1000 / 60;
+
+    if (diffMinutes > 5) {
+        alert("انتهت صلاحية الكود، اطلب كود جديد");
+        return;
+    }
+
+    // التحقق من التطابق
+    if (latest.message.trim() !== code) {
         alert("الكود غير صحيح");
         return;
     }
 
     // نجاح
+    localStorage.setItem("customer_verified", "1");
     window.location.href = "customer-home.html";
+}
+
+// إعادة إرسال الكود
+async function resendCode() {
+    if (document.getElementById("resendBtn").classList.contains("disabled")) return;
+
+    await apiPost({
+        action: "sendLoginCode",
+        phone
+    });
+
+    alert("تم إرسال كود جديد");
+
+    startTimer();
 }
 </script>
 
