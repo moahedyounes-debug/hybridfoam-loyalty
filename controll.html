@@ -9,295 +9,659 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-body {
-    font-family: "Tajawal", sans-serif;
-    background: #f4f6f9;
-    margin: 0;
-}
+    :root {
+        --bg: #0f172a;
+        --bg-soft: #111827;
+        --accent: #2563eb;
+        --accent-soft: #1d4ed8;
+        --card-bg: #0b1120;
+        --border: #1f2937;
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --danger: #dc2626;
+        --success: #16a34a;
+    }
 
-.tabs {
-    display: flex;
-    overflow-x: auto;
-    background: #2563eb;
-    color: white;
-}
+    * {
+        box-sizing: border-box;
+    }
 
-.tab {
-    padding: 14px 20px;
-    cursor: pointer;
-    white-space: nowrap;
-}
+    body {
+        margin: 0;
+        font-family: "Tajawal", sans-serif;
+        background: var(--bg);
+        color: var(--text-main);
+        direction: rtl;
+    }
 
-.tab.active {
-    background: #1e40af;
-}
+    .layout {
+        display: flex;
+        min-height: 100vh;
+    }
 
-.section {
-    display: none;
-    padding: 15px;
-}
+    /* Sidebar */
+    .sidebar {
+        width: 260px;
+        background: var(--bg-soft);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 20px 16px;
+    }
 
-.section.active {
-    display: block;
-}
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
 
-.card {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+    .brand-logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+    }
 
-input, select, button, textarea {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
+    .brand-text {
+        font-size: 18px;
+        font-weight: 600;
+    }
 
-button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    font-size: 16px;
-}
+    .nav-section-title {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 10px 4px;
+    }
 
-button.loading {
-    background: #6b7280 !important;
-}
+    .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 20px;
+    }
 
-.chart-box {
-    width: 100%;
-    height: 200px;
-    background: white;
-    border-radius: 12px;
-    margin-bottom: 15px;
-}
+    .nav-btn {
+        width: 100%;
+        text-align: right;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: 0.15s;
+    }
+
+    .nav-btn span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .nav-btn.active {
+        background: rgba(37, 99, 235, 0.18);
+        color: var(--text-main);
+    }
+
+    .nav-btn:hover {
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-main);
+    }
+
+    .nav-badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.2);
+        color: var(--text-muted);
+    }
+
+    .sidebar-footer {
+        margin-top: auto;
+        font-size: 12px;
+        color: var(--text-muted);
+        opacity: 0.8;
+    }
+
+    /* Main */
+    .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .topbar {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(10px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .topbar-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .topbar-sub {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+    }
+
+    .content {
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .section {
+        display: none;
+    }
+
+    .section.active {
+        display: block;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .section-header h2 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .section-header small {
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .grid {
+        display: grid;
+        gap: 14px;
+    }
+
+    @media (min-width: 900px) {
+        .grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .grid-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .card {
+        background: var(--card-bg);
+        border-radius: 14px;
+        padding: 14px;
+        border: 1px solid var(--border);
+    }
+
+    .card h3 {
+        margin: 0 0 8px 0;
+        font-size: 15px;
+    }
+
+    .stat-value {
+        font-size: 22px;
+        font-weight: 600;
+        margin-top: 4px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .chart-box {
+        height: 220px;
+        border-radius: 14px;
+        background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent),
+                    radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.12), transparent);
+        border: 1px dashed var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 13px;
+        text-align: center;
+        padding: 10px;
+    }
+
+    input, select, textarea, button {
+        font-family: inherit;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 10px 11px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #020617;
+        color: var(--text-main);
+        font-size: 14px;
+    }
+
+    textarea {
+        min-height: 90px;
+        resize: vertical;
+    }
+
+    input::placeholder, textarea::placeholder {
+        color: #6b7280;
+    }
+
+    button {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        transition: 0.15s;
+    }
+
+    button:hover {
+        background: var(--accent-soft);
+    }
+
+    button.loading {
+        background: #6b7280 !important;
+        cursor: default;
+    }
+
+    .btn-secondary {
+        background: #111827;
+    }
+
+    .btn-danger {
+        background: var(--danger);
+    }
+
+    .btn-success {
+        background: var(--success);
+    }
+
+    .muted {
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .badge-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+    }
+
+    .badge-status.Approved {
+        background: rgba(22, 163, 74, 0.15);
+        color: #4ade80;
+    }
+
+    .badge-status.Pending {
+        background: rgba(234, 179, 8, 0.15);
+        color: #facc15;
+    }
+
+    .badge-status.Cancelled {
+        background: rgba(220, 38, 38, 0.15);
+        color: #fca5a5;
+    }
+
+    #reader {
+        width: 100%;
+        max-width: 320px;
+        margin-top: 10px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    @media (max-width: 800px) {
+        .layout {
+            flex-direction: column;
+        }
+        .sidebar {
+            width: 100%;
+            flex-direction: row;
+            overflow-x: auto;
+            border-left: none;
+            border-bottom: 1px solid var(--border);
+        }
+        .brand {
+            display: none;
+        }
+        .nav {
+            flex-direction: row;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+        .nav-btn {
+            white-space: nowrap;
+            font-size: 13px;
+        }
+        .sidebar-footer {
+            display: none;
+        }
+    }
 </style>
 </head>
-
 <body>
 
-<!-- Tabs -->
-<div class="tabs">
-    <div class="tab active" onclick="showTab('dashboard', this)">Dashboard</div>
-    <div class="tab" onclick="showTab('search', this)">بحث عميل</div>
-    <div class="tab" onclick="showTab('visits', this)">زيارات العميل</div>
-    <div class="tab" onclick="showTab('cars', this)">سيارات العميل</div>
-    <div class="tab" onclick="showTab('notify', this)">إرسال إشعار</div>
-    <div class="tab" onclick="showTab('addVisit', this)">إضافة زيارة</div>
-    <div class="tab" onclick="showTab('bookings', this)">الحجوزات</div>
-    <div class="tab" onclick="showTab('ratings', this)">التقييمات</div>
-</div>
+<div class="layout">
 
-<!-- Dashboard -->
-<div id="dashboard" class="section active">
-    <h2>Dashboard</h2>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">AD</div>
+            <div class="brand-text">لوحة المشرف</div>
+        </div>
 
-    <div class="card">
-        <h3>إحصائيات</h3>
-        <p id="stats">جاري التحميل...</p>
-    </div>
+        <div class="nav-section-title">الرئيسية</div>
+        <div class="nav">
+            <button class="nav-btn active" data-target="dashboard">
+                <span>Dashboard</span>
+            </button>
+        </div>
 
-    <div class="chart-box" id="chart">📊 الشارت هنا</div>
-</div>
+        <div class="nav-section-title">العملاء</div>
+        <div class="nav">
+            <button class="nav-btn" data-target="search">
+                <span>بحث عميل</span>
+            </button>
+            <button class="nav-btn" data-target="visits">
+                <span>زيارات العميل</span>
+            </button>
+            <button class="nav-btn" data-target="cars">
+                <span>سيارات العميل</span>
+            </button>
+            <button class="nav-btn" data-target="addVisit">
+                <span>إضافة زيارة</span>
+            </button>
+        </div>
 
-<!-- Search Customer -->
-<div id="search" class="section">
-    <h2>بحث عن عميل</h2>
+        <div class="nav-section-title">التفاعل</div>
+        <div class="nav">
+            <button class="nav-btn" data-target="notify">
+                <span>إرسال إشعار</span>
+            </button>
+            <button class="nav-btn" data-target="bookings">
+                <span>الحجوزات</span>
+            </button>
+            <button class="nav-btn" data-target="ratings">
+                <span>التقييمات</span>
+            </button>
+        </div>
 
-    <input id="searchPhone" placeholder="رقم الجوال أو رقم العضوية">
+        <div class="sidebar-footer">
+            إصدار تجريبي — Hybrid Foam Loyalty
+        </div>
+    </aside>
 
-    <button id="searchBtn" onclick="searchCustomer()">بحث</button>
+    <!-- Main -->
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <div class="topbar-title">لوحة المشرف</div>
+                <div class="topbar-sub">إدارة العملاء، الزيارات، الحجوزات، والتقييمات</div>
+            </div>
+            <div class="topbar-right">
+                <div class="pill" id="todayInfo">اليوم</div>
+            </div>
+        </header>
 
-    <button onclick="startScanner()" style="background:#16a34a;margin-top:10px">
-        مسح الباركود
-    </button>
+        <div class="content">
 
-    <div id="reader" style="width:100%;margin-top:15px;display:none;"></div>
+            <!-- Dashboard -->
+            <section id="dashboard" class="section active">
+                <div class="section-header">
+                    <h2>نظرة عامة</h2>
+                    <small>ملخص الأداء العام</small>
+                </div>
 
-    <div id="searchResult"></div>
-</div>
+                <div class="grid grid-4 grid-3">
+                    <div class="card">
+                        <h3>إجمالي العملاء</h3>
+                        <div class="stat-value" id="statCustomers">...</div>
+                        <div class="stat-label">عدد العملاء المسجلين</div>
+                    </div>
+                    <div class="card">
+                        <h3>إجمالي السيارات</h3>
+                        <div class="stat-value" id="statCars">...</div>
+                        <div class="stat-label">عدد السيارات المسجلة</div>
+                    </div>
+                    <div class="card">
+                        <h3>إجمالي الزيارات</h3>
+                        <div class="stat-value" id="statVisits">...</div>
+                        <div class="stat-label">كل الزيارات المسجلة</div>
+                    </div>
+                    <div class="card">
+                        <h3>إجمالي المبالغ</h3>
+                        <div class="stat-value" id="statAmount">...</div>
+                        <div class="stat-label">إجمالي المبالغ من الزيارات</div>
+                    </div>
+                </div>
 
-<!-- Customer Visits -->
-<div id="visits" class="section">
-    <h2>زيارات العميل</h2>
+                <div class="card" style="margin-top:14px;">
+                    <h3>الشارت</h3>
+                    <div class="chart-box" id="chart">
+                        📊 سيتم إضافة الشارت هنا لاحقًا
+                    </div>
+                </div>
+            </section>
 
-    <input id="visitsPhone" placeholder="رقم الجوال">
-    <button id="visitsBtn" onclick="loadCustomerVisits()">عرض الزيارات</button>
+            <!-- Search Customer -->
+            <section id="search" class="section">
+                <div class="section-header">
+                    <h2>بحث عن عميل</h2>
+                    <small>بحث برقم الجوال أو رقم العضوية</small>
+                </div>
 
-    <div id="visitsList"></div>
-</div>
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3>بيانات البحث</h3>
+                        <input id="searchPhone" placeholder="رقم الجوال أو رقم العضوية">
+                        <div style="display:flex; gap:8px; margin-top:10px;">
+                            <button id="searchBtn" onclick="searchCustomer()">بحث</button>
+                            <button class="btn-success" onclick="startScanner()">مسح الباركود</button>
+                        </div>
+                        <div id="reader" style="display:none;"></div>
+                    </div>
 
-<!-- Customer Cars -->
-<div id="cars" class="section">
-    <h2>سيارات العميل</h2>
+                    <div class="card">
+                        <h3>نتيجة البحث</h3>
+                        <div id="searchResult" class="muted">لا يوجد بيانات بعد</div>
+                    </div>
+                </div>
+            </section>
 
-    <input id="carsPhone" placeholder="رقم الجوال">
-    <button id="carsBtn" onclick="loadCustomerCars()">عرض السيارات</button>
+            <!-- Customer Visits -->
+            <section id="visits" class="section">
+                <div class="section-header">
+                    <h2>زيارات العميل</h2>
+                    <small>عرض سجل زيارات عميل محدد</small>
+                </div>
 
-    <div id="carsList"></div>
-</div>
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3>بحث برقم الجوال</h3>
+                        <input id="visitsPhone" placeholder="رقم الجوال">
+                        <button id="visitsBtn" style="margin-top:10px;" onclick="loadCustomerVisits()">عرض الزيارات</button>
+                    </div>
 
-<!-- Send Notification -->
-<div id="notify" class="section">
-    <h2>إرسال إشعار</h2>
+                    <div class="card">
+                        <h3>سجل الزيارات</h3>
+                        <div id="visitsList" class="list muted">لا يوجد بيانات بعد</div>
+                    </div>
+                </div>
+            </section>
 
-    <input id="notifyPhone" placeholder="رقم الجوال">
-    <textarea id="notifyMsg" placeholder="نص الإشعار"></textarea>
+            <!-- Customer Cars -->
+            <section id="cars" class="section">
+                <div class="section-header">
+                    <h2>سيارات العميل</h2>
+                    <small>عرض السيارات المرتبطة برقم جوال</small>
+                </div>
 
-    <button id="notifyBtn" onclick="sendNotification()">إرسال</button>
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3>بحث برقم الجوال</h3>
+                        <input id="carsPhone" placeholder="رقم الجوال">
+                        <button id="carsBtn" style="margin-top:10px;" onclick="loadCustomerCars()">عرض السيارات</button>
+                    </div>
 
-    <p id="notifyStatus"></p>
-</div>
+                    <div class="card">
+                        <h3>السيارات</h3>
+                        <div id="carsList" class="list muted">لا يوجد بيانات بعد</div>
+                    </div>
+                </div>
+            </section>
 
-<!-- Add Visit -->
-<div id="addVisit" class="section">
-/* ========== Add Visit (Working Version) ========== */
+            <!-- Send Notification -->
+            <section id="notify" class="section">
+                <div class="section-header">
+                    <h2>إرسال إشعار</h2>
+                    <small>إرسال رسالة نصية داخلية (كتقييم)</small>
+                </div>
 
-let visitSelectedMembership = null;
-let visitServices = {};
+                <div class="card">
+                    <h3>بيانات الإشعار</h3>
+                    <input id="notifyPhone" placeholder="رقم الجوال (حاليًا غير مستخدم في الـ API)">
+                    <textarea id="notifyMsg" placeholder="نص الإشعار"></textarea>
+                    <button id="notifyBtn" onclick="sendNotification()">إرسال</button>
+                    <p id="notifyStatus" class="muted" style="margin-top:8px;"></p>
+                </div>
+            </section>
 
-// تحميل الخدمات
-async function loadVisitServices() {
-    const res = await apiGet({ action: "getCommissions" });
+            <!-- Add Visit -->
+            <section id="addVisit" class="section">
+                <div class="section-header">
+                    <h2>إضافة زيارة</h2>
+                    <small>تسجيل زيارة جديدة لعضو</small>
+                </div>
 
-    const select = document.getElementById("vService");
-    select.innerHTML = "";
+                <div class="card">
+                    <h3>بيانات الزيارة</h3>
+                    <input id="vMembership" placeholder="رقم العضوية">
+                    <input id="vService" placeholder="الخدمة">
+                    <input id="vPrice" placeholder="السعر">
+                    <input id="vPoints" placeholder="النقاط">
+                    <button id="addVisitBtn" onclick="addVisit()">إضافة</button>
+                    <p id="addVisitStatus" class="muted" style="margin-top:8px;"></p>
+                </div>
+            </section>
 
-    res.commissions.forEach(s => {
-        visitServices[s.service] = Number(s.price || 0);
+            <!-- Bookings -->
+            <section id="bookings" class="section">
+                <div class="section-header">
+                    <h2>الحجوزات</h2>
+                    <small>إدارة جميع الحجوزات</small>
+                </div>
 
-        const opt = document.createElement("option");
-        opt.value = s.service;
-        opt.textContent = s.service;
-        select.appendChild(opt);
-    });
+                <div class="card">
+                    <h3>قائمة الحجوزات</h3>
+                    <div id="bookingsList" class="list muted">جاري التحميل...</div>
+                </div>
+            </section>
 
-    updateVisitPrice();
-}
+            <!-- Ratings -->
+            <section id="ratings" class="section">
+                <div class="section-header">
+                    <h2>التقييمات / الزيارات حسب التاريخ</h2>
+                    <small>عرض جميع الزيارات المسجلة</small>
+                </div>
 
-// تحديث السعر والنقاط
-function updateVisitPrice() {
-    const service = document.getElementById("vService").value;
-    const price = visitServices[service] || 0;
+                <div class="card">
+                    <h3>الزيارات</h3>
+                    <div id="ratingsList" class="list muted">جاري التحميل...</div>
+                </div>
+            </section>
 
-    document.getElementById("vPrice").value = price;
-    updateVisitPoints();
-}
-
-function updateVisitPoints() {
-    const price = Number(document.getElementById("vPrice").value || 0);
-    document.getElementById("vPoints").value = Math.floor(price / 5);
-}
-
-// البحث عن العميل
-async function searchVisitCustomer() {
-    const query = document.getElementById("visitSearch").value.trim();
-    const btn = document.getElementById("visitSearchBtn");
-
-    if (!query) return alert("أدخل قيمة للبحث");
-
-    btn.classList.add("loading");
-    btn.innerText = "جاري البحث...";
-
-    const res = await apiGet({
-        action: "searchCustomer",
-        query
-    });
-
-    btn.classList.remove("loading");
-    btn.innerText = "بحث";
-
-    if (!res.success || res.cars.length === 0) {
-        alert("لا يوجد نتائج");
-        return;
-    }
-
-    document.getElementById("visitCarsBox").style.display = "block";
-
-    const list = document.getElementById("visitCarsList");
-    list.innerHTML = "";
-
-    res.cars.forEach(car => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.style.cursor = "pointer";
-        div.innerHTML = `
-            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}<br>
-            عضوية: ${car.membership}
-        `;
-        div.onclick = () => selectVisitCar(car.membership);
-        list.appendChild(div);
-    });
-}
-
-// اختيار السيارة
-function selectVisitCar(membership) {
-    visitSelectedMembership = membership;
-    document.getElementById("visitForm").style.display = "block";
-}
-
-// إرسال الزيارة
-async function submitVisit() {
-    if (!visitSelectedMembership) return alert("اختر السيارة أولاً");
-
-    const service = document.getElementById("vService").value;
-    const price = document.getElementById("vPrice").value;
-    const points = document.getElementById("vPoints").value;
-
-    const btn = document.getElementById("addVisitBtn");
-    btn.classList.add("loading");
-    btn.innerText = "جاري التسجيل...";
-
-    const res = await apiPost({
-        action: "addVisit",
-        membership: visitSelectedMembership,
-        service,
-        price,
-        points
-    });
-
-    btn.classList.remove("loading");
-    btn.innerText = "إضافة";
-
-    if (res.success) {
-        document.getElementById("addVisitStatus").innerText = "✔ تم تسجيل الزيارة بنجاح";
-    } else {
-        document.getElementById("addVisitStatus").innerText = "❌ حدث خطأ أثناء التسجيل";
-    }
-}
-
-// تحميل الخدمات عند فتح الصفحة
-loadVisitServices();<!-- Ratings -->
-<div id="ratings" class="section">
-    <h2>التقييمات</h2>
-    <div id="ratingsList">جاري التحميل...</div>
+        </div>
+    </main>
 </div>
 
 <script src="api.js?v=3"></script>
-
 <script>
-function showTab(id, el) {
-    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+/* ========== Navigation ========== */
+const sections = document.querySelectorAll(".section");
+const navButtons = document.querySelectorAll(".nav-btn");
 
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    el.classList.add("active");
-}
+navButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const target = btn.getAttribute("data-target");
+        sections.forEach(s => s.classList.remove("active"));
+        document.getElementById(target).classList.add("active");
+
+        navButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+    });
+});
+
+/* ========== Topbar Date ========== */
+(function setToday() {
+    const el = document.getElementById("todayInfo");
+    const d = new Date();
+    const options = { weekday: "short", year: "numeric", month: "short", day: "numeric" };
+    el.textContent = d.toLocaleDateString("ar-SA", options);
+})();
 
 /* ========== Dashboard ========== */
 async function loadDashboard() {
-    const res = await apiGet({ action: "getOwnersDashboard" });
-
-    document.getElementById("stats").innerHTML = `
-        العملاء: ${res.totals.customers}<br>
-        السيارات: ${res.totals.cars}<br>
-        الزيارات: ${res.totals.visits}<br>
-        المبالغ: ${res.totals.amount}
-    `;
+    try {
+        const res = await apiGet({ action: "getOwnersDashboard" });
+        document.getElementById("statCustomers").textContent = res.totals.customers;
+        document.getElementById("statCars").textContent = res.totals.cars;
+        document.getElementById("statVisits").textContent = res.totals.visits;
+        document.getElementById("statAmount").textContent = res.totals.amount;
+    } catch (e) {
+        document.getElementById("statCustomers").textContent = "-";
+        document.getElementById("statCars").textContent = "-";
+        document.getElementById("statVisits").textContent = "-";
+        document.getElementById("statAmount").textContent = "-";
+    }
 }
 
 /* ========== Barcode Scanner ========== */
@@ -307,167 +671,248 @@ function startScanner() {
     const reader = document.getElementById("reader");
     reader.style.display = "block";
 
-    scanner = new Html5Qrcode("reader");
+    if (scanner) {
+        scanner.stop().catch(() => {});
+    }
 
+    scanner = new Html5Qrcode("reader");
     scanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         (decodedText) => {
             document.getElementById("searchPhone").value = decodedText;
-
-            scanner.stop();
+            scanner.stop().catch(() => {});
             reader.style.display = "none";
-
             searchCustomer();
         }
-    ).catch(err => {
+    ).catch(() => {
         alert("لا يمكن فتح الكاميرا");
+        reader.style.display = "none";
     });
 }
 
 /* ========== Search Customer ========== */
 async function searchCustomer() {
     const btn = document.getElementById("searchBtn");
-    btn.classList.add("loading");
-    btn.innerText = "جاري البحث...";
+    const phone = document.getElementById("searchPhone").value.trim();
 
-    const phone = document.getElementById("searchPhone").value;
-    const res = await apiGet({ action: "getByPhone", phone });
-
-    btn.classList.remove("loading");
-    btn.innerText = "بحث";
-
-    if (!res.success) {
-        document.getElementById("searchResult").innerHTML = "غير موجود";
+    if (!phone) {
+        alert("أدخل رقم الجوال أو العضوية");
         return;
     }
 
-    document.getElementById("searchResult").innerHTML = `
-        <div class="card">
-            الاسم: ${res.customer.name}<br>
-            العضوية: ${res.customer.membership}<br>
-            النقاط: ${res.customer.points}<br>
-            المستوى: ${res.customer.level}
-        </div>
-    `;
+    btn.classList.add("loading");
+    btn.innerText = "جاري البحث...";
+
+    try {
+        const res = await apiGet({ action: "getByPhone", phone });
+
+        btn.classList.remove("loading");
+        btn.innerText = "بحث";
+
+        if (!res.success) {
+            document.getElementById("searchResult").innerHTML = "<span class='muted'>غير موجود</span>";
+            return;
+        }
+
+        document.getElementById("searchResult").innerHTML = `
+            <div class="card" style="background:#020617;border-color:#1f2937;">
+                الاسم: ${res.customer.name}<br>
+                العضوية: ${res.customer.membership}<br>
+                النقاط: ${res.customer.points}<br>
+                المستوى: ${res.customer.level}
+            </div>
+        `;
+    } catch (e) {
+        btn.classList.remove("loading");
+        btn.innerText = "بحث";
+        alert("حدث خطأ أثناء البحث");
+    }
 }
 
 /* ========== Customer Visits ========== */
 async function loadCustomerVisits() {
     const btn = document.getElementById("visitsBtn");
+    const phone = document.getElementById("visitsPhone").value.trim();
+
+    if (!phone) {
+        alert("أدخل رقم الجوال");
+        return;
+    }
+
     btn.classList.add("loading");
     btn.innerText = "جاري التحميل...";
 
-    const phone = document.getElementById("visitsPhone").value;
-    const res = await apiGet({ action: "getVisitsByPhone", phone });
+    try {
+        const res = await apiGet({ action: "getVisitsByPhone", phone });
 
-    btn.classList.remove("loading");
-    btn.innerText = "عرض الزيارات";
+        btn.classList.remove("loading");
+        btn.innerText = "عرض الزيارات";
 
-    let html = "";
-    res.visits.forEach(v => {
-        html += `
-            <div class="card">
+        const list = document.getElementById("visitsList");
+        list.innerHTML = "";
+
+        if (!res.visits || res.visits.length === 0) {
+            list.innerHTML = "<span class='muted'>لا يوجد زيارات</span>";
+            return;
+        }
+
+        res.visits.forEach(v => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
                 ${v.service} - ${v.date}<br>
                 السعر: ${v.price}<br>
                 النقاط: ${v.points}
-            </div>
-        `;
-    });
-
-    document.getElementById("visitsList").innerHTML = html;
+            `;
+            list.appendChild(div);
+        });
+    } catch (e) {
+        btn.classList.remove("loading");
+        btn.innerText = "عرض الزيارات";
+        alert("حدث خطأ أثناء تحميل الزيارات");
+    }
 }
 
 /* ========== Customer Cars ========== */
 async function loadCustomerCars() {
     const btn = document.getElementById("carsBtn");
+    const phone = document.getElementById("carsPhone").value.trim();
+
+    if (!phone) {
+        alert("أدخل رقم الجوال");
+        return;
+    }
+
     btn.classList.add("loading");
     btn.innerText = "جاري التحميل...";
 
-    const phone = document.getElementById("carsPhone").value;
-    const res = await apiGet({ action: "getCarsByPhone", phone });
+    try {
+        const res = await apiGet({ action: "getCarsByPhone", phone });
 
-    btn.classList.remove("loading");
-    btn.innerText = "عرض السيارات";
+        btn.classList.remove("loading");
+        btn.innerText = "عرض السيارات";
 
-    let html = "";
-    res.cars.forEach(c => {
-        html += `
-            <div class="card">
+        const list = document.getElementById("carsList");
+        list.innerHTML = "";
+
+        if (!res.cars || res.cars.length === 0) {
+            list.innerHTML = "<span class='muted'>لا يوجد سيارات</span>";
+            return;
+        }
+
+        res.cars.forEach(c => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
                 ${c.car} - ${c.plate_letters} ${c.plate_numbers}<br>
                 الحجم: ${c.size}<br>
                 المدينة: ${c.city}
-            </div>
-        `;
-    });
-
-    document.getElementById("carsList").innerHTML = html;
+            `;
+            list.appendChild(div);
+        });
+    } catch (e) {
+        btn.classList.remove("loading");
+        btn.innerText = "عرض السيارات";
+        alert("حدث خطأ أثناء تحميل السيارات");
+    }
 }
 
-/* ========== Send Notification ========== */
+/* ========== Send Notification (as rating) ========== */
 async function sendNotification() {
     const btn = document.getElementById("notifyBtn");
+    const msg = document.getElementById("notifyMsg").value.trim();
+
+    if (!msg) {
+        alert("أدخل نص الإشعار");
+        return;
+    }
+
     btn.classList.add("loading");
     btn.innerText = "جاري الإرسال...";
 
-    const phone = document.getElementById("notifyPhone").value;
-    const msg = document.getElementById("notifyMsg").value;
+    try {
+        await apiPost({
+            action: "addRating",
+            membership: "",
+            rating: 0,
+            comment: msg
+        });
 
-    await apiPost({
-        action: "addRating",
-        membership: "",
-        rating: 0,
-        comment: msg
-    });
-
-    btn.classList.remove("loading");
-    btn.innerText = "إرسال";
-
-    document.getElementById("notifyStatus").innerText = "تم الإرسال";
+        btn.classList.remove("loading");
+        btn.innerText = "إرسال";
+        document.getElementById("notifyStatus").innerText = "تم الإرسال (كتقييم داخلي)";
+    } catch (e) {
+        btn.classList.remove("loading");
+        btn.innerText = "إرسال";
+        document.getElementById("notifyStatus").innerText = "حدث خطأ أثناء الإرسال";
+    }
 }
 
 /* ========== Add Visit ========== */
 async function addVisit() {
     const btn = document.getElementById("addVisitBtn");
+    const membership = document.getElementById("vMembership").value.trim();
+    const service = document.getElementById("vService").value.trim();
+    const price = document.getElementById("vPrice").value.trim();
+    const points = document.getElementById("vPoints").value.trim();
+
+    if (!membership || !service || !price || !points) {
+        alert("يرجى تعبئة جميع الحقول");
+        return;
+    }
+
     btn.classList.add("loading");
     btn.innerText = "جاري الإضافة...";
 
-    const membership = document.getElementById("vMembership").value;
-    const service = document.getElementById("vService").value;
-    const price = document.getElementById("vPrice").value;
-    const points = document.getElementById("vPoints").value;
+    try {
+        await apiPost({
+            action: "addVisit",
+            membership,
+            service,
+            price,
+            points
+        });
 
-    await apiPost({
-        action: "addVisit",
-        membership,
-        service,
-        price,
-        points
-    });
-
-    btn.classList.remove("loading");
-    btn.innerText = "إضافة";
-
-    document.getElementById("addVisitStatus").innerText = "تمت الإضافة";
+        btn.classList.remove("loading");
+        btn.innerText = "إضافة";
+        document.getElementById("addVisitStatus").innerText = "تمت الإضافة بنجاح";
+    } catch (e) {
+        btn.classList.remove("loading");
+        btn.innerText = "إضافة";
+        document.getElementById("addVisitStatus").innerText = "حدث خطأ أثناء الإضافة";
+    }
 }
 
 /* ========== Bookings ========== */
 async function loadBookings() {
-    const res = await apiGet({ action: "getAllBookings" });
+    try {
+        const res = await apiGet({ action: "getAllBookings" });
 
-    let html = "";
-    res.bookings.forEach(b => {
-        html += `
-            <div class="card">
+        const list = document.getElementById("bookingsList");
+        list.innerHTML = "";
+
+        if (!res.bookings || res.bookings.length === 0) {
+            list.innerHTML = "<span class='muted'>لا يوجد حجوزات</span>";
+            return;
+        }
+
+        res.bookings.forEach(b => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
                 ${b.service} - ${b.date} ${b.time}<br>
-                الحالة: ${b.status}<br>
-                <button onclick="confirmBooking(${b.row})">تأكيد</button>
-                <button onclick="cancelBooking(${b.row})" style="background:#dc2626">إلغاء</button>
-            </div>
-        `;
-    });
-
-    document.getElementById("bookingsList").innerHTML = html;
+                الحالة: <span class="badge-status ${b.status}">${b.status}</span><br>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="btn-success" onclick="confirmBooking(${b.row})">تأكيد</button>
+                    <button class="btn-danger" onclick="cancelBooking(${b.row})">إلغاء</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    } catch (e) {
+        document.getElementById("bookingsList").innerHTML = "<span class='muted'>خطأ في تحميل الحجوزات</span>";
+    }
 }
 
 async function confirmBooking(row) {
@@ -480,24 +925,34 @@ async function cancelBooking(row) {
     loadBookings();
 }
 
-/* ========== Ratings ========== */
+/* ========== Ratings (Visits by date) ========== */
 async function loadRatings() {
-    const res = await apiGet({ action: "getVisitsByDate", from: "2000-01-01", to: "2100-01-01" });
+    try {
+        const res = await apiGet({ action: "getVisitsByDate", from: "2000-01-01", to: "2100-01-01" });
 
-    let html = "";
-    res.visits.forEach(v => {
-        html += `
-            <div class="card">
+        const list = document.getElementById("ratingsList");
+        list.innerHTML = "";
+
+        if (!res.visits || res.visits.length === 0) {
+            list.innerHTML = "<span class='muted'>لا يوجد زيارات</span>";
+            return;
+        }
+
+        res.visits.forEach(v => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
                 ${v.service} - ${v.date}<br>
                 نقاط: ${v.points}
-            </div>
-        `;
-    });
-
-    document.getElementById("ratingsList").innerHTML = html;
+            `;
+            list.appendChild(div);
+        });
+    } catch (e) {
+        document.getElementById("ratingsList").innerHTML = "<span class='muted'>خطأ في تحميل البيانات</span>";
+    }
 }
 
-/* ========== Load All ========== */
+/* ========== Initial Load ========== */
 loadDashboard();
 loadBookings();
 loadRatings();
