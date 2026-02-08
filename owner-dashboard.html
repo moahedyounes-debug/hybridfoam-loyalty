@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>لوحة المشرف</title>
@@ -260,7 +261,31 @@
     </div>
 
     <h3 style="margin-top: 25px;">تفاصيل إضافية</h3>
+<h3 style="margin-top: 30px;">الرسوم البيانية</h3>
 
+<div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+
+    <div class="card">
+        <h4>الحجوزات حسب الأيام</h4>
+        <canvas id="chartBookings"></canvas>
+    </div>
+
+    <div class="card">
+        <h4>الإيرادات حسب الأيام</h4>
+        <canvas id="chartRevenue"></canvas>
+    </div>
+
+    <div class="card">
+        <h4>أفضل الفروع</h4>
+        <canvas id="chartBranches"></canvas>
+    </div>
+
+    <div class="card">
+        <h4>أنواع السيارات الأكثر استخدامًا</h4>
+        <canvas id="chartCarTypes"></canvas>
+    </div>
+
+</div>
     <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
 
         <div class="card">
@@ -365,21 +390,106 @@ async function loadOwnerReport() {
     document.getElementById("orBestEmployee").textContent = res.best_employee || "-";
     document.getElementById("orBestCarType").textContent = res.best_car_type || "-";
     document.getElementById("orTopPoints").textContent = res.top_points_customer || "-";
-}
 
-function fillBranches(list) {
-    const select = document.getElementById("filterBranch");
-    select.innerHTML = `<option value="">كل الفروع</option>`;
-    list.forEach(b => {
-        select.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+    // ====== الرسوم البيانية ======
+
+    // 1) الحجوزات حسب الأيام
+    if (res.chart_bookings) {
+        renderChart(
+            "chartBookings",
+            res.chart_bookings.labels,
+            res.chart_bookings.data,
+            "الحجوزات",
+            "#2563eb"
+        );
+    }
+
+    // 2) الإيرادات حسب الأيام
+    if (res.chart_revenue) {
+        renderChart(
+            "chartRevenue",
+            res.chart_revenue.labels,
+            res.chart_revenue.data,
+            "الإيرادات",
+            "#16a34a"
+        );
+    }
+
+    // 3) أفضل الفروع
+    if (res.chart_branches) {
+        renderBarChart(
+            "chartBranches",
+            res.chart_branches.labels,
+            res.chart_branches.data,
+            "الفروع",
+            "#f59e0b"
+        );
+    }
+
+    // 4) أنواع السيارات
+    if (res.chart_car_types) {
+        renderBarChart(
+            "chartCarTypes",
+            res.chart_car_types.labels,
+            res.chart_car_types.data,
+            "أنواع السيارات",
+            "#dc2626"
+        );
+    }
+}
+    let chartBookings, chartRevenue, chartBranches, chartCarTypes;
+
+function renderChart(canvasId, labels, data, label, color) {
+    const ctx = document.getElementById(canvasId).getContext("2d");
+
+    if (window[canvasId]) {
+        window[canvasId].destroy();
+    }
+
+    window[canvasId] = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: color,
+                backgroundColor: color + "33",
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
     });
 }
 
-function fillCarTypes(list) {
-    const select = document.getElementById("filterCarType");
-    select.innerHTML = `<option value="">كل أنواع السيارات</option>`;
-    list.forEach(t => {
-        select.innerHTML += `<option value="${t}">${t}</option>`;
+function renderBarChart(canvasId, labels, data, label, color) {
+    const ctx = document.getElementById(canvasId).getContext("2d");
+
+    if (window[canvasId]) {
+        window[canvasId].destroy();
+    }
+
+    window[canvasId] = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                backgroundColor: color + "AA",
+                borderColor: color,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
     });
 }
 </script>
