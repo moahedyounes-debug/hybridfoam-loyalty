@@ -9,142 +9,424 @@
 <script src="api.js?v=3"></script>
 
 <style>
-body {
-    font-family: "Tajawal", sans-serif;
-    background: #f4f6f9;
+/* --------------------------------------------------
+   RESET
+-------------------------------------------------- */
+* {
+    box-sizing: border-box;
     margin: 0;
-    padding: 15px;
+    padding: 0;
+    font-family: "Tajawal", sans-serif;
 }
 
-.card {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+body {
+    background: #000;
+    color: #fff;
+    overflow-x: hidden;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+/* --------------------------------------------------
+   BACKGROUND
+-------------------------------------------------- */
+.bg-logo {
+    position: fixed;
+    inset: 0;
+    background-image: url("logo.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60%;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(212,175,55,0.18), transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* --------------------------------------------------
+   DASHBOARD LAYOUT
+-------------------------------------------------- */
+.dashboard {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 18px;
+}
+
+/* --------------------------------------------------
+   TOPBAR
+-------------------------------------------------- */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(20,20,20,0.8);
+    border: 1px solid rgba(212,175,55,0.3);
+    padding: 12px 18px;
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(212,175,55,0.5);
+    box-shadow: 0 0 20px rgba(212,175,55,0.4);
+}
+
+.topbar-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.topbar-title-main {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.topbar-title-sub {
+    font-size: 12px;
+    color: #bbb;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
     gap: 10px;
 }
 
-.stat {
-    background: #2563eb;
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
+.btn {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
 }
 
-button {
-    width: 100%;
+.btn-danger {
+    background: transparent;
+    border: 1px solid rgba(255,80,80,0.4);
+    color: #ff6b6b;
+}
+
+/* --------------------------------------------------
+   PANELS
+-------------------------------------------------- */
+.panel {
+    background: rgba(20,20,20,0.75);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 18px;
+    padding: 16px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+.panel-header {
+    margin-bottom: 10px;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.panel-sub {
+    font-size: 12px;
+    color: #bbb;
+}
+
+/* --------------------------------------------------
+   CARDS GRID
+-------------------------------------------------- */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap: 12px;
+}
+
+.card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
     padding: 12px;
-    margin-top: 10px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
+}
+
+.card-label {
+    font-size: 12px;
+    color: #bbb;
+}
+
+.card-value {
+    font-size: 26px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+/* --------------------------------------------------
+   CHARTS
+-------------------------------------------------- */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+    gap: 14px;
+}
+
+.chart-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    padding: 10px;
+}
+
+.chart-title {
+    font-size: 13px;
+    color: #bbb;
+    margin-bottom: 6px;
+}
+
+.chart-container {
+    height: 220px;
+}
+
+/* --------------------------------------------------
+   TABLES
+-------------------------------------------------- */
+.table-wrapper {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.table-scroll {
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th {
+    background: rgba(0,0,0,0.6);
+    padding: 8px;
+    position: sticky;
+    top: 0;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 </style>
 </head>
 
 <body>
 
-<h2>لوحة المالك</h2>
+<div class="bg-logo"></div>
+<div class="overlay"></div>
 
-<!-- الإحصائيات -->
-<div class="grid" id="statsGrid"></div>
+<div class="dashboard">
 
-<!-- الشارتات -->
-<div class="card">
-    <h3>الدخل اليومي</h3>
-    <canvas id="dailyChart"></canvas>
-</div>
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="topbar-logo">
+                <img src="logo.png">
+            </div>
+            <div>
+                <div class="topbar-title-main">لوحة المالك</div>
+                <div class="topbar-title-sub">إدارة النظام بالكامل</div>
+            </div>
+        </div>
 
-<div class="card">
-    <h3>الخدمات الأكثر طلبًا</h3>
-    <canvas id="servicesChart"></canvas>
-</div>
+        <div class="topbar-right">
+            <button class="btn btn-danger" onclick="logout()">تسجيل خروج</button>
+        </div>
+    </div>
 
-<div class="card">
-    <h3>أحجام السيارات الأكثر زيارة</h3>
-    <canvas id="sizesChart"></canvas>
-</div>
+    <!-- OVERVIEW -->
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">نظرة عامة</div>
+            <div class="panel-sub">إحصائيات عامة للنظام</div>
+        </div>
 
-<!-- التقارير -->
-<div class="card">
-    <h3>تنزيل التقارير</h3>
-    <button onclick="downloadReport('daily')">تقرير اليوم</button>
-    <button onclick="downloadReport('weekly')">تقرير الأسبوع</button>
-    <button onclick="downloadReport('monthly')">تقرير الشهر</button>
-    <button onclick="downloadReport('yearly')">تقرير السنة</button>
+        <div class="cards-grid" id="statsGrid"></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-grid">
+
+        <div class="chart-card">
+            <div class="chart-title">الدخل اليومي</div>
+            <div class="chart-container">
+                <canvas id="chartRevenue"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">الخدمات الأكثر طلبًا</div>
+            <div class="chart-container">
+                <canvas id="chartServices"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">أحجام السيارات الأكثر زيارة</div>
+            <div class="chart-container">
+                <canvas id="chartSizes"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">الزيارات اليومية</div>
+            <div class="chart-container">
+                <canvas id="chartVisits"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LAST VISITS -->
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">آخر 20 زيارة</div>
+            <div class="panel-sub">أحدث العمليات المسجلة</div>
+        </div>
+
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>العميل</th>
+                            <th>العضوية</th>
+                            <th>الخدمة</th>
+                            <th>السعر</th>
+                            <th>النقاط</th>
+                            <th>التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lastVisitsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
 async function loadDashboard() {
     const res = await apiGet({ action: "getOwnersDashboard" });
-
     const stats = res.totals;
 
     document.getElementById("statsGrid").innerHTML = `
-        <div class="stat">العملاء<br>${stats.customers}</div>
-        <div class="stat">السيارات<br>${stats.cars}</div>
-        <div class="stat">الزيارات<br>${stats.visits}</div>
-        <div class="stat">الدخل<br>${stats.amount} ريال</div>
-        <div class="stat">الجدد هذا الشهر<br>${stats.new_customers_this_month}</div>
-        <div class="stat">العائدين<br>${stats.returning_customers}</div>
-        <div class="stat">الاحتفاظ<br>${stats.retention_rate.toFixed(1)}%</div>
+        <div class="card"><div class="card-label">العملاء</div><div class="card-value">${stats.customers}</div></div>
+        <div class="card"><div class="card-label">السيارات</div><div class="card-value">${stats.cars}</div></div>
+        <div class="card"><div class="card-label">الزيارات</div><div class="card-value">${stats.visits}</div></div>
+        <div class="card"><div class="card-label">الدخل</div><div class="card-value">${stats.amount} ريال</div></div>
+        <div class="card"><div class="card-label">الجدد هذا الشهر</div><div class="card-value">${stats.new_customers_this_month}</div></div>
+        <div class="card"><div class="card-label">العائدين</div><div class="card-value">${stats.returning_customers}</div></div>
+        <div class="card"><div class="card-label">الاحتفاظ</div><div class="card-value">${stats.retention_rate.toFixed(1)}%</div></div>
     `;
 
     loadCharts(res);
+    loadLastVisits();
 }
 
 function loadCharts(data) {
-    // Daily Revenue Chart
-    new Chart(document.getElementById("dailyChart"), {
+    new Chart(document.getElementById("chartRevenue"), {
         type: "line",
         data: {
             labels: data.visits_per_day.map(v => v.date),
             datasets: [{
-                label: "الدخل",
+                label: "ريال",
                 data: data.visits_per_day.map(v => v.count),
-                borderColor: "#2563eb",
-                fill: false
+                borderColor: "#d4af37"
             }]
         }
     });
 
-    // Services Chart
-    new Chart(document.getElementById("servicesChart"), {
+    new Chart(document.getElementById("chartServices"), {
         type: "bar",
         data: {
             labels: data.services_breakdown.map(s => s.service),
             datasets: [{
                 label: "عدد المرات",
                 data: data.services_breakdown.map(s => s.count),
-                backgroundColor: "#16a34a"
+                backgroundColor: "#d4af37"
             }]
         }
     });
 
-    // Car Sizes Chart
-    new Chart(document.getElementById("sizesChart"), {
+    new Chart(document.getElementById("chartSizes"), {
         type: "pie",
         data: {
             labels: data.cars_stats.top_sizes.map(s => s.size),
             datasets: [{
                 data: data.cars_stats.top_sizes.map(s => s.count),
-                backgroundColor: ["#2563eb", "#16a34a", "#dc2626"]
+                backgroundColor: ["#d4af37", "#b8962f", "#8a6f1f"]
+            }]
+        }
+    });
+
+    new Chart(document.getElementById("chartVisits"), {
+        type: "line",
+        data: {
+            labels: data.visits_per_day.map(v => v.date),
+            datasets: [{
+                label: "زيارات",
+                data: data.visits_per_day.map(v => v.count),
+                borderColor: "#d4af37"
             }]
         }
     });
 }
 
-function downloadReport(type) {
-    alert("سيتم إضافة التحميل لاحقًا");
+async function loadLastVisits() {
+    const res = await apiGet({ action: "getVisitsByDate", from: "2000-01-01", to: "2100-01-01" });
+
+    const tbody = document.getElementById("lastVisitsBody");
+    tbody.innerHTML = "";
+
+    res.visits.slice(-20).reverse().forEach(v => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${v.name || "-"}</td>
+            <td>${v.membership}</td>
+            <td>${v.service}</td>
+            <td>${v.price}</td>
+            <td>${v.points}</td>
+            <td>${v.date}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function logout() {
+    localStorage.clear();
+    location.href = "admin-login.html";
 }
 
 loadDashboard();
