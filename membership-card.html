@@ -39,7 +39,6 @@
     }
 
     .membership-box {
-        background: #000;
         color: white;
         padding: 20px;
         border-radius: 14px;
@@ -53,8 +52,9 @@
     }
 
     .level {
-        font-size: 18px;
+        font-size: 20px;
         margin-bottom: 10px;
+        font-weight: bold;
     }
 
     .qr-box {
@@ -83,7 +83,7 @@
 <div class="card">
     <div class="title">بطاقة العضوية</div>
 
-    <div class="membership-box">
+    <div class="membership-box" id="levelBox">
         <div class="membership-id" id="membershipId">...</div>
         <div class="level" id="custLevel">...</div>
 
@@ -125,10 +125,23 @@ async function loadMembership() {
     const c = res.customer;
     const cars = res.cars;
 
-    // عرض البيانات
     document.getElementById("custName").textContent = c.name;
-    document.getElementById("custLevel").textContent = "المستوى: " + c.level;
     document.getElementById("custPoints").textContent = c.points + " نقطة";
+
+    // تحديد لون المستوى
+    const box = document.getElementById("levelBox");
+    let levelText = c.level;
+
+    if (c.level === "Bronze") box.style.background = "#cd7f32";
+    else if (c.level === "Silver") box.style.background = "#c0c0c0";
+    else if (c.level === "Gold") box.style.background = "#d4af37";
+    else if (c.level === "Platinum") box.style.background = "#e5e4e2";
+    else if (c.level === "VIP") {
+        box.style.background = "#000";
+        levelText = "👑 VIP";
+    }
+
+    document.getElementById("custLevel").textContent = levelText;
 
     // السيارة الأساسية
     if (cars.length > 0) {
@@ -137,11 +150,11 @@ async function loadMembership() {
 
         document.getElementById("membershipId").textContent =
             "رقم العضوية: " + cars[0].membership;
-
-        generateQR(cars[0].membership);
     }
 
-    // تاريخ الانضمام (من أول زيارة أو أول تسجيل)
+    // QR يقرأ رقم الجوال
+    generateQR(phone);
+
     document.getElementById("joinDate").textContent = c.join_date || "—";
 }
 
@@ -149,7 +162,7 @@ async function loadMembership() {
 // توليد QR Code
 // -----------------------------
 function generateQR(text) {
-    const qr = new QRious({
+    new QRious({
         element: document.getElementById("qr"),
         value: text,
         size: 150
