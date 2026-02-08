@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>بطاقة العضوية</title>
+
+<style>
+    body {
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .back-btn {
+        background: #000;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-bottom: 20px;
+        cursor: pointer;
+    }
+
+    .card {
+        background: white;
+        padding: 25px;
+        border-radius: 18px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        text-align: center;
+    }
+
+    .title {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .membership-box {
+        background: #000;
+        color: white;
+        padding: 20px;
+        border-radius: 14px;
+        margin-top: 15px;
+    }
+
+    .membership-id {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .level {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .qr-box {
+        margin-top: 20px;
+    }
+
+    .info {
+        margin-top: 20px;
+        text-align: right;
+        font-size: 15px;
+        color: #444;
+    }
+
+    .info div {
+        margin-bottom: 6px;
+    }
+</style>
+
+<script src="api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body>
+
+<div class="back-btn" onclick="goBack()">رجوع</div>
+
+<div class="card">
+    <div class="title">بطاقة العضوية</div>
+
+    <div class="membership-box">
+        <div class="membership-id" id="membershipId">...</div>
+        <div class="level" id="custLevel">...</div>
+
+        <div class="qr-box">
+            <canvas id="qr"></canvas>
+        </div>
+    </div>
+
+    <div class="info">
+        <div><b>الاسم:</b> <span id="custName">...</span></div>
+        <div><b>النقاط:</b> <span id="custPoints">...</span></div>
+        <div><b>السيارة الأساسية:</b> <span id="custCar">...</span></div>
+        <div><b>تاريخ الانضمام:</b> <span id="joinDate">...</span></div>
+    </div>
+</div>
+
+<script>
+let phone = localStorage.getItem("customer_phone");
+
+if (!phone) {
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
+}
+
+// -----------------------------
+// تحميل بيانات العضوية
+// -----------------------------
+async function loadMembership() {
+    const res = await apiGet({
+        action: "getByPhone",
+        phone
+    });
+
+    if (!res.success) {
+        alert("خطأ في تحميل البيانات");
+        return;
+    }
+
+    const c = res.customer;
+    const cars = res.cars;
+
+    // عرض البيانات
+    document.getElementById("custName").textContent = c.name;
+    document.getElementById("custLevel").textContent = "المستوى: " + c.level;
+    document.getElementById("custPoints").textContent = c.points + " نقطة";
+
+    // السيارة الأساسية
+    if (cars.length > 0) {
+        document.getElementById("custCar").textContent =
+            cars[0].car + " — " + cars[0].plate_numbers + " " + cars[0].plate_letters;
+
+        document.getElementById("membershipId").textContent =
+            "رقم العضوية: " + cars[0].membership;
+
+        generateQR(cars[0].membership);
+    }
+
+    // تاريخ الانضمام (من أول زيارة أو أول تسجيل)
+    document.getElementById("joinDate").textContent = c.join_date || "—";
+}
+
+// -----------------------------
+// توليد QR Code
+// -----------------------------
+function generateQR(text) {
+    const qr = new QRious({
+        element: document.getElementById("qr"),
+        value: text,
+        size: 150
+    });
+}
+
+function goBack() {
+    window.location.href = "customer-home.html";
+}
+
+loadMembership();
+</script>
+
+</body>
+</html>
