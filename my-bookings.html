@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>حجوزاتي</title>
+
+<style>
+    body {
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .booking {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .row {
+        margin-bottom: 6px;
+        font-size: 15px;
+    }
+
+    .status {
+        font-weight: bold;
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        margin-top: 6px;
+    }
+
+    .pending { background: #ffcc00; }
+    .approved { background: #4CAF50; color: white; }
+    .cancelled { background: #e74c3c; color: white; }
+
+    .back-btn {
+        background: #000;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-bottom: 20px;
+        cursor: pointer;
+    }
+</style>
+
+<script src="api.js"></script>
+</head>
+<body>
+
+<div class="back-btn" onclick="goBack()">رجوع</div>
+
+<h2>حجوزاتي</h2>
+
+<div id="bookingsList"></div>
+
+<script>
+let phone = localStorage.getItem("customer_phone");
+
+if (!phone) {
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
+}
+
+// -----------------------------
+// تحميل حجوزات العميل
+// -----------------------------
+async function loadBookings() {
+    const res = await apiGet({
+        action: "getBookingsByPhone",
+        phone
+    });
+
+    if (!res.success) {
+        alert("خطأ في تحميل الحجوزات");
+        return;
+    }
+
+    const list = document.getElementById("bookingsList");
+    list.innerHTML = "";
+
+    if (res.bookings.length === 0) {
+        list.innerHTML = "<p style='text-align:center;color:#777;'>لا توجد حجوزات</p>";
+        return;
+    }
+
+    res.bookings.reverse().forEach(b => {
+        const div = document.createElement("div");
+        div.className = "booking";
+
+        div.innerHTML = `
+            <div class="row"><b>الخدمة:</b> ${b.service}</div>
+            <div class="row"><b>التاريخ:</b> ${b.date}</div>
+            <div class="row"><b>الوقت:</b> ${b.time}</div>
+            <div class="status ${b.status.toLowerCase()}">${b.status}</div>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+function goBack() {
+    window.location.href = "customer-home.html";
+}
+
+loadBookings();
+</script>
+
+</body>
+</html>
