@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <title>بطاقة العضوية</title>
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
 <style>
     body {
         font-family: "Tahoma", sans-serif;
@@ -25,6 +34,14 @@
         padding: 25px;
         color: white;
         text-align: center;
+    }
+
+    .logo {
+        width: 85px;
+        height: 85px;
+        object-fit: contain;
+        margin-bottom: 10px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     }
 
     .level-text {
@@ -60,7 +77,9 @@
         border-radius: 12px;
         font-size: 16px;
         cursor: pointer;
-        display: inline-block;
+        display: none;
+        width: 100%;
+        text-align: center;
     }
 </style>
 
@@ -74,6 +93,17 @@
 <div id="cardContainer"></div>
 
 <script>
+let deferredPrompt;
+
+// يظهر زر الإضافة عند توفر الحدث
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    const btn = document.getElementById("addBtn");
+    if (btn) btn.style.display = "block";
+});
+
 async function loadCard() {
     const phone = localStorage.getItem("customer_phone");
 
@@ -111,6 +141,9 @@ async function loadCard() {
     document.getElementById("cardContainer").innerHTML = `
         <div class="card">
             <div class="top" style="background:${color};">
+
+                <img src="logo.png" class="logo">
+
                 <div><b>رقم العضوية:</b> ${car.membership}</div>
                 <div class="level-text">${levelText}</div>
 
@@ -123,9 +156,11 @@ async function loadCard() {
                 <div class="row"><b>الاسم:</b> ${c.name}</div>
                 <div class="row"><b>النقاط:</b> ${c.points} نقطة</div>
                 <div class="row"><b>السيارة الأساسية:</b> ${car.car} — ${car.plate_numbers} ${car.plate_letters}</div>
-                <div class="row"><b>تاريخ الانضمام:</b> ${c.join_date || "—"}</div>
+                <div class="row"><b>آخر زيارة:</b> ${c.last_visit || "—"}</div>
 
-                <div class="add-btn" onclick="addToHome()">📱 أضف للشاشة الرئيسية</div>
+                <div id="addBtn" class="add-btn" onclick="addToHome()">
+                    📱 أضف للشاشة الرئيسية
+                </div>
             </div>
         </div>
     `;
@@ -138,9 +173,13 @@ async function loadCard() {
     });
 }
 
-// زر إضافة للشاشة الرئيسية
 function addToHome() {
-    alert("لإضافة البطاقة للشاشة الرئيسية:\n\n📱 iPhone:\nاضغط مشاركة → Add to Home Screen\n\n🤖 Android:\nمن القائمة → Add to Home Screen");
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt = null;
+    } else {
+        alert("لإضافة البطاقة للشاشة الرئيسية:\n\n📱 iPhone:\nاضغط مشاركة → Add to Home Screen\n\n🤖 Android:\nمن القائمة → Add to Home Screen");
+    }
 }
 
 loadCard();
