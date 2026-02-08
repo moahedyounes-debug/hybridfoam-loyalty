@@ -3,41 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <title>نقاطي</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
     body {
-        font-family: sans-serif;
+        font-family: "Tajawal", sans-serif;
         background: #f5f5f5;
         padding: 20px;
         margin: 0;
-        max-width: 600px;
+        max-width: 700px;
         margin: auto;
     }
 
     .back-btn {
         background: #000;
         color: white;
-        padding: 12px 16px;
+        padding: 12px 18px;
         border-radius: 10px;
         display: inline-block;
         margin-bottom: 20px;
         cursor: pointer;
+        font-size: 16px;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 24px;
     }
 
     .card {
         background: white;
-        padding: 20px;
-        border-radius: 14px;
+        padding: 22px;
+        border-radius: 16px;
         margin-bottom: 20px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     }
 
     .card h3 {
-        margin: 0 0 10px 0;
+        margin: 0 0 12px 0;
+        font-size: 18px;
     }
 
     .points {
-        font-size: 26px;
+        font-size: 32px;
         font-weight: bold;
         color: #000;
         margin-top: 10px;
@@ -46,16 +55,16 @@
     .level {
         font-size: 18px;
         margin-top: 5px;
-        color: #444;
+        font-weight: 600;
     }
 
     .progress-box {
-        margin-top: 15px;
+        margin-top: 18px;
     }
 
     .progress-bar {
         width: 100%;
-        height: 12px;
+        height: 14px;
         background: #ddd;
         border-radius: 10px;
         overflow: hidden;
@@ -65,19 +74,26 @@
         height: 100%;
         background: #000;
         width: 0%;
+        transition: width 0.6s ease;
     }
 
     .history-item {
         background: #fafafa;
-        padding: 12px;
-        border-radius: 10px;
-        margin-bottom: 10px;
+        padding: 14px;
+        border-radius: 12px;
+        margin-bottom: 12px;
         border: 1px solid #eee;
+        font-size: 15px;
     }
 
     .row {
-        font-size: 15px;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
+    }
+
+    @media (max-width: 480px) {
+        .points { font-size: 28px; }
+        .card { padding: 18px; }
+        h2 { font-size: 22px; }
     }
 </style>
 
@@ -87,7 +103,7 @@
 
 <div class="back-btn" onclick="goBack()">رجوع</div>
 
-<h2 style="text-align:center;">نقاطي</h2>
+<h2>نقاطي</h2>
 
 <div class="card">
     <h3>إجمالي النقاط</h3>
@@ -115,14 +131,8 @@ if (!phone) {
     window.location.href = "login.html";
 }
 
-// -----------------------------
-// تحميل بيانات العميل
-// -----------------------------
 async function loadLoyalty() {
-    const res = await apiGet({
-        action: "getByPhone",
-        phone
-    });
+    const res = await apiGet({ action: "getByPhone", phone });
 
     if (!res.success) {
         alert("خطأ في تحميل البيانات");
@@ -131,18 +141,25 @@ async function loadLoyalty() {
 
     const c = res.customer;
 
-    // عرض النقاط والمستوى
     document.getElementById("custPoints").textContent = c.points + " نقطة";
-    document.getElementById("custLevel").textContent = "المستوى: " + c.level;
 
-    // حساب التقدم للمستوى التالي
+    let levelColor = "#000";
+    if (c.level === "Bronze") levelColor = "#cd7f32";
+    if (c.level === "Silver") levelColor = "#c0c0c0";
+    if (c.level === "Gold") levelColor = "#d4af37";
+    if (c.level === "Platinum") levelColor = "#e5e4e2";
+
+    const levelEl = document.getElementById("custLevel");
+    levelEl.textContent = "المستوى: " + c.level;
+    levelEl.style.color = levelColor;
+
     let current = Number(c.points);
     let nextLevel = 0;
 
     if (c.level === "Bronze") nextLevel = 200;
     else if (c.level === "Silver") nextLevel = 500;
     else if (c.level === "Gold") nextLevel = 1000;
-    else nextLevel = current; // Platinum
+    else nextLevel = current;
 
     let percent = Math.min((current / nextLevel) * 100, 100);
 
@@ -154,14 +171,8 @@ async function loadLoyalty() {
     loadHistory();
 }
 
-// -----------------------------
-// تحميل سجل النقاط
-// -----------------------------
 async function loadHistory() {
-    const res = await apiGet({
-        action: "getVisitsByPhone",
-        phone
-    });
+    const res = await apiGet({ action: "getVisitsByPhone", phone });
 
     const list = document.getElementById("historyList");
     list.innerHTML = "";
