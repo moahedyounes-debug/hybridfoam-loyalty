@@ -2,196 +2,130 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل زيارة جديدة</title>
-
+<title>تسجيل زيارة</title>
 <style>
-    body {
-        background: #000;
-        color: #d4af37;
-        font-family: "Tajawal", sans-serif;
-        text-align: center;
-        padding: 25px;
-    }
-
-    .box {
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(212,175,55,0.25);
-        backdrop-filter: blur(14px);
-        padding: 20px;
-        border-radius: 18px;
-        max-width: 420px;
-        margin: auto;
-        text-align: right;
-    }
-
-    select, input {
-        width: 100%;
-        padding: 12px;
-        border-radius: 10px;
-        border: 1px solid #d4af37;
-        background: #000;
-        color: #fff;
-        font-size: 16px;
-        margin-bottom: 12px;
-        text-align: center;
-    }
-
-    button {
-        width: 100%;
-        padding: 14px;
-        background: linear-gradient(45deg, #d4af37, #b8962f);
-        color: #000;
-        border: none;
-        border-radius: 10px;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        margin-top: 10px;
-        transition: 0.25s ease;
-    }
-
-    #msg {
-        margin-top: 15px;
-        font-size: 16px;
-        text-align: center;
-    }
+    body { font-family: sans-serif; padding: 20px; background:#f5f5f5; }
+    .box { background:white; padding:20px; border-radius:10px; margin-bottom:20px; }
+    label { display:block; margin-top:10px; }
+    select, input { width:100%; padding:10px; margin-top:5px; }
+    button { width:100%; padding:12px; background:#000; color:white; border:none; margin-top:20px; border-radius:8px; }
+    .car-item { padding:10px; border:1px solid #ccc; border-radius:8px; margin-top:10px; cursor:pointer; }
+    .car-item.selected { border-color:#000; background:#eee; }
 </style>
+<script src="api.js"></script>
 </head>
-
 <body>
 
-<h2>تسجيل زيارة جديدة</h2>
+<h2>تسجيل زيارة للعميل</h2>
 
 <div class="box">
-
-    <label>الخدمة</label>
-    <select id="service" onchange="updateFields()">
-        <option value="">اختر الخدمة</option>
-    </select>
-
-    <label>السعر</label>
-    <input type="text" id="price" readonly>
-
-    <label>النقاط المكتسبة</label>
-    <input type="text" id="points" readonly>
-
-    <label>اسم الموظف (اختياري)</label>
-    <input type="text" id="employee">
-
-    <label>الفرع (اختياري)</label>
-    <input type="text" id="branch">
-
-    <button onclick="saveVisit()">تسجيل الزيارة</button>
+    <label>رقم الجوال</label>
+    <input type="text" id="phone" placeholder="05xxxxxxxx">
+    <button onclick="searchCustomer()">بحث</button>
 </div>
 
-<div id="msg"></div>
+<div id="carsBox" class="box" style="display:none;">
+    <h3>اختر السيارة</h3>
+    <div id="carsList"></div>
+</div>
 
-<script src="api.js"></script>
+<div id="visitBox" class="box" style="display:none;">
+    <h3>تفاصيل الزيارة</h3>
+
+    <label>الخدمة</label>
+    <input type="text" id="service">
+
+    <label>السعر</label>
+    <input type="number" id="price">
+
+    <label>النقاط</label>
+    <input type="number" id="points">
+
+    <label>اسم الموظف</label>
+    <input type="text" id="employee">
+
+    <label>الفرع</label>
+    <input type="text" id="branch">
+
+    <button onclick="submitVisit()">تسجيل الزيارة</button>
+</div>
 
 <script>
-/* الخدمات */
-const services = [
-    {name:"خارجي صغير", price:15},
-    {name:"خارجي وداخلي صغير", price:25},
-    {name:"خارجي وسط", price:20},
-    {name:"خارجي وداخلي وسط", price:30},
-    {name:"خارجي كبير", price:25},
-    {name:"خارجي وداخلي كبير", price:35},
-    {name:"دباب صغير", price:10},
-    {name:"دباب كبير", price:15},
-    {name:"جزئي صغير", price:15},
-    {name:"خارجي وداخلي كبير جدا", price:40},
-    {name:"خارجي ماء فقط صغير", price:10},
-    {name:"خدمة اضافية", price:5},
-    {name:"تلميع كفرات", price:5},
-    {name:"دبل واكس", price:10},
-    {name:"تغليف الدعاسات صغير", price:15},
-    {name:"تغليف الدعاسات كبير", price:20},
-    {name:"تنظيف بقع", price:10},
-    {name:"تنظيف بقع عميقة", price:20},
-    {name:"تكييس مقاعد", price:20},
-    {name:"غسيل مكينة", price:15},
-    {name:"تلميع جنوط", price:8},
-    {name:"تلميع كفرات الجودة", price:5},
-    {name:"مناشف مايكرو فايبر", price:14},
-    {name:"خاص", price:10},
-    {name:"اسفنج", price:5},
-    {name:"بخاخ", price:5},
-    {name:"استكرات", price:5},
-    {name:"معطرات", price:25},
-    {name:"تلبيس طارة", price:10},
-    {name:"فواحة اكس", price:5},
-    {name:"فواحة السفينة - علم امريكا", price:7},
-    {name:"فواحة علبة - صحن", price:20},
-    {name:"فواحة الرحال", price:15},
-    {name:"ملمع الجودة العالية - كبير", price:25},
-    {name:"ملمع الجودة العالية - صغير", price:15},
-    {name:"شال", price:35},
-    {name:"تنظيف بقع خارجية", price:15},
-    {name:"استكرالتاج", price:5},
-    {name:"بخاخ كبير", price:10},
-    {name:"تغليف دعاسه 2", price:8},
-    {name:"بخاخ تلميع", price:10},
-    {name:"فواحه", price:10},
-    {name:"بقع زفت", price:20},
-    {name:"فواحة فواكه", price:15},
-    {name:"سحب موية", price:20}
-];
+let selectedMembership = null;
 
-const serviceSelect = document.getElementById("service");
-services.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.name;
-    opt.textContent = s.name;
-    serviceSelect.appendChild(opt);
-});
+// -----------------------------
+// البحث عن سيارات العميل
+// -----------------------------
+async function searchCustomer() {
+    const phone = document.getElementById("phone").value.trim();
+    if (!phone) return alert("أدخل رقم الجوال");
 
-/* تحديث السعر والنقاط */
-function updateFields() {
-    const selected = services.find(s => s.name === serviceSelect.value);
-    if (!selected) return;
+    const res = await apiGet({
+        action: "getCarsByPhone",
+        phone
+    });
 
-    document.getElementById("price").value = selected.price;
-    document.getElementById("points").value = Math.floor(selected.price / 10);
+    if (!res.success || res.cars.length === 0) {
+        alert("لا يوجد سيارات لهذا العميل");
+        return;
+    }
+
+    document.getElementById("carsBox").style.display = "block";
+
+    const list = document.getElementById("carsList");
+    list.innerHTML = "";
+
+    res.cars.forEach(car => {
+        const div = document.createElement("div");
+        div.className = "car-item";
+        div.innerHTML = `
+            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}
+            <br>عضوية: ${car.membership}
+        `;
+        div.onclick = () => selectCar(div, car.membership);
+        list.appendChild(div);
+    });
 }
 
-/* حفظ الزيارة */
-async function saveVisit() {
-    const membership = sessionStorage.getItem("membership");
-    const service = serviceSelect.value;
-    const price = document.getElementById("price").value;
-    const points = document.getElementById("points").value;
+// -----------------------------
+// اختيار السيارة (العضوية)
+// -----------------------------
+function selectCar(element, membership) {
+    selectedMembership = membership;
+
+    document.querySelectorAll(".car-item").forEach(el => el.classList.remove("selected"));
+    element.classList.add("selected");
+
+    document.getElementById("visitBox").style.display = "block";
+}
+
+// -----------------------------
+// إرسال الزيارة
+// -----------------------------
+async function submitVisit() {
+    if (!selectedMembership) return alert("اختر السيارة أولاً");
+
+    const service  = document.getElementById("service").value;
+    const price    = document.getElementById("price").value;
+    const points   = document.getElementById("points").value;
     const employee = document.getElementById("employee").value;
-    const branch = document.getElementById("branch").value;
-    const msg = document.getElementById("msg");
-
-    if (!membership) {
-        msg.innerHTML = "<span style='color:red'>❌ لا توجد عضوية</span>";
-        return;
-    }
-
-    if (!service) {
-        msg.innerHTML = "<span style='color:red'>❌ اختر الخدمة</span>";
-        return;
-    }
-
-    msg.innerHTML = "<span style='color:#d4af37'>⏳ جاري تسجيل الزيارة...</span>";
+    const branch   = document.getElementById("branch").value;
 
     const res = await apiPost({
         action: "addVisit",
-        membership: membership,
-        service: service,
-        price: price,
-        points: points,
-        employee: employee,
-        branch: branch
+        membership: selectedMembership,
+        service,
+        price,
+        points,
+        employee,
+        branch
     });
 
     if (res.success) {
-        msg.innerHTML = "<span style='color:#0f0'>✔ تم تسجيل الزيارة بنجاح</span>";
+        alert("تم تسجيل الزيارة بنجاح");
+        location.reload();
     } else {
-        msg.innerHTML = "<span style='color:red'>⚠️ فشل تسجيل الزيارة</span>";
+        alert("خطأ في التسجيل");
     }
 }
 </script>
