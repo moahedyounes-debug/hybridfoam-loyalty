@@ -7,8 +7,9 @@
 <style>
     body {
         font-family: sans-serif;
-        padding: 20px;
         background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
         max-width: 600px;
         margin: auto;
     }
@@ -21,37 +22,36 @@
     .notif {
         background: white;
         padding: 15px;
-        border-radius: 10px;
+        border-radius: 12px;
         margin-bottom: 12px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .notif.unread {
         border-right: 6px solid #000;
-        background: #f0f0f0;
     }
 
-    .notif:hover {
-        background: #e9e9e9;
+    .notif.read {
+        opacity: 0.6;
+        border-right: 6px solid #999;
     }
 
     .msg {
         font-size: 16px;
-        margin-bottom: 5px;
+        margin-bottom: 6px;
     }
 
-    .date {
+    .time {
         font-size: 13px;
         color: #666;
     }
 
-    #loading {
-        text-align: center;
-        padding: 20px;
-        font-size: 16px;
-        color: #555;
+    .back-btn {
+        background: #000;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-bottom: 20px;
+        cursor: pointer;
     }
 </style>
 
@@ -59,17 +59,18 @@
 </head>
 <body>
 
+<div class="back-btn" onclick="goBack()">رجوع</div>
+
 <h2>الإشعارات</h2>
 
-<div id="loading">جاري تحميل الإشعارات...</div>
-<div id="list"></div>
+<div id="notifList"></div>
 
 <script>
-const phone = localStorage.getItem("customer_phone"); 
-// ⚠️ مهم: لازم نخزن رقم الجوال في localStorage عند تسجيل الدخول
+let phone = localStorage.getItem("customer_phone");
 
 if (!phone) {
-    document.getElementById("loading").innerHTML = "لا يوجد رقم جوال — يرجى تسجيل الدخول";
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
 }
 
 // -----------------------------
@@ -81,31 +82,28 @@ async function loadNotifications() {
         phone
     });
 
-    const loading = document.getElementById("loading");
-    const list = document.getElementById("list");
+    if (!res.success) {
+        alert("خطأ في تحميل الإشعارات");
+        return;
+    }
 
-    loading.style.display = "none";
+    const list = document.getElementById("notifList");
+    list.innerHTML = "";
 
-    if (!res.success || res.notifications.length === 0) {
+    if (res.notifications.length === 0) {
         list.innerHTML = "<p style='text-align:center;color:#777;'>لا توجد إشعارات</p>";
         return;
     }
 
-    list.innerHTML = "";
-
-    res.notifications.forEach(n => {
+    res.notifications.reverse().forEach(n => {
         const div = document.createElement("div");
-        div.className = "notif " + (n.read == 0 ? "unread" : "");
-
-        const date = new Date(n.created_at);
-        const formatted = date.toLocaleString("ar-SA");
+        div.className = "notif" + (n.read == 1 ? " read" : "");
+        div.onclick = () => markRead(n.row, div);
 
         div.innerHTML = `
             <div class="msg">${n.message}</div>
-            <div class="date">${formatted}</div>
+            <div class="time">${formatDate(n.created_at)}</div>
         `;
-
-        div.onclick = () => markAsRead(n.row, div);
 
         list.appendChild(div);
     });
@@ -114,15 +112,31 @@ async function loadNotifications() {
 // -----------------------------
 // تعليم الإشعار كمقروء
 // -----------------------------
-async function markAsRead(row, element) {
-    element.classList.remove("unread");
+async function markRead(row, element) {
+    if (element.classList.contains("read")) return;
 
     await apiGet({
         action: "markNotificationRead",
         row
     });
+
+    element.classList.add("read");
 }
 
+// -----------------------------
+// تنسيق التاريخ
+// -----------------------------
+function formatDate(d) {
+    const date = new Date(d);
+    return date.toLocaleString("ar-SA");
+}
+
+// -----------------------------
+function goBack() {
+    window.location.href = "customer-home.html";
+}
+
+// تحميل الإشعارات عند فتح الصفحة
 loadNotifications();
 </script>
 
