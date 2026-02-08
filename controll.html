@@ -5,6 +5,7 @@
 <title>لوحة المشرف</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- مكتبة الباركود -->
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
@@ -74,18 +75,6 @@ button.loading {
     border-radius: 12px;
     margin-bottom: 15px;
 }
-
-.car-btn {
-    padding: 12px;
-    background: #f3f3f3;
-    border-radius: 10px;
-    margin-top: 8px;
-    cursor: pointer;
-    border: 1px solid #ddd;
-}
-.car-btn:hover {
-    background: #e5e5e5;
-}
 </style>
 </head>
 
@@ -106,20 +95,27 @@ button.loading {
 <!-- Dashboard -->
 <div id="dashboard" class="section active">
     <h2>Dashboard</h2>
+
     <div class="card">
         <h3>إحصائيات</h3>
         <p id="stats">جاري التحميل...</p>
     </div>
+
     <div class="chart-box" id="chart">📊 الشارت هنا</div>
 </div>
 
 <!-- Search Customer -->
 <div id="search" class="section">
     <h2>بحث عن عميل</h2>
+
     <input id="searchPhone" placeholder="رقم الجوال أو رقم العضوية">
+
     <button id="searchBtn" onclick="searchCustomer()">بحث</button>
 
-    <button onclick="startScanner()" style="background:#16a34a;margin-top:10px">مسح الباركود</button>
+    <button onclick="startScanner()" style="background:#16a34a;margin-top:10px">
+        مسح الباركود
+    </button>
+
     <div id="reader" style="width:100%;margin-top:15px;display:none;"></div>
 
     <div id="searchResult"></div>
@@ -128,29 +124,36 @@ button.loading {
 <!-- Customer Visits -->
 <div id="visits" class="section">
     <h2>زيارات العميل</h2>
+
     <input id="visitsPhone" placeholder="رقم الجوال">
     <button id="visitsBtn" onclick="loadCustomerVisits()">عرض الزيارات</button>
+
     <div id="visitsList"></div>
 </div>
 
 <!-- Customer Cars -->
 <div id="cars" class="section">
     <h2>سيارات العميل</h2>
+
     <input id="carsPhone" placeholder="رقم الجوال">
     <button id="carsBtn" onclick="loadCustomerCars()">عرض السيارات</button>
+
     <div id="carsList"></div>
 </div>
 
 <!-- Send Notification -->
 <div id="notify" class="section">
     <h2>إرسال إشعار</h2>
+
     <input id="notifyPhone" placeholder="رقم الجوال">
     <textarea id="notifyMsg" placeholder="نص الإشعار"></textarea>
+
     <button id="notifyBtn" onclick="sendNotification()">إرسال</button>
+
     <p id="notifyStatus"></p>
 </div>
 
-<!-- Add Visit (NEW VERSION) -->
+<!-- Add Visit -->
 <div id="addVisit" class="section">
     <h2>إضافة زيارة</h2>
 
@@ -189,13 +192,6 @@ button.loading {
         <p id="addVisitStatus"></p>
     </div>
 </div>
-
-<!-- Bookings -->
-<div id="bookings" class="section">
-    <h2>الحجوزات</h2>
-    <div id="bookingsList">جاري التحميل...</div>
-</div>
-
 <!-- Ratings -->
 <div id="ratings" class="section">
     <h2>التقييمات</h2>
@@ -216,6 +212,7 @@ function showTab(id, el) {
 /* ========== Dashboard ========== */
 async function loadDashboard() {
     const res = await apiGet({ action: "getOwnersDashboard" });
+
     document.getElementById("stats").innerHTML = `
         العملاء: ${res.totals.customers}<br>
         السيارات: ${res.totals.cars}<br>
@@ -232,16 +229,21 @@ function startScanner() {
     reader.style.display = "block";
 
     scanner = new Html5Qrcode("reader");
+
     scanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         (decodedText) => {
             document.getElementById("searchPhone").value = decodedText;
+
             scanner.stop();
             reader.style.display = "none";
+
             searchCustomer();
         }
-    ).catch(() => alert("لا يمكن فتح الكاميرا"));
+    ).catch(err => {
+        alert("لا يمكن فتح الكاميرا");
+    });
 }
 
 /* ========== Search Customer ========== */
@@ -329,6 +331,7 @@ async function sendNotification() {
     btn.classList.add("loading");
     btn.innerText = "جاري الإرسال...";
 
+    const phone = document.getElementById("notifyPhone").value;
     const msg = document.getElementById("notifyMsg").value;
 
     await apiPost({
@@ -340,24 +343,86 @@ async function sendNotification() {
 
     btn.classList.remove("loading");
     btn.innerText = "إرسال";
+
     document.getElementById("notifyStatus").innerText = "تم الإرسال";
 }
 
-/* ============================================================
-   NEW ADD VISIT SYSTEM
-============================================================ */
+/* ========== Add Visit ========== */
+async function addVisit() {
+    const btn = document.getElementById("addVisitBtn");
+    btn.classList.add("loading");
+    btn.innerText = "جاري الإضافة...";
 
-let visitSelectedMembership = null;
-let visitServices = {};
+    const membership = document.getElementById("vMembership").value;
+    const service = document.getElementById("vService").value;
+    const price = document.getElementById("vPrice").value;
+    const points = document.getElementById("vPoints").value;
 
-// تحميل الخدمات
-async function loadVisitServices() {
-    const res = await apiGet({ action: "getCommissions" });
+    await apiPost({
+        action: "addVisit",
+        membership,
+        service,
+        price,
+        points
+    });
 
-    const select = document.getElementById("vService");
-    select.innerHTML = "";
+    btn.classList.remove("loading");
+    btn.innerText = "إضافة";
 
-    res.commissions.forEach(s => {
-        visitServices[s.service] = Number(s.price || 0);
+    document.getElementById("addVisitStatus").innerText = "تمت الإضافة";
+}
 
-        const opt = document
+/* ========== Bookings ========== */
+async function loadBookings() {
+    const res = await apiGet({ action: "getAllBookings" });
+
+    let html = "";
+    res.bookings.forEach(b => {
+        html += `
+            <div class="card">
+                ${b.service} - ${b.date} ${b.time}<br>
+                الحالة: ${b.status}<br>
+                <button onclick="confirmBooking(${b.row})">تأكيد</button>
+                <button onclick="cancelBooking(${b.row})" style="background:#dc2626">إلغاء</button>
+            </div>
+        `;
+    });
+
+    document.getElementById("bookingsList").innerHTML = html;
+}
+
+async function confirmBooking(row) {
+    await apiPost({ action: "updateBookingStatus", row, status: "Approved" });
+    loadBookings();
+}
+
+async function cancelBooking(row) {
+    await apiPost({ action: "updateBookingStatus", row, status: "Cancelled" });
+    loadBookings();
+}
+
+/* ========== Ratings ========== */
+async function loadRatings() {
+    const res = await apiGet({ action: "getVisitsByDate", from: "2000-01-01", to: "2100-01-01" });
+
+    let html = "";
+    res.visits.forEach(v => {
+        html += `
+            <div class="card">
+                ${v.service} - ${v.date}<br>
+                نقاط: ${v.points}
+            </div>
+        `;
+    });
+
+    document.getElementById("ratingsList").innerHTML = html;
+}
+
+/* ========== Load All ========== */
+loadDashboard();
+loadBookings();
+loadRatings();
+</script>
+
+</body>
+</html>
