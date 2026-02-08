@@ -13,7 +13,6 @@
         display: flex;
     }
 
-    /* Sidebar */
     #sidebar {
         width: 260px;
         background: #1f2937;
@@ -51,7 +50,6 @@
         background: #2563eb;
     }
 
-    /* Content Area */
     #content {
         margin-right: 260px;
         padding: 25px;
@@ -112,38 +110,33 @@
 
 <body>
 
-<!-- Sidebar -->
 <div id="sidebar">
     <h2>الإدارة</h2>
 
-    <div class="menu-item active" onclick="showSection('dashboard')">لوحة التحكم</div>
-    <div class="menu-item" onclick="showSection('customers')">العملاء</div>
-    <div class="menu-item" onclick="showSection('cars')">السيارات</div>
-    <div class="menu-item" onclick="showSection('employees')">الموظفين</div>
-    <div class="menu-item" onclick="showSection('bookings')">الحجوزات</div>
-    <div class="menu-item" onclick="showSection('services')">الخدمات</div>
-    <div class="menu-item" onclick="showSection('prices')">الأسعار</div>
-    <div class="menu-item" onclick="showSection('branches')">الفروع</div>
-    <div class="menu-item" onclick="showSection('points')">النقاط</div>
-    <div class="menu-item" onclick="showSection('subscriptions')">الاشتراكات</div>
-    <div class="menu-item" onclick="showSection('notifications')">الإشعارات</div>
-    <div class="menu-item" onclick="showSection('reports')">التقارير</div>
+    <div class="menu-item active" onclick="showSection('dashboard', this)">لوحة التحكم</div>
+    <div class="menu-item" onclick="showSection('customers', this)">العملاء</div>
+    <div class="menu-item" onclick="showSection('cars', this)">السيارات</div>
+    <div class="menu-item" onclick="showSection('employees', this)">الموظفين</div>
+    <div class="menu-item" onclick="showSection('bookings', this)">الحجوزات</div>
+    <div class="menu-item" onclick="showSection('services', this)">الخدمات</div>
+    <div class="menu-item" onclick="showSection('prices', this)">الأسعار</div>
+    <div class="menu-item" onclick="showSection('branches', this)">الفروع</div>
+    <div class="menu-item" onclick="showSection('points', this)">النقاط</div>
+    <div class="menu-item" onclick="showSection('subscriptions', this)">الاشتراكات</div>
+    <div class="menu-item" onclick="showSection('notifications', this)">الإشعارات</div>
+    <div class="menu-item" onclick="showSection('reports', this)">التقارير</div>
     <div class="menu-item" onclick="goOwner()">لوحة المالك</div>
 </div>
 
-<!-- Collapse Button -->
 <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
 
-<!-- Content Area -->
 <div id="content">
 
-    <!-- Dashboard -->
     <div id="dashboard" class="section active">
         <h2>لوحة التحكم</h2>
         <p>مرحبًا بك في لوحة إدارة النظام.</p>
     </div>
 
-    <!-- Customers -->
     <div id="customers" class="section">
         <h2>إدارة العملاء</h2>
         <table id="customersTable">
@@ -151,7 +144,6 @@
         </table>
     </div>
 
-    <!-- Cars -->
     <div id="cars" class="section">
         <h2>إدارة السيارات</h2>
         <table id="carsTable">
@@ -159,7 +151,6 @@
         </table>
     </div>
 
-    <!-- Employees -->
     <div id="employees" class="section">
         <h2>إدارة الموظفين</h2>
         <table id="employeesTable">
@@ -167,7 +158,6 @@
         </table>
     </div>
 
-    <!-- Bookings -->
     <div id="bookings" class="section">
         <h2>إدارة الحجوزات</h2>
         <table id="bookingsTable">
@@ -175,64 +165,21 @@
         </table>
     </div>
 
-    <!-- Services -->
-    <div id="services" class="section">
-        <h2>إدارة الخدمات</h2>
-        <p>إضافة – تعديل – حذف الخدمات.</p>
-    </div>
-
-    <!-- Prices -->
-    <div id="prices" class="section">
-        <h2>إدارة الأسعار</h2>
-        <p>تعديل أسعار الخدمات حسب الحجم.</p>
-    </div>
-
-    <!-- Branches -->
-    <div id="branches" class="section">
-        <h2>إدارة الفروع</h2>
-        <p>إضافة – تعديل – حذف الفروع.</p>
-    </div>
-
-    <!-- Points -->
-    <div id="points" class="section">
-        <h2>إدارة النقاط</h2>
-        <p>إدارة نظام النقاط والمكافآت.</p>
-    </div>
-
-    <!-- Subscriptions -->
-    <div id="subscriptions" class="section">
-        <h2>إدارة الاشتراكات</h2>
-        <p>إدارة الباقات والاشتراكات.</p>
-    </div>
-
-    <!-- Notifications -->
-    <div id="notifications" class="section">
-        <h2>إدارة الإشعارات</h2>
-        <p>إرسال إشعارات للعملاء.</p>
-    </div>
-
-    <!-- Reports -->
-    <div id="reports" class="section">
-        <h2>التقارير</h2>
-        <p>تقارير يومية – شهرية – سنوية.</p>
-    </div>
-
 </div>
 
 <script src="api.js?v=3"></script>
-
 
 <script>
 function toggleSidebar() {
     document.getElementById("sidebar").classList.toggle("collapsed");
 }
 
-function showSection(id) {
+function showSection(id, el) {
     document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
 
     document.querySelectorAll(".menu-item").forEach(m => m.classList.remove("active"));
-    event.target.classList.add("active");
+    el.classList.add("active");
 
     if (id === "customers") loadCustomers();
     if (id === "cars") loadCars();
@@ -321,7 +268,7 @@ async function loadBookings() {
 }
 
 function goOwner() {
-    window.location.href = "Owner Dashboard/index.html";
+    window.location.href = "owner-dashboard.html";
 }
 </script>
 
