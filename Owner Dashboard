@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>لوحة المالك</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    body {
+        background: #f4f7fb;
+        font-family: "Tajawal", sans-serif;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #1a3d7c;
+    }
+
+    .kpi-box {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        text-align: center;
+        flex: 1;
+        margin: 10px;
+    }
+
+    .kpi-title {
+        font-size: 16px;
+        color: #555;
+    }
+
+    .kpi-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a3d7c;
+        margin-top: 8px;
+    }
+
+    .kpi-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .chart-box {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    button {
+        padding: 12px 18px;
+        background: #1a3d7c;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #0f2a55;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="api.js"></script>
+
+</head>
+
+<body>
+
+<h1>لوحة المالك</h1>
+
+<!-- KPIs -->
+<div class="kpi-row">
+    <div class="kpi-box">
+        <div class="kpi-title">إجمالي الزيارات</div>
+        <div class="kpi-value" id="totalVisits">0</div>
+    </div>
+
+    <div class="kpi-box">
+        <div class="kpi-title">إجمالي المبيعات</div>
+        <div class="kpi-value" id="totalSales">0 ريال</div>
+    </div>
+
+    <div class="kpi-box">
+        <div class="kpi-title">العملاء الجدد</div>
+        <div class="kpi-value" id="newCustomers">0</div>
+    </div>
+
+    <div class="kpi-box">
+        <div class="kpi-title">الاشتراكات</div>
+        <div class="kpi-value" id="subscriptions">0</div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="chart-box">
+    <h3>الزيارات خلال آخر 7 أيام</h3>
+    <canvas id="visitsChart"></canvas>
+</div>
+
+<div class="chart-box">
+    <h3>المبيعات الشهرية</h3>
+    <canvas id="salesChart"></canvas>
+</div>
+
+<div class="chart-box">
+    <h3>أفضل الموظفين</h3>
+    <canvas id="employeesChart"></canvas>
+</div>
+
+<div class="chart-box">
+    <h3>الخدمات الأكثر طلبًا</h3>
+    <canvas id="servicesChart"></canvas>
+</div>
+
+<button onclick="logout()">تسجيل خروج</button>
+
+<script>
+async function loadOwnerData() {
+    const res = await apiGet({ action: "ownerDashboard" });
+
+    if (!res.success) {
+        alert("خطأ في تحميل البيانات");
+        return;
+    }
+
+    // KPIs
+    document.getElementById("totalVisits").textContent = res.totalVisits;
+    document.getElementById("totalSales").textContent = res.totalSales + " ريال";
+    document.getElementById("newCustomers").textContent = res.newCustomers;
+    document.getElementById("subscriptions").textContent = res.subscriptions;
+
+    // Charts
+    new Chart(document.getElementById("visitsChart"), {
+        type: "line",
+        data: {
+            labels: res.visits7Days.labels,
+            datasets: [{
+                label: "الزيارات",
+                data: res.visits7Days.values,
+                borderColor: "#1a3d7c",
+                fill: false
+            }]
+        }
+    });
+
+    new Chart(document.getElementById("salesChart"), {
+        type: "bar",
+        data: {
+            labels: res.salesMonthly.labels,
+            datasets: [{
+                label: "المبيعات",
+                data: res.salesMonthly.values,
+                backgroundColor: "#1a3d7c"
+            }]
+        }
+    });
+
+    new Chart(document.getElementById("employeesChart"), {
+        type: "bar",
+        data: {
+            labels: res.topEmployees.labels,
+            datasets: [{
+                label: "زيارات",
+                data: res.topEmployees.values,
+                backgroundColor: "#0f2a55"
+            }]
+        }
+    });
+
+    new Chart(document.getElementById("servicesChart"), {
+        type: "pie",
+        data: {
+            labels: res.topServices.labels,
+            datasets: [{
+                data: res.topServices.values,
+                backgroundColor: ["#1a3d7c", "#0f2a55", "#4b6fa3", "#8aa4d4"]
+            }]
+        }
+    });
+}
+
+function logout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "login.html";
+}
+
+loadOwnerData();
+</script>
+
+</body>
+</html>
