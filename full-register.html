@@ -2,162 +2,130 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل حساب جديد</title>
+<title>تسجيل عميل جديد</title>
 
 <style>
     body {
-        background: #000 url('logo.png') center 40px no-repeat;
-        background-size: 120px;
-        color: #d4af37;
-        font-family: "Tajawal", sans-serif;
-        text-align: center;
-        padding: 180px 25px 25px;
-    }
-
-    h1 {
-        margin-bottom: 20px;
-        font-size: 26px;
-    }
-
-    .form-container {
-        background: rgba(0,0,0,0.65);
-        border: 1px solid rgba(212,175,55,0.35);
-        border-radius: 14px;
-        padding: 15px;
-        max-width: 330px;
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        max-width: 600px;
         margin: auto;
-        backdrop-filter: blur(10px);
+    }
+
+    .card {
+        background: white;
+        padding: 25px;
+        border-radius: 14px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-weight: bold;
+        margin-top: 10px;
+        display: block;
     }
 
     input, select {
         width: 100%;
-        padding: 10px;
-        margin: 6px 0;
-        border-radius: 8px;
-        border: 1px solid rgba(212,175,55,0.35);
-        background: #000;
-        color: #fff;
+        padding: 14px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        margin-top: 5px;
         font-size: 15px;
-        text-align: center;
-        box-sizing: border-box;
     }
 
     button {
         width: 100%;
-        padding: 12px;
-        margin-top: 10px;
-        border-radius: 10px;
+        padding: 14px;
+        background: #000;
+        color: white;
         border: none;
-        background: linear-gradient(45deg, #d4af37, #b8962f);
-        color: #000;
-        font-size: 17px;
-        font-weight: bold;
+        border-radius: 10px;
+        margin-top: 20px;
+        font-size: 16px;
         cursor: pointer;
     }
-
-    #msg {
-        margin-top: 10px;
-        min-height: 20px;
-        font-size: 14px;
-    }
 </style>
-</head>
 
+<script src="api.js"></script>
+</head>
 <body>
 
-<h1>تسجيل حساب جديد</h1>
+<h2>تسجيل عميل جديد</h2>
 
-<div class="form-container">
+<div class="card">
 
-    <input type="text" id="name" placeholder="اسم العميل">
+    <label>الاسم</label>
+    <input type="text" id="name">
 
-    <input type="tel" id="phone" placeholder="رقم الجوال (05XXXXXXXX)">
+    <label>نوع السيارة</label>
+    <input type="text" id="car">
 
-    <input type="text" id="car" placeholder="نوع السيارة">
-
+    <label>الحجم</label>
     <select id="size">
-        <option value="">اختر حجم السيارة</option>
         <option value="Small">صغيرة</option>
         <option value="Medium">متوسطة</option>
         <option value="Large">كبيرة</option>
+        <option value="SUV">دفع رباعي</option>
     </select>
 
-    <input type="text" id="city" placeholder="المدينة">
+    <label>المدينة</label>
+    <input type="text" id="city" value="الرياض">
 
-    <input type="text" id="plate_letters" placeholder="حروف اللوحة">
+    <label>حروف اللوحة</label>
+    <input type="text" id="letters">
 
-    <input type="text" id="plate_numbers" placeholder="أرقام اللوحة">
+    <label>أرقام اللوحة</label>
+    <input type="text" id="numbers">
 
-    <button onclick="registerFull()">تسجيل</button>
-
-    <div id="msg"></div>
+    <button onclick="register()">تسجيل</button>
 </div>
 
-<script src="api.js"></script>
-
 <script>
-async function registerFull() {
+let phone = localStorage.getItem("customer_phone");
 
+if (!phone) {
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
+}
+
+async function register() {
     const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
     const car = document.getElementById("car").value.trim();
-    const size = document.getElementById("size").value.trim();
+    const size = document.getElementById("size").value;
     const city = document.getElementById("city").value.trim();
-    const plate_letters = document.getElementById("plate_letters").value.trim();
-    const plate_numbers = document.getElementById("plate_numbers").value.trim();
+    const letters = document.getElementById("letters").value.trim();
+    const numbers = document.getElementById("numbers").value.trim();
 
-    const msg = document.getElementById("msg");
-
-    if (!name || !phone || !car || !size || !city || !plate_letters || !plate_numbers) {
-        msg.style.color = "red";
-        msg.textContent = "❌ الرجاء تعبئة جميع الحقول";
+    if (!name || !car || !letters || !numbers) {
+        alert("يرجى تعبئة جميع الحقول");
         return;
     }
-
-    if (!phone.startsWith("05") || phone.length !== 10) {
-        msg.style.color = "red";
-        msg.textContent = "❌ رقم الجوال غير صحيح";
-        return;
-    }
-
-    msg.style.color = "#d4af37";
-    msg.textContent = "⏳ جاري التسجيل...";
 
     const res = await apiPost({
         action: "registerFullCustomer",
-        name,
         phone,
+        name,
         car,
         size,
         city,
-        plate_letters,
-        plate_numbers
+        plate_letters: letters,
+        plate_numbers: numbers
     });
 
     if (res.success) {
-        msg.style.color = "#4cff4c";
-        msg.textContent = "✔ تم إنشاء الحساب";
-
-        sessionStorage.setItem("membership", res.membership);
-        sessionStorage.setItem("phone", res.phone);
-
-        setTimeout(() => {
-            window.location.href = "membership-card.html";
-        }, 800);
-
-    } else if (res.error === "customer_exists") {
-
-        msg.style.color = "red";
-        msg.textContent = "⚠️ لديك حساب مسجل مسبقًا — سيتم تحويلك لتسجيل الدخول";
-
-        setTimeout(() => {
-            window.location.href = "login.html";
-        }, 1200);
-
+        alert("تم التسجيل بنجاح");
+        window.location.href = "customer-home.html";
     } else {
-        msg.style.color = "red";
-        msg.textContent = "❌ فشل التسجيل";
+        alert("حدث خطأ أثناء التسجيل");
     }
 }
 </script>
