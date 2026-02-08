@@ -86,7 +86,6 @@
         cursor: pointer;
         font-size: 15px;
     }
-
 </style>
 
 <script src="api.js"></script>
@@ -167,7 +166,7 @@ function loadCars(cars) {
         const div = document.createElement("div");
         div.className = "car-item";
         div.innerHTML = `
-            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}
+            <b>${car.car}</b> — ${car.plate_numbers} ${car.plate_letters}
             <br>عضوية: ${car.membership}
         `;
         list.appendChild(div);
@@ -178,7 +177,7 @@ function loadCars(cars) {
 // التنقل بين الصفحات
 // -----------------------------
 function goToNotifications() {
-    window.location.href = "notifications.html";
+    alert("صفحة الإشعارات قيد التطوير");
 }
 
 function goToBooking() {
@@ -186,19 +185,19 @@ function goToBooking() {
 }
 
 function goToVisits() {
-    window.location.href = "visits.html";
+    window.location.href = "my-visits.html";
 }
 
 function goToLoyalty() {
-    window.location.href = "loyalty.html";
+    alert("صفحة النقاط قيد التطوير");
 }
 
 function goToMembership() {
-    window.location.href = "membership-card.html";
+    alert("صفحة بطاقة العضوية قيد التطوير");
 }
 
 function goToRating() {
-    window.location.href = "rate-visit.html";
+    alert("صفحة التقييم قيد التطوير");
 }
 
 function logout() {
