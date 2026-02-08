@@ -3,55 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <title>تسجيل زيارة</title>
+
 <style>
-    body { font-family: sans-serif; padding: 20px; background:#f5f5f5; }
-    .box { background:white; padding:20px; border-radius:10px; margin-bottom:20px; }
-    label { display:block; margin-top:10px; }
-    select, input { width:100%; padding:10px; margin-top:5px; }
-    button { width:100%; padding:12px; background:#000; color:white; border:none; margin-top:20px; border-radius:8px; }
-    .car-item { padding:10px; border:1px solid #ccc; border-radius:8px; margin-top:10px; cursor:pointer; }
-    .car-item.selected { border-color:#000; background:#eee; }
+    body {
+        font-family: sans-serif;
+        padding: 20px;
+        background: #f5f5f5;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    select, input {
+        width: 100%;
+        padding: 12px;
+        margin-top: 5px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background: #000;
+        color: white;
+        border: none;
+        margin-top: 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button.loading {
+        background: #444;
+        cursor: wait;
+    }
+
+    .car-item {
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-top: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .car-item:hover {
+        background: #f0f0f0;
+    }
+
+    .car-item.selected {
+        border-color: #000;
+        background: #e8e8e8;
+    }
 </style>
+
 <script src="api.js"></script>
 </head>
 <body>
 
 <h2>تسجيل زيارة للعميل</h2>
 
+<!-- البحث -->
 <div class="box">
     <label>رقم الجوال</label>
     <input type="text" id="phone" placeholder="05xxxxxxxx">
-    <button onclick="searchCustomer()">بحث</button>
+
+    <button id="searchBtn" onclick="searchCustomer()">بحث</button>
 </div>
 
+<!-- اختيار السيارة -->
 <div id="carsBox" class="box" style="display:none;">
     <h3>اختر السيارة</h3>
     <div id="carsList"></div>
 </div>
 
+<!-- تفاصيل الزيارة -->
 <div id="visitBox" class="box" style="display:none;">
     <h3>تفاصيل الزيارة</h3>
 
     <label>الخدمة</label>
-    <input type="text" id="service">
+    <select id="service" onchange="updatePriceAndPoints()"></select>
 
     <label>السعر</label>
-    <input type="number" id="price">
+    <input type="number" id="price" onchange="updatePoints()">
 
     <label>النقاط</label>
     <input type="number" id="points">
 
-    <label>اسم الموظف</label>
+    <label>اسم الموظف (اختياري)</label>
     <input type="text" id="employee">
 
     <label>الفرع</label>
-    <input type="text" id="branch">
+    <select id="branch">
+        <option value="مكة">مكة</option>
+    </select>
 
     <button onclick="submitVisit()">تسجيل الزيارة</button>
 </div>
 
 <script>
 let selectedMembership = null;
+let servicesData = {}; // { serviceName: price }
+
+// -----------------------------
+// تحميل قائمة الخدمات من API
+// -----------------------------
+async function loadServices() {
+    const res = await apiGet({ action: "getCommissions" });
+
+    if (!res.success) return alert("خطأ في تحميل الخدمات");
+
+    const serviceSelect = document.getElementById("service");
+    serviceSelect.innerHTML = "";
+
+    res.commissions.forEach(row => {
+        const name = row.service;
+        const price = Number(row.price || 0);
+
+        servicesData[name] = price;
+
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        serviceSelect.appendChild(opt);
+    });
+
+    updatePriceAndPoints();
+}
+
+// -----------------------------
+// تحديث السعر والنقاط تلقائيًا
+// -----------------------------
+function updatePriceAndPoints() {
+    const service = document.getElementById("service").value;
+    const price = servicesData[service] || 0;
+
+    document.getElementById("price").value = price;
+
+    updatePoints();
+}
+
+function updatePoints() {
+    const price = Number(document.getElementById("price").value || 0);
+    const points = Math.floor(price / 5); // كل 5 ريال = نقطة
+
+    document.getElementById("points").value = points;
+}
 
 // -----------------------------
 // البحث عن سيارات العميل
@@ -60,10 +172,17 @@ async function searchCustomer() {
     const phone = document.getElementById("phone").value.trim();
     if (!phone) return alert("أدخل رقم الجوال");
 
+    const btn = document.getElementById("searchBtn");
+    btn.classList.add("loading");
+    btn.textContent = "جاري البحث...";
+
     const res = await apiGet({
         action: "getCarsByPhone",
         phone
     });
+
+    btn.classList.remove("loading");
+    btn.textContent = "بحث";
 
     if (!res.success || res.cars.length === 0) {
         alert("لا يوجد سيارات لهذا العميل");
@@ -128,6 +247,9 @@ async function submitVisit() {
         alert("خطأ في التسجيل");
     }
 }
+
+// تحميل الخدمات عند فتح الصفحة
+loadServices();
 </script>
 
 </body>
