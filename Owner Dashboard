@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>لوحة المشرف</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة المشرف</title>
 
 <style>
     body {
@@ -22,10 +22,7 @@
         position: fixed;
         transition: 0.3s;
         overflow-y: auto;
-    }
-
-    #sidebar.collapsed {
-        width: 70px;
+        z-index: 999;
     }
 
     #sidebar h2 {
@@ -51,16 +48,12 @@
         background: #2563eb;
     }
 
-    /* Content Area */
+    /* Content */
     #content {
         margin-right: 260px;
         padding: 25px;
         width: 100%;
         transition: 0.3s;
-    }
-
-    #sidebar.collapsed + #content {
-        margin-right: 70px;
     }
 
     .section {
@@ -75,6 +68,7 @@
         display: block;
     }
 
+    /* Toggle Button */
     .toggle-btn {
         position: fixed;
         right: 260px;
@@ -86,12 +80,10 @@
         border-radius: 8px;
         cursor: pointer;
         transition: 0.3s;
+        z-index: 1000;
     }
 
-    #sidebar.collapsed ~ .toggle-btn {
-        right: 70px;
-    }
-
+    /* Tables */
     table {
         width: 100%;
         border-collapse: collapse;
@@ -106,6 +98,40 @@
 
     table th {
         background: #f1f5f9;
+    }
+
+    /* ============================
+       📱 تصميم الجوال
+    ============================ */
+    @media (max-width: 768px) {
+
+        #sidebar {
+            right: -260px;
+            top: 0;
+            height: 100vh;
+            width: 260px;
+            position: fixed;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #content {
+            margin-right: 0 !important;
+            padding: 15px;
+        }
+
+        .toggle-btn {
+            right: 15px !important;
+            top: 15px;
+        }
+
+        table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
     }
 </style>
 </head>
@@ -128,104 +154,88 @@
     <div class="menu-item" onclick="showSection('subscriptions')">الاشتراكات</div>
     <div class="menu-item" onclick="showSection('notifications')">الإشعارات</div>
     <div class="menu-item" onclick="showSection('reports')">التقارير</div>
-    <div class="menu-item" onclick="goOwner()">لوحة المالك</div>
 </div>
 
-<!-- Collapse Button -->
+<!-- Toggle Button -->
 <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
 
-<!-- Content Area -->
+<!-- Content -->
 <div id="content">
 
-    <!-- Dashboard -->
     <div id="dashboard" class="section active">
         <h2>لوحة التحكم</h2>
         <p>مرحبًا بك في لوحة إدارة النظام.</p>
     </div>
 
-    <!-- Customers -->
     <div id="customers" class="section">
-        <h2>إدارة العملاء</h2>
-        <table>
-            <tr><th>الاسم</th><th>الجوال</th><th>العضوية</th></tr>
-            <tr><td>—</td><td>—</td><td>—</td></tr>
-        </table>
+        <h2>العملاء</h2>
+        <table id="customersTable"></table>
     </div>
 
-    <!-- Cars -->
     <div id="cars" class="section">
-        <h2>إدارة السيارات</h2>
-        <table>
-            <tr><th>السيارة</th><th>اللوحة</th><th>العميل</th></tr>
-            <tr><td>—</td><td>—</td><td>—</td></tr>
-        </table>
+        <h2>السيارات</h2>
+        <table id="carsTable"></table>
     </div>
 
-    <!-- Employees -->
     <div id="employees" class="section">
-        <h2>إدارة الموظفين</h2>
-        <table>
-            <tr><th>الاسم</th><th>الدور</th><th>الحالة</th></tr>
-            <tr><td>—</td><td>—</td><td>—</td></tr>
-        </table>
+        <h2>الموظفين</h2>
+        <table id="employeesTable"></table>
     </div>
 
-    <!-- Bookings -->
     <div id="bookings" class="section">
-        <h2>إدارة الحجوزات</h2>
-        <table>
-            <tr><th>الخدمة</th><th>التاريخ</th><th>الحالة</th></tr>
-            <tr><td>—</td><td>—</td><td>—</td></tr>
-        </table>
+        <h2>الحجوزات</h2>
+        <table id="bookingsTable"></table>
     </div>
 
-    <!-- Services -->
     <div id="services" class="section">
-        <h2>إدارة الخدمات</h2>
-        <p>إضافة – تعديل – حذف الخدمات.</p>
+        <h2>الخدمات</h2>
+        <div id="servicesList"></div>
     </div>
 
-    <!-- Prices -->
     <div id="prices" class="section">
-        <h2>إدارة الأسعار</h2>
-        <p>تعديل أسعار الخدمات حسب الحجم.</p>
+        <h2>الأسعار</h2>
+        <div id="pricesList"></div>
     </div>
 
-    <!-- Branches -->
     <div id="branches" class="section">
-        <h2>إدارة الفروع</h2>
-        <p>إضافة – تعديل – حذف الفروع.</p>
+        <h2>الفروع</h2>
+        <div id="branchesList"></div>
     </div>
 
-    <!-- Points -->
     <div id="points" class="section">
-        <h2>إدارة النقاط</h2>
-        <p>إدارة نظام النقاط والمكافآت.</p>
+        <h2>النقاط</h2>
+        <div id="pointsList"></div>
     </div>
 
-    <!-- Subscriptions -->
     <div id="subscriptions" class="section">
-        <h2>إدارة الاشتراكات</h2>
-        <p>إدارة الباقات والاشتراكات.</p>
+        <h2>الاشتراكات</h2>
+        <div id="subscriptionsList"></div>
     </div>
 
-    <!-- Notifications -->
     <div id="notifications" class="section">
-        <h2>إدارة الإشعارات</h2>
-        <p>إرسال إشعارات للعملاء.</p>
+        <h2>الإشعارات</h2>
+        <div id="notificationsList"></div>
     </div>
 
-    <!-- Reports -->
     <div id="reports" class="section">
         <h2>التقارير</h2>
-        <p>تقارير يومية – شهرية – سنوية.</p>
+        <div id="reportsList"></div>
     </div>
 
 </div>
 
+<script src="api.js"></script>
+
 <script>
+
 function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("collapsed");
+    const sidebar = document.getElementById("sidebar");
+
+    if (window.innerWidth <= 768) {
+        sidebar.classList.toggle("open");
+    } else {
+        sidebar.classList.toggle("collapsed");
+    }
 }
 
 function showSection(id) {
@@ -234,11 +244,12 @@ function showSection(id) {
 
     document.querySelectorAll(".menu-item").forEach(m => m.classList.remove("active"));
     event.target.classList.add("active");
+
+    if (window.innerWidth <= 768) {
+        document.getElementById("sidebar").classList.remove("open");
+    }
 }
 
-function goOwner() {
-    window.location.href = "owner-dashboard.html";
-}
 </script>
 
 </body>
