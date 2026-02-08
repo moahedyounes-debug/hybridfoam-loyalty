@@ -2,128 +2,117 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل دخول العميل</title>
+<title>تسجيل الدخول</title>
 
 <style>
     body {
-        background: #000 url('logo.png') center 60px no-repeat;
-        background-size: 130px;
-        color: #d4af37;
-        font-family: "Tajawal", sans-serif;
+        font-family: sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        background: white;
+        padding: 30px;
+        width: 90%;
+        max-width: 400px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         text-align: center;
-        padding-top: 240px;
     }
 
-    h1 {
-        font-size: 26px;
+    h2 {
         margin-bottom: 20px;
-    }
-
-    .box {
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(212,175,55,0.25);
-        backdrop-filter: blur(14px);
-        padding: 20px;
-        border-radius: 18px;
-        max-width: 350px;
-        margin: auto;
-        text-align: right;
     }
 
     input {
         width: 100%;
-        padding: 12px;
+        padding: 14px;
         border-radius: 10px;
-        border: 1px solid #d4af37;
-        background: #000;
-        color: #fff;
+        border: 1px solid #ccc;
+        margin-top: 10px;
         font-size: 16px;
-        margin-bottom: 12px;
         text-align: center;
     }
 
     button {
         width: 100%;
         padding: 14px;
-        background: linear-gradient(45deg, #d4af37, #b8962f);
-        color: #000;
+        background: #000;
+        color: white;
         border: none;
         border-radius: 10px;
-        font-size: 18px;
-        font-weight: bold;
+        margin-top: 20px;
+        font-size: 16px;
         cursor: pointer;
-        margin-top: 10px;
-        transition: 0.25s ease;
     }
 
-    #msg {
-        margin-top: 15px;
-        font-size: 15px;
-        text-align: center;
+    button.loading {
+        background: #444;
+        cursor: wait;
+    }
+
+    .note {
+        margin-top: 10px;
+        color: #777;
+        font-size: 14px;
     }
 </style>
-</head>
-
-<body>
-
-<h1>تسجيل دخول العميل</h1>
-
-<div class="box">
-
-    <label>رقم الجوال</label>
-    <input type="text" id="phone" placeholder="05XXXXXXXX">
-
-    <button onclick="login()">دخول</button>
-
-    <div id="msg"></div>
-</div>
 
 <script src="api.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h2>تسجيل الدخول</h2>
+
+    <input type="tel" id="phone" placeholder="أدخل رقم الجوال (05xxxxxxxx)" maxlength="10">
+
+    <button onclick="login()">متابعة</button>
+
+    <div class="note">سوف نتحقق من رقمك تلقائيًا</div>
+</div>
 
 <script>
 async function login() {
     const phone = document.getElementById("phone").value.trim();
-    const msg = document.getElementById("msg");
-
-    if (!phone) {
-        msg.style.color = "red";
-        msg.textContent = "❌ أدخل رقم الجوال";
-        return;
-    }
 
     if (!phone.startsWith("05") || phone.length !== 10) {
-        msg.style.color = "red";
-        msg.textContent = "❌ رقم الجوال غير صحيح";
+        alert("يرجى إدخال رقم جوال صحيح يبدأ بـ 05");
         return;
     }
 
-    msg.style.color = "#d4af37";
-    msg.textContent = "⏳ جاري التحقق...";
+    const btn = document.querySelector("button");
+    btn.classList.add("loading");
+    btn.textContent = "جاري التحقق...";
 
     const res = await apiGet({
         action: "checkCustomer",
-        phone: phone
+        phone
     });
 
-    if (res.success && res.status === "exists") {
+    btn.classList.remove("loading");
+    btn.textContent = "متابعة";
 
-        sessionStorage.setItem("phone", phone);
+    if (!res.success) {
+        alert("حدث خطأ أثناء التحقق");
+        return;
+    }
 
-        msg.style.color = "#4cff4c";
-        msg.textContent = "✔ تم تسجيل الدخول";
+    // حفظ رقم الجوال
+    localStorage.setItem("customer_phone", phone);
 
-        setTimeout(() => {
-            window.location.href = "membership-card.html";
-        }, 600);
-
+    if (res.status === "exists") {
+        // عميل موجود → ندخله مباشرة
+        window.location.href = "customer-home.html";
     } else {
-        msg.style.color = "red";
-        msg.textContent = "❌ لا يوجد حساب — سيتم تحويلك للتسجيل";
-
-        setTimeout(() => {
-            window.location.href = "full-register.html";
-        }, 1200);
+        // عميل جديد → نرسله للتسجيل الكامل
+        window.location.href = "full-register.html";
     }
 }
 </script>
