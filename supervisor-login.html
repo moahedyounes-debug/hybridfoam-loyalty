@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تسجيل دخول المشرف</title>
+<style>
+body {
+    font-family: Tahoma;
+    background: #f5f5f5;
+    padding: 40px;
+    text-align: center;
+}
+.box {
+    width: 320px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+button {
+    width: 100%;
+    padding: 12px;
+    background: #000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+</style>
+<script src="api.js"></script>
+</head>
+<body>
+
+<h2>تسجيل دخول المشرف</h2>
+
+<div class="box">
+    <input id="username" placeholder="اسم المستخدم">
+    <input id="password" type="password" placeholder="كلمة المرور">
+    <button onclick="login()">دخول</button>
+</div>
+
+<script>
+async function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    const res = await apiGet({
+        action: "supervisorLogin",
+        username,
+        password
+    });
+
+    if (!res.success) {
+        alert("بيانات الدخول غير صحيحة");
+        return;
+    }
+
+    localStorage.setItem("supervisor_role", res.role);
+
+    if (res.role === "owner") {
+        location.href = "owner-dashboard.html";
+    } else {
+        location.href = "supervisor-dashboard.html";
+    }
+}
+</script>
+
+</body>
+</html>
