@@ -2,127 +2,151 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>بطاقة العضوية</title>
 
 <style>
     body {
-        background: #000;
-        color: #d4af37;
-        font-family: "Tajawal", sans-serif;
+        font-family: sans-serif;
+        background: #f5f5f5;
         padding: 20px;
+        margin: 0;
+        max-width: 600px;
+        margin: auto;
         text-align: center;
     }
 
-    h1 {
-        margin-bottom: 10px;
+    .back-btn {
+        background: #000;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-bottom: 20px;
+        cursor: pointer;
     }
 
     .card {
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(212,175,55,0.35);
-        padding: 20px;
-        border-radius: 16px;
-        margin-bottom: 20px;
-        backdrop-filter: blur(10px);
-    }
-
-    .car-box {
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(212,175,55,0.25);
-        padding: 15px;
-        border-radius: 12px;
-        margin-top: 12px;
-        text-align: right;
-    }
-
-    button {
-        width: 100%;
-        padding: 14px;
-        background: linear-gradient(45deg, #d4af37, #b8962f);
-        color: #000;
-        border: none;
-        border-radius: 10px;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        margin-top: 15px;
-    }
-
-    #carsList {
+        padding: 25px;
+        border-radius: 20px;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         margin-top: 20px;
     }
-</style>
-</head>
 
-<body>
-
-<h1>بطاقة العضوية</h1>
-
-<div class="card">
-    <h2 id="customerName"></h2>
-    <p id="customerPhone"></p>
-</div>
-
-<h2>سياراتك</h2>
-<div id="carsList"></div>
-
-<button onclick="addCar()">➕ إضافة مركبة</button>
-
-<script src="api.js"></script>
-
-<script>
-async function loadData() {
-    const phone = sessionStorage.getItem("phone");
-
-    if (!phone) {
-        window.location.href = "login.html";
-        return;
+    .level-title {
+        font-size: 26px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
     }
 
+    .crown {
+        font-size: 28px;
+    }
+
+    .info {
+        font-size: 18px;
+        margin: 6px 0;
+    }
+
+    #qr {
+        margin-top: 20px;
+        background: white;
+        padding: 10px;
+        border-radius: 10px;
+    }
+</style>
+
+<script src="api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body>
+
+<div class="back-btn" onclick="goBack()">رجوع</div>
+
+<div id="card" class="card">
+    <div class="level-title" id="levelTitle">...</div>
+
+    <div class="info" id="custName">...</div>
+    <div class="info" id="custMembership">...</div>
+    <div class="info" id="custPoints">...</div>
+    <div class="info" id="custVisit">...</div>
+    <div class="info" id="custFree">...</div>
+    <div class="info" id="custSub">...</div>
+
+    <canvas id="qr"></canvas>
+</div>
+
+<script>
+let phone = localStorage.getItem("customer_phone");
+
+if (!phone) {
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
+}
+
+// -----------------------------
+// تحميل بيانات العميل
+// -----------------------------
+async function loadCard() {
     const res = await apiGet({
         action: "getByPhone",
-        phone: phone
+        phone
     });
 
     if (!res.success) {
-        window.location.href = "login.html";
+        alert("خطأ في تحميل البيانات");
         return;
     }
 
-    document.getElementById("customerName").textContent = res.customer.name || "عميل";
-    document.getElementById("customerPhone").textContent = res.customer.phone;
+    const c = res.customer;
 
-    const carsDiv = document.getElementById("carsList");
-    carsDiv.innerHTML = "";
+    // نصوص البطاقة
+    document.getElementById("custName").textContent = "الاسم: " + c.name;
+    document.getElementById("custMembership").textContent = "رقم العضوية: " + c.membership;
+    document.getElementById("custPoints").textContent = "النقاط: " + c.points;
+    document.getElementById("custVisit").textContent = "آخر زيارة: " + (c.last_visit || "-");
+    document.getElementById("custFree").textContent = "غسلة مجانية: " + (c.free_wash ? "مستحق" : "غير مستحق");
+    document.getElementById("custSub").textContent = "الاشتراك: " + (c.subscription || "لا يوجد");
 
-    res.cars.forEach(car => {
-        const box = document.createElement("div");
-        box.className = "car-box";
+    // مستوى العضوية
+    const level = c.level;
+    const title = document.getElementById("levelTitle");
+    const card = document.getElementById("card");
 
-        box.innerHTML = `
-            <strong>العضوية:</strong> ${car.membership}<br>
-            <strong>السيارة:</strong> ${car.car}<br>
-            <strong>الحجم:</strong> ${car.size}<br>
-            <strong>المدينة:</strong> ${car.city}<br>
-            <strong>اللوحة:</strong> ${car.plate_numbers} - ${car.plate_letters}<br>
-            <button style="margin-top:10px" onclick="openMembership('${car.membership}')">عرض التفاصيل</button>
-        `;
+    if (level === "Bronze") {
+        title.textContent = "Bronze";
+        card.style.background = "#b87333";
+    } 
+    else if (level === "Silver") {
+        title.textContent = "Silver";
+        card.style.background = "#C0C0C0";
+    } 
+    else if (level === "Gold") {
+        title.textContent = "Gold";
+        card.style.background = "#D4AF37";
+    } 
+    else if (level === "VIP") {
+        title.innerHTML = `<span class="crown">👑</span> VIP`;
+        card.style.background = "#000";
+    }
 
-        carsDiv.appendChild(box);
+    // QR Code = رقم الجوال
+    new QRious({
+        element: document.getElementById("qr"),
+        value: phone,
+        size: 200
     });
 }
 
-function openMembership(membership) {
-    sessionStorage.setItem("membership", membership);
-    window.location.href = "membership-details.html";
+function goBack() {
+    window.location.href = "customer-home.html";
 }
 
-function addCar() {
-    window.location.href = "add-car.html";
-}
-
-loadData();
+loadCard();
 </script>
 
 </body>
