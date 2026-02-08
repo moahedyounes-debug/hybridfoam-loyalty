@@ -155,44 +155,123 @@ button.loading {
 
 <!-- Add Visit -->
 <div id="addVisit" class="section">
-    <h2>إضافة زيارة</h2>
+/* ========== Add Visit (Working Version) ========== */
 
-    <div class="card">
-        <label>ابحث برقم الجوال أو العضوية أو لوحة السيارة</label>
-        <input id="visitSearch" placeholder="05xxxxxxx أو 12345 أو ABC 1234">
-        <button id="visitSearchBtn" onclick="searchVisitCustomer()">بحث</button>
-    </div>
+let visitSelectedMembership = null;
+let visitServices = {};
 
-    <div id="visitCarsBox" class="card" style="display:none;">
-        <h3>اختر السيارة</h3>
-        <div id="visitCarsList"></div>
-    </div>
+// تحميل الخدمات
+async function loadVisitServices() {
+    const res = await apiGet({ action: "getCommissions" });
 
-    <div id="visitForm" class="card" style="display:none;">
-        <h3>تفاصيل الزيارة</h3>
+    const select = document.getElementById("vService");
+    select.innerHTML = "";
 
-        <label>الخدمة</label>
-        <select id="vService" onchange="updateVisitPrice()"></select>
+    res.commissions.forEach(s => {
+        visitServices[s.service] = Number(s.price || 0);
 
-        <label>السعر</label>
-        <input type="number" id="vPrice" onchange="updateVisitPoints()">
+        const opt = document.createElement("option");
+        opt.value = s.service;
+        opt.textContent = s.service;
+        select.appendChild(opt);
+    });
 
-        <label>النقاط</label>
-        <input type="number" id="vPoints" readonly>
+    updateVisitPrice();
+}
 
-        <label>اسم الموظف (اختياري)</label>
-        <input id="vEmployee">
+// تحديث السعر والنقاط
+function updateVisitPrice() {
+    const service = document.getElementById("vService").value;
+    const price = visitServices[service] || 0;
 
-        <label>الفرع</label>
-        <select id="vBranch">
-            <option value="مكة">مكة</option>
-        </select>
+    document.getElementById("vPrice").value = price;
+    updateVisitPoints();
+}
 
-        <button id="addVisitBtn" onclick="submitVisit()">تسجيل الزيارة</button>
-        <p id="addVisitStatus"></p>
-    </div>
-</div>
-<!-- Ratings -->
+function updateVisitPoints() {
+    const price = Number(document.getElementById("vPrice").value || 0);
+    document.getElementById("vPoints").value = Math.floor(price / 5);
+}
+
+// البحث عن العميل
+async function searchVisitCustomer() {
+    const query = document.getElementById("visitSearch").value.trim();
+    const btn = document.getElementById("visitSearchBtn");
+
+    if (!query) return alert("أدخل قيمة للبحث");
+
+    btn.classList.add("loading");
+    btn.innerText = "جاري البحث...";
+
+    const res = await apiGet({
+        action: "searchCustomer",
+        query
+    });
+
+    btn.classList.remove("loading");
+    btn.innerText = "بحث";
+
+    if (!res.success || res.cars.length === 0) {
+        alert("لا يوجد نتائج");
+        return;
+    }
+
+    document.getElementById("visitCarsBox").style.display = "block";
+
+    const list = document.getElementById("visitCarsList");
+    list.innerHTML = "";
+
+    res.cars.forEach(car => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.style.cursor = "pointer";
+        div.innerHTML = `
+            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}<br>
+            عضوية: ${car.membership}
+        `;
+        div.onclick = () => selectVisitCar(car.membership);
+        list.appendChild(div);
+    });
+}
+
+// اختيار السيارة
+function selectVisitCar(membership) {
+    visitSelectedMembership = membership;
+    document.getElementById("visitForm").style.display = "block";
+}
+
+// إرسال الزيارة
+async function submitVisit() {
+    if (!visitSelectedMembership) return alert("اختر السيارة أولاً");
+
+    const service = document.getElementById("vService").value;
+    const price = document.getElementById("vPrice").value;
+    const points = document.getElementById("vPoints").value;
+
+    const btn = document.getElementById("addVisitBtn");
+    btn.classList.add("loading");
+    btn.innerText = "جاري التسجيل...";
+
+    const res = await apiPost({
+        action: "addVisit",
+        membership: visitSelectedMembership,
+        service,
+        price,
+        points
+    });
+
+    btn.classList.remove("loading");
+    btn.innerText = "إضافة";
+
+    if (res.success) {
+        document.getElementById("addVisitStatus").innerText = "✔ تم تسجيل الزيارة بنجاح";
+    } else {
+        document.getElementById("addVisitStatus").innerText = "❌ حدث خطأ أثناء التسجيل";
+    }
+}
+
+// تحميل الخدمات عند فتح الصفحة
+loadVisitServices();<!-- Ratings -->
 <div id="ratings" class="section">
     <h2>التقييمات</h2>
     <div id="ratingsList">جاري التحميل...</div>
