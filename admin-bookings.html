@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>إدارة الحجوزات</title>
+
+<style>
+    body {
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        max-width: 900px;
+        margin: auto;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    input, select {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .booking {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .row {
+        margin-bottom: 6px;
+        font-size: 15px;
+    }
+
+    .status {
+        font-weight: bold;
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        margin-top: 6px;
+    }
+
+    .pending { background: #ffcc00; }
+    .approved { background: #4CAF50; color: white; }
+    .cancelled { background: #e74c3c; color: white; }
+
+    button {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-right: 6px;
+        margin-top: 10px;
+    }
+
+    .approve-btn { background: #4CAF50; color: white; }
+    .cancel-btn { background: #e74c3c; color: white; }
+</style>
+
+<script src="api.js"></script>
+</head>
+<body>
+
+<h2>إدارة الحجوزات</h2>
+
+<div class="filters">
+    <input type="date" id="filterDate">
+    <button onclick="loadBookings()">عرض</button>
+</div>
+
+<div id="bookingsList"></div>
+
+<script>
+// -----------------------------
+// تحميل الحجوزات
+// -----------------------------
+async function loadBookings() {
+    const date = document.getElementById("filterDate").value;
+
+    const res = await apiGet({
+        action: "getBookings",
+        date
+    });
+
+    if (!res.success) {
+        alert("خطأ في تحميل الحجوزات");
+        return;
+    }
+
+    const list = document.getElementById("bookingsList");
+    list.innerHTML = "";
+
+    if (res.bookings.length === 0) {
+        list.innerHTML = "<p style='text-align:center;color:#777;'>لا توجد حجوزات</p>";
+        return;
+    }
+
+    res.bookings.forEach(b => {
+        const div = document.createElement("div");
+        div.className = "booking";
+
+        div.innerHTML = `
+            <div class="row"><b>الجوال:</b> ${b.phone}</div>
+            <div class="row"><b>العضوية:</b> ${b.membership}</div>
+            <div class="row"><b>الخدمة:</b> ${b.service}</div>
+            <div class="row"><b>التاريخ:</b> ${b.date}</div>
+            <div class="row"><b>الوقت:</b> ${b.time}</div>
+            <div class="status ${b.status.toLowerCase()}">${b.status}</div>
+
+            <button class="approve-btn" onclick="updateStatus('${b.row}', 'Approved')">قبول</button>
+            <button class="cancel-btn" onclick="updateStatus('${b.row}', 'Cancelled')">إلغاء</button>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+// -----------------------------
+// تحديث حالة الحجز
+// -----------------------------
+async function updateStatus(row, status) {
+    const res = await apiPost({
+        action: "updateBookingStatus",
+        row,
+        status
+    });
+
+    if (res.success) {
+        alert("تم تحديث الحالة");
+        loadBookings();
+    } else {
+        alert("خطأ في تحديث الحالة");
+    }
+}
+
+// تحميل الحجوزات عند فتح الصفحة
+loadBookings();
+</script>
+
+</body>
+</html>
