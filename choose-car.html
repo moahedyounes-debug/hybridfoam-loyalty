@@ -88,10 +88,12 @@
 
 <div class="box">
 
-    <label>رقم الجوال</label>
-    <input type="text" id="phone" placeholder="05XXXXXXXX">
-
-    <button onclick="loadCars()">عرض السيارات</button>
+    <!-- يظهر فقط للموظف -->
+    <div id="phoneBox">
+        <label>رقم الجوال</label>
+        <input type="text" id="phone" placeholder="05XXXXXXXX">
+        <button onclick="loadCars()">عرض السيارات</button>
+    </div>
 
     <div id="carsList" style="margin-top:15px;"></div>
 
@@ -102,8 +104,19 @@
 <script src="api.js"></script>
 
 <script>
-async function loadCars() {
-    const phone = document.getElementById("phone").value.trim();
+let customerPhone = localStorage.getItem("customer_phone");
+
+// إذا العميل داخل → نخفي خانة الجوال
+if (customerPhone) {
+    document.getElementById("phoneBox").style.display = "none";
+    loadCars(customerPhone);
+}
+
+// -----------------------------
+// تحميل سيارات العميل
+// -----------------------------
+async function loadCars(forcedPhone = null) {
+    const phone = forcedPhone || document.getElementById("phone").value.trim();
     const msg = document.getElementById("msg");
     const list = document.getElementById("carsList");
 
@@ -128,6 +141,14 @@ async function loadCars() {
     msg.innerHTML = "";
     list.innerHTML = "";
 
+    // لو سيارة واحدة → اختارها تلقائيًا
+    if (data.cars.length === 1 && customerPhone) {
+        sessionStorage.setItem("membership", data.cars[0].membership);
+        window.location.href = "customer-home.html";
+        return;
+    }
+
+    // عرض السيارات
     data.cars.forEach(car => {
         const btn = document.createElement("button");
         btn.className = "car-btn";
@@ -137,9 +158,20 @@ async function loadCars() {
     });
 }
 
+// -----------------------------
+// اختيار السيارة
+// -----------------------------
 function selectCar(membership) {
     sessionStorage.setItem("membership", membership);
-    window.location.href = "add-visit.html";
+
+    // العميل → يروح للصفحة الرئيسية
+    if (customerPhone) {
+        window.location.href = "customer-home.html";
+    } 
+    // الموظف → يروح لتسجيل الزيارة
+    else {
+        window.location.href = "add-visit.html";
+    }
 }
 </script>
 
