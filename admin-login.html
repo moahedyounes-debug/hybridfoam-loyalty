@@ -28,6 +28,7 @@ input {
     margin-top: 10px;
     border-radius: 8px;
     border: 1px solid #ccc;
+    font-size: 16px;
 }
 
 button {
@@ -39,6 +40,19 @@ button {
     border: none;
     border-radius: 8px;
     font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button.loading {
+    background: #6b7280;
+    cursor: wait;
+}
+
+#msg {
+    color: red;
+    margin-top: 10px;
+    min-height: 20px;
 }
 </style>
 </head>
@@ -48,20 +62,45 @@ button {
 <div class="card">
     <h2>تسجيل دخول المشرف</h2>
 
-    <input id="username" placeholder="اسم المستخدم">
-    <input id="password" type="password" placeholder="كلمة المرور">
+    <input id="username" placeholder="اسم المستخدم" autocomplete="username">
+    <input id="password" type="password" placeholder="كلمة المرور" autocomplete="current-password">
 
-    <button onclick="login()">دخول</button>
+    <button id="loginBtn" onclick="login()">دخول</button>
 
-    <p id="msg" style="color:red;margin-top:10px;"></p>
+    <p id="msg"></p>
 </div>
 
 <script src="api.js?v=3"></script>
 
 <script>
+// Auto-focus
+document.getElementById("username").focus();
+
+// Enter to login
+document.addEventListener("keydown", e => {
+    if (e.key === "Enter") login();
+});
+
+// Load last username
+if (localStorage.getItem("lastSupervisor")) {
+    document.getElementById("username").value = localStorage.getItem("lastSupervisor");
+}
+
 async function login() {
+    const btn = document.getElementById("loginBtn");
+    const msg = document.getElementById("msg");
+
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
+
+    if (!username || !password) {
+        msg.innerText = "يرجى تعبئة جميع الحقول";
+        return;
+    }
+
+    // Prevent double click
+    btn.classList.add("loading");
+    btn.innerText = "جاري التحقق...";
 
     const res = await apiGet({
         action: "supervisorLogin",
@@ -69,12 +108,20 @@ async function login() {
         password
     });
 
+    btn.classList.remove("loading");
+    btn.innerText = "دخول";
+
     if (!res.success) {
-        document.getElementById("msg").innerText = "بيانات الدخول غير صحيحة";
+        msg.innerText = "بيانات الدخول غير صحيحة";
         return;
     }
 
+    // Save username
+    localStorage.setItem("lastSupervisor", username);
+
+    // Save session
     localStorage.setItem("supervisor", username);
+
     window.location.href = "controll.html";
 }
 </script>
