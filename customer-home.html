@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>الصفحة الرئيسية</title>
+
+<style>
+    body {
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .header .name {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .icon-btn {
+        background: #000;
+        color: white;
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .card h3 {
+        margin: 0 0 10px 0;
+    }
+
+    .level {
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    .points {
+        font-size: 16px;
+        color: #444;
+    }
+
+    .car-item {
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        margin-top: 10px;
+        background: #fafafa;
+    }
+
+    .car-item b {
+        font-size: 16px;
+    }
+
+    .actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .action-btn {
+        background: #000;
+        color: white;
+        padding: 14px;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+</style>
+
+<script src="api.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="name" id="custName">...</div>
+    <div class="icon-btn" onclick="goToNotifications()">الإشعارات</div>
+</div>
+
+<!-- بطاقة المستوى والنقاط -->
+<div class="card">
+    <h3>مستوى العضوية</h3>
+    <div class="level" id="custLevel">...</div>
+    <div class="points" id="custPoints">...</div>
+</div>
+
+<!-- سيارات العميل -->
+<div class="card">
+    <h3>سياراتي</h3>
+    <div id="carsList"></div>
+</div>
+
+<!-- الإجراءات السريعة -->
+<div class="card">
+    <h3>الخدمات</h3>
+
+    <div class="actions">
+        <div class="action-btn" onclick="goToBooking()">حجز موعد</div>
+        <div class="action-btn" onclick="goToVisits()">سجل الزيارات</div>
+        <div class="action-btn" onclick="goToLoyalty()">النقاط</div>
+        <div class="action-btn" onclick="goToMembership()">بطاقة العضوية</div>
+        <div class="action-btn" onclick="goToRating()">تقييم آخر زيارة</div>
+        <div class="action-btn" onclick="logout()">تسجيل خروج</div>
+    </div>
+</div>
+
+<script>
+let phone = localStorage.getItem("customer_phone");
+
+if (!phone) {
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
+}
+
+// -----------------------------
+// تحميل بيانات العميل
+// -----------------------------
+async function loadCustomer() {
+    const res = await apiGet({
+        action: "getByPhone",
+        phone
+    });
+
+    if (!res.success) {
+        alert("خطأ في تحميل البيانات");
+        return;
+    }
+
+    const c = res.customer;
+
+    document.getElementById("custName").textContent = c.name;
+    document.getElementById("custLevel").textContent = "المستوى: " + c.level;
+    document.getElementById("custPoints").textContent = "النقاط: " + c.points;
+
+    loadCars(res.cars);
+}
+
+// -----------------------------
+// عرض سيارات العميل
+// -----------------------------
+function loadCars(cars) {
+    const list = document.getElementById("carsList");
+    list.innerHTML = "";
+
+    cars.forEach(car => {
+        const div = document.createElement("div");
+        div.className = "car-item";
+        div.innerHTML = `
+            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}
+            <br>عضوية: ${car.membership}
+        `;
+        list.appendChild(div);
+    });
+}
+
+// -----------------------------
+// التنقل بين الصفحات
+// -----------------------------
+function goToNotifications() {
+    window.location.href = "notifications.html";
+}
+
+function goToBooking() {
+    window.location.href = "booking.html";
+}
+
+function goToVisits() {
+    window.location.href = "visits.html";
+}
+
+function goToLoyalty() {
+    window.location.href = "loyalty.html";
+}
+
+function goToMembership() {
+    window.location.href = "membership-card.html";
+}
+
+function goToRating() {
+    window.location.href = "rate-visit.html";
+}
+
+function logout() {
+    localStorage.removeItem("customer_phone");
+    window.location.href = "login.html";
+}
+
+// تحميل البيانات عند فتح الصفحة
+loadCustomer();
+</script>
+
+</body>
+</html>
