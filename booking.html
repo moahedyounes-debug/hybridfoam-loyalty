@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>حجز موعد</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    padding: 20px;
+    background: #f5f5f5;
+    max-width: 600px;
+    margin: auto;
+}
+.box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+select, input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+button {
+    width: 100%;
+    padding: 14px;
+    background: #000;
+    color: white;
+    border: none;
+    margin-top: 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+</style>
+
+<script src="api.js"></script>
+</head>
+<body>
+
+<h2>حجز موعد</h2>
+
+<div class="box">
+    <label>اختر السيارة</label>
+    <select id="carSelect"></select>
+
+    <label>الخدمة</label>
+    <select id="service"></select>
+
+    <label>التاريخ</label>
+    <input type="date" id="date" onchange="loadTimes()">
+
+    <label>الوقت المتاح</label>
+    <select id="time"></select>
+
+    <button onclick="submitBooking()">تأكيد الحجز</button>
+</div>
+
+<script>
+let servicesData = {};
+let membership = null;
+
+// تحميل سيارات العميل
+async function loadCars() {
+    const phone = localStorage.getItem("customer_phone");
+    if (!phone) return alert("خطأ: لم يتم العثور على رقم العميل");
+
+    const res = await apiGet({ action: "getCarsByPhone", phone });
+
+    const select = document.getElementById("carSelect");
+    res.cars.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.membership;
+        opt.textContent = `${c.car} - ${c.plate_numbers} ${c.plate_letters}`;
+        select.appendChild(opt);
+    });
+}
+
+// تحميل الخدمات
+async function loadServices() {
+    const res = await apiGet({ action: "getCommissions" });
+
+    const select = document.getElementById("service");
+    res.commissions.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.service;
+        opt.textContent = s.service;
+        select.appendChild(opt);
+    });
+}
+
+// تحميل الأوقات المتاحة
+async function loadTimes() {
+    const date = document.getElementById("date").value;
+    const service = document.getElementById("service").value;
+
+    if (!date || !service) return;
+
+    const res = await apiGet({
+        action: "getAvailableTimes",
+        date,
+        service
+    });
+
+    const select = document.getElementById("time");
+    select.innerHTML = "";
+
+    res.times.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        select.appendChild(opt);
+    });
+}
+
+// إرسال الحجز
+async function submitBooking() {
+    const phone = localStorage.getItem("customer_phone");
+    const membership = document.getElementById("carSelect").value;
+    const service = document.getElementById("service").value;
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+
+    const res = await apiPost({
+        action: "addBooking",
+        phone,
+        membership,
+        service,
+        date,
+        time
+    });
+
+    if (res.success) {
+        alert("تم حجز الموعد بنجاح");
+        window.location.href = "my-bookings.html";
+    } else {
+        alert("حدث خطأ أثناء الحجز");
+    }
+}
+
+// تشغيل عند فتح الصفحة
+loadCars();
+loadServices();
+</script>
+
+</body>
+</html>
