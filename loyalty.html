@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>نقاطي</title>
+
+<style>
+    body {
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .back-btn {
+        background: #000;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-bottom: 20px;
+        cursor: pointer;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .card h3 {
+        margin: 0 0 10px 0;
+    }
+
+    .points {
+        font-size: 26px;
+        font-weight: bold;
+        color: #000;
+        margin-top: 10px;
+    }
+
+    .level {
+        font-size: 18px;
+        margin-top: 5px;
+        color: #444;
+    }
+
+    .progress-box {
+        margin-top: 15px;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 12px;
+        background: #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #000;
+        width: 0%;
+    }
+
+    .history-item {
+        background: #fafafa;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #eee;
+    }
+
+    .row {
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+</style>
+
+<script src="api.js"></script>
+</head>
+<body>
+
+<div class="back-btn" onclick="goBack()">رجوع</div>
+
+<h2 style="text-align:center;">نقاطي</h2>
+
+<div class="card">
+    <h3>إجمالي النقاط</h3>
+    <div class="points" id="custPoints">...</div>
+    <div class="level" id="custLevel">...</div>
+
+    <div class="progress-box">
+        <div class="row" id="nextLevelText"></div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>سجل اكتساب النقاط</h3>
+    <div id="historyList"></div>
+</div>
+
+<script>
+let phone = localStorage.getItem("customer_phone");
+
+if (!phone) {
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
+}
+
+// -----------------------------
+// تحميل بيانات العميل
+// -----------------------------
+async function loadLoyalty() {
+    const res = await apiGet({
+        action: "getByPhone",
+        phone
+    });
+
+    if (!res.success) {
+        alert("خطأ في تحميل البيانات");
+        return;
+    }
+
+    const c = res.customer;
+
+    // عرض النقاط والمستوى
+    document.getElementById("custPoints").textContent = c.points + " نقطة";
+    document.getElementById("custLevel").textContent = "المستوى: " + c.level;
+
+    // حساب التقدم للمستوى التالي
+    let current = Number(c.points);
+    let nextLevel = 0;
+
+    if (c.level === "Bronze") nextLevel = 200;
+    else if (c.level === "Silver") nextLevel = 500;
+    else if (c.level === "Gold") nextLevel = 1000;
+    else nextLevel = current; // Platinum
+
+    let percent = Math.min((current / nextLevel) * 100, 100);
+
+    document.getElementById("nextLevelText").textContent =
+        "النقاط المطلوبة للترقية: " + (nextLevel - current);
+
+    document.getElementById("progressFill").style.width = percent + "%";
+
+    loadHistory();
+}
+
+// -----------------------------
+// تحميل سجل النقاط
+// -----------------------------
+async function loadHistory() {
+    const res = await apiGet({
+        action: "getVisitsByPhone",
+        phone
+    });
+
+    const list = document.getElementById("historyList");
+    list.innerHTML = "";
+
+    if (!res.success || res.visits.length === 0) {
+        list.innerHTML = "<p style='color:#777;'>لا يوجد سجل نقاط</p>";
+        return;
+    }
+
+    res.visits.reverse().forEach(v => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+
+        div.innerHTML = `
+            <div class="row"><b>الخدمة:</b> ${v.service}</div>
+            <div class="row"><b>النقاط المكتسبة:</b> ${v.points}</div>
+            <div class="row"><b>التاريخ:</b> ${v.date}</div>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+function goBack() {
+    window.location.href = "customer-home.html";
+}
+
+loadLoyalty();
+</script>
+
+</body>
+</html>
