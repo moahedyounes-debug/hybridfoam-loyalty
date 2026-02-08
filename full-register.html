@@ -66,25 +66,29 @@
     <label>الاسم</label>
     <input type="text" id="name">
 
-    <label>نوع السيارة</label>
-    <input type="text" id="car">
+<label>نوع السيارة</label>
+<select id="carType" onchange="toggleCustomCarType()">
+    <option value="">اختر نوع السيارة</option>
+    <option value="سيدان">سيدان</option>
+    <option value="SUV">دفع رباعي (SUV)</option>
+    <option value="فان">فان</option>
+    <option value="بيك أب">بيك أب</option>
+    <option value="هاتشباك">هاتشباك</option>
+    <option value="كوبيه">كوبيه</option>
+    <option value="شاحنة خفيفة">شاحنة خفيفة</option>
+    <option value="other">أخرى</option>
+</select>
 
-    <label>الحجم</label>
-    <select id="size">
-        <option value="Small">صغيرة</option>
-        <option value="Medium">متوسطة</option>
-        <option value="Large">كبيرة</option>
-        <option value="SUV">دفع رباعي</option>
-    </select>
+<input type="text" id="customCarType" placeholder="اكتب نوع السيارة" style="display:none; margin-top:10px;">
 
-    <label>المدينة</label>
-    <input type="text" id="city" value="الرياض">
+<label>المدينة</label>
+<select id="city"></select>
+    
+<label>رقم اللوحة</label>
+<input type="text" id="plate_numbers" placeholder="1234">
 
-    <label>حروف اللوحة</label>
-    <input type="text" id="letters">
-
-    <label>أرقام اللوحة</label>
-    <input type="text" id="numbers">
+<label>حروف اللوحة</label>
+<input type="text" id="plate_letters" placeholder="أ ب ج">
 
     <button onclick="register()">تسجيل</button>
 </div>
@@ -127,6 +131,32 @@ async function register() {
     } else {
         alert("حدث خطأ أثناء التسجيل");
     }
+}
+    function toggleCustomCarType() {
+    const select = document.getElementById("carType");
+    const custom = document.getElementById("customCarType");
+
+    if (select.value === "other") {
+        custom.style.display = "block";
+    } else {
+        custom.style.display = "none";
+    }
+}
+
+    async function loadCities() {
+    const res = await apiGet({ action: "getBranches" });
+
+    const citySelect = document.getElementById("city");
+    citySelect.innerHTML = "";
+
+    const cities = [...new Set(res.branches.map(b => b.city))];
+
+    cities.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        citySelect.appendChild(opt);
+    });
 }
 </script>
 
