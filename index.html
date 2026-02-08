@@ -2,61 +2,820 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<title>لوحة المالك</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hybrid Foam</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="api.js?v=3"></script>
 
 <style>
-    body {
-        background: #000 url('logo.png') center 80px no-repeat;
-        background-size: 150px;
-        color: #d4af37;
-        font-family: "Tajawal", sans-serif;
-        text-align: center;
-        padding-top: 260px;
-    }
-
-    h1 {
-        font-size: 30px;
-        margin-bottom: 10px;
-    }
-
-    p {
-        font-size: 16px;
-        opacity: 0.8;
-        margin-bottom: 30px;
-    }
-
-    .btn {
-        display: block;
-        width: 80%;
-        max-width: 300px;
-        margin: 12px auto;
-        padding: 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(212,175,55,0.4);
-        background: rgba(255,255,255,0.06);
-        color: #d4af37;
-        font-size: 18px;
-        font-weight: bold;
-        text-decoration: none;
-        transition: 0.25s;
-    }
-
-    .btn:hover {
-        background: #d4af37;
-        color: #000;
-        transform: translateY(-3px);
-    }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Tajawal", sans-serif;
+}
+body {
+    background: #000;
+    color: #fff;
+    overflow-x: hidden;
+}
+.bg-logo {
+    position: fixed;
+    inset: 0;
+    background-image: url("logo.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60%;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+}
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(212,175,55,0.18), transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+}
+.dashboard {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 18px;
+}
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(20,20,20,0.8);
+    border: 1px solid rgba(212,175,55,0.3);
+    padding: 12px 18px;
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+}
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.topbar-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(212,175,55,0.5);
+    box-shadow: 0 0 20px rgba(212,175,55,0.4);
+}
+.topbar-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.topbar-title-main {
+    font-size: 22px;
+    font-weight: 700;
+}
+.topbar-title-sub {
+    font-size: 12px;
+    color: #bbb;
+}
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.btn {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.btn-danger {
+    background: transparent;
+    border: 1px solid rgba(255,80,80,0.4);
+    color: #ff6b6b;
+}
+.btn-primary {
+    background: linear-gradient(135deg, #d4af37, #b8962f);
+    color: #000;
+    box-shadow: 0 8px 20px rgba(212,175,55,0.5);
+}
+.btn-primary.loading {
+    background: #555;
+    color: #ddd;
+}
+.panel {
+    background: rgba(20,20,20,0.75);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 18px;
+    padding: 16px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+.panel-header {
+    margin-bottom: 10px;
+}
+.panel-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+.panel-sub {
+    font-size: 12px;
+    color: #bbb;
+}
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap: 12px;
+}
+.card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    padding: 12px;
+}
+.card-label {
+    font-size: 12px;
+    color: #bbb;
+}
+.card-value {
+    font-size: 26px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+    gap: 14px;
+}
+.chart-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    padding: 10px;
+}
+.chart-title {
+    font-size: 13px;
+    color: #bbb;
+    margin-bottom: 6px;
+}
+.chart-container {
+    height: 220px;
+}
+.table-wrapper {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 14px;
+    overflow: hidden;
+}
+.table-scroll {
+    max-height: 260px;
+    overflow-y: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+th {
+    background: rgba(0,0,0,0.6);
+    padding: 8px;
+    position: sticky;
+    top: 0;
+}
+td {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(212,175,55,0.4);
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+}
+.tab-btn.active {
+    background: #d4af37;
+    color: #000;
+}
+.section {
+    display: none;
+}
+.section.active {
+    display: block;
+}
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #111;
+    color: #fff;
+    font-size: 13px;
+}
+.filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+@media (max-width: 900px) {
+    .chart-container { height: 180px; }
+}
+@media (max-width: 600px) {
+    .cards-grid { grid-template-columns: 1fr 1fr; }
+    .charts-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 
 <body>
 
-<h1>Hybrid Foam</h1>
-<p>نظام الولاء وإدارة العملاء</p>
+<div class="bg-logo"></div>
+<div class="overlay"></div>
 
-<a class="btn" href="login.html">تسجيل دخول العميل</a>
-<a class="btn" href="Admin-login.html">دخول المشرف</a>
+<div class="dashboard">
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="topbar-logo">
+                <img src="logo.png">
+            </div>
+            <div>
+                <div class="topbar-title-main">لوحة المالك</div>
+                <div class="topbar-title-sub">إدارة النظام بالكامل</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <button class="btn btn-danger" onclick="logout()">تسجيل خروج</button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showSection('overview', this)">نظرة عامة</button>
+            <button class="tab-btn" onclick="showSection('customers', this)">العملاء</button>
+            <button class="tab-btn" onclick="showSection('cars', this)">السيارات</button>
+            <button class="tab-btn" onclick="showSection('services', this)">الخدمات</button>
+            <button class="tab-btn" onclick="showSection('visits', this)">الزيارات</button>
+            <button class="tab-btn" onclick="showSection('reports', this)">التقارير</button>
+            <button class="tab-btn" onclick="showSection('bookings', this)">الحجوزات</button>
+        </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="overview" class="section active">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">نظرة عامة</div>
+                <div class="panel-sub">إحصائيات عامة للنظام</div>
+            </div>
+            <div class="cards-grid" id="statsGrid"></div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">الدخل اليومي</div>
+                <div class="chart-container">
+                    <canvas id="chartRevenue"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">الخدمات الأكثر طلبًا</div>
+                <div class="chart-container">
+                    <canvas id="chartServices"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">أحجام السيارات الأكثر زيارة</div>
+                <div class="chart-container">
+                    <canvas id="chartSizes"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">الزيارات اليومية</div>
+                <div class="chart-container">
+                    <canvas id="chartVisits"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">آخر 20 زيارة</div>
+                <div class="panel-sub">أحدث العمليات المسجلة</div>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>العميل</th>
+                                <th>العضوية</th>
+                                <th>الخدمة</th>
+                                <th>السعر</th>
+                                <th>النقاط</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lastVisitsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div id="customers" class="section">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">العملاء</div>
+                <div class="panel-sub">بحث عن عميل وعرض بياناته وزياراته</div>
+            </div>
+            <div class="filter-row">
+                <div>
+                    <label>رقم الجوال</label>
+                    <input id="custPhone" placeholder="05xxxxxxxx">
+                </div>
+                <div style="align-self:end;">
+                    <button class="btn btn-primary" id="custSearchBtn" onclick="searchCustomer()">بحث</button>
+                </div>
+            </div>
+            <div style="margin-top:15px;" id="custInfo"></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">زيارات العميل</div>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الخدمة</th>
+                                <th>السعر</th>
+                                <th>النقاط</th>
+                            </tr>
+                        </thead>
+                        <tbody id="custVisitsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARS -->
+    <div id="cars" class="section">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">سيارات العميل</div>
+                <div class="panel-sub">بحث برقم الجوال وعرض سياراته</div>
+            </div>
+            <div class="filter-row">
+                <div>
+                    <label>رقم الجوال</label>
+                    <input id="carsPhone" placeholder="05xxxxxxxx">
+                </div>
+                <div style="align-self:end;">
+                    <button class="btn btn-primary" id="carsSearchBtn" onclick="searchCars()">عرض السيارات</button>
+                </div>
+            </div>
+            <div class="table-wrapper" style="margin-top:15px;">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>السيارة</th>
+                                <th>الحجم</th>
+                                <th>المدينة</th>
+                                <th>اللوحة</th>
+                                <th>العضوية</th>
+                            </tr>
+                        </thead>
+                        <tbody id="carsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SERVICES -->
+    <div id="services" class="section">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">الخدمات</div>
+                <div class="panel-sub">الخدمات الأكثر طلبًا حسب الفترة</div>
+            </div>
+            <div class="filter-row">
+                <div>
+                    <label>من تاريخ</label>
+                    <input type="date" id="svcFrom">
+                </div>
+                <div>
+                    <label>إلى تاريخ</label>
+                    <input type="date" id="svcTo">
+                </div>
+                <div style="align-self:end;">
+                    <button class="btn btn-primary" onclick="filterServices()">تطبيق</button>
+                </div>
+            </div>
+            <div class="table-wrapper" style="margin-top:15px;">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الخدمة</th>
+                                <th>عدد المرات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISITS -->
+    <div id="visits" class="section">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">الزيارات حسب التاريخ</div>
+                <div class="panel-sub">تقرير زيارات ومبالغ</div>
+            </div>
+            <div class="filter-row">
+                <div>
+                    <label>من تاريخ</label>
+                    <input type="date" id="visFrom">
+                </div>
+                <div>
+                    <label>إلى تاريخ</label>
+                    <input type="date" id="visTo">
+                </div>
+                <div style="align-self:end;">
+                    <button class="btn btn-primary" onclick="filterVisits()">تطبيق</button>
+                </div>
+            </div>
+            <div style="margin-top:10px;">
+                <div id="visSummary"></div>
+            </div>
+            <div class="table-wrapper" style="margin-top:10px;">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>العضوية</th>
+                                <th>الخدمة</th>
+                                <th>السعر</th>
+                                <th>النقاط</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="visBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="reports" class="section">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">تنزيل التقارير</div>
+                <div class="panel-sub">تقرير مالي حسب الفترة</div>
+            </div>
+            <div class="filter-row">
+                <div>
+                    <label>من تاريخ</label>
+                    <input type="date" id="repFrom">
+                </div>
+                <div>
+                    <label>إلى تاريخ</label>
+                    <input type="date" id="repTo">
+                </div>
+                <div style="align-self:end;">
+                    <button class="btn btn-primary" id="repBtn" onclick="downloadReport()">تنزيل CSV</button>
+                </div>
+            </div>
+            <div style="margin-top:10px;" id="repInfo"></div>
+        </div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div id="bookings" class="section">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">الحجوزات</div>
+                <div class="panel-sub">إدارة الحجوزات</div>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الخدمة</th>
+                                <th>التاريخ</th>
+                                <th>الوقت</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showSection(id, btn) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+}
+
+async function loadDashboard() {
+    const res = await apiGet({ action: "getOwnersDashboard" });
+    const stats = res.totals;
+
+    document.getElementById("statsGrid").innerHTML = `
+        <div class="card"><div class="card-label">العملاء</div><div class="card-value">${stats.customers}</div></div>
+        <div class="card"><div class="card-label">السيارات</div><div class="card-value">${stats.cars}</div></div>
+        <div class="card"><div class="card-label">الزيارات</div><div class="card-value">${stats.visits}</div></div>
+        <div class="card"><div class="card-label">الدخل</div><div class="card-value">${stats.amount} ريال</div></div>
+        <div class="card"><div class="card-label">الجدد هذا الشهر</div><div class="card-value">${stats.new_customers_this_month}</div></div>
+        <div class="card"><div class="card-label">العائدين</div><div class="card-value">${stats.returning_customers}</div></div>
+        <div class="card"><div class="card-label">الاحتفاظ</div><div class="card-value">${stats.retention_rate.toFixed(1)}%</div></div>
+    `;
+
+    loadCharts(res);
+    loadLastVisits();
+    loadBookings();
+}
+
+function loadCharts(data) {
+    new Chart(document.getElementById("chartRevenue"), {
+        type: "line",
+        data: {
+            labels: data.visits_per_day.map(v => v.date),
+            datasets: [{
+                label: "ريال",
+                data: data.visits_per_day.map(v => v.count),
+                borderColor: "#d4af37"
+            }]
+        }
+    });
+
+    new Chart(document.getElementById("chartServices"), {
+        type: "bar",
+        data: {
+            labels: data.services_breakdown.map(s => s.service),
+            datasets: [{
+                label: "عدد المرات",
+                data: data.services_breakdown.map(s => s.count),
+                backgroundColor: "#d4af37"
+            }]
+        }
+    });
+
+    new Chart(document.getElementById("chartSizes"), {
+        type: "pie",
+        data: {
+            labels: data.cars_stats.top_sizes.map(s => s.size),
+            datasets: [{
+                data: data.cars_stats.top_sizes.map(s => s.count),
+                backgroundColor: ["#d4af37", "#b8962f", "#8a6f1f"]
+            }]
+        }
+    });
+
+    new Chart(document.getElementById("chartVisits"), {
+        type: "line",
+        data: {
+            labels: data.visits_per_day.map(v => v.date),
+            datasets: [{
+                label: "زيارات",
+                data: data.visits_per_day.map(v => v.count),
+                borderColor: "#d4af37"
+            }]
+        }
+    });
+}
+
+async function loadLastVisits() {
+    const res = await apiGet({ action: "getVisitsByDate", from: "2000-01-01", to: "2100-01-01" });
+    const tbody = document.getElementById("lastVisitsBody");
+    tbody.innerHTML = "";
+    res.visits.slice(-20).reverse().forEach(v => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${v.name || "-"}</td>
+            <td>${v.membership}</td>
+            <td>${v.service}</td>
+            <td>${v.price}</td>
+            <td>${v.points}</td>
+            <td>${v.date}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function searchCustomer() {
+    const phone = document.getElementById("custPhone").value.trim();
+    if (!phone) return;
+    const btn = document.getElementById("custSearchBtn");
+    btn.classList.add("loading");
+    btn.textContent = "جاري البحث...";
+    const res = await apiGet({ action: "getByPhone", phone });
+    btn.classList.remove("loading");
+    btn.textContent = "بحث";
+
+    const info = document.getElementById("custInfo");
+    const tbody = document.getElementById("custVisitsBody");
+    tbody.innerHTML = "";
+    if (!res.success) {
+        info.innerHTML = "العميل غير موجود";
+        return;
+    }
+    const c = res.customer;
+    info.innerHTML = `
+        <div class="cards-grid" style="margin-top:10px;">
+            <div class="card"><div class="card-label">الاسم</div><div class="card-value" style="font-size:18px;">${c.name}</div></div>
+            <div class="card"><div class="card-label">العضوية</div><div class="card-value" style="font-size:18px;">${c.membership}</div></div>
+            <div class="card"><div class="card-label">النقاط</div><div class="card-value">${c.points}</div></div>
+            <div class="card"><div class="card-label">المستوى</div><div class="card-value" style="font-size:18px;">${c.level || "-"}</div></div>
+        </div>
+    `;
+    const v = await apiGet({ action: "getVisitsByPhone", phone });
+    if (v.success) {
+        v.visits.forEach(vis => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${vis.date}</td>
+                <td>${vis.service}</td>
+                <td>${vis.price}</td>
+                <td>${vis.points}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+}
+
+async function searchCars() {
+    const phone = document.getElementById("carsPhone").value.trim();
+    if (!phone) return;
+    const btn = document.getElementById("carsSearchBtn");
+    btn.classList.add("loading");
+    btn.textContent = "جاري التحميل...";
+    const res = await apiGet({ action: "getCarsByPhone", phone });
+    btn.classList.remove("loading");
+    btn.textContent = "عرض السيارات";
+
+    const tbody = document.getElementById("carsBody");
+    tbody.innerHTML = "";
+    if (!res.success || !res.cars.length) {
+        tbody.innerHTML = "<tr><td colspan='5'>لا توجد سيارات</td></tr>";
+        return;
+    }
+    res.cars.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${c.car}</td>
+            <td>${c.size}</td>
+            <td>${c.city}</td>
+            <td>${c.plate_letters} ${c.plate_numbers}</td>
+            <td>${c.membership}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function filterServices() {
+    const from = document.getElementById("svcFrom").value || "2000-01-01";
+    const to   = document.getElementById("svcTo").value   || "2100-01-01";
+    const res = await apiGet({ action: "getVisitsByDate", from, to });
+    const counts = {};
+    res.visits.forEach(v => {
+        counts[v.service] = (counts[v.service] || 0) + 1;
+    });
+    const tbody = document.getElementById("servicesBody");
+    tbody.innerHTML = "";
+    Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([svc, cnt]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${svc}</td><td>${cnt}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function filterVisits() {
+    const from = document.getElementById("visFrom").value || "2000-01-01";
+    const to   = document.getElementById("visTo").value   || "2100-01-01";
+    const res = await apiGet({ action: "getVisitsByDate", from, to });
+    const tbody = document.getElementById("visBody");
+    tbody.innerHTML = "";
+    let total = 0;
+    res.visits.forEach(v => {
+        total += Number(v.price || 0);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${v.membership}</td>
+            <td>${v.service}</td>
+            <td>${v.price}</td>
+            <td>${v.points}</td>
+            <td>${v.date}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    document.getElementById("visSummary").innerText =
+        `عدد الزيارات: ${res.visits.length} — إجمالي المبالغ: ${total} ريال`;
+}
+
+async function downloadReport() {
+    const from = document.getElementById("repFrom").value || "2000-01-01";
+    const to   = document.getElementById("repTo").value   || "2100-01-01";
+    const btn  = document.getElementById("repBtn");
+    btn.classList.add("loading");
+    btn.textContent = "جاري التجهيز...";
+    const res = await apiGet({ action: "getVisitsByDate", from, to });
+    btn.classList.remove("loading");
+    btn.textContent = "تنزيل CSV";
+
+    const rows = [
+        ["membership","service","price","points","date"]
+    ];
+    res.visits.forEach(v => {
+        rows.push([v.membership, v.service, v.price, v.points, v.date]);
+    });
+    let csv = rows.map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `report_${from}_to_${to}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    document.getElementById("repInfo").innerText =
+        `تم تجهيز ${res.visits.length} عملية في التقرير.`;
+}
+
+async function loadBookings() {
+    const res = await apiGet({ action: "getAllBookings" });
+    const tbody = document.getElementById("bookingsBody");
+    tbody.innerHTML = "";
+    if (!res.success || !res.bookings.length) {
+        tbody.innerHTML = "<tr><td colspan='5'>لا توجد حجوزات</td></tr>";
+        return;
+    }
+    res.bookings.forEach(b => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${b.service}</td>
+            <td>${b.date}</td>
+            <td>${b.time}</td>
+            <td>${b.status}</td>
+            <td>
+                <button class="btn btn-primary" style="padding:4px 8px;font-size:11px;" onclick="updateBooking(${b.row}, 'Approved')">تأكيد</button>
+                <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="updateBooking(${b.row}, 'Cancelled')">إلغاء</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function updateBooking(row, status) {
+    await apiPost({ action: "updateBookingStatus", row, status });
+    loadBookings();
+}
+
+function logout() {
+    localStorage.clear();
+    location.href = "admin-login.html";
+}
+
+loadDashboard();
+</script>
 
 </body>
 </html>
