@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تقييم آخر زيارة</title>
+
+<style>
+    body {
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .back-btn {
+        background: #000;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-bottom: 20px;
+        cursor: pointer;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .row {
+        margin-bottom: 8px;
+        font-size: 15px;
+    }
+
+    .stars {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        font-size: 28px;
+        cursor: pointer;
+    }
+
+    .star {
+        color: #ccc;
+    }
+
+    .star.selected {
+        color: gold;
+    }
+
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        margin-top: 10px;
+        font-size: 15px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background: #000;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        margin-top: 15px;
+        cursor: pointer;
+    }
+</style>
+
+<script src="api.js"></script>
+</head>
+<body>
+
+<div class="back-btn" onclick="goBack()">رجوع</div>
+
+<h2 style="text-align:center;">تقييم آخر زيارة</h2>
+
+<div id="content"></div>
+
+<script>
+let phone = localStorage.getItem("customer_phone");
+let selectedRating = 0;
+let lastVisit = null;
+
+if (!phone) {
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
+}
+
+// -----------------------------
+// تحميل آخر زيارة
+// -----------------------------
+async function loadLastVisit() {
+    const res = await apiGet({
+        action: "getVisitsByPhone",
+        phone
+    });
+
+    const content = document.getElementById("content");
+
+    if (!res.success || res.visits.length === 0) {
+        content.innerHTML = "<p style='text-align:center;color:#777;'>لا توجد زيارات للتقييم</p>";
+        return;
+    }
+
+    // آخر زيارة
+    lastVisit = res.visits[res.visits.length - 1];
+
+    // لو الزيارة مقيمة مسبقًا
+    if (lastVisit.rating && lastVisit.rating !== "") {
+        content.innerHTML = `
+            <div class="card">
+                <p style="text-align:center;">لقد قمت بتقييم آخر زيارة مسبقًا</p>
+            </div>
+        `;
+        return;
+    }
+
+    content.innerHTML = `
+        <div class="card">
+            <div class="row"><b>الخدمة:</b> ${lastVisit.service}</div>
+            <div class="row"><b>التاريخ:</b> ${lastVisit.date}</div>
+            <div class="row"><b>الفرع:</b> ${lastVisit.branch || "—"}</div>
+            <div class="row"><b>الموظف:</b> ${lastVisit.employee || "—"}</div>
+
+            <h3 style="margin-top:15px;">اختر التقييم</h3>
+            <div class="stars">
+                <span class="star" onclick="setRating(1)">★</span>
+                <span class="star" onclick="setRating(2)">★</span>
+                <span class="star" onclick="setRating(3)">★</span>
+                <span class="star" onclick="setRating(4)">★</span>
+                <span class="star" onclick="setRating(5)">★</span>
+            </div>
+
+            <textarea id="comment" placeholder="اكتب تعليقك (اختياري)"></textarea>
+
+            <button onclick="submitRating()">إرسال التقييم</button>
+        </div>
+    `;
+}
+
+// -----------------------------
+// اختيار التقييم
+// -----------------------------
+function setRating(n) {
+    selectedRating = n;
+    document.querySelectorAll(".star").forEach((s, i) => {
+        s.classList.toggle("selected", i < n);
+    });
+}
+
+// -----------------------------
+// إرسال التقييم
+// -----------------------------
+async function submitRating() {
+    if (selectedRating === 0) {
+        alert("يرجى اختيار تقييم");
+        return;
+    }
+
+    const comment = document.getElementById("comment").value;
+
+    const res = await apiPost({
+        action: "rateVisit",
+        visit_id: lastVisit.id,
+        membership: lastVisit.membership,
+        rating: selectedRating,
+        comment
+    });
+
+    if (res.success) {
+        alert("تم إرسال التقييم بنجاح");
+        window.location.href = "customer-home.html";
+    } else {
+        alert("حدث خطأ أثناء إرسال التقييم");
+    }
+}
+
+function goBack() {
+    window.location.href = "customer-home.html";
+}
+
+loadLastVisit();
+</script>
+
+</body>
+</html>
