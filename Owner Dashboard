@@ -2,201 +2,243 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>لوحة المالك</title>
+<title>لوحة المشرف</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
     body {
-        background: #f4f7fb;
+        margin: 0;
         font-family: "Tajawal", sans-serif;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        margin-bottom: 25px;
-        color: #1a3d7c;
-    }
-
-    .kpi-box {
-        background: white;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        text-align: center;
-        flex: 1;
-        margin: 10px;
-    }
-
-    .kpi-title {
-        font-size: 16px;
-        color: #555;
-    }
-
-    .kpi-value {
-        font-size: 28px;
-        font-weight: bold;
-        color: #1a3d7c;
-        margin-top: 8px;
-    }
-
-    .kpi-row {
+        background: #f4f6f9;
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
     }
 
-    .chart-box {
+    /* Sidebar */
+    #sidebar {
+        width: 260px;
+        background: #1f2937;
+        color: white;
+        height: 100vh;
+        position: fixed;
+        transition: 0.3s;
+        overflow-y: auto;
+    }
+
+    #sidebar.collapsed {
+        width: 70px;
+    }
+
+    #sidebar h2 {
+        text-align: center;
+        padding: 20px 0;
+        margin: 0;
+        font-size: 22px;
+        background: #111827;
+    }
+
+    .menu-item {
+        padding: 15px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        transition: 0.2s;
+    }
+
+    .menu-item:hover {
+        background: #374151;
+    }
+
+    .menu-item.active {
+        background: #2563eb;
+    }
+
+    /* Content Area */
+    #content {
+        margin-right: 260px;
+        padding: 25px;
+        width: 100%;
+        transition: 0.3s;
+    }
+
+    #sidebar.collapsed + #content {
+        margin-right: 70px;
+    }
+
+    .section {
+        display: none;
         background: white;
         padding: 20px;
         border-radius: 14px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
     }
 
-    button {
-        padding: 12px 18px;
-        background: #1a3d7c;
+    .section.active {
+        display: block;
+    }
+
+    .toggle-btn {
+        position: fixed;
+        right: 260px;
+        top: 15px;
+        background: #2563eb;
         color: white;
         border: none;
-        border-radius: 10px;
+        padding: 10px 14px;
+        border-radius: 8px;
         cursor: pointer;
-        margin-top: 10px;
+        transition: 0.3s;
     }
 
-    button:hover {
-        background: #0f2a55;
+    #sidebar.collapsed ~ .toggle-btn {
+        right: 70px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    table th, table td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        text-align: right;
+    }
+
+    table th {
+        background: #f1f5f9;
     }
 </style>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="api.js"></script>
-
 </head>
 
 <body>
 
-<h1>لوحة المالك</h1>
+<!-- Sidebar -->
+<div id="sidebar">
+    <h2>الإدارة</h2>
 
-<!-- KPIs -->
-<div class="kpi-row">
-    <div class="kpi-box">
-        <div class="kpi-title">إجمالي الزيارات</div>
-        <div class="kpi-value" id="totalVisits">0</div>
+    <div class="menu-item active" onclick="showSection('dashboard')">لوحة التحكم</div>
+    <div class="menu-item" onclick="showSection('customers')">العملاء</div>
+    <div class="menu-item" onclick="showSection('cars')">السيارات</div>
+    <div class="menu-item" onclick="showSection('employees')">الموظفين</div>
+    <div class="menu-item" onclick="showSection('bookings')">الحجوزات</div>
+    <div class="menu-item" onclick="showSection('services')">الخدمات</div>
+    <div class="menu-item" onclick="showSection('prices')">الأسعار</div>
+    <div class="menu-item" onclick="showSection('branches')">الفروع</div>
+    <div class="menu-item" onclick="showSection('points')">النقاط</div>
+    <div class="menu-item" onclick="showSection('subscriptions')">الاشتراكات</div>
+    <div class="menu-item" onclick="showSection('notifications')">الإشعارات</div>
+    <div class="menu-item" onclick="showSection('reports')">التقارير</div>
+    <div class="menu-item" onclick="goOwner()">لوحة المالك</div>
+</div>
+
+<!-- Collapse Button -->
+<button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+<!-- Content Area -->
+<div id="content">
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="section active">
+        <h2>لوحة التحكم</h2>
+        <p>مرحبًا بك في لوحة إدارة النظام.</p>
     </div>
 
-    <div class="kpi-box">
-        <div class="kpi-title">إجمالي المبيعات</div>
-        <div class="kpi-value" id="totalSales">0 ريال</div>
+    <!-- Customers -->
+    <div id="customers" class="section">
+        <h2>إدارة العملاء</h2>
+        <table>
+            <tr><th>الاسم</th><th>الجوال</th><th>العضوية</th></tr>
+            <tr><td>—</td><td>—</td><td>—</td></tr>
+        </table>
     </div>
 
-    <div class="kpi-box">
-        <div class="kpi-title">العملاء الجدد</div>
-        <div class="kpi-value" id="newCustomers">0</div>
+    <!-- Cars -->
+    <div id="cars" class="section">
+        <h2>إدارة السيارات</h2>
+        <table>
+            <tr><th>السيارة</th><th>اللوحة</th><th>العميل</th></tr>
+            <tr><td>—</td><td>—</td><td>—</td></tr>
+        </table>
     </div>
 
-    <div class="kpi-box">
-        <div class="kpi-title">الاشتراكات</div>
-        <div class="kpi-value" id="subscriptions">0</div>
+    <!-- Employees -->
+    <div id="employees" class="section">
+        <h2>إدارة الموظفين</h2>
+        <table>
+            <tr><th>الاسم</th><th>الدور</th><th>الحالة</th></tr>
+            <tr><td>—</td><td>—</td><td>—</td></tr>
+        </table>
     </div>
-</div>
 
-<!-- Charts -->
-<div class="chart-box">
-    <h3>الزيارات خلال آخر 7 أيام</h3>
-    <canvas id="visitsChart"></canvas>
-</div>
+    <!-- Bookings -->
+    <div id="bookings" class="section">
+        <h2>إدارة الحجوزات</h2>
+        <table>
+            <tr><th>الخدمة</th><th>التاريخ</th><th>الحالة</th></tr>
+            <tr><td>—</td><td>—</td><td>—</td></tr>
+        </table>
+    </div>
 
-<div class="chart-box">
-    <h3>المبيعات الشهرية</h3>
-    <canvas id="salesChart"></canvas>
-</div>
+    <!-- Services -->
+    <div id="services" class="section">
+        <h2>إدارة الخدمات</h2>
+        <p>إضافة – تعديل – حذف الخدمات.</p>
+    </div>
 
-<div class="chart-box">
-    <h3>أفضل الموظفين</h3>
-    <canvas id="employeesChart"></canvas>
-</div>
+    <!-- Prices -->
+    <div id="prices" class="section">
+        <h2>إدارة الأسعار</h2>
+        <p>تعديل أسعار الخدمات حسب الحجم.</p>
+    </div>
 
-<div class="chart-box">
-    <h3>الخدمات الأكثر طلبًا</h3>
-    <canvas id="servicesChart"></canvas>
-</div>
+    <!-- Branches -->
+    <div id="branches" class="section">
+        <h2>إدارة الفروع</h2>
+        <p>إضافة – تعديل – حذف الفروع.</p>
+    </div>
 
-<button onclick="logout()">تسجيل خروج</button>
+    <!-- Points -->
+    <div id="points" class="section">
+        <h2>إدارة النقاط</h2>
+        <p>إدارة نظام النقاط والمكافآت.</p>
+    </div>
+
+    <!-- Subscriptions -->
+    <div id="subscriptions" class="section">
+        <h2>إدارة الاشتراكات</h2>
+        <p>إدارة الباقات والاشتراكات.</p>
+    </div>
+
+    <!-- Notifications -->
+    <div id="notifications" class="section">
+        <h2>إدارة الإشعارات</h2>
+        <p>إرسال إشعارات للعملاء.</p>
+    </div>
+
+    <!-- Reports -->
+    <div id="reports" class="section">
+        <h2>التقارير</h2>
+        <p>تقارير يومية – شهرية – سنوية.</p>
+    </div>
+
+</div>
 
 <script>
-async function loadOwnerData() {
-    const res = await apiGet({ action: "ownerDashboard" });
-
-    if (!res.success) {
-        alert("خطأ في تحميل البيانات");
-        return;
-    }
-
-    // KPIs
-    document.getElementById("totalVisits").textContent = res.totalVisits;
-    document.getElementById("totalSales").textContent = res.totalSales + " ريال";
-    document.getElementById("newCustomers").textContent = res.newCustomers;
-    document.getElementById("subscriptions").textContent = res.subscriptions;
-
-    // Charts
-    new Chart(document.getElementById("visitsChart"), {
-        type: "line",
-        data: {
-            labels: res.visits7Days.labels,
-            datasets: [{
-                label: "الزيارات",
-                data: res.visits7Days.values,
-                borderColor: "#1a3d7c",
-                fill: false
-            }]
-        }
-    });
-
-    new Chart(document.getElementById("salesChart"), {
-        type: "bar",
-        data: {
-            labels: res.salesMonthly.labels,
-            datasets: [{
-                label: "المبيعات",
-                data: res.salesMonthly.values,
-                backgroundColor: "#1a3d7c"
-            }]
-        }
-    });
-
-    new Chart(document.getElementById("employeesChart"), {
-        type: "bar",
-        data: {
-            labels: res.topEmployees.labels,
-            datasets: [{
-                label: "زيارات",
-                data: res.topEmployees.values,
-                backgroundColor: "#0f2a55"
-            }]
-        }
-    });
-
-    new Chart(document.getElementById("servicesChart"), {
-        type: "pie",
-        data: {
-            labels: res.topServices.labels,
-            datasets: [{
-                data: res.topServices.values,
-                backgroundColor: ["#1a3d7c", "#0f2a55", "#4b6fa3", "#8aa4d4"]
-            }]
-        }
-    });
+function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("collapsed");
 }
 
-function logout() {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "login.html";
+function showSection(id) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+
+    document.querySelectorAll(".menu-item").forEach(m => m.classList.remove("active"));
+    event.target.classList.add("active");
 }
 
-loadOwnerData();
+function goOwner() {
+    window.location.href = "owner-dashboard.html";
+}
 </script>
 
 </body>
