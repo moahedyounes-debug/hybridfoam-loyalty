@@ -99,11 +99,17 @@ async function loadBookings() {
         const div = document.createElement("div");
         div.className = "booking";
 
+        let statusText = "";
+        if (b.status === "Pending") statusText = "قيد المراجعة";
+        else if (b.status === "Approved") statusText = "مقبول";
+        else if (b.status === "Cancelled") statusText = "ملغي";
+        else statusText = b.status;
+
         div.innerHTML = `
             <div class="row"><b>الخدمة:</b> ${b.service}</div>
             <div class="row"><b>التاريخ:</b> ${b.date}</div>
             <div class="row"><b>الوقت:</b> ${b.time}</div>
-            <div class="status ${b.status.toLowerCase()}">${b.status}</div>
+            <div class="status ${b.status.toLowerCase()}">${statusText}</div>
         `;
 
         list.appendChild(div);
