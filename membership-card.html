@@ -6,70 +6,61 @@
 
 <style>
     body {
-        font-family: sans-serif;
-        background: #f5f5f5;
-        padding: 20px;
-        margin: 0;
-        max-width: 600px;
-        margin: auto;
-    }
-
-    .back-btn {
-        background: #000;
-        color: white;
-        padding: 12px 16px;
-        border-radius: 10px;
-        display: inline-block;
-        margin-bottom: 20px;
-        cursor: pointer;
-    }
-
-    .card {
-        background: white;
+        font-family: "Tahoma", sans-serif;
+        background: #f2f2f2;
         padding: 25px;
-        border-radius: 18px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
         text-align: center;
     }
 
-    .title {
+    .card {
+        width: 360px;
+        margin: auto;
+        border-radius: 22px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .top {
+        padding: 25px;
+        color: white;
+        text-align: center;
+    }
+
+    .level-text {
         font-size: 22px;
         font-weight: bold;
-        margin-bottom: 15px;
-    }
-
-    .membership-box {
-        color: white;
-        padding: 20px;
-        border-radius: 14px;
-        margin-top: 15px;
-    }
-
-    .membership-id {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-
-    .level {
-        font-size: 20px;
-        margin-bottom: 10px;
-        font-weight: bold;
+        margin-top: 5px;
     }
 
     .qr-box {
-        margin-top: 20px;
+        margin-top: 15px;
     }
 
-    .info {
-        margin-top: 20px;
+    .bottom {
+        padding: 20px;
         text-align: right;
-        font-size: 15px;
-        color: #444;
+        background: #fff;
     }
 
-    .info div {
-        margin-bottom: 6px;
+    .row {
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .row b {
+        color: #333;
+    }
+
+    .add-btn {
+        margin-top: 18px;
+        background: #000;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-size: 16px;
+        cursor: pointer;
+        display: inline-block;
     }
 </style>
 
@@ -78,102 +69,81 @@
 </head>
 <body>
 
-<div class="back-btn" onclick="goBack()">رجوع</div>
+<h2>بطاقة العضوية</h2>
 
-<div class="card">
-    <div class="title">بطاقة العضوية</div>
-
-    <div class="membership-box" id="levelBox">
-        <div class="membership-id" id="membershipId">...</div>
-        <div class="level" id="custLevel">...</div>
-
-        <div class="qr-box">
-            <canvas id="qr"></canvas>
-        </div>
-    </div>
-
-    <div class="info">
-        <div><b>الاسم:</b> <span id="custName">...</span></div>
-        <div><b>النقاط:</b> <span id="custPoints">...</span></div>
-        <div><b>السيارة الأساسية:</b> <span id="custCar">...</span></div>
-        <div><b>تاريخ الانضمام:</b> <span id="joinDate">...</span></div>
-    </div>
-</div>
+<div id="cardContainer"></div>
 
 <script>
-let phone = localStorage.getItem("customer_phone");
+async function loadCard() {
+    const phone = localStorage.getItem("customer_phone");
 
-if (!phone) {
-    alert("يرجى تسجيل الدخول أولاً");
-    window.location.href = "login.html";
-}
+    if (!phone) {
+        alert("يرجى تسجيل الدخول أولاً");
+        location.href = "login.html";
+        return;
+    }
 
-// -----------------------------
-// تحميل بيانات العضوية
-// -----------------------------
-async function loadMembership() {
     const res = await apiGet({
         action: "getByPhone",
         phone
     });
 
     if (!res.success) {
-        alert("خطأ في تحميل البيانات");
+        document.getElementById("cardContainer").innerHTML =
+            "<h3 style='color:red;'>خطأ في تحميل البيانات</h3>";
         return;
     }
 
     const c = res.customer;
-    const cars = res.cars;
+    const car = res.cars[0];
 
-    document.getElementById("custName").textContent = c.name;
-    document.getElementById("custPoints").textContent = c.points + " نقطة";
+    // ألوان المستويات
+    let color = "#cd7f32"; // Bronze
+    if (c.level === "Silver") color = "#c0c0c0";
+    if (c.level === "Gold") color = "#d4af37";
+    if (c.level === "Platinum") color = "#e5e4e2";
+    if (c.level === "VIP") color = "#000";
 
-    // تحديد لون المستوى
-    const box = document.getElementById("levelBox");
+    // تاج VIP
     let levelText = c.level;
+    if (c.level === "VIP") levelText = "👑 VIP";
 
-    if (c.level === "Bronze") box.style.background = "#cd7f32";
-    else if (c.level === "Silver") box.style.background = "#c0c0c0";
-    else if (c.level === "Gold") box.style.background = "#d4af37";
-    else if (c.level === "Platinum") box.style.background = "#e5e4e2";
-    else if (c.level === "VIP") {
-        box.style.background = "#000";
-        levelText = "👑 VIP";
-    }
+    document.getElementById("cardContainer").innerHTML = `
+        <div class="card">
+            <div class="top" style="background:${color};">
+                <div><b>رقم العضوية:</b> ${car.membership}</div>
+                <div class="level-text">${levelText}</div>
 
-    document.getElementById("custLevel").textContent = levelText;
+                <div class="qr-box">
+                    <canvas id="qr"></canvas>
+                </div>
+            </div>
 
-    // السيارة الأساسية
-    if (cars.length > 0) {
-        document.getElementById("custCar").textContent =
-            cars[0].car + " — " + cars[0].plate_numbers + " " + cars[0].plate_letters;
+            <div class="bottom">
+                <div class="row"><b>الاسم:</b> ${c.name}</div>
+                <div class="row"><b>النقاط:</b> ${c.points} نقطة</div>
+                <div class="row"><b>السيارة الأساسية:</b> ${car.car} — ${car.plate_numbers} ${car.plate_letters}</div>
+                <div class="row"><b>تاريخ الانضمام:</b> ${c.join_date || "—"}</div>
 
-        document.getElementById("membershipId").textContent =
-            "رقم العضوية: " + cars[0].membership;
-    }
+                <div class="add-btn" onclick="addToHome()">📱 أضف للشاشة الرئيسية</div>
+            </div>
+        </div>
+    `;
 
     // QR يقرأ رقم الجوال
-    generateQR(phone);
-
-    document.getElementById("joinDate").textContent = c.join_date || "—";
-}
-
-// -----------------------------
-// توليد QR Code
-// -----------------------------
-function generateQR(text) {
     new QRious({
         element: document.getElementById("qr"),
-        value: text,
+        value: phone,
         size: 150
     });
 }
 
-function goBack() {
-    window.location.href = "customer-home.html";
+// زر إضافة للشاشة الرئيسية
+function addToHome() {
+    alert("لإضافة البطاقة للشاشة الرئيسية:\n\n📱 iPhone:\nاضغط مشاركة → Add to Home Screen\n\n🤖 Android:\nمن القائمة → Add to Home Screen");
 }
 
-loadMembership();
+loadCard();
 </script>
 
 </body>
