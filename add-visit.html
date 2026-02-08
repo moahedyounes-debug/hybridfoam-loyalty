@@ -46,6 +46,7 @@
         border-radius: 8px;
         font-size: 16px;
         cursor: pointer;
+        transition: 0.2s;
     }
 
     button.loading {
@@ -72,7 +73,7 @@
     }
 </style>
 
-<script src="api.js"></script>
+<script src="api.js?v=3"></script>
 </head>
 <body>
 
@@ -81,7 +82,7 @@
 <!-- البحث -->
 <div class="box">
     <label>رقم الجوال</label>
-    <input type="text" id="phone" placeholder="05xxxxxxxx">
+    <input type="text" id="phone" placeholder="05xxxxxxxx" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
     <button id="searchBtn" onclick="searchCustomer()">بحث</button>
 </div>
@@ -113,7 +114,7 @@
         <option value="مكة">مكة</option>
     </select>
 
-    <button onclick="submitVisit()">تسجيل الزيارة</button>
+    <button id="submitBtn" onclick="submitVisit()">تسجيل الزيارة</button>
 </div>
 
 <script>
@@ -130,6 +131,9 @@ async function loadServices() {
 
     const serviceSelect = document.getElementById("service");
     serviceSelect.innerHTML = "";
+
+    // ترتيب الخدمات أبجديًا
+    res.commissions.sort((a, b) => a.service.localeCompare(b.service));
 
     res.commissions.forEach(row => {
         const name = row.service;
@@ -154,7 +158,6 @@ function updatePriceAndPoints() {
     const price = servicesData[service] || 0;
 
     document.getElementById("price").value = price;
-
     updatePoints();
 }
 
@@ -224,6 +227,10 @@ function selectCar(element, membership) {
 async function submitVisit() {
     if (!selectedMembership) return alert("اختر السيارة أولاً");
 
+    const btn = document.getElementById("submitBtn");
+    btn.classList.add("loading");
+    btn.textContent = "جاري التسجيل...";
+
     const service  = document.getElementById("service").value;
     const price    = document.getElementById("price").value;
     const points   = document.getElementById("points").value;
@@ -239,6 +246,9 @@ async function submitVisit() {
         employee,
         branch
     });
+
+    btn.classList.remove("loading");
+    btn.textContent = "تسجيل الزيارة";
 
     if (res.success) {
         alert("تم تسجيل الزيارة بنجاح");
