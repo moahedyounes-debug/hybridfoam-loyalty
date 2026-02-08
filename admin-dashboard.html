@@ -2,82 +2,325 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<title>لوحة المشرف</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة تحكم المشرف</title>
 
 <style>
     body {
-        background: #000;
-        color: #d4af37;
+        margin: 0;
         font-family: "Tajawal", sans-serif;
-        padding: 25px;
+        background: #f4f6f9;
+        display: flex;
+    }
+
+    /* Sidebar */
+    #sidebar {
+        width: 260px;
+        background: #1f2937;
+        color: white;
+        height: 100vh;
+        position: fixed;
+        transition: 0.3s;
+        overflow-y: auto;
+    }
+
+    #sidebar.collapsed {
+        width: 70px;
+    }
+
+    #sidebar h2 {
         text-align: center;
+        padding: 20px 0;
+        margin: 0;
+        font-size: 22px;
+        background: #111827;
     }
 
-    h1 {
-        margin-bottom: 25px;
-        font-size: 28px;
-    }
-
-    .menu {
-        max-width: 380px;
-        margin: auto;
-    }
-
-    .btn {
-        display: block;
-        width: 100%;
-        padding: 15px;
-        margin: 12px 0;
-        border-radius: 12px;
-        border: 1px solid rgba(212,175,55,0.4);
-        background: rgba(255,255,255,0.06);
-        color: #d4af37;
-        font-size: 18px;
-        font-weight: bold;
-        text-decoration: none;
-        transition: 0.25s;
-    }
-
-    .btn:hover {
-        background: #d4af37;
-        color: #000;
-        transform: translateY(-3px);
-    }
-
-    .logout {
-        margin-top: 25px;
-        color: #ff4c4c;
+    .menu-item {
+        padding: 15px 20px;
         cursor: pointer;
-        font-size: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        transition: 0.2s;
+    }
+
+    .menu-item:hover {
+        background: #374151;
+    }
+
+    .menu-item.active {
+        background: #2563eb;
+    }
+
+    /* Content Area */
+    #content {
+        margin-right: 260px;
+        padding: 25px;
+        width: 100%;
+        transition: 0.3s;
+    }
+
+    #sidebar.collapsed + #content {
+        margin-right: 70px;
+    }
+
+    .section {
+        display: none;
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .section.active {
+        display: block;
+    }
+
+    .toggle-btn {
+        position: fixed;
+        right: 260px;
+        top: 15px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    #sidebar.collapsed ~ .toggle-btn {
+        right: 70px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    table th, table td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        text-align: right;
+    }
+
+    table th {
+        background: #f1f5f9;
     }
 </style>
 </head>
 
 <body>
 
-<h1>لوحة تحكم المشرف</h1>
+<!-- Sidebar -->
+<div id="sidebar">
+    <h2>الإدارة</h2>
 
-<div class="menu">
+    <div class="menu-item active" onclick="showSection('dashboard')">لوحة التحكم</div>
+    <div class="menu-item" onclick="showSection('customers')">العملاء</div>
+    <div class="menu-item" onclick="showSection('cars')">السيارات</div>
+    <div class="menu-item" onclick="showSection('employees')">الموظفين</div>
+    <div class="menu-item" onclick="showSection('bookings')">الحجوزات</div>
+    <div class="menu-item" onclick="showSection('services')">الخدمات</div>
+    <div class="menu-item" onclick="showSection('prices')">الأسعار</div>
+    <div class="menu-item" onclick="showSection('branches')">الفروع</div>
+    <div class="menu-item" onclick="showSection('points')">النقاط</div>
+    <div class="menu-item" onclick="showSection('subscriptions')">الاشتراكات</div>
+    <div class="menu-item" onclick="showSection('notifications')">الإشعارات</div>
+    <div class="menu-item" onclick="showSection('reports')">التقارير</div>
+    <div class="menu-item" onclick="goOwner()">لوحة المالك</div>
+</div>
 
-    <a class="btn" href="customer-register.html">➕ تسجيل عميل جديد</a>
+<!-- Collapse Button -->
+<button class="toggle-btn" onclick="toggleSidebar()">☰</button>
 
-    <a class="btn" href="register-car.html">🚗 تسجيل سيارة جديدة</a>
+<!-- Content Area -->
+<div id="content">
 
-    <a class="btn" href="add-visit.html">🧽 تسجيل زيارة</a>
+    <!-- Dashboard -->
+    <div id="dashboard" class="section active">
+        <h2>لوحة التحكم</h2>
+        <p>مرحبًا بك في لوحة إدارة النظام.</p>
+    </div>
 
-    <a class="btn" href="visits.html">📅 سجل الزيارات</a>
+    <!-- Customers -->
+    <div id="customers" class="section">
+        <h2>إدارة العملاء</h2>
+        <table id="customersTable">
+            <tr><th>الاسم</th><th>الجوال</th><th>العضوية</th></tr>
+        </table>
+    </div>
 
-    <a class="btn" href="api-test.html">🛠 اختبار API</a>
+    <!-- Cars -->
+    <div id="cars" class="section">
+        <h2>إدارة السيارات</h2>
+        <table id="carsTable">
+            <tr><th>السيارة</th><th>اللوحة</th><th>العميل</th></tr>
+        </table>
+    </div>
+
+    <!-- Employees -->
+    <div id="employees" class="section">
+        <h2>إدارة الموظفين</h2>
+        <table id="employeesTable">
+            <tr><th>الاسم</th><th>الدور</th><th>الحالة</th></tr>
+        </table>
+    </div>
+
+    <!-- Bookings -->
+    <div id="bookings" class="section">
+        <h2>إدارة الحجوزات</h2>
+        <table id="bookingsTable">
+            <tr><th>الخدمة</th><th>التاريخ</th><th>الحالة</th></tr>
+        </table>
+    </div>
+
+    <!-- Services -->
+    <div id="services" class="section">
+        <h2>إدارة الخدمات</h2>
+        <p>إضافة – تعديل – حذف الخدمات.</p>
+    </div>
+
+    <!-- Prices -->
+    <div id="prices" class="section">
+        <h2>إدارة الأسعار</h2>
+        <p>تعديل أسعار الخدمات حسب الحجم.</p>
+    </div>
+
+    <!-- Branches -->
+    <div id="branches" class="section">
+        <h2>إدارة الفروع</h2>
+        <p>إضافة – تعديل – حذف الفروع.</p>
+    </div>
+
+    <!-- Points -->
+    <div id="points" class="section">
+        <h2>إدارة النقاط</h2>
+        <p>إدارة نظام النقاط والمكافآت.</p>
+    </div>
+
+    <!-- Subscriptions -->
+    <div id="subscriptions" class="section">
+        <h2>إدارة الاشتراكات</h2>
+        <p>إدارة الباقات والاشتراكات.</p>
+    </div>
+
+    <!-- Notifications -->
+    <div id="notifications" class="section">
+        <h2>إدارة الإشعارات</h2>
+        <p>إرسال إشعارات للعملاء.</p>
+    </div>
+
+    <!-- Reports -->
+    <div id="reports" class="section">
+        <h2>التقارير</h2>
+        <p>تقارير يومية – شهرية – سنوية.</p>
+    </div>
 
 </div>
 
-<div class="logout" onclick="logout()">تسجيل خروج</div>
+<script src="api.js"></script>
 
 <script>
-function logout() {
-    sessionStorage.clear();
-    window.location.href = "admin-login.html";
+function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("collapsed");
+}
+
+function showSection(id) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+
+    document.querySelectorAll(".menu-item").forEach(m => m.classList.remove("active"));
+    event.target.classList.add("active");
+
+    if (id === "customers") loadCustomers();
+    if (id === "cars") loadCars();
+    if (id === "employees") loadEmployees();
+    if (id === "bookings") loadBookings();
+}
+
+async function loadCustomers() {
+    const res = await apiGet({ action: "getAllCustomers" });
+    if (!res.success) return;
+
+    const table = document.getElementById("customersTable");
+    table.innerHTML = `
+        <tr><th>الاسم</th><th>الجوال</th><th>العضوية</th></tr>
+    `;
+
+    res.customers.forEach(c => {
+        table.innerHTML += `
+            <tr>
+                <td>${c.name}</td>
+                <td>${c.phone}</td>
+                <td>${c.membership}</td>
+            </tr>
+        `;
+    });
+}
+
+async function loadCars() {
+    const res = await apiGet({ action: "getAllCars" });
+    if (!res.success) return;
+
+    const table = document.getElementById("carsTable");
+    table.innerHTML = `
+        <tr><th>السيارة</th><th>اللوحة</th><th>العميل</th></tr>
+    `;
+
+    res.cars.forEach(c => {
+        table.innerHTML += `
+            <tr>
+                <td>${c.car}</td>
+                <td>${c.plate_letters} ${c.plate_numbers}</td>
+                <td>${c.customer_name}</td>
+            </tr>
+        `;
+    });
+}
+
+async function loadEmployees() {
+    const res = await apiGet({ action: "getEmployees" });
+    if (!res.success) return;
+
+    const table = document.getElementById("employeesTable");
+    table.innerHTML = `
+        <tr><th>الاسم</th><th>الدور</th><th>الحالة</th></tr>
+    `;
+
+    res.employees.forEach(e => {
+        table.innerHTML += `
+            <tr>
+                <td>${e.name}</td>
+                <td>${e.role}</td>
+                <td>${e.status}</td>
+            </tr>
+        `;
+    });
+}
+
+async function loadBookings() {
+    const res = await apiGet({ action: "getAllBookings" });
+    if (!res.success) return;
+
+    const table = document.getElementById("bookingsTable");
+    table.innerHTML = `
+        <tr><th>الخدمة</th><th>التاريخ</th><th>الحالة</th></tr>
+    `;
+
+    res.bookings.forEach(b => {
+        table.innerHTML += `
+            <tr>
+                <td>${b.service}</td>
+                <td>${b.date}</td>
+                <td>${b.status}</td>
+            </tr>
+        `;
+    });
+}
+
+function goOwner() {
+    window.location.href = "Owner Dashboard/index.html";
 }
 </script>
 
