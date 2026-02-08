@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>الإشعارات</title>
+
+<style>
+    body {
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .back-btn {
+        background: #000;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-bottom: 20px;
+        cursor: pointer;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .note {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .title {
+        font-weight: bold;
+        margin-bottom: 6px;
+        font-size: 16px;
+    }
+
+    .time {
+        color: #777;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+</style>
+
+<script src="api.js"></script>
+</head>
+<body>
+
+<div class="back-btn" onclick="goBack()">رجوع</div>
+
+<h2>الإشعارات</h2>
+
+<div id="notesList"></div>
+
+<script>
+let phone = localStorage.getItem("customer_phone");
+
+if (!phone) {
+    alert("يرجى تسجيل الدخول أولاً");
+    window.location.href = "login.html";
+}
+
+// -----------------------------
+// تحميل الإشعارات
+// -----------------------------
+async function loadNotifications() {
+    const notes = [];
+    const list = document.getElementById("notesList");
+
+    // تحميل الحجوزات
+    const bookings = await apiGet({
+        action: "getBookingsByPhone",
+        phone
+    });
+
+    if (bookings.success) {
+        bookings.bookings.forEach(b => {
+            let msg = "";
+
+            if (b.status === "Pending") {
+                msg = `تم استلام طلب حجز لخدمة ${b.service}`;
+            } else if (b.status === "Approved") {
+                msg = `تمت الموافقة على حجزك لخدمة ${b.service}`;
+            } else if (b.status === "Cancelled") {
+                msg = `تم إلغاء حجزك لخدمة ${b.service}`;
+            }
+
+            notes.push({
+                text: msg,
+                date: b.date + " - " + b.time
+            });
+        });
+    }
+
+    // تحميل الزيارات
+    const visits = await apiGet({
+        action: "getVisitsByPhone",
+        phone
+    });
+
+    if (visits.success) {
+        visits.visits.forEach(v => {
+            notes.push({
+                text: `تم تسجيل زيارة لخدمة ${v.service} وإضافة ${v.points} نقطة`,
+                date: v.date
+            });
+
+            if (v.rating && v.rating !== "") {
+                notes.push({
+                    text: `شكراً لتقييمك لزيارتك الأخيرة (${v.rating} نجوم)`,
+                    date: v.date
+                });
+            }
+        });
+    }
+
+    // ترتيب الإشعارات من الأحدث إلى الأقدم
+    notes.reverse();
+
+    // عرض الإشعارات
+    if (notes.length === 0) {
+        list.innerHTML = "<p style='text-align:center;color:#777;'>لا توجد إشعارات</p>";
+        return;
+    }
+
+    notes.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "note";
+
+        div.innerHTML = `
+            <div class="title">${n.text}</div>
+            <div class="time">${n.date}</div>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+function goBack() {
+    window.location.href = "customer-home.html";
+}
+
+loadNotifications();
+</script>
+
+</body>
+</html>
