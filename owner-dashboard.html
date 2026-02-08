@@ -224,6 +224,10 @@
         <div id="reportsList"></div>
     </div>
 <div id="ownerReport" class="section">
+    <button onclick="exportOwnerExcel()"
+        style="padding: 10px 15px; background:#2563eb; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:10px;">
+    ⬇️ تصدير Excel
+</button>
     <h2>تقرير المالك – ملخص عالي</h2>
 
     <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -491,6 +495,34 @@ function renderBarChart(canvasId, labels, data, label, color) {
             plugins: { legend: { display: false } }
         }
     });
+}
+    function exportOwnerExcel() {
+    const rows = [
+        ["البند", "القيمة"],
+        ["إجمالي الإيرادات", document.getElementById("orRevenue").textContent],
+        ["إجمالي الحجوزات", document.getElementById("orBookings").textContent],
+        ["عدد العملاء", document.getElementById("orCustomers").textContent],
+        ["متوسط قيمة الفاتورة", document.getElementById("orAvgInvoice").textContent],
+        ["أفضل فرع", document.getElementById("orBestBranch").textContent],
+        ["أفضل خدمة", document.getElementById("orBestService").textContent],
+        ["أفضل موظف", document.getElementById("orBestEmployee").textContent],
+        ["أفضل نوع سيارة", document.getElementById("orBestCarType").textContent],
+        ["أعلى عميل نقاطًا", document.getElementById("orTopPoints").textContent]
+    ];
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+
+    rows.forEach(row => {
+        csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "owner_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 </script>
 
