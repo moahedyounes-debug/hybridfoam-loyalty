@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>Supervisor Panel</title>
+<title>لوحة التحكم - CarTech</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -10,36 +10,21 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
-/* ====== GLOBAL THEME ====== */
 :root {
   --bg: #020617;
   --bg-soft: #0f172a;
   --card: #0f172a;
   --border: #1e293b;
   --accent: #2563eb;
-  --accent-soft: #1d4ed8;
   --danger: #dc2626;
   --success: #16a34a;
-  --warning: #f59e0b;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --radius-lg: 16px;
   --radius-md: 12px;
-  --radius-sm: 8px;
   --shadow-soft: 0 18px 45px rgba(0,0,0,0.4);
 }
 
-[data-theme="light"] {
-  --bg: #f3f4f6;
-  --bg-soft: #ffffff;
-  --card: #ffffff;
-  --border: #d1d5db;
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --shadow-soft: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-* { box-sizing: border-box; }
 body {
   margin: 0;
   font-family: "Tajawal", sans-serif;
@@ -47,13 +32,11 @@ body {
   color: var(--text-main);
 }
 
-/* ====== LAYOUT ====== */
 .layout {
   display: flex;
   min-height: 100vh;
 }
 
-/* ====== SIDEBAR ====== */
 .sidebar {
   width: 260px;
   background: var(--bg-soft);
@@ -114,14 +97,12 @@ body {
   color: var(--text-main);
 }
 
-/* ====== MAIN ====== */
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* ====== TOPBAR ====== */
 .topbar {
   padding: 12px 18px;
   background: var(--bg-soft);
@@ -129,11 +110,6 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.topbar-left {
-  display: flex;
-  flex-direction: column;
 }
 
 .topbar-title {
@@ -161,16 +137,6 @@ body {
   color: var(--text-muted);
 }
 
-.theme-toggle {
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-main);
-  cursor: pointer;
-}
-
-/* ====== CONTENT ====== */
 .content {
   padding: 18px;
   display: flex;
@@ -181,7 +147,6 @@ body {
 .section { display: none; }
 .section.active { display: block; }
 
-/* ====== CARDS ====== */
 .card {
   background: var(--card);
   border-radius: var(--radius-lg);
@@ -196,14 +161,13 @@ body {
   align-items: center;
 }
 
-/* ====== INPUTS ====== */
 label {
   font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 4px;
 }
 
-input, select, textarea {
+input, select {
   width: 100%;
   padding: 10px;
   border-radius: var(--radius-md);
@@ -220,95 +184,20 @@ button {
   background: var(--accent);
   color: white;
   cursor: pointer;
-  transition: 0.2s;
-}
-
-button:active { transform: scale(0.97); }
-
-.btn-secondary { background: #1e293b; }
-.btn-danger { background: var(--danger); }
-
-.list { display: flex; flex-direction: column; gap: 10px; }
-
-</style>
-</head>
-
-<body data-theme="dark">
-<div class="layout">
-
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="brand">
-    <div class="brand-logo">CT</div>
-    <div class="brand-text">لوحة المشرف</div>
-  </div>
-
-  <div class="nav-section-title">الرئيسية</div>
-  <div class="nav">
-    <button class="nav-btn active" data-target="dashboard">Dashboard</button>
-  </div>
-
-  <div class="nav-section-title">العملاء</div>
-  <div class="nav">
-    <button class="nav-btn" data-target="customers">بحث عميل</button>
-    <button class="nav-btn" data-target="visits">زيارات الفرع</button>
-    <button class="nav-btn" data-target="cars">سيارات العميل</button>
-    <button class="nav-btn" data-target="addVisit">إضافة زيارة</button>
-  </div>
-
-  <div class="nav-section-title">الحجوزات والتقارير</div>
-  <div class="nav">
-    <button class="nav-btn" data-target="bookings">الحجوزات</button>
-    <button class="nav-btn" data-target="unpaid">العملاء غير المدفوعين</button>
-    <button class="nav-btn" data-target="reports">التقارير المالية</button>
-    <button class="nav-btn" data-target="export">تصدير Excel</button>
-  </div>
-</aside>
-
-<!-- MAIN -->
-<main class="main">
-
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="topbar-title">لوحة المشرف</div>
-    <div class="topbar-sub">إدارة الفرع، العملاء، الزيارات، الحجوزات والتقارير</div>
-  </div>
-
-  <div class="stats-bar">
-    <div class="pill">🏬 الفرع: <span id="currentBranch">—</span></div>
-    <div class="pill">👥 العملاء: <span id="sCustomers">0</span></div>
-    <div class="pill">🧾 الزيارات: <span id="sVisits">0</span></div>
-    <div class="pill">💰 المبالغ: <span id="sAmount">0</span></div>
-    <button id="themeToggle" class="theme-toggle">🌙 / ☀️</button>
-  </div>
-</div>
-
 <div class="content">
+
 <!-- ========== DASHBOARD ========== -->
 <section id="dashboard" class="section active">
   <div class="card">
     <div class="card-header">
       <h2>ملخص الفرع</h2>
     </div>
-    <div id="dashStats">جاري التحميل...</div>
 
-    <div style="margin-top:16px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
-      <div class="card">
-        <div>إجمالي العملاء</div>
-        <div id="dTotalCustomers" style="font-size:20px;font-weight:600;">0</div>
-      </div>
-      <div class="card">
-        <div>إجمالي الزيارات</div>
-        <div id="dTotalVisits" style="font-size:20px;font-weight:600;">0</div>
-      </div>
-      <div class="card">
-        <div>إجمالي المبالغ</div>
-        <div id="dTotalAmount" style="font-size:20px;font-weight:600;">0</div>
-      </div>
-      <div class="card">
-        <div>إجمالي العمولة</div>
-        <div id="dTotalCommission" style="font-size:20px;font-weight:600;">0</div>
-      </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:10px;">
+      <div class="card"><div>إجمالي العملاء</div><div id="dTotalCustomers" style="font-size:22px;font-weight:600;">0</div></div>
+      <div class="card"><div>إجمالي الزيارات</div><div id="dTotalVisits" style="font-size:22px;font-weight:600;">0</div></div>
+      <div class="card"><div>إجمالي المبالغ</div><div id="dTotalAmount" style="font-size:22px;font-weight:600;">0</div></div>
+      <div class="card"><div>إجمالي العمولة</div><div id="dTotalCommission" style="font-size:22px;font-weight:600;">0</div></div>
     </div>
 
     <div style="margin-top:20px;">
@@ -320,12 +209,12 @@ button:active { transform: scale(0.97); }
 <!-- ========== SEARCH CUSTOMER ========== -->
 <section id="customers" class="section">
   <div class="card">
-    <div class="card-header">
-      <h2>بحث عن عميل</h2>
-    </div>
+    <div class="card-header"><h2>بحث عن عميل</h2></div>
+
     <label>رقم الجوال أو رقم العضوية</label>
     <input id="searchPhone" placeholder="05xxxxxxxx أو 2026xxxx">
     <button id="searchBtn">بحث</button>
+
     <div id="searchResult" style="margin-top:10px;"></div>
   </div>
 </section>
@@ -333,12 +222,12 @@ button:active { transform: scale(0.97); }
 <!-- ========== BRANCH VISITS ========== -->
 <section id="visits" class="section">
   <div class="card">
-    <div class="card-header">
-      <h2>زيارات الفرع</h2>
-    </div>
+    <div class="card-header"><h2>زيارات الفرع</h2></div>
+
     <label>اختر التاريخ (اختياري)</label>
     <input id="visitsDate" class="datePicker" placeholder="YYYY-MM-DD">
     <button id="visitsBtn">عرض الزيارات</button>
+
     <div id="visitsList" class="list" style="margin-top:10px;"></div>
   </div>
 </section>
@@ -346,386 +235,24 @@ button:active { transform: scale(0.97); }
 <!-- ========== CUSTOMER CARS ========== -->
 <section id="cars" class="section">
   <div class="card">
-    <div class="card-header">
-      <h2>سيارات العميل</h2>
-    </div>
+    <div class="card-header"><h2>سيارات العميل</h2></div>
+
     <label>رقم الجوال</label>
     <input id="carsPhone" placeholder="05xxxxxxxx">
     <button id="carsBtn">عرض السيارات</button>
+
     <div id="carsList" class="list" style="margin-top:10px;"></div>
   </div>
 </section>
 
-<!-- ========== ADD VISIT ========== -->
+<!-- ========== ADD VISIT (NEW VERSION) ========== -->
 <section id="addVisit" class="section">
   <div class="card">
-    <div class="card-header">
-      <h2>إضافة زيارة</h2>
-    </div>
+    <div class="card-header"><h2>إضافة زيارة</h2></div>
 
-    <!-- بحث عن العميل -->
+    <!-- بحث -->
     <div class="card" style="background:var(--bg-soft);margin-bottom:10px;">
-      <div class="card-header">
-        <h3>بحث عن العميل</h3>
-      </div>
-      <label>رقم الجوال أو العضوية</label>
-      <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx">
-      <button id="visitSearchBtn">بحث</button>
-    </div>
-
-    <!-- اختيار السيارة -->
-    <div id="visitCarsBox" class="card" style="display:none;background:var(--bg-soft);margin-bottom:10px;">
-      <div class="card-header">
-        <h3>اختر السيارة</h3>
-      </div>
-      <div id="visitCarsList" class="list"></div>
-    </div>
-
-    <!-- نموذج الزيارة -->
-    <div id="visitForm" class="card" style="display:none;background:var(--bg-soft);">
-      <div class="card-header">
-        <h3>تفاصيل الزيارة</h3>
-      </div>
-      <p id="visitSelectedInfo" style="font-size:12px;color:var(--text-muted);"></p>
-
-      <!-- اختيار الخدمة بزر -->
-      <label>الخدمة</label>
-      <button id="servicePickerBtn" type="button" class="btn-secondary" style="width:100%;text-align:right;">
-        اختر الخدمة
-      </button>
-      <select id="vService" style="display:none;"></select>
-      <div id="selectedServiceLabel" style="margin:6px 0 10px;font-size:13px;color:var(--text-muted);">
-        لم يتم اختيار خدمة بعد
-      </div>
-
-      <!-- السعر والنقاط -->
-      <label>السعر</label>
-      <input type="number" id="vPrice">
-      <label>النقاط</label>
-      <input type="number" id="vPoints" readonly>
-
-      <!-- اختيار الموظف (اختياري) -->
-      <label>الموظف (اختياري)</label>
-      <select id="vEmployee">
-        <option value="">بدون موظف</option>
-      </select>
-
-      <!-- حالة الدفع -->
-      <label>حالة الدفع</label>
-      <select id="vPaymentStatus">
-        <option value="Paid">مدفوع</option>
-        <option value="Pending">معلق</option>
-      </select>
-
-      <!-- رقم الموقف -->
-      <label>رقم الموقف</label>
-      <select id="vParkingSlot">
-        <option value="">بدون</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-      </select>
-
-      <button id="addVisitBtn">تسجيل الزيارة</button>
-      <p id="addVisitStatus" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></p>
-    </div>
-  </div>
-</section>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="api.js?v=3"></script>
-
-<script>
-const $ = (id) => document.getElementById(id);
-
-/* ===========================
-   THEME
-=========================== */
-(function(){
-  const saved = localStorage.getItem("sup_theme") || "dark";
-  document.body.setAttribute("data-theme", saved);
-  $("themeToggle").onclick = () => {
-    const next = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    document.body.setAttribute("data-theme", next);
-    localStorage.setItem("sup_theme", next);
-  };
-})();
-
-/* ===========================
-   TABS
-=========================== */
-document.querySelectorAll(".nav-btn").forEach(btn=>{
-  btn.onclick = ()=>{
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    document.getElementById(btn.dataset.target).classList.add("active");
-    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-  };
-});
-
-/* ===========================
-   DATE PICKERS
-=========================== */
-flatpickr(".datePicker",{dateFormat:"Y-m-d",allowInput:true});
-
-/* ===========================
-   GLOBAL VARS
-=========================== */
-let currentBranch = null;
-let employeesList = [];
-let servicesMap = {};
-let selectedMembership = null;
-let selectedCar = null;
-
-/* ===========================
-   LOAD BRANCHES
-=========================== */
-async function loadBranches(){
-  const res = await apiGet({action:"getBranches"});
-  const select = $("branchSelect");
-  select.innerHTML = "";
-  res.branches.forEach(b=>{
-    const opt = document.createElement("option");
-    opt.value = b.branch;
-    opt.textContent = `${b.branch} — ${b.city}`;
-    select.appendChild(opt);
-  });
-
-  const saved = localStorage.getItem("supervisor_branch");
-  currentBranch = saved || res.branches[0].branch;
-  select.value = currentBranch;
-  $("currentBranch").textContent = currentBranch;
-
-  select.onchange = ()=>{
-    currentBranch = select.value;
-    localStorage.setItem("supervisor_branch", currentBranch);
-    $("currentBranch").textContent = currentBranch;
-    loadDashboard();
-    loadBookings();
-  };
-}
-
-/* ===========================
-   LOAD EMPLOYEES
-=========================== */
-async function loadEmployees(){
-  const res = await apiGet({action:"getEmployees"});
-  employeesList = res.employees || [];
-  const sel = $("vEmployee");
-  sel.innerHTML = `<option value="">بدون موظف</option>`;
-  employeesList.forEach(e=>{
-    const opt = document.createElement("option");
-    opt.value = e.employee;
-    opt.textContent = e.employee;
-    sel.appendChild(opt);
-  });
-}
-
-/* ===========================
-   LOAD SERVICES
-=========================== */
-async function loadServices(){
-  const res = await apiGet({action:"getCommissions"});
-  const sel = $("vService");
-  sel.innerHTML = "";
-  servicesMap = {};
-
-  // نفترض إن الـ API يرجّع:
-  // service  = عمود A (تفاصيل الخدمة)
-  // type     = عمود E (نوع الخدمة)
-  res.commissions.forEach(row=>{
-    const detail = row.service;      // A
-    const type   = row.type;         // E
-    const price  = Number(row.price)||0;
-
-    if (!type) return; // تجاهل الصفوف الفارغة
-
-    // نخزن حسب نوع الخدمة
-    servicesMap[type] = {
-      detail,
-      price
-    };
-
-    const opt = document.createElement("option");
-    opt.value = type;        // القيمة = نوع الخدمة (E)
-    opt.textContent = type;  // المعروض للمستخدم
-    sel.appendChild(opt);
-  });
-}
-
-
-/* ===========================
-   SERVICE PICKER BUTTON
-=========================== */
-$("servicePickerBtn").onclick = ()=>{
-  const sel = $("vService");
-  sel.style.display = sel.style.display==="none" ? "block" : "none";
-};
-$("vService").onchange = ()=>{
-  const type = $("vService").value;
-  const info = servicesMap[type];
-
-  $("selectedServiceLabel").textContent = info.detail;
-  $("vPrice").value = info.price;
-  $("vPoints").value = Math.floor(info.price / 5);
-};
-
-/* ===========================
-   DASHBOARD
-=========================== */
-async function loadDashboard(){
-  const res = await apiGet({
-    action:"getVisitsByDate",
-    from:"2000-01-01T00:00:00.000Z",
-    to:"2100-01-01T23:59:59.000Z"
-  });
-
-  const visits = (res.visits||[]).filter(v=>v.branch===currentBranch);
-
-  const totalAmount = visits.reduce((s,v)=>s+Number(v.price||0),0);
-  const totalVisits = visits.length;
-  const totalCommission = visits.reduce((s,v)=>s+Number(v.commission||0),0);
-  const customers = new Set(visits.map(v=>v.membership)).size;
-
-  $("sAmount").textContent = totalAmount;
-  $("sVisits").textContent = totalVisits;
-  $("sCustomers").textContent = customers;
-
-  $("dTotalAmount").textContent = totalAmount;
-  $("dTotalVisits").textContent = totalVisits;
-  $("dTotalCustomers").textContent = customers;
-  $("dTotalCommission").textContent = totalCommission;
-
-  const map = {};
-  visits.forEach(v=>{
-    const d = v.date;
-    map[d] = (map[d]||0)+1;
-  });
-
-  const labels = Object.keys(map).sort();
-  const data = labels.map(l=>map[l]);
-
-  new Chart($("visitsChart"),{
-    type:"line",
-    data:{labels,datasets:[{label:"الزيارات",data,borderColor:"#2563eb"}]},
-    options:{responsive:true,plugins:{legend:{display:false}}}
-  });
-}
-
-/* ===========================
-   SEARCH CUSTOMER
-=========================== */
-async function smartSearch(q){
-  if(q.startsWith("05") && q.length===10){
-    return await apiGet({action:"getByPhone",phone:q});
-  }
-  if(/^\d+$/.test(q)){
-    return await apiGet({action:"getByMembership",membership:q});
-  }
-  return null;
-}
-
-$("searchBtn").onclick = async ()=>{
-  const q = $("searchPhone").value.trim();
-  const res = await smartSearch(q);
-  const box = $("searchResult");
-  box.innerHTML = "";
-
-  if(!res || !res.success){
-    box.innerHTML = "<div class='card'>لا يوجد نتائج</div>";
-    return;
-  }
-
-  const c = res.customer;
-  box.innerHTML = `
-    <div class="card">
-      الاسم: ${c.name}<br>
-      الجوال: ${c.phone}<br>
-      العضوية: ${c.membership}<br>
-      النقاط: ${c.points}<br>
-      المستوى: ${c.level}<br>
-      آخر زيارة: ${c.last_visit||"—"}<br>
-      عدد الزيارات: ${c.visit_count}
-    </div>
-  `;
-};
-
-/* ===========================
-   BRANCH VISITS
-=========================== */
-$("visitsBtn").onclick = async ()=>{
-  const date = $("visitsDate").value.trim();
-  const from = date? date+"T00:00:00.000Z":"2000-01-01T00:00:00.000Z";
-  const to   = date? date+"T23:59:59.000Z":"2100-01-01T23:59:59.000Z";
-
-  const res = await apiGet({action:"getVisitsByDate",from,to});
-  const list = $("visitsList");
-  list.innerHTML = "";
-
-  const visits = (res.visits||[]).filter(v=>v.branch===currentBranch);
-
-  if(!visits.length){
-    list.innerHTML = "<div class='card'>لا توجد زيارات</div>";
-    return;
-  }
-
-  visits.forEach(v=>{
-    const div = document.createElement("div");
-    div.className="card";
-    div.innerHTML = `
-      العضوية: ${v.membership}<br>
-      الخدمة: ${v.service}<br>
-      السعر: ${v.price}<br>
-      العمولة: ${v.commission}<br>
-      حالة الدفع: ${v.payment_status||"—"}<br>
-      الموقف: ${v.parking_slot||"—"}<br>
-      التاريخ: ${v.date}
-    `;
-    list.appendChild(div);
-  });
-};
-
-/* ===========================
-   CARS
-=========================== */
-$("carsBtn").onclick = async ()=>{
-  const phone = $("carsPhone").value.trim();
-  const res = await apiGet({action:"getCarsByPhone",phone});
-  const list = $("carsList");
-  list.innerHTML = "";
-
-  if(!res.cars || !res.cars.length){
-    list.innerHTML = "<div class='card'>لا توجد سيارات</div>";
-    return;
-  }
-
-  res.cars.forEach(c=>{
-    const div = document.createElement("div");
-    div.className="card";
-    div.innerHTML = `
-      ${c.car} — ${c.plate_letters} ${c.plate_numbers}<br>
-      الحجم: ${c.size}<br>
-      المدينة: ${c.city}<br>
-      العضوية: ${c.membership}
-    `;
-    list.appendChild(div);
-  });
-};
-
-<!-- ========== ADD VISIT ========== -->
-<section id="addVisit" class="section">
-  <div class="card">
-    <div class="card-header">
-      <h2>إضافة زيارة</h2>
-    </div>
-
-    <!-- بحث عن العميل -->
-    <div class="card" style="background:var(--bg-soft);margin-bottom:10px;">
-      <div class="card-header">
-        <h3>بحث عن العميل</h3>
-      </div>
+      <div class="card-header"><h3>بحث عن العميل</h3></div>
 
       <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
       <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx أو لوحة السيارة">
@@ -734,25 +261,21 @@ $("carsBtn").onclick = async ()=>{
 
     <!-- اختيار السيارة -->
     <div id="visitCarsBox" class="card" style="display:none;background:var(--bg-soft);margin-bottom:10px;">
-      <div class="card-header">
-        <h3>اختر السيارة</h3>
-      </div>
+      <div class="card-header"><h3>اختر السيارة</h3></div>
       <div id="visitCarsList" class="list"></div>
     </div>
 
     <!-- نموذج الزيارة -->
     <div id="visitForm" class="card" style="display:none;background:var(--bg-soft);">
-      <div class="card-header">
-        <h3>تفاصيل الزيارة</h3>
-      </div>
+      <div class="card-header"><h3>تفاصيل الزيارة</h3></div>
 
       <p id="visitSelectedInfo" style="font-size:12px;color:var(--text-muted);"></p>
 
-      <!-- نوع الخدمة (عمود E) -->
+      <!-- نوع الخدمة (E) -->
       <label>نوع الخدمة</label>
       <select id="vService"></select>
 
-      <!-- تفاصيل الخدمة (عمود A) -->
+      <!-- تفاصيل الخدمة (A) -->
       <label>تفاصيل الخدمة</label>
       <select id="vServiceDetail"></select>
 
@@ -799,15 +322,403 @@ $("carsBtn").onclick = async ()=>{
     </div>
   </div>
 </section>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="api.js?v=3"></script>
 
+<script>
+const $ = (id)=>document.getElementById(id);
+
+/* ===========================
+   THEME
+=========================== */
+(function(){
+  const saved = localStorage.getItem("sup_theme") || "dark";
+  document.body.setAttribute("data-theme", saved);
+
+  const toggle = document.createElement("button");
+  toggle.textContent = "🌙 / ☀️";
+  toggle.className = "pill";
+  toggle.style.cursor = "pointer";
+  toggle.onclick = ()=>{
+    const next = document.body.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    document.body.setAttribute("data-theme", next);
+    localStorage.setItem("sup_theme", next);
+  };
+  document.querySelector(".stats-bar").appendChild(toggle);
+})();
+
+/* ===========================
+   NAVIGATION
+=========================== */
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(btn.dataset.target).classList.add("active");
+
+    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+  };
+});
+
+/* ===========================
+   DATE PICKERS
+=========================== */
+flatpickr(".datePicker",{dateFormat:"Y-m-d",allowInput:true});
+
+/* ===========================
+   GLOBAL VARS
+=========================== */
+let currentBranch = null;
+let employeesList = [];
+let servicesMap = {};
+let selectedMembership = null;
+let selectedCar = null;
+
+/* ===========================
+   LOAD BRANCHES
+=========================== */
+async function loadBranches(){
+  const res = await apiGet({action:"getBranches"});
+  const select = document.createElement("select");
+  select.id = "branchSelect";
+  select.style.padding = "6px";
+  select.style.borderRadius = "8px";
+  select.style.background = "var(--bg)";
+  select.style.color = "var(--text-main)";
+  select.style.border = "1px solid var(--border)";
+
+  res.branches.forEach(b=>{
+    const opt = document.createElement("option");
+    opt.value = b.branch;
+    opt.textContent = `${b.branch} — ${b.city}`;
+    select.appendChild(opt);
+  });
+
+  const saved = localStorage.getItem("supervisor_branch");
+  currentBranch = saved || res.branches[0].branch;
+  select.value = currentBranch;
+
+  select.onchange = ()=>{
+    currentBranch = select.value;
+    localStorage.setItem("supervisor_branch", currentBranch);
+    loadDashboard();
+    loadBookings();
+  };
+
+  document.querySelector(".topbar-left").appendChild(select);
+}
+
+/* ===========================
+   LOAD EMPLOYEES
+=========================== */
+async function loadEmployees(){
+  const res = await apiGet({action:"getEmployees"});
+  employeesList = res.employees || [];
+
+  const sel = $("vEmployee");
+  sel.innerHTML = `<option value="">بدون موظف</option>`;
+
+  employeesList.forEach(e=>{
+    const opt = document.createElement("option");
+    opt.value = e.employee;
+    opt.textContent = e.employee;
+    sel.appendChild(opt);
+  });
+}
+
+/* ===========================
+   LOAD SERVICES (TYPE + DETAIL)
+=========================== */
+async function loadServices(){
+  const res = await apiGet({action:"getCommissions"});
+  const selType = $("vService");
+  const selDetail = $("vServiceDetail");
+
+  selType.innerHTML = "";
+  selDetail.innerHTML = "";
+
+  servicesMap = {};
+
+  res.commissions.forEach(c=>{
+    if (!c.type) return;
+
+    if (!servicesMap[c.type]) servicesMap[c.type] = [];
+
+    servicesMap[c.type].push({
+      detail: c.detail,
+      price: c.price,
+      commission: c.commission
+    });
+  });
+
+  Object.keys(servicesMap).forEach(type=>{
+    const opt = document.createElement("option");
+    opt.value = type;
+    opt.textContent = type;
+    selType.appendChild(opt);
+  });
+
+  updateServiceDetails();
+}
+
+function updateServiceDetails(){
+  const type = $("vService").value;
+  const selDetail = $("vServiceDetail");
+  selDetail.innerHTML = "";
+
+  if (!servicesMap[type]) return;
+
+  servicesMap[type].forEach(s=>{
+    const opt = document.createElement("option");
+    opt.value = s.detail;
+    opt.textContent = s.detail;
+    selDetail.appendChild(opt);
+  });
+
+  updatePriceAndCommission();
+}
+
+$("vService").onchange = updateServiceDetails;
+$("vServiceDetail").onchange = updatePriceAndCommission;
+
+/* ===========================
+   PRICE + COMMISSION
+=========================== */
+function updatePriceAndCommission(){
+  const type = $("vService").value;
+  const detail = $("vServiceDetail").value;
+
+  const service = servicesMap[type].find(s=>s.detail === detail);
+  if (!service) return;
+
+  $("vPrice").value = service.price;
+  $("vCommission").value = service.commission;
+  $("vPoints").value = Math.floor(service.price / 5);
+}
+/* ===========================
+   DASHBOARD
+=========================== */
+async function loadDashboard(){
+  const res = await apiGet({
+    action:"getVisitsByDate",
+    from:"2000-01-01T00:00:00.000Z",
+    to:"2100-01-01T23:59:59.000Z"
+  });
+
+  const visits = (res.visits || []).filter(v=>v.branch === currentBranch);
+
+  const totalAmount = visits.reduce((s,v)=>s + Number(v.price||0), 0);
+  const totalVisits = visits.length;
+  const totalCommission = visits.reduce((s,v)=>s + Number(v.commission||0), 0);
+  const customers = new Set(visits.map(v=>v.membership)).size;
+
+  $("dTotalAmount").textContent = totalAmount;
+  $("dTotalVisits").textContent = totalVisits;
+  $("dTotalCustomers").textContent = customers;
+  $("dTotalCommission").textContent = totalCommission;
+
+  const map = {};
+  visits.forEach(v=>{
+    map[v.date] = (map[v.date] || 0) + 1;
+  });
+
+  const labels = Object.keys(map).sort();
+  const data = labels.map(l=>map[l]);
+
+  new Chart($("visitsChart"),{
+    type:"line",
+    data:{labels,datasets:[{label:"الزيارات",data,borderColor:"#2563eb"}]},
+    options:{responsive:true,plugins:{legend:{display:false}}}
+  });
+}
+
+/* ===========================
+   SMART SEARCH
+=========================== */
+async function smartSearch(q){
+  if(q.startsWith("05") && q.length===10){
+    return await apiGet({action:"getByPhone",phone:q});
+  }
+  if(/^\d+$/.test(q)){
+    return await apiGet({action:"getByMembership",membership:q});
+  }
+  return await apiGet({action:"getByPlate",plate:q});
+}
+
+/* ===========================
+   SEARCH CUSTOMER
+=========================== */
+$("searchBtn").onclick = async ()=>{
+  const q = $("searchPhone").value.trim();
+  const res = await smartSearch(q);
+
+  const box = $("searchResult");
+  box.innerHTML = "";
+
+  if(!res || !res.success){
+    box.innerHTML = "<div class='card'>لا يوجد نتائج</div>";
+    return;
+  }
+
+  const c = res.customer;
+  box.innerHTML = `
+    <div class="card">
+      الاسم: ${c.name}<br>
+      الجوال: ${c.phone}<br>
+      العضوية: ${c.membership}<br>
+      النقاط: ${c.points}<br>
+      المستوى: ${c.level}<br>
+      آخر زيارة: ${c.last_visit || "—"}<br>
+      عدد الزيارات: ${c.visit_count}
+    </div>
+  `;
+};
+
+/* ===========================
+   BRANCH VISITS
+=========================== */
+$("visitsBtn").onclick = async ()=>{
+  const date = $("visitsDate").value.trim();
+  const from = date ? date+"T00:00:00.000Z" : "2000-01-01T00:00:00.000Z";
+  const to   = date ? date+"T23:59:59.000Z" : "2100-01-01T23:59:59.000Z";
+
+  const res = await apiGet({action:"getVisitsByDate",from,to});
+  const list = $("visitsList");
+  list.innerHTML = "";
+
+  const visits = (res.visits||[]).filter(v=>v.branch===currentBranch);
+
+  if(!visits.length){
+    list.innerHTML = "<div class='card'>لا توجد زيارات</div>";
+    return;
+  }
+
+  visits.forEach(v=>{
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerHTML = `
+      العضوية: ${v.membership}<br>
+      الخدمة: ${v.service}<br>
+      السعر: ${v.price}<br>
+      العمولة: ${v.commission}<br>
+      حالة الدفع: ${v.payment_status}<br>
+      الموقف: ${v.parking_slot}<br>
+      التاريخ: ${v.date}
+    `;
+    list.appendChild(div);
+  });
+};
+
+/* ===========================
+   CUSTOMER CARS
+=========================== */
+$("carsBtn").onclick = async ()=>{
+  const phone = $("carsPhone").value.trim();
+  const res = await apiGet({action:"getCarsByPhone",phone});
+  const list = $("carsList");
+  list.innerHTML = "";
+
+  if(!res.cars || !res.cars.length){
+    list.innerHTML = "<div class='card'>لا توجد سيارات</div>";
+    return;
+  }
+
+  res.cars.forEach(c=>{
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerHTML = `
+      ${c.car} — ${c.plate_letters} ${c.plate_numbers}<br>
+      الحجم: ${c.size}<br>
+      المدينة: ${c.city}<br>
+      العضوية: ${c.membership}
+    `;
+    list.appendChild(div);
+  });
+};
+
+/* ===========================
+   ADD VISIT — SEARCH
+=========================== */
+$("visitSearchBtn").onclick = async ()=>{
+  const q = $("visitSearch").value.trim();
+  const res = await smartSearch(q);
+
+  const box = $("visitCarsBox");
+  const list = $("visitCarsList");
+  list.innerHTML = "";
+
+  if(!res || !res.cars || !res.cars.length){
+    alert("لا توجد سيارات");
+    box.style.display="none";
+    $("visitForm").style.display="none";
+    return;
+  }
+
+  box.style.display="block";
+
+  res.cars.forEach(c=>{
+    const div = document.createElement("div");
+    div.className="card";
+    div.style.cursor="pointer";
+    div.innerHTML = `
+      ${c.car} — ${c.plate_letters} ${c.plate_numbers}<br>
+      العضوية: ${c.membership}
+    `;
+    div.onclick = ()=>{
+      selectedMembership = c.membership;
+      selectedCar = c;
+
+      $("visitSelectedInfo").textContent =
+        `العضوية: ${c.membership} — السيارة: ${c.car} — اللوحة: ${c.plate_letters} ${c.plate_numbers}`;
+
+      $("visitForm").style.display="block";
+    };
+    list.appendChild(div);
+  });
+};
+
+/* ===========================
+   ADD VISIT — SUBMIT
+=========================== */
+$("addVisitBtn").onclick = async ()=>{
+  if(!selectedMembership) return alert("اختر السيارة");
+
+  const type = $("vService").value;
+  const detail = $("vServiceDetail").value;
+
+  const service = detail;
+  const price = Number($("vPrice").value);
+  const points = Number($("vPoints").value);
+  const employee = $("vEmployee").value;
+  const payment_status = $("vPaymentStatus").value;
+  const parking_slot = $("vParkingSlot").value;
+
+  const res = await apiPost({
+    action:"addVisit",
+    membership:selectedMembership,
+    service,
+    price,
+    points,
+    employee,
+    branch:currentBranch,
+    rating:"",
+    payment_status,
+    parking_slot
+  });
+
+  $("addVisitStatus").textContent = res.success ? "✔ تم تسجيل الزيارة" : "❌ خطأ أثناء التسجيل";
+
+  if(res.success) loadDashboard();
+};
 
 /* ===========================
    BOOKINGS
 =========================== */
 async function loadBookings(){
-  const date = $("bookingsDate").value.trim();
-  const res = await apiGet({action:"getBookings",date});
+  const res = await apiGet({action:"getBookings"});
   const list = $("bookingsList");
+  if(!list) return;
+
   list.innerHTML = "";
 
   if(!res.bookings || !res.bookings.length){
@@ -835,120 +746,11 @@ async function confirmBooking(row){
   await apiPost({action:"updateBookingStatus",row,status:"Approved"});
   loadBookings();
 }
+
 async function cancelBooking(row){
   await apiPost({action:"updateBookingStatus",row,status:"Cancelled"});
   loadBookings();
 }
-
-/* ===========================
-   UNPAID CUSTOMERS
-=========================== */
-document.querySelector("[data-target='unpaid']").onclick = async ()=>{
-  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-  $("unpaid").classList.add("active");
-
-  const res = await apiGet({
-    action:"getVisitsByDate",
-    from:"2000-01-01T00:00:00.000Z",
-    to:"2100-01-01T23:59:59.000Z"
-  });
-
-  const list = $("unpaidList");
-  list.innerHTML = "";
-
-  const visits = (res.visits||[])
-    .filter(v=>v.branch===currentBranch && v.payment_status==="Pending");
-
-  if(!visits.length){
-    list.innerHTML = "<div class='card'>لا يوجد عملاء غير مدفوعين</div>";
-    return;
-  }
-
-  for(const v of visits){
-    const cust = await apiGet({action:"getByMembership",membership:v.membership});
-    const c = cust.customer || {};
-    const car = cust.car || {};
-
-    const div = document.createElement("div");
-    div.className="card";
-    div.innerHTML = `
-      الاسم: ${c.name||"—"}<br>
-      الجوال: ${c.phone||"—"}<br>
-      العضوية: ${v.membership}<br>
-      السيارة: ${car.car||"—"}<br>
-      اللوحة: ${car.plate_letters||""} ${car.plate_numbers||""}<br>
-      المبلغ: ${v.price}<br>
-      التاريخ: ${v.date}<br>
-      الحالة: ${v.payment_status}
-    `;
-    list.appendChild(div);
-  }
-};
-
-/* ===========================
-   REPORTS
-=========================== */
-$("reportsBtn").onclick = async ()=>{
-  const from = $("reportsFrom").value.trim();
-  const to = $("reportsTo").value.trim();
-  if(!from || !to) return alert("اختر التاريخ");
-
-  const res = await apiGet({
-    action:"getVisitsByDate",
-    from:from+"T00:00:00.000Z",
-    to:to+"T23:59:59.000Z"
-  });
-
-  const list = $("reportsList");
-  list.innerHTML = "";
-
-  const visits = (res.visits||[]).filter(v=>v.branch===currentBranch);
-
-  if(!visits.length){
-    list.innerHTML = "<div class='card'>لا توجد بيانات</div>";
-    return;
-  }
-
-  let totalAmount = 0;
-  let totalCommission = 0;
-  const serviceMap = {};
-
-  visits.forEach(v=>{
-    totalAmount += Number(v.price||0);
-    totalCommission += Number(v.commission||0);
-    serviceMap[v.service] = (serviceMap[v.service]||0) + Number(v.price||0);
-  });
-
-  list.innerHTML += `
-    <div class="card">
-      <b>إجمالي المبالغ:</b> ${totalAmount} ريال<br>
-      <b>إجمالي العمولة:</b> ${totalCommission} ريال
-    </div>
-  `;
-
-  Object.keys(serviceMap).forEach(s=>{
-    list.innerHTML += `
-      <div class="card">
-        <b>${s}</b><br>
-        إجمالي: ${serviceMap[s]} ريال
-      </div>
-    `;
-  });
-
-  visits.forEach(v=>{
-    list.innerHTML += `
-      <div class="card">
-        العضوية: ${v.membership}<br>
-        الخدمة: ${v.service}<br>
-        السعر: ${v.price}<br>
-        العمولة: ${v.commission}<br>
-        حالة الدفع: ${v.payment_status}<br>
-        الموقف: ${v.parking_slot}<br>
-        التاريخ: ${v.date}
-      </div>
-    `;
-  });
-};
 
 /* ===========================
    EXPORT EXCEL
@@ -956,6 +758,7 @@ $("reportsBtn").onclick = async ()=>{
 $("exportBtn").onclick = async ()=>{
   const from = $("exportFrom").value.trim();
   const to = $("exportTo").value.trim();
+
   if(!from || !to) return alert("اختر التاريخ");
 
   const res = await apiGet({
@@ -964,29 +767,28 @@ $("exportBtn").onclick = async ()=>{
     to:to+"T23:59:59.000Z"
   });
 
-const visits = (res.visits||[]).filter(v=>v.branch===currentBranch);
+  const visits = (res.visits||[]).filter(v=>v.branch===currentBranch);
 
-if(!visits.length){
-  alert("لا توجد بيانات في هذه الفترة");
-  return;
-}
+  if(!visits.length){
+    alert("لا توجد بيانات");
+    return;
+  }
 
-const data = visits.map(v=>({
-  "رقم العضوية": v.membership,
-  "الخدمة": v.service,
-  "السعر": v.price,
-  "العمولة": v.commission,
-  "حالة الدفع": v.payment_status,
-  "الموقف": v.parking_slot,
-  "التاريخ": v.date
-}));
+  const data = visits.map(v=>({
+    "رقم العضوية": v.membership,
+    "الخدمة": v.service,
+    "السعر": v.price,
+    "العمولة": v.commission,
+    "حالة الدفع": v.payment_status,
+    "الموقف": v.parking_slot,
+    "التاريخ": v.date
+  }));
 
-const ws = XLSX.utils.json_to_sheet(data);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, "Report");
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Report");
 
-const filename = `Report-${currentBranch}-${from}-to-${to}.xlsx`;
-XLSX.writeFile(wb, filename);
+  XLSX.writeFile(wb, `Report-${currentBranch}-${from}-to-${to}.xlsx`);
 };
 
 /* ===========================
