@@ -761,6 +761,7 @@ async function handleLoadCustomerVisits() {
         return;
     }
 
+    // فلترة التاريخ يدويًا
     const filtered = dateFilter
         ? res.visits.filter(v => String(v.date).slice(0, 10) === dateFilter)
         : res.visits;
@@ -774,6 +775,7 @@ async function handleLoadCustomerVisits() {
         const div = document.createElement("div");
         div.className = "card";
         div.innerHTML = `
+            العضوية: ${v.membership}<br>
             الخدمة: ${v.service}<br>
             التاريخ: ${v.date}<br>
             السعر: ${v.price}<br>
@@ -784,7 +786,6 @@ async function handleLoadCustomerVisits() {
         list.appendChild(div);
     });
 }
-
 /* ===========================
    Customer Cars
 =========================== */
