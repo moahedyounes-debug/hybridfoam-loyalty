@@ -531,14 +531,30 @@ async function loadServices(){
   const sel = $("vService");
   sel.innerHTML = "";
   servicesMap = {};
-  res.commissions.forEach(s=>{
-    servicesMap[s.service] = Number(s.price)||0;
+
+  // نفترض إن الـ API يرجّع:
+  // service  = عمود A (تفاصيل الخدمة)
+  // type     = عمود E (نوع الخدمة)
+  res.commissions.forEach(row=>{
+    const detail = row.service;      // A
+    const type   = row.type;         // E
+    const price  = Number(row.price)||0;
+
+    if (!type) return; // تجاهل الصفوف الفارغة
+
+    // نخزن حسب نوع الخدمة
+    servicesMap[type] = {
+      detail,
+      price
+    };
+
     const opt = document.createElement("option");
-    opt.value = s.service;
-    opt.textContent = s.service;
+    opt.value = type;        // القيمة = نوع الخدمة (E)
+    opt.textContent = type;  // المعروض للمستخدم
     sel.appendChild(opt);
   });
 }
+
 
 /* ===========================
    SERVICE PICKER BUTTON
@@ -548,9 +564,12 @@ $("servicePickerBtn").onclick = ()=>{
   sel.style.display = sel.style.display==="none" ? "block" : "none";
 };
 $("vService").onchange = ()=>{
-  $("selectedServiceLabel").textContent = $("vService").value;
-  $("vPrice").value = servicesMap[$("vService").value] || 0;
-  $("vPoints").value = Math.floor(Number($("vPrice").value)/5);
+  const type = $("vService").value;
+  const info = servicesMap[type];
+
+  $("selectedServiceLabel").textContent = info.detail;
+  $("vPrice").value = info.price;
+  $("vPoints").value = Math.floor(info.price / 5);
 };
 
 /* ===========================
@@ -695,71 +714,92 @@ $("carsBtn").onclick = async ()=>{
   });
 };
 
-/* ===========================
-   ADD VISIT
-=========================== */
-$("visitSearchBtn").onclick = async ()=>{
-  const q = $("visitSearch").value.trim();
-  const res = await smartSearch(q);
+<!-- ========== ADD VISIT ========== -->
+<section id="addVisit" class="section">
+  <div class="card">
+    <div class="card-header">
+      <h2>إضافة زيارة</h2>
+    </div>
 
-  const box = $("visitCarsBox");
-  const list = $("visitCarsList");
-  list.innerHTML = "";
+    <!-- بحث عن العميل -->
+    <div class="card" style="background:var(--bg-soft);margin-bottom:10px;">
+      <div class="card-header">
+        <h3>بحث عن العميل</h3>
+      </div>
 
-  if(!res || !res.cars || !res.cars.length){
-    alert("لا توجد سيارات");
-    box.style.display="none";
-    $("visitForm").style.display="none";
-    return;
-  }
+      <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
+      <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx أو لوحة السيارة">
+      <button id="visitSearchBtn">بحث</button>
+    </div>
 
-  box.style.display="block";
+    <!-- اختيار السيارة -->
+    <div id="visitCarsBox" class="card" style="display:none;background:var(--bg-soft);margin-bottom:10px;">
+      <div class="card-header">
+        <h3>اختر السيارة</h3>
+      </div>
+      <div id="visitCarsList" class="list"></div>
+    </div>
 
-  res.cars.forEach(c=>{
-    const div = document.createElement("div");
-    div.className="card";
-    div.style.cursor="pointer";
-    div.innerHTML = `
-      ${c.car} — ${c.plate_letters} ${c.plate_numbers}<br>
-      العضوية: ${c.membership}
-    `;
-    div.onclick = ()=>{
-      selectedMembership = c.membership;
-      selectedCar = c;
-      $("visitSelectedInfo").textContent =
-        `العضوية: ${c.membership} — السيارة: ${c.car} — اللوحة: ${c.plate_letters} ${c.plate_numbers}`;
-      $("visitForm").style.display="block";
-    };
-    list.appendChild(div);
-  });
-};
+    <!-- نموذج الزيارة -->
+    <div id="visitForm" class="card" style="display:none;background:var(--bg-soft);">
+      <div class="card-header">
+        <h3>تفاصيل الزيارة</h3>
+      </div>
 
-$("addVisitBtn").onclick = async ()=>{
-  if(!selectedMembership) return alert("اختر السيارة");
+      <p id="visitSelectedInfo" style="font-size:12px;color:var(--text-muted);"></p>
 
-  const service = $("vService").value;
-  const price = Number($("vPrice").value);
-  const points = Number($("vPoints").value);
-  const employee = $("vEmployee").value;
-  const payment_status = $("vPaymentStatus").value;
-  const parking_slot = $("vParkingSlot").value;
+      <!-- نوع الخدمة (عمود E) -->
+      <label>نوع الخدمة</label>
+      <select id="vService"></select>
 
-  const res = await apiPost({
-    action:"addVisit",
-    membership:selectedMembership,
-    service,
-    price,
-    points,
-    employee,
-    branch:currentBranch,
-    rating:"",
-    payment_status,
-    parking_slot
-  });
+      <!-- تفاصيل الخدمة (عمود A) -->
+      <label>تفاصيل الخدمة</label>
+      <select id="vServiceDetail"></select>
 
-  $("addVisitStatus").textContent = res.success? "✔ تم تسجيل الزيارة" : "❌ خطأ أثناء التسجيل";
-  if(res.success) loadDashboard();
-};
+      <!-- السعر -->
+      <label>السعر</label>
+      <input type="number" id="vPrice">
+
+      <!-- العمولة -->
+      <label>العمولة</label>
+      <input type="number" id="vCommission" readonly>
+
+      <!-- النقاط -->
+      <label>النقاط</label>
+      <input type="number" id="vPoints" readonly>
+
+      <!-- الموظف -->
+      <label>الموظف (اختياري)</label>
+      <select id="vEmployee">
+        <option value="">بدون موظف</option>
+      </select>
+
+      <!-- رقم الموقف -->
+      <label>رقم الموقف</label>
+      <select id="vParkingSlot">
+        <option value="">بدون</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+
+      <!-- حالة الدفع -->
+      <label>حالة الدفع</label>
+      <select id="vPaymentStatus">
+        <option value="Paid">مدفوع</option>
+        <option value="Pending">غير مدفوع</option>
+      </select>
+
+      <button id="addVisitBtn">تسجيل الزيارة</button>
+
+      <p id="addVisitStatus" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></p>
+    </div>
+  </div>
+</section>
+
 
 /* ===========================
    BOOKINGS
