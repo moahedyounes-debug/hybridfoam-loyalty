@@ -2,241 +2,183 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>لوحة المالك - Owner Dashboard</title>
+<title>لوحة المشرف - Control Panel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
-/* نفس التنسيق الأصلي تماماً للحفاظ على الشكل */
-:root { --bg: #020617; --card: #020617; --border: #1f2937; --accent: #2563eb; --text-main: #f9fafb; --text-muted: #9ca3af; --radius-lg: 16px; --radius-md: 12px; --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7); }
-* { box-sizing: border-box; }
-body { margin: 0; font-family: "Tajawal", system-ui, sans-serif; background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%); color: var(--text-main); direction: rtl; }
-.layout { display: flex; min-height: 100vh; }
-.sidebar { width: 260px; background: rgba(15, 23, 42, 0.96); border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 18px 14px; gap: 10px; }
-.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.brand-logo { width: 40px; height: 40px; border-radius: 14px; background: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; }
-.brand-text { font-size: 18px; font-weight: 600; }
-.nav-btn { width: 100%; text-align: right; padding: 9px 11px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; transition: 0.15s; }
-.nav-btn.active, .nav-btn:hover { background: rgba(37, 99, 235, 0.22); color: white; }
-.main { flex: 1; display: flex; flex-direction: column; }
-.topbar { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; background: rgba(15, 23, 42, 0.9); position: sticky; top: 0; z-index: 10; }
-.content { padding: 18px; display: flex; flex-direction: column; gap: 18px; }
-.card { background: var(--card); border-radius: var(--radius-lg); padding: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-soft); }
-.section { display: none; } .section.active { display: block; }
-input, select { width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: #020617; color: white; margin-bottom: 10px; }
-button { padding: 10px 20px; border-radius: 12px; border: none; background: var(--accent); color: white; cursor: pointer; margin-top: 5px; }
-button.secondary { background: #111827; }
-.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
-.pill { padding: 4px 10px; border-radius: 99px; background: rgba(15,23,42,0.9); border: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
-.list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { padding: 10px; text-align: right; border-bottom: 1px solid var(--border); }
-th { color: var(--text-muted); }
-/* Responsive */
-@media (max-width: 900px) { .layout { flex-direction: column; } .sidebar { width: 100%; border-left: none; border-bottom: 1px solid var(--border); } }
+/* نفس التنسيق للحفاظ على الهوية */
+:root { --bg: #020617; --card: #020617; --border: #1f2937; --accent: #2563eb; --text-main: #f9fafb; }
+body { margin: 0; font-family: "Tajawal", sans-serif; background: #020617; color: white; direction: rtl; padding: 20px; }
+.container { max-width: 800px; margin: auto; }
+.card { background: #0f172a; border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+input, select { width: 100%; padding: 12px; background: #1e293b; border: 1px solid var(--border); color: white; border-radius: 8px; margin-bottom: 10px; }
+button { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+.tab-btn { background: transparent; border: 1px solid var(--border); color: #9ca3af; }
+.tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.hidden { display: none; }
+.badge { padding: 3px 8px; border-radius: 4px; font-size: 12px; background: #16a34a; }
 </style>
 </head>
 <body>
 
-<div class="layout">
-  <aside class="sidebar">
-    <div class="brand"><div class="brand-logo">OD</div><div class="brand-text">لوحة المالك</div></div>
-    <button class="nav-btn active" data-target="dashboard">الرئيسية</button>
-    <button class="nav-btn" data-target="reports">التقارير المالية (Excel)</button>
-    <button class="nav-btn" data-target="employees">الموظفين والرواتب</button>
-  </aside>
+<div class="container">
+    <h2 style="text-align:center; color:#2563eb">لوحة المشرف</h2>
 
-  <main class="main">
-    <div class="topbar">
-      <div><b>لوحة التحكم</b></div>
-      <div style="display:flex; gap:10px;">
-         <span class="pill">💰 المبيعات: <span id="sAmount">0</span></span>
-         <span class="pill">🚗 الزيارات: <span id="sVisits">0</span></span>
-      </div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('visit')">تسجيل زيارة</button>
+        <button class="tab-btn" onclick="showTab('search')">بحث عن عميل</button>
     </div>
 
-    <div class="content">
-      
-      <section id="dashboard" class="section active">
-        <div class="grid-2">
-           <div class="card"><h3>ملخص عام</h3><div id="stats">جاري التحميل...</div></div>
-           <div class="card"><h3>أكثر الخدمات طلباً</h3><div id="servicesBox"></div></div>
-        </div>
-      </section>
-
-      <section id="reports" class="section">
+    <div id="tab-visit">
         <div class="card">
-            <h3>التقارير المالية وتصدير البيانات</h3>
-            <div class="grid-2">
-                <div><label>من تاريخ</label><input id="repFrom" class="datePicker"></div>
-                <div><label>إلى تاريخ</label><input id="repTo" class="datePicker"></div>
-            </div>
-            <button onclick="loadFinancialReport()">عرض البيانات</button>
-            <button onclick="exportToExcel()" style="background:#16a34a">تصدير Excel 📥</button>
+            <h3>تسجيل زيارة جديدة</h3>
             
-            <div style="overflow-x:auto; margin-top:20px;">
-                <table id="reportTable">
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>الخدمة</th>
-                            <th>وصف الخدمة</th> <th>السعر</th>
-                            <th>العمولة</th>
-                            <th>الموظف</th>
-                            <th>الفرع</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reportBody"></tbody>
-                </table>
+            <label>رقم جوال العميل</label>
+            <input type="tel" id="vPhone" placeholder="05xxxxxxxx">
+            
+            <label>الخدمة</label>
+            <select id="vService" onchange="updatePrice()">
+                <option value="">اختر الخدمة...</option>
+                </select>
+
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1">
+                    <label>السعر</label>
+                    <input type="number" id="vPrice">
+                </div>
+                <div style="flex:1">
+                    <label>الموظف</label>
+                    <select id="vEmployee">
+                        <option value="">عام</option>
+                    </select>
+                </div>
             </div>
+
+            <button onclick="submitVisit()" id="submitBtn">تسجيل الزيارة ✅</button>
         </div>
-      </section>
-
-      <section id="employees" class="section">
-         <div class="card">
-            <h3>حساب الرواتب والعمولات</h3>
-            <label>اختر الموظف</label><select id="empSelect"></select>
-            <div class="grid-2">
-                <div><label>من</label><input id="payFrom" class="datePicker"></div>
-                <div><label>إلى</label><input id="payTo" class="datePicker"></div>
-            </div>
-            <button onclick="calcPayroll()">حساب</button>
-            <div id="payResult" style="margin-top:15px; text-align:center;"></div>
-         </div>
-      </section>
-
     </div>
-  </main>
+
+    <div id="tab-search" class="hidden">
+        <div class="card">
+            <label>بحث برقم الجوال</label>
+            <input id="sPhone" placeholder="05xxxxxxxx">
+            <button onclick="searchCustomer()">بحث 🔍</button>
+            <div id="searchResult" style="margin-top:20px; border-top:1px solid #333; padding-top:10px;"></div>
+        </div>
+    </div>
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="api.js"></script> <script>
-    // 1. قاموس الخدمات (لإظهار الوصف)
-    const servicesCatalog = {
-        "خارجي صغير": "غسيل خارجي لسيارة صغيرة",
-        "خارجي وداخلي صغير": "غسيل خارجي وداخلي لسيارة صغيرة",
-        "خارجي وسط": "غسيل خارجي لسيارة حجم وسط",
-        "خارجي وداخلي وسط": "غسيل خارجي وداخلي لسيارة حجم وسط",
-        "خارجي كبير": "غسيل خارجي لسيارة كبيرة",
-        "خارجي وداخلي كبير": "غسيل خارجي وداخلي لسيارة كبيرة",
-        "غسيل مكينة": "تنظيف وإزالة أتربة وزيوت المحرك",
-        "تلميع كفرات": "تلميع إطارات السيارة",
-        // أضف أي خدمات أخرى هنا...
-    };
+<script src="api.js"></script>
+<script>
+    let servicesData = {};
 
-    // 2. التهيئة
-    const $ = (id) => document.getElementById(id);
-    flatpickr(".datePicker", { dateFormat: "Y-m-d" });
-
-    // التنقل بين الصفحات
-    document.querySelectorAll(".nav-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-            $(btn.dataset.target).classList.add("active");
-            document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-        });
-    });
-
-    // 3. جلب بيانات الداشبورد [cite: 379]
-    async function loadDashboard() {
-        const res = await apiGet({ action: "getOwnersDashboard" });
-        if(res.success) {
-            $("sAmount").innerText = res.totals.amount;
-            $("sVisits").innerText = res.totals.visits;
-            $("stats").innerHTML = `
-                العملاء: ${res.totals.customers}<br>
-                السيارات: ${res.totals.cars}<br>
-                متوسط الفاتورة: ${res.totals.avg_spend_per_customer.toFixed(1)}
-            `;
-            // الخدمات [cite: 892]
-            $("servicesBox").innerHTML = res.services_breakdown
-                .slice(0,5).map(s => `<div>${s.service}: ${s.count} زيارات</div>`).join("");
+    // التهيئة
+    async function init() {
+        // جلب الخدمات والأسعار من 
+        const res = await apiGet({ action: "getCommissions" });
+        const sSelect = document.getElementById("vService");
+        if(res.commissions) {
+            res.commissions.forEach(c => {
+                servicesData[c.service] = c.price; // تخزين السعر
+                sSelect.innerHTML += `<option value="${c.service}">${c.service}</option>`;
+            });
+        }
+        
+        // جلب الموظفين [cite: 293]
+        const empRes = await apiGet({ action: "getEmployees" });
+        const eSelect = document.getElementById("vEmployee");
+        if(empRes.employees) {
+            empRes.employees.forEach(e => {
+                eSelect.innerHTML += `<option value="${e.employee}">${e.employee}</option>`;
+            });
         }
     }
 
-    // 4. تقرير المبيعات (مع الوصف) [cite: 216]
-    async function loadFinancialReport() {
-        const from = $("repFrom").value;
-        const to = $("repTo").value;
-        if(!from || !to) return alert("اختر التاريخ");
-        
-        const tbody = $("reportBody");
-        tbody.innerHTML = "<tr><td colspan='7'>جاري التحميل...</td></tr>";
+    function updatePrice() {
+        const service = document.getElementById("vService").value;
+        const priceInput = document.getElementById("vPrice");
+        if(servicesData[service]) {
+            priceInput.value = servicesData[service];
+        }
+    }
 
-        const res = await apiGet({ action: "getVisitsByDate", from, to });
-        tbody.innerHTML = "";
+    function showTab(id) {
+        document.getElementById("tab-visit").classList.add("hidden");
+        document.getElementById("tab-search").classList.add("hidden");
+        document.getElementById("tab-" + id).classList.remove("hidden");
         
-        if(res.visits && res.visits.length > 0) {
-            res.visits.forEach(v => {
-                const desc = servicesCatalog[v.service] || "خدمة عامة"; // استخدام القاموس
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${v.date.split("T")[0]}</td>
-                        <td>${v.service}</td>
-                        <td style="color:#9ca3af">${desc}</td>
-                        <td>${v.price}</td>
-                        <td>${v.commission}</td>
-                        <td>${v.employee || "-"}</td>
-                        <td>${v.branch || "-"}</td>
-                    </tr>
-                `;
-            });
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        event.target.classList.add("active");
+    }
+
+    // تسجيل الزيارة 
+    async function submitVisit() {
+        const phone = document.getElementById("vPhone").value;
+        const service = document.getElementById("vService").value;
+        const price = document.getElementById("vPrice").value;
+        const employee = document.getElementById("vEmployee").value;
+
+        if(!phone || !service) return alert("البيانات ناقصة");
+
+        const btn = document.getElementById("submitBtn");
+        btn.innerText = "جاري الحفظ...";
+        btn.disabled = true;
+
+        // أولاً نجلب العضوية لأن addVisit يحتاج membership 
+        const custRes = await apiGet({ action: "getByPhone", phone });
+        let membership = "";
+        
+        if(custRes.success && custRes.customer) {
+            membership = custRes.customer.membership;
         } else {
-            tbody.innerHTML = "<tr><td colspan='7'>لا توجد بيانات</td></tr>";
+            // تسجيل سريع للعميل الجديد إذا لم يوجد [cite: 508]
+            const regRes = await apiPost({ action: "registerCustomer", phone, name: "عميل جديد" });
+            if(regRes.success) membership = regRes.membership;
+            else return alert("خطأ في تسجيل العميل");
+        }
+
+        // إرسال الزيارة
+        const res = await apiPost({
+            action: "addVisit",
+            membership: membership,
+            service: service,
+            price: price,
+            points: Math.floor(price / 10), // حساب النقاط تلقائياً
+            employee: employee,
+            branch: "الرئيسي" // افتراضي
+        });
+
+        if(res.success) {
+            alert("تم التسجيل بنجاح!");
+            document.getElementById("vPhone").value = "";
+        } else {
+            alert("خطأ: " + res.error);
+        }
+        
+        btn.innerText = "تسجيل الزيارة ✅";
+        btn.disabled = false;
+    }
+
+    async function searchCustomer() {
+        const phone = document.getElementById("sPhone").value;
+        const res = await apiGet({ action: "getByPhone", phone });
+        const div = document.getElementById("searchResult");
+        
+        if(res.success) {
+            div.innerHTML = `
+                <h3>${res.customer.name}</h3>
+                <p>العضوية: <span class="badge">${res.customer.membership}</span></p>
+                <p>النقاط: ${res.customer.points} (${res.customer.level})</p>
+                <p>عدد الزيارات: ${res.customer.visit_count}</p>
+            `;
+        } else {
+            div.innerHTML = "<p>العميل غير موجود</p>";
         }
     }
 
-    // 5. تصدير Excel
-    function exportToExcel() {
-        const table = $("reportTable");
-        let csv = "\ufeff"; // BOM for Arabic support
-        
-        // Headers
-        const headers = Array.from(table.querySelectorAll("th")).map(th => th.innerText);
-        csv += headers.join(",") + "\n";
-        
-        // Rows
-        table.querySelectorAll("tbody tr").forEach(tr => {
-            const row = Array.from(tr.querySelectorAll("td")).map(td => `"${td.innerText}"`);
-            csv += row.join(",") + "\n";
-        });
-        
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `Report_${new Date().toISOString().slice(0,10)}.csv`;
-        link.click();
-    }
-
-    // 6. الموظفين والرواتب [cite: 268]
-    async function loadEmployees() {
-        const res = await apiGet({ action: "getEmployees" });
-        const sel = $("empSelect");
-        if(res.employees) {
-            res.employees.forEach(e => {
-                sel.innerHTML += `<option value="${e.employee}">${e.employee}</option>`;
-            });
-        }
-    }
-
-    async function calcPayroll() {
-        const res = await apiGet({
-            action: "getPayroll",
-            employee: $("empSelect").value,
-            from: $("payFrom").value,
-            to: $("payTo").value
-        });
-        $("payResult").innerHTML = `
-            <b>الموظف:</b> ${res.employee}<br>
-            <b>الزيارات:</b> ${res.total_visits}<br>
-            <b>إجمالي العمولة المستحقة:</b> ${res.total_commission} ريال
-        `;
-    }
-
-    // التشغيل المبدئي
-    loadDashboard();
-    loadEmployees();
-
+    init();
 </script>
 </body>
 </html>
