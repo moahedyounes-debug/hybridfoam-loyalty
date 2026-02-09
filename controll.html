@@ -2,15 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة المشرف - متقدمة</title>
+  <title>لوحة المشرف - controll.html</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Date Picker -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <!-- Icons (اختياري) -->
+  <!-- Icons (اختياري مستقبلاً) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <!-- Charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -32,7 +30,9 @@
       --transition-fast: 0.15s ease-out;
     }
 
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
     }
 
@@ -317,6 +317,7 @@
       background: var(--danger);
     }
 
+    /* Loader keyframes */
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -346,74 +347,89 @@
       flex: 1;
     }
 
-    /* Dashboard grid */
+    /* Dashboard extra cards */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
-    .mini-card {
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      padding: 10px 12px;
+    .dash-card {
       background: #020617;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      font-size: 13px;
     }
 
-    .mini-card-title {
+    .dash-card-title {
       font-size: 13px;
       color: var(--text-muted);
+      margin-bottom: 6px;
     }
 
-    .mini-card-value {
+    .dash-card-value {
       font-size: 18px;
       font-weight: 600;
+      margin-bottom: 4px;
     }
 
     .level-badges {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .level-card {
-      border-radius: var(--radius-md);
-      padding: 10px;
-      border: 1px solid var(--border);
-      background: linear-gradient(135deg, #020617, #020617);
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 13px;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
     }
 
-    .level-card span {
-      font-size: 12px;
+    .level-badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid var(--border);
+    }
+
+    .level-Bronze { background: rgba(161, 98, 7, 0.15); }
+    .level-Silver { background: rgba(148, 163, 184, 0.15); }
+    .level-Gold { background: rgba(234, 179, 8, 0.15); }
+    .level-Platinum { background: rgba(148, 163, 184, 0.25); }
+    .level-VIP { background: rgba(22, 163, 74, 0.25); }
+
+    /* Simple bar container */
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      font-size: 11px;
+    }
+
+    .bar-label {
+      min-width: 70px;
       color: var(--text-muted);
     }
 
-    .level-card.vip { border-color: #fbbf24; box-shadow: 0 0 0 1px rgba(251,191,36,0.3); }
-    .level-card.platinum { border-color: #e5e7eb; }
-    .level-card.gold { border-color: #facc15; }
-    .level-card.silver { border-color: #9ca3af; }
-    .level-card.bronze { border-color: #b45309; }
-
-    .chart-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-      gap: 12px;
-      margin-top: 10px;
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid var(--border);
+      overflow: hidden;
     }
 
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #22c55e);
+      width: 0%;
+    }
+
+    /* Responsive */
     @media (max-width: 900px) {
       .layout {
         flex-direction: column;
       }
+
       .sidebar {
         width: 100%;
         flex-direction: row;
@@ -421,23 +437,24 @@
         border-left: none;
         border-bottom: 1px solid var(--border);
       }
+
       .nav {
         flex-direction: row;
         flex-wrap: nowrap;
       }
+
       .nav-btn {
         white-space: nowrap;
       }
+
       .topbar {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
       }
+
       .stats-bar {
         justify-content: flex-start;
-      }
-      .chart-row {
-        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -460,17 +477,31 @@
 
     <div class="nav-section-title">العملاء</div>
     <div class="nav">
-      <button class="nav-btn" data-target="search"><span>بحث عميل</span></button>
-      <button class="nav-btn" data-target="visits"><span>زيارات العميل</span></button>
-      <button class="nav-btn" data-target="cars"><span>سيارات العميل</span></button>
-      <button class="nav-btn" data-target="addVisit"><span>إضافة زيارة</span></button>
+      <button class="nav-btn" data-target="search">
+        <span>بحث عميل</span>
+      </button>
+      <button class="nav-btn" data-target="visits">
+        <span>زيارات العميل</span>
+      </button>
+      <button class="nav-btn" data-target="cars">
+        <span>سيارات العميل</span>
+      </button>
+      <button class="nav-btn" data-target="addVisit">
+        <span>إضافة زيارة</span>
+      </button>
     </div>
 
     <div class="nav-section-title">التفاعل والحجوزات</div>
     <div class="nav">
-      <button class="nav-btn" data-target="notify"><span>إرسال إشعار</span></button>
-      <button class="nav-btn" data-target="bookings"><span>الحجوزات</span></button>
-      <button class="nav-btn" data-target="reports"><span>التقارير</span></button>
+      <button class="nav-btn" data-target="notify">
+        <span>إرسال إشعار</span>
+      </button>
+      <button class="nav-btn" data-target="bookings">
+        <span>الحجوزات</span>
+      </button>
+      <button class="nav-btn" data-target="reports">
+        <span>التقارير</span>
+      </button>
     </div>
   </aside>
 
@@ -498,79 +529,8 @@
           </div>
           <p id="stats">جاري التحميل...</p>
 
-          <!-- أرقام إضافية -->
-          <div class="dashboard-grid">
-            <div class="mini-card">
-              <div class="mini-card-title">العملاء الجدد هذا الشهر</div>
-              <div class="mini-card-value" id="dNewCustomers">0</div>
-              <span class="status-text">عدد العملاء الذين زاروا هذا الشهر لأول مرة</span>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-title">العملاء العائدون</div>
-              <div class="mini-card-value" id="dReturningCustomers">0</div>
-              <span class="status-text">من لديهم أكثر من زيارة واحدة</span>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-title">نسبة الاحتفاظ بالعملاء</div>
-              <div class="mini-card-value" id="dRetentionRate">0%</div>
-              <span class="status-text">نسبة العملاء الذين عادوا مرة أخرى</span>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-title">متوسط إنفاق العميل</div>
-              <div class="mini-card-value" id="dAvgSpend">0</div>
-              <span class="status-text">إجمالي المبالغ ÷ عدد العملاء</span>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-title">متوسط زيارات العميل</div>
-              <div class="mini-card-value" id="dAvgVisits">0</div>
-              <span class="status-text">إجمالي الزيارات ÷ عدد العملاء</span>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-title">مؤشر صحة العمل</div>
-              <div class="mini-card-value" id="dHealthScore">0</div>
-              <span class="status-text" id="dHealthStatus">-</span>
-            </div>
-          </div>
-
-          <!-- مستويات العملاء كبطاقات -->
-          <h3 style="margin-top:16px;">مستويات العملاء</h3>
-          <div class="level-badges">
-            <div class="level-card vip">
-              <strong>VIP</strong>
-              <span>عدد العملاء: <span id="lvlVIP">0</span></span>
-            </div>
-            <div class="level-card platinum">
-              <strong>Platinum</strong>
-              <span>عدد العملاء: <span id="lvlPlatinum">0</span></span>
-            </div>
-            <div class="level-card gold">
-              <strong>Gold</strong>
-              <span>عدد العملاء: <span id="lvlGold">0</span></span>
-            </div>
-            <div class="level-card silver">
-              <strong>Silver</strong>
-              <span>عدد العملاء: <span id="lvlSilver">0</span></span>
-            </div>
-            <div class="level-card bronze">
-              <strong>Bronze</strong>
-              <span>عدد العملاء: <span id="lvlBronze">0</span></span>
-            </div>
-          </div>
-
-          <!-- الرسوم البيانية -->
-          <div class="chart-row">
-            <div class="card" style="margin-top:10px;">
-              <div class="card-header">
-                <h3>الزيارات حسب اليوم</h3>
-              </div>
-              <canvas id="visitsPerDayChart" height="140"></canvas>
-            </div>
-            <div class="card" style="margin-top:10px;">
-              <div class="card-header">
-                <h3>الخدمات الأكثر استخدامًا</h3>
-              </div>
-              <canvas id="servicesChart" height="140"></canvas>
-            </div>
+          <div class="dashboard-grid" id="dashExtra">
+            <!-- سيتم تعبئتها من الـ API -->
           </div>
         </div>
       </section>
@@ -581,8 +541,8 @@
           <div class="card-header">
             <h2>بحث عن عميل</h2>
           </div>
-          <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
-          <input id="searchPhone" placeholder="05xxxxxxxx أو 2026xxxx أو أ ب ج 1234">
+          <label>رقم الجوال أو رقم العضوية</label>
+          <input id="searchPhone" placeholder="05xxxxxxxx أو 2026xxxx">
           <button id="searchBtn">بحث</button>
           <div id="searchResult" style="margin-top:10px;"></div>
         </div>
@@ -594,8 +554,8 @@
           <div class="card-header">
             <h2>زيارات العميل</h2>
           </div>
-          <label>رقم الجوال</label>
-          <input id="visitsPhone" placeholder="05xxxxxxxx">
+          <label>رقم الجوال أو رقم العضوية</label>
+          <input id="visitsPhone" placeholder="05xxxxxxxx أو 2026xxxx">
           <label>اختر التاريخ (اختياري)</label>
           <input id="visitsDate" class="datePicker" placeholder="YYYY-MM-DD">
           <button id="visitsBtn">عرض الزيارات</button>
@@ -643,8 +603,8 @@
             <div class="card-header">
               <h3>بحث عن العميل</h3>
             </div>
-            <label>رقم الجوال / العضوية / اللوحة</label>
-            <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx أو أ ب ج 1234">
+            <label>رقم الجوال أو العضوية</label>
+            <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx">
             <button id="visitSearchBtn">بحث</button>
           </div>
 
@@ -698,9 +658,9 @@
           <div id="reportsList" class="list" style="margin-top:10px;"></div>
         </div>
       </section>
-    </div>
+    </div> <!-- /content -->
   </main>
-</div>
+</div> <!-- /layout -->
 
 <!-- سكربتات خارجية -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -709,7 +669,7 @@
 <script>
   /* ===========================
      Tabs
-  ============================ */
+  =========================== */
   const sections = document.querySelectorAll(".section");
   const navButtons = document.querySelectorAll(".nav-btn");
 
@@ -727,7 +687,7 @@
 
   /* ===========================
      Date Pickers
-  ============================ */
+  =========================== */
   function initDatePickers() {
     const options = {
       dateFormat: "Y-m-d",
@@ -739,112 +699,97 @@
   }
 
   /* ===========================
-     Dashboard + Charts
-  ============================ */
-  let visitsPerDayChart = null;
-  let servicesChart = null;
-
+     Dashboard
+  =========================== */
   async function loadDashboard() {
     const res = await apiGet({ action: "getOwnersDashboard" });
 
-    // أرقام أساسية
     document.getElementById("stats").innerHTML = `
       العملاء: ${res.totals.customers}<br>
       السيارات: ${res.totals.cars}<br>
       الزيارات: ${res.totals.visits}<br>
       المبالغ: ${res.totals.amount}
     `;
+
     document.getElementById("sCustomers").innerText = res.totals.customers;
     document.getElementById("sCars").innerText = res.totals.cars;
     document.getElementById("sVisits").innerText = res.totals.visits;
     document.getElementById("sAmount").innerText = res.totals.amount;
 
-    // أرقام إضافية
-    document.getElementById("dNewCustomers").innerText = res.totals.new_customers_this_month;
-    document.getElementById("dReturningCustomers").innerText = res.totals.returning_customers;
-    document.getElementById("dRetentionRate").innerText = res.totals.retention_rate.toFixed(1) + "%";
-    document.getElementById("dAvgSpend").innerText = res.totals.avg_spend_per_customer.toFixed(1);
-    document.getElementById("dAvgVisits").innerText = res.totals.avg_visits_per_customer.toFixed(2);
-    document.getElementById("dHealthScore").innerText = res.business_health.score;
-    document.getElementById("dHealthStatus").innerText = res.business_health.status;
+    renderDashboardExtras(res);
+  }
 
-    // مستويات العملاء
-    document.getElementById("lvlBronze").innerText = res.levels.Bronze || 0;
-    document.getElementById("lvlSilver").innerText = res.levels.Silver || 0;
-    document.getElementById("lvlGold").innerText = res.levels.Gold || 0;
-    document.getElementById("lvlPlatinum").innerText = res.levels.Platinum || 0;
-    document.getElementById("lvlVIP").innerText = res.levels.VIP || 0;
+  function renderDashboardExtras(data) {
+    const container = document.getElementById("dashExtra");
+    container.innerHTML = "";
 
-    // رسم: الزيارات حسب اليوم
-    const vLabels = res.visits_per_day.map(v => v.date);
-    const vData = res.visits_per_day.map(v => v.count);
+    // بطاقة مستويات العملاء
+    const levelsCard = document.createElement("div");
+    levelsCard.className = "dash-card";
+    levelsCard.innerHTML = `
+      <div class="dash-card-title">مستويات العملاء</div>
+      <div class="level-badges" id="levelsBadges"></div>
+    `;
+    container.appendChild(levelsCard);
 
-    const ctxVisits = document.getElementById("visitsPerDayChart").getContext("2d");
-    if (visitsPerDayChart) visitsPerDayChart.destroy();
-    visitsPerDayChart = new Chart(ctxVisits, {
-      type: "line",
-      data: {
-        labels: vLabels,
-        datasets: [{
-          label: "عدد الزيارات",
-          data: vData,
-          borderColor: "#2563eb",
-          backgroundColor: "rgba(37,99,235,0.2)",
-          tension: 0.3,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: {
-            ticks: { color: "#9ca3af" },
-            grid: { color: "rgba(31,41,55,0.5)" }
-          },
-          y: {
-            ticks: { color: "#9ca3af" },
-            grid: { color: "rgba(31,41,55,0.5)" }
-          }
-        }
-      }
+    const levelsBadges = levelsCard.querySelector("#levelsBadges");
+    const levels = data.levels || {};
+    const totalCustomers = data.totals.customers || 0;
+
+    Object.keys(levels).forEach(level => {
+      const count = levels[level] || 0;
+      const percent = totalCustomers ? ((count / totalCustomers) * 100).toFixed(1) : 0;
+      const badge = document.createElement("div");
+      badge.className = `level-badge level-${level}`;
+      badge.textContent = `${level}: ${count} (${percent}%)`;
+      levelsBadges.appendChild(badge);
     });
 
-    // رسم: الخدمات الأكثر استخدامًا
-    const sLabels = res.services_breakdown.map(s => s.service);
-    const sData = res.services_breakdown.map(s => s.count);
+    // بطاقة صحة العمل
+    const healthCard = document.createElement("div");
+    healthCard.className = "dash-card";
+    healthCard.innerHTML = `
+      <div class="dash-card-title">صحة العمل</div>
+      <div class="dash-card-value">${data.business_health.score}/100</div>
+      <div style="font-size:12px;color:var(--text-muted);">${data.business_health.status}</div>
+      <div class="bar-row" style="margin-top:8px;">
+        <div class="bar-label">الاحتفاظ</div>
+        <div class="bar-track"><div class="bar-fill" id="barRetention"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">الرضا</div>
+        <div class="bar-track"><div class="bar-fill" id="barRating"></div></div>
+      </div>
+    `;
+    container.appendChild(healthCard);
 
-    const ctxServices = document.getElementById("servicesChart").getContext("2d");
-    if (servicesChart) servicesChart.destroy();
-    servicesChart = new Chart(ctxServices, {
-      type: "bar",
-      data: {
-        labels: sLabels,
-        datasets: [{
-          label: "عدد الزيارات",
-          data: sData,
-          backgroundColor: "rgba(37,99,235,0.7)"
-        }]
-      },
-      options: {
-        indexAxis: "y",
-        responsive: true,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: {
-            ticks: { color: "#9ca3af" },
-            grid: { color: "rgba(31,41,55,0.5)" }
-          },
-          y: {
-            ticks: { color: "#9ca3af" },
-            grid: { color: "rgba(31,41,55,0.2)" }
-          }
-        }
-      }
+    const barRetention = healthCard.querySelector("#barRetention");
+    const barRating = healthCard.querySelector("#barRating");
+    barRetention.style.width = Math.min(100, data.totals.retention_rate || 0) + "%";
+    const avgRating = (data.ratings && data.ratings.avg_rating) || 0;
+    barRating.style.width = Math.min(100, (avgRating / 5) * 100) + "%";
+
+    // بطاقة أكثر الخدمات
+    const servicesCard = document.createElement("div");
+    servicesCard.className = "dash-card";
+    servicesCard.innerHTML = `
+      <div class="dash-card-title">أكثر الخدمات استخدامًا</div>
+      <div id="servicesBars"></div>
+    `;
+    container.appendChild(servicesCard);
+
+    const servicesBars = servicesCard.querySelector("#servicesBars");
+    const services = data.services_breakdown || [];
+    const maxCount = services.reduce((m, s) => Math.max(m, s.count), 0) || 1;
+
+    services.slice(0, 5).forEach(s => {
+      const row = document.createElement("div");
+      row.className = "bar-row";
+      row.innerHTML = `
+        <div class="bar-label">${s.service}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(s.count / maxCount) * 100}%"></div></div>
+      `;
+      servicesBars.appendChild(row);
     });
   }
 
@@ -852,7 +797,7 @@
      Helper: بحث ذكي عن عميل
      - جوال 05xxxxxxx => getByPhone
      - رقم عضوية رقمي => getByMembership
-  ============================ */
+  =========================== */
   async function smartSearchCustomer(query) {
     // رقم جوال
     if (query.startsWith("05") && query.length === 10) {
@@ -876,16 +821,16 @@
       };
     }
 
-    // لا يوجد دعم حقيقي للوحة من الـ API الحالي
     return null;
   }
 
   /* ===========================
      Search Customer
-  ============================ */
+  =========================== */
   async function handleSearchCustomer() {
     const btn = document.getElementById("searchBtn");
     const query = document.getElementById("searchPhone").value.trim();
+
     if (!query) return alert("أدخل قيمة للبحث");
 
     btn.classList.add("loading");
@@ -917,21 +862,38 @@
 
   /* ===========================
      Customer Visits
-  ============================ */
+     - يدعم الآن الجوال أو رقم العضوية
+  =========================== */
   async function handleLoadCustomerVisits() {
     const btn = document.getElementById("visitsBtn");
-    const phone = document.getElementById("visitsPhone").value.trim();
+    const query = document.getElementById("visitsPhone").value.trim();
     const dateFilter = document.getElementById("visitsDate").value.trim();
 
-    if (!phone) return alert("أدخل رقم الجوال");
+    if (!query) return alert("أدخل رقم الجوال أو رقم العضوية");
 
     btn.classList.add("loading");
     btn.disabled = true;
 
-    const res = await apiGet({
-      action: "getVisitsByPhone",
-      phone
-    });
+    let visitsRes = { visits: [] };
+
+    // إذا كان جوال
+    if (query.startsWith("05") && query.length === 10) {
+      visitsRes = await apiGet({
+        action: "getVisitsByPhone",
+        phone: query
+      });
+    } else if (/^\d+$/.test(query)) {
+      // رقم عضوية
+      visitsRes = await apiGet({
+        action: "getVisits",
+        membership: query
+      });
+    } else {
+      btn.classList.remove("loading");
+      btn.disabled = false;
+      alert("أدخل جوال صحيح أو رقم عضوية رقمي");
+      return;
+    }
 
     btn.classList.remove("loading");
     btn.disabled = false;
@@ -939,14 +901,14 @@
     const list = document.getElementById("visitsList");
     list.innerHTML = "";
 
-    if (!res.visits || res.visits.length === 0) {
+    if (!visitsRes.visits || visitsRes.visits.length === 0) {
       list.innerHTML = "<p>لا توجد زيارات</p>";
       return;
     }
 
     const filtered = dateFilter
-      ? res.visits.filter(v => String(v.date).slice(0, 10) === dateFilter)
-      : res.visits;
+      ? visitsRes.visits.filter(v => String(v.date).slice(0, 10) === dateFilter)
+      : visitsRes.visits;
 
     if (filtered.length === 0) {
       list.innerHTML = "<p>لا توجد زيارات في هذا التاريخ</p>";
@@ -970,10 +932,11 @@
 
   /* ===========================
      Customer Cars
-  ============================ */
+  =========================== */
   async function handleLoadCustomerCars() {
     const btn = document.getElementById("carsBtn");
     const phone = document.getElementById("carsPhone").value.trim();
+
     if (!phone) return alert("أدخل رقم الجوال");
 
     btn.classList.add("loading");
@@ -1007,7 +970,7 @@
 
   /* ===========================
      Send Notification
-  ============================ */
+  =========================== */
   async function handleSendNotification() {
     const btn = document.getElementById("notifyBtn");
     const phone = document.getElementById("notifyPhone").value.trim();
@@ -1044,7 +1007,7 @@
 
   /* ===========================
      Add Visit
-  ============================ */
+  =========================== */
   let selectedMembership = null;
   let selectedCarData = null;
   let visitServices = {};
@@ -1052,6 +1015,7 @@
   async function handleSearchVisitCustomer() {
     const btn = document.getElementById("visitSearchBtn");
     const query = document.getElementById("visitSearch").value.trim();
+
     if (!query) return alert("أدخل رقم الجوال أو العضوية");
 
     btn.classList.add("loading");
@@ -1092,8 +1056,10 @@
   function selectVisitCar(car) {
     selectedMembership = car.membership;
     selectedCarData = car;
+
     const form = document.getElementById("visitForm");
     form.style.display = "block";
+
     document.getElementById("visitSelectedInfo").innerText =
       `العضوية: ${car.membership} — السيارة: ${car.car} — اللوحة: ${car.plate_letters} ${car.plate_numbers}`;
   }
@@ -1151,17 +1117,20 @@
     btn.disabled = false;
 
     if (res.success) {
-      document.getElementById("addVisitStatus").innerText = "✔ تم تسجيل الزيارة بنجاح";
+      document.getElementById("addVisitStatus").innerText =
+        "✔ تم تسجيل الزيارة بنجاح";
     } else {
-      document.getElementById("addVisitStatus").innerText = "❌ حدث خطأ أثناء التسجيل";
+      document.getElementById("addVisitStatus").innerText =
+        "❌ حدث خطأ أثناء التسجيل";
     }
   }
 
   /* ===========================
      Bookings
-  ============================ */
+  =========================== */
   async function loadBookings() {
     const date = document.getElementById("bookingsDate").value.trim();
+
     const res = await apiGet({
       action: "getBookings",
       date
@@ -1208,7 +1177,7 @@
 
   /* ===========================
      Reports
-  ============================ */
+  =========================== */
   async function loadReports() {
     const date = document.getElementById("reportsDate").value.trim();
     const from = date || "2000-01-01";
@@ -1246,7 +1215,7 @@
 
   /* ===========================
      Event Listeners
-  ============================ */
+  =========================== */
   function initEvents() {
     document.getElementById("searchBtn").addEventListener("click", handleSearchCustomer);
     document.getElementById("visitsBtn").addEventListener("click", handleLoadCustomerVisits);
@@ -1262,7 +1231,7 @@
 
   /* ===========================
      Initial Load
-  ============================ */
+  =========================== */
   initTabs();
   initDatePickers();
   initEvents();
