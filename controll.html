@@ -186,6 +186,26 @@ button {
   cursor: pointer;
 <div class="content">
 
+<!-- ========== كشف رواتب الموظفين ========== -->
+
+  <section id="employeesCommissions" class="section">
+  <div class="card">
+    <div class="card-header"><h2>عمولات الموظفين حسب الخدمة</h2></div>
+
+    <label>من تاريخ</label>
+    <input id="empCommFrom" class="datePicker" placeholder="YYYY-MM-DD">
+
+    <label>إلى تاريخ</label>
+    <input id="empCommTo" class="datePicker" placeholder="YYYY-MM-DD">
+
+    <button id="empCommBtn">عرض</button>
+    <button id="empCommExportBtn">تصدير Excel</button>
+
+    <div id="empCommList" class="list" style="margin-top:10px;"></div>
+  </div>
+</section>
+
+  
 <!-- ========== DASHBOARD ========== -->
 <section id="dashboard" class="section active">
   <div class="card">
@@ -206,6 +226,18 @@ button {
   </div>
 </section>
 
+<!-- ========== ٌانواع التقارير ========== -->
+<label>نوع التقرير</label>
+<select id="reportsType">
+  <option value="visits">الزيارات التفصيلية</option>
+  <option value="services">تجميع حسب الخدمة</option>
+  <option value="employees">تجميع حسب الموظف</option>
+</select>
+
+<button id="reportsExportBtn">تصدير Excel</button>
+
+
+  
 <!-- ========== SEARCH CUSTOMER ========== -->
 <section id="customers" class="section">
   <div class="card">
@@ -347,6 +379,89 @@ const $ = (id)=>document.getElementById(id);
   document.querySelector(".stats-bar").appendChild(toggle);
 })();
 
+  /* ===========================
+   loadEmployeesCommissions
+=========================== */
+
+  async function loadEmployeesCommissions() {
+  const from = $("empCommFrom").value.trim();
+  const to = $("empCommTo").value.trim();
+
+  if (!from || !to) return alert("اختر من وإلى تاريخ");
+
+  const res = await apiGet({
+    action: "getVisitsByDate",
+    from,
+    to
+  });
+
+  const visits = res.visits || [];
+  const list = $("empCommList");
+  clear(list);
+
+  if (!visits.length) {
+    list.innerHTML = "<p>لا توجد بيانات</p>";
+    return;
+  }
+
+  // تجميع حسب الموظف + الخدمة
+  const map = {};
+  visits.forEach(v => {
+    const emp = v.employee || "بدون موظف";
+    const key = emp + "||" + v.service;
+
+    if (!map[key]) {
+      map[key] = {
+        employee: emp,
+        service: v.service,
+        membership: v.membership,
+        car_type: v.car_type || v.size || "-", // حسب ما يرجع الـ API
+        count: 0,
+        commission: 0
+      };
+    }
+
+    map[key].count++;
+    map[key].commission += Number(v.commission || 0);
+  });
+
+  const rows = Object.values(map);
+
+  rows.forEach(r => {
+    list.appendChild(createCard(`
+      الموظف: ${r.employee}<br>
+      الخدمة: ${r.service}<br>
+      عدد الزيارات: ${r.count}<br>
+      إجمالي العمولة: ${r.commission}<br>
+      نوع السيارة (تقريبي): ${r.car_type}
+    `));
+  });
+
+  // نخزنها في متغير عالمي للتصدير
+  window._empCommData = rows;
+}
+
+function exportEmployeesCommissionsExcel() {
+  const rows = window._empCommData || [];
+  if (!rows.length) return alert("لا توجد بيانات للتصدير");
+
+  const data = rows.map(r => ({
+    "الموظف": r.employee,
+    "الخدمة": r.service,
+    "عدد الزيارات": r.count,
+    "إجمالي العمولة": r.commission,
+    "نوع السيارة": r.car_type
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "EmpCommissions");
+
+  XLSX.writeFile(wb, "Employees-Commissions.xlsx");
+}
+
+
+  
 /* ===========================
    NAVIGATION
 =========================== */
@@ -498,39 +613,77 @@ function updatePriceAndCommission(){
 /* ===========================
    DASHBOARD
 =========================== */
-async function loadDashboard(){
-  const res = await apiGet({
-    action:"getVisitsByDate",
-    from:"2000-01-01T00:00:00.000Z",
-    to:"2100-01-01T23:59:59.000Z"
+async function loadDashboard() {
+  const res = await apiGet({ action: "getOwnersDashboard" });
+
+  // أرقام أساسية
+  $("stats").innerHTML = `
+    العملاء: ${res.totals.customers}<br>
+    السيارات: ${res.totals.cars}<br>
+    الزيارات: ${res.totals.visits}<br>
+    المبالغ: ${res.totals.amount}
+  `;
+
+  $("sCustomers").innerText = res.totals.customers;
+  $("sCars").innerText = res.totals.cars;
+  $("sVisits").innerText = res.totals.visits;
+  $("sAmount").innerText = res.totals.amount;
+
+  // مستويات العملاء
+  const levelsBox = $("levelsBox");
+  clear(levelsBox);
+  Object.entries(res.levels).forEach(([level, count]) => {
+    levelsBox.appendChild(createCard(`${level}: ${count}`));
   });
 
-  const visits = (res.visits || []).filter(v=>v.branch === currentBranch);
+  // الخدمات الأكثر استخدامًا
+  const servicesBox = $("servicesBreakdown");
+  clear(servicesBox);
+  res.services_breakdown
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+    .forEach(s => {
+      servicesBox.appendChild(createCard(`
+        الخدمة: ${s.service}<br>
+        عدد الزيارات: ${s.count}<br>
+        إجمالي المبالغ: ${s.amount}
+      `));
+    });
 
-  const totalAmount = visits.reduce((s,v)=>s + Number(v.price||0), 0);
-  const totalVisits = visits.length;
-  const totalCommission = visits.reduce((s,v)=>s + Number(v.commission||0), 0);
-  const customers = new Set(visits.map(v=>v.membership)).size;
+  // إحصائيات السيارات
+  const carsBox = $("carsStats");
+  clear(carsBox);
+  carsBox.appendChild(createCard(
+    "<b>أكثر أنواع السيارات:</b><br>" +
+    res.cars_stats.top_car_types
+      .slice(0, 5)
+      .map(c => `${c.car}: ${c.count}`)
+      .join("<br>")
+  ));
+  carsBox.appendChild(createCard(
+    "<b>أكثر الأحجام:</b><br>" +
+    res.cars_stats.top_sizes
+      .map(c => `${c.size}: ${c.count}`)
+      .join("<br>")
+  ));
+  carsBox.appendChild(createCard(
+    "<b>أكثر المدن:</b><br>" +
+    res.cars_stats.top_cities
+      .map(c => `${c.city}: ${c.count}`)
+      .join("<br>")
+  ));
 
-  $("dTotalAmount").textContent = totalAmount;
-  $("dTotalVisits").textContent = totalVisits;
-  $("dTotalCustomers").textContent = customers;
-  $("dTotalCommission").textContent = totalCommission;
-
-  const map = {};
-  visits.forEach(v=>{
-    map[v.date] = (map[v.date] || 0) + 1;
-  });
-
-  const labels = Object.keys(map).sort();
-  const data = labels.map(l=>map[l]);
-
-  new Chart($("visitsChart"),{
-    type:"line",
-    data:{labels,datasets:[{label:"الزيارات",data,borderColor:"#2563eb"}]},
-    options:{responsive:true,plugins:{legend:{display:false}}}
-  });
+  // صحة العمل + لمسة إضافية
+  const health = res.business_health;
+  $("businessHealth").innerHTML = `
+    التقييم العام: ${health.score} / 100<br>
+    الحالة: ${health.status}<br>
+    معدل الاحتفاظ بالعملاء: ${res.totals.retention_rate.toFixed(1)}%<br>
+    متوسط الإنفاق لكل عميل: ${res.totals.avg_spend_per_customer.toFixed(1)}<br>
+    متوسط الزيارات لكل عميل: ${res.totals.avg_visits_per_customer.toFixed(1)}
+  `;
 }
+
 
 /* ===========================
    SMART SEARCH
@@ -753,6 +906,77 @@ async function cancelBooking(row){
 }
 
 /* ===========================
+   loadReportsOwner
+=========================== */
+async function exportReportsOwner() {
+  const from = $("reportsFrom").value.trim();
+  const to = $("reportsTo").value.trim();
+  const type = $("reportsType").value;
+
+  if (!from || !to) return alert("اختر من وإلى تاريخ");
+
+  const res = await apiGet({
+    action: "getVisitsByDate",
+    from,
+    to
+  });
+
+  const visits = res.visits || [];
+  if (!visits.length) {
+    alert("لا توجد بيانات");
+    return;
+  }
+
+  let data = [];
+
+  if (type === "visits") {
+    data = visits.map(v => ({
+      "التاريخ": v.date,
+      "الخدمة": v.service,
+      "السعر": v.price,
+      "النقاط": v.points,
+      "العضوية": v.membership,
+      "الموظف": v.employee || "-",
+      "الفرع": v.branch || "-"
+    }));
+  } else if (type === "services") {
+    const map = {};
+    visits.forEach(v => {
+      if (!map[v.service]) map[v.service] = { count: 0, amount: 0 };
+      map[v.service].count++;
+      map[v.service].amount += Number(v.price || 0);
+    });
+    data = Object.keys(map).map(s => ({
+      "الخدمة": s,
+      "عدد الزيارات": map[s].count,
+      "إجمالي المبالغ": map[s].amount
+    }));
+  } else if (type === "employees") {
+    const map = {};
+    visits.forEach(v => {
+      const emp = v.employee || "بدون موظف";
+      if (!map[emp]) map[emp] = { count: 0, commission: 0, amount: 0 };
+      map[emp].count++;
+      map[emp].amount += Number(v.price || 0);
+      map[emp].commission += Number(v.commission || 0);
+    });
+    data = Object.keys(map).map(e => ({
+      "الموظف": e,
+      "عدد الزيارات": map[e].count,
+      "إجمالي المبالغ": map[e].amount,
+      "إجمالي العمولة": map[e].commission
+    }));
+  }
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+  XLSX.writeFile(wb, `OwnerReport-${type}-${from}-to-${to}.xlsx`);
+}
+
+  
+/* ===========================
    EXPORT EXCEL
 =========================== */
 $("exportBtn").onclick = async ()=>{
@@ -801,6 +1025,84 @@ $("exportBtn").onclick = async ()=>{
   await loadDashboard();
   await loadBookings();
 })();
+  
+  function initEvents() {
+  $("visitsOwnerBtn").onclick = loadVisitsOwner;
+  $("bookingsDateOwner").onchange = loadBookingsOwner;
+  $("payrollBtn").onclick = loadPayroll;
+  $("notifLoadBtn").onclick = loadNotifications;
+  $("reportsOwnerBtn").onclick = loadReportsOwner;
+  $("reportsExportBtn").onclick = exportReportsOwner; // ← أضف هذا
+}
+
+  function initEvents() {
+  $("visitsOwnerBtn").onclick = loadVisitsOwner;
+  $("bookingsDateOwner").onchange = loadBookingsOwner;
+  $("payrollBtn").onclick = loadPayroll;
+  $("notifLoadBtn").onclick = loadNotifications;
+  $("reportsOwnerBtn").onclick = loadReportsOwner;
+  $("reportsExportBtn").onclick = exportReportsOwner;
+
+  $("empCommBtn").onclick = loadEmployeesCommissions;
+  $("empCommExportBtn").onclick = exportEmployeesCommissionsExcel;
+}
+  
+<button id="empCommPrintBtn">طباعة تقرير PDF للتوقيع</button>
+
+  function printEmployeesCommissions() {
+  const rows = window._empCommData || [];
+  if (!rows.length) return alert("لا توجد بيانات للطباعة");
+
+  const win = window.open("", "_blank");
+  const html = `
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <title>تقرير عمولات الموظفين</title>
+      <style>
+        body { font-family: "Tajawal", sans-serif; padding: 20px; }
+        h2 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #000; padding: 6px; text-align: center; }
+        .sign { margin-top: 40px; display:flex; justify-content: space-between; }
+      </style>
+    </head>
+    <body>
+      <h2>تقرير عمولات الموظفين</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>الموظف</th>
+            <th>الخدمة</th>
+            <th>عدد الزيارات</th>
+            <th>إجمالي العمولة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td>${r.employee}</td>
+              <td>${r.service}</td>
+              <td>${r.count}</td>
+              <td>${r.commission}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      <div class="sign">
+        <div>توقيع الموظف: ____________________</div>
+        <div>توقيع الإدارة: ____________________</div>
+      </div>
+    </body>
+    </html>
+  `;
+  win.document.write(html);
+  win.document.close();
+  win.print();
+}
+
+  
 </script>
 
 </body>
