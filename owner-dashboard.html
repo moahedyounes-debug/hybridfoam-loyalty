@@ -708,23 +708,37 @@ async function loadVisitsOwner() {
     const from = $("visitsFrom").value.trim();
     const to = $("visitsTo").value.trim();
 
-    if (!from || !to) return alert("اختر من وإلى تاريخ");
-
     setLoading(btn, true);
+
+    let fromDate, toDate;
+
+    // 🔹 إذا ما فيه تاريخ → نجيب كل الزيارات
+    if (!from && !to) {
+        fromDate = "2000-01-01T00:00:00.000Z";
+        toDate = "2100-01-01T23:59:59.000Z";
+    } 
+    else {
+        // 🔹 إذا فيه تاريخ → نستخدمه
+        const f = from || to;
+        const t = to || from;
+
+        fromDate = new Date(f + "T00:00:00").toISOString();
+        toDate = new Date(t + "T23:59:59").toISOString();
+    }
 
     const res = await apiGet({
         action: "getVisitsByDate",
-        from,
-        to
+        from: fromDate,
+        to: toDate
     });
 
     setLoading(btn, false);
 
     const list = $("visitsOwnerList");
-    clear(list);
+    list.innerHTML = "";
 
-    if (!res.visits.length) {
-        list.innerHTML = "<p>لا توجد زيارات في هذه الفترة</p>";
+    if (!res.visits || res.visits.length === 0) {
+        list.innerHTML = "<p>لا توجد زيارات</p>";
         return;
     }
 
@@ -740,7 +754,6 @@ async function loadVisitsOwner() {
         `));
     });
 }
-
 /* ========== Bookings (owner) ========== */
 async function loadBookingsOwner() {
     const date = $("bookingsDateOwner").value.trim();
