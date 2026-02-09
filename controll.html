@@ -1,707 +1,891 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>لوحة المشرف - controll.html</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>لوحة المشرف - متقدمة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Date Picker -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <!-- Date Picker -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <!-- Icons (اختياري) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Icons (اختياري مستقبلاً) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-
-<style>
-:root {
-    --bg: #020617;
-    --bg-soft: #020617;
-    --card: #020617;
-    --border: #1f2937;
-    --accent: #2563eb;
-    --accent-soft: #1d4ed8;
-    --danger: #dc2626;
-    --success: #16a34a;
-    --warning: #f59e0b;
-    --text-main: #f9fafb;
-    --text-muted: #9ca3af;
-    --radius-lg: 16px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
-    --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
-    --transition-fast: 0.15s ease-out;
-}
-
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    font-family: "Tajawal", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
-    color: var(--text-main);
-    direction: rtl;
-}
-
-/* Layout */
-.layout {
-    display: flex;
-    min-height: 100vh;
-}
-
-/* Sidebar */
-.sidebar {
-    width: 260px;
-    background: rgba(15, 23, 42, 0.98);
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 18px 14px;
-    gap: 10px;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.brand-logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 14px;
-    background: conic-gradient(from 180deg, #2563eb, #4f46e5, #22c55e, #2563eb);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 18px;
-    color: #e5e7eb;
-}
-
-.brand-text {
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.nav-section-title {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin: 10px 4px 4px;
-}
-
-.nav {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 6px;
-}
-
-.nav-btn {
-    width: 100%;
-    text-align: right;
-    padding: 9px 11px;
-    border-radius: 10px;
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: var(--transition-fast);
-}
-
-.nav-btn span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.nav-btn.active {
-    background: rgba(37, 99, 235, 0.22);
-    color: var(--text-main);
-}
-
-.nav-btn:hover {
-    background: rgba(15, 23, 42, 0.9);
-    color: var(--text-main);
-}
-
-/* Main */
-.main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-/* Topbar */
-.topbar {
-    padding: 12px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(15, 23, 42, 0.9);
-    backdrop-filter: blur(10px);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.topbar-left {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.topbar-title {
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.topbar-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-}
-
-.stats-bar {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.pill {
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid var(--border);
-    font-size: 12px;
-    color: var(--text-muted);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* Content */
-.content {
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.section {
-    display: none;
-}
-.section.active {
-    display: block;
-}
-
-.card {
-    background: var(--card);
-    border-radius: var(--radius-lg);
-    padding: 16px;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-soft);
-}
-
-.card-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-}
-
-.card-header h2,
-.card-header h3 {
-    margin: 0;
-    text-align: center;
-}
-
-h2, h3 {
-    text-align: center;
-    margin: 0 0 10px;
-}
-
-p {
-    text-align: center;
-}
-
-/* Inputs */
-label {
-    display: block;
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-top: 8px;
-    margin-bottom: 3px;
-}
-
-input, select, textarea {
-    width: 100%;
-    padding: 10px 11px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border);
-    background: #020617;
-    color: var(--text-main);
-    font-size: 14px;
-    margin-bottom: 6px;
-    outline: none;
-    transition: var(--transition-fast);
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
-}
-
-textarea {
-    min-height: 90px;
-    resize: vertical;
-}
-
-/* Buttons */
-button {
-    padding: 10px 12px;
-    border-radius: var(--radius-md);
-    border: none;
-    background: var(--accent);
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 8px;
-    position: relative;
-    transition: var(--transition-fast);
-}
-
-button.loading {
-    color: transparent !important;
-    cursor: not-allowed;
-    background: #6b7280 !important;
-}
-
-button.loading::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    margin-top: -10px;
-    margin-left: -10px;
-    border: 3px solid white;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-}
-
-button:active {
-    transform: scale(0.97);
-}
-
-button.secondary {
-    background: #111827;
-    color: var(--text-main);
-}
-
-button.danger {
-    background: var(--danger);
-}
-
-/* Loader keyframes */
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Lists */
-.list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* Status text */
-.status-text {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 6px;
-    text-align: center;
-}
-
-/* Utility */
-.row {
-    display: flex;
-    gap: 10px;
-}
-.row > * {
-    flex: 1;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-    .layout {
-        flex-direction: column;
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-soft: #020617;
+      --card: #020617;
+      --border: #1f2937;
+      --accent: #2563eb;
+      --accent-soft: #1d4ed8;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
+      --transition-fast: 0.15s ease-out;
     }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Tajawal", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      direction: rtl;
+    }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
     .sidebar {
+      width: 260px;
+      background: rgba(15, 23, 42, 0.98);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 18px 14px;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: conic-gradient(from 180deg, #2563eb, #4f46e5, #22c55e, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: #e5e7eb;
+    }
+
+    .brand-text {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .nav-section-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 10px 4px 4px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      text-align: right;
+      padding: 9px 11px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: var(--transition-fast);
+    }
+
+    .nav-btn span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn.active {
+      background: rgba(37, 99, 235, 0.22);
+      color: var(--text-main);
+    }
+
+    .nav-btn:hover {
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Topbar */
+    .topbar {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .topbar-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Content */
+    .content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .card-header h2,
+    .card-header h3 {
+      margin: 0;
+      text-align: center;
+    }
+
+    h2, h3 {
+      text-align: center;
+      margin: 0 0 10px;
+    }
+
+    p {
+      text-align: center;
+    }
+
+    /* Inputs */
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      margin-bottom: 3px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 11px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text-main);
+      font-size: 14px;
+      margin-bottom: 6px;
+      outline: none;
+      transition: var(--transition-fast);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    /* Buttons */
+    button {
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 8px;
+      position: relative;
+      transition: var(--transition-fast);
+    }
+
+    button.loading {
+      color: transparent !important;
+      cursor: not-allowed;
+      background: #6b7280 !important;
+    }
+
+    button.loading::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin-top: -10px;
+      margin-left: -10px;
+      border: 3px solid white;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button.secondary {
+      background: #111827;
+      color: var(--text-main);
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Lists */
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Status text */
+    .status-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* Utility */
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row > * {
+      flex: 1;
+    }
+
+    /* Dashboard grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .mini-card {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      background: #020617;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .mini-card-title {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .mini-card-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .level-badges {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .level-card {
+      border-radius: var(--radius-md);
+      padding: 10px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, #020617, #020617);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    .level-card span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .level-card.vip { border-color: #fbbf24; box-shadow: 0 0 0 1px rgba(251,191,36,0.3); }
+    .level-card.platinum { border-color: #e5e7eb; }
+    .level-card.gold { border-color: #facc15; }
+    .level-card.silver { border-color: #9ca3af; }
+    .level-card.bronze { border-color: #b45309; }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        flex-direction: column;
+      }
+      .sidebar {
         width: 100%;
         flex-direction: row;
         overflow-x: auto;
         border-left: none;
         border-bottom: 1px solid var(--border);
-    }
-    .nav {
+      }
+      .nav {
         flex-direction: row;
         flex-wrap: nowrap;
-    }
-    .nav-btn {
+      }
+      .nav-btn {
         white-space: nowrap;
-    }
-    .topbar {
+      }
+      .topbar {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
-    }
-    .stats-bar {
+      }
+      .stats-bar {
         justify-content: flex-start;
+      }
+      .chart-row {
+        grid-template-columns: 1fr;
+      }
     }
-}
-</style>
+  </style>
 </head>
 <body>
-
 <div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">CT</div>
+      <div class="brand-text">لوحة المشرف</div>
+    </div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-logo">CT</div>
-            <div class="brand-text">لوحة المشرف</div>
-        </div>
+    <div class="nav-section-title">الرئيسية</div>
+    <div class="nav">
+      <button class="nav-btn active" data-target="dashboard">
+        <span>Dashboard</span>
+      </button>
+    </div>
 
-        <div class="nav-section-title">الرئيسية</div>
-        <div class="nav">
-            <button class="nav-btn active" data-target="dashboard">
-                <span>Dashboard</span>
-            </button>
-        </div>
+    <div class="nav-section-title">العملاء</div>
+    <div class="nav">
+      <button class="nav-btn" data-target="search"><span>بحث عميل</span></button>
+      <button class="nav-btn" data-target="visits"><span>زيارات العميل</span></button>
+      <button class="nav-btn" data-target="cars"><span>سيارات العميل</span></button>
+      <button class="nav-btn" data-target="addVisit"><span>إضافة زيارة</span></button>
+    </div>
 
-        <div class="nav-section-title">العملاء</div>
-        <div class="nav">
-            <button class="nav-btn" data-target="search">
-                <span>بحث عميل</span>
-            </button>
-            <button class="nav-btn" data-target="visits">
-                <span>زيارات العميل</span>
-            </button>
-            <button class="nav-btn" data-target="cars">
-                <span>سيارات العميل</span>
-            </button>
-            <button class="nav-btn" data-target="addVisit">
-                <span>إضافة زيارة</span>
-            </button>
-        </div>
+    <div class="nav-section-title">التفاعل والحجوزات</div>
+    <div class="nav">
+      <button class="nav-btn" data-target="notify"><span>إرسال إشعار</span></button>
+      <button class="nav-btn" data-target="bookings"><span>الحجوزات</span></button>
+      <button class="nav-btn" data-target="reports"><span>التقارير</span></button>
+    </div>
+  </aside>
 
-        <div class="nav-section-title">التفاعل والحجوزات</div>
-        <div class="nav">
-            <button class="nav-btn" data-target="notify">
-                <span>إرسال إشعار</span>
-            </button>
-            <button class="nav-btn" data-target="bookings">
-                <span>الحجوزات</span>
-            </button>
-            <button class="nav-btn" data-target="reports">
-                <span>التقارير</span>
-            </button>
-        </div>
-    </aside>
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">لوحة المشرف</div>
+        <div class="topbar-sub">إدارة العملاء، الزيارات، الحجوزات والتقارير من مكان واحد</div>
+      </div>
+      <div class="stats-bar">
+        <div class="pill">👥 العملاء: <span id="sCustomers">0</span></div>
+        <div class="pill">🚗 السيارات: <span id="sCars">0</span></div>
+        <div class="pill">🧾 الزيارات: <span id="sVisits">0</span></div>
+        <div class="pill">💰 المبالغ: <span id="sAmount">0</span></div>
+      </div>
+    </div>
 
-    <!-- Main -->
-    <main class="main">
-        <div class="topbar">
-            <div class="topbar-left">
-                <div class="topbar-title">لوحة المشرف</div>
-                <div class="topbar-sub">إدارة العملاء، الزيارات، الحجوزات والتقارير من مكان واحد</div>
+    <div class="content">
+      <!-- Dashboard -->
+      <section id="dashboard" class="section active">
+        <div class="card">
+          <div class="card-header">
+            <h2>Dashboard</h2>
+          </div>
+          <p id="stats">جاري التحميل...</p>
+
+          <!-- أرقام إضافية -->
+          <div class="dashboard-grid">
+            <div class="mini-card">
+              <div class="mini-card-title">العملاء الجدد هذا الشهر</div>
+              <div class="mini-card-value" id="dNewCustomers">0</div>
+              <span class="status-text">عدد العملاء الذين زاروا هذا الشهر لأول مرة</span>
             </div>
-            <div class="stats-bar">
-                <div class="pill">👥 العملاء: <span id="sCustomers">0</span></div>
-                <div class="pill">🚗 السيارات: <span id="sCars">0</span></div>
-                <div class="pill">🧾 الزيارات: <span id="sVisits">0</span></div>
-                <div class="pill">💰 المبالغ: <span id="sAmount">0</span></div>
+            <div class="mini-card">
+              <div class="mini-card-title">العملاء العائدون</div>
+              <div class="mini-card-value" id="dReturningCustomers">0</div>
+              <span class="status-text">من لديهم أكثر من زيارة واحدة</span>
             </div>
+            <div class="mini-card">
+              <div class="mini-card-title">نسبة الاحتفاظ بالعملاء</div>
+              <div class="mini-card-value" id="dRetentionRate">0%</div>
+              <span class="status-text">نسبة العملاء الذين عادوا مرة أخرى</span>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-title">متوسط إنفاق العميل</div>
+              <div class="mini-card-value" id="dAvgSpend">0</div>
+              <span class="status-text">إجمالي المبالغ ÷ عدد العملاء</span>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-title">متوسط زيارات العميل</div>
+              <div class="mini-card-value" id="dAvgVisits">0</div>
+              <span class="status-text">إجمالي الزيارات ÷ عدد العملاء</span>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-title">مؤشر صحة العمل</div>
+              <div class="mini-card-value" id="dHealthScore">0</div>
+              <span class="status-text" id="dHealthStatus">-</span>
+            </div>
+          </div>
+
+          <!-- مستويات العملاء كبطاقات -->
+          <h3 style="margin-top:16px;">مستويات العملاء</h3>
+          <div class="level-badges">
+            <div class="level-card vip">
+              <strong>VIP</strong>
+              <span>عدد العملاء: <span id="lvlVIP">0</span></span>
+            </div>
+            <div class="level-card platinum">
+              <strong>Platinum</strong>
+              <span>عدد العملاء: <span id="lvlPlatinum">0</span></span>
+            </div>
+            <div class="level-card gold">
+              <strong>Gold</strong>
+              <span>عدد العملاء: <span id="lvlGold">0</span></span>
+            </div>
+            <div class="level-card silver">
+              <strong>Silver</strong>
+              <span>عدد العملاء: <span id="lvlSilver">0</span></span>
+            </div>
+            <div class="level-card bronze">
+              <strong>Bronze</strong>
+              <span>عدد العملاء: <span id="lvlBronze">0</span></span>
+            </div>
+          </div>
+
+          <!-- الرسوم البيانية -->
+          <div class="chart-row">
+            <div class="card" style="margin-top:10px;">
+              <div class="card-header">
+                <h3>الزيارات حسب اليوم</h3>
+              </div>
+              <canvas id="visitsPerDayChart" height="140"></canvas>
+            </div>
+            <div class="card" style="margin-top:10px;">
+              <div class="card-header">
+                <h3>الخدمات الأكثر استخدامًا</h3>
+              </div>
+              <canvas id="servicesChart" height="140"></canvas>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div class="content">
+      <!-- Search Customer -->
+      <section id="search" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2>بحث عن عميل</h2>
+          </div>
+          <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
+          <input id="searchPhone" placeholder="05xxxxxxxx أو 2026xxxx أو أ ب ج 1234">
+          <button id="searchBtn">بحث</button>
+          <div id="searchResult" style="margin-top:10px;"></div>
+        </div>
+      </section>
 
-            <!-- Dashboard -->
-            <section id="dashboard" class="section active">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Dashboard</h2>
-                    </div>
-                    <p id="stats">جاري التحميل...</p>
-                </div>
-            </section>
+      <!-- Customer Visits -->
+      <section id="visits" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2>زيارات العميل</h2>
+          </div>
+          <label>رقم الجوال</label>
+          <input id="visitsPhone" placeholder="05xxxxxxxx">
+          <label>اختر التاريخ (اختياري)</label>
+          <input id="visitsDate" class="datePicker" placeholder="YYYY-MM-DD">
+          <button id="visitsBtn">عرض الزيارات</button>
+          <div id="visitsList" class="list" style="margin-top:10px;"></div>
+        </div>
+      </section>
 
-            <!-- Search Customer -->
-            <section id="search" class="section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>بحث عن عميل</h2>
-                    </div>
+      <!-- Customer Cars -->
+      <section id="cars" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2>سيارات العميل</h2>
+          </div>
+          <label>رقم الجوال</label>
+          <input id="carsPhone" placeholder="05xxxxxxxx">
+          <button id="carsBtn">عرض السيارات</button>
+          <div id="carsList" class="list" style="margin-top:10px;"></div>
+        </div>
+      </section>
 
-                    <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
-                    <input id="searchPhone" placeholder="05xxxxxxxx أو 2026xxxx أو أ ب ج 1234">
+      <!-- Send Notification -->
+      <section id="notify" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2>إرسال إشعار</h2>
+          </div>
+          <label>رقم الجوال</label>
+          <input id="notifyPhone" placeholder="05xxxxxxxx">
+          <label>نص الإشعار</label>
+          <textarea id="notifyMsg" placeholder="اكتب نص الإشعار هنا..."></textarea>
+          <button id="notifyBtn">إرسال</button>
+          <p id="notifyStatus" class="status-text"></p>
+        </div>
+      </section>
 
-                    <button id="searchBtn">بحث</button>
+      <!-- Add Visit -->
+      <section id="addVisit" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2>إضافة زيارة</h2>
+          </div>
 
-                    <div id="searchResult" style="margin-top:10px;"></div>
-                </div>
-            </section>
+          <!-- البحث عن العميل -->
+          <div class="card" style="background:#020617;margin-bottom:10px;">
+            <div class="card-header">
+              <h3>بحث عن العميل</h3>
+            </div>
+            <label>رقم الجوال / العضوية / اللوحة</label>
+            <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx أو أ ب ج 1234">
+            <button id="visitSearchBtn">بحث</button>
+          </div>
 
-            <!-- Customer Visits -->
-            <section id="visits" class="section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>زيارات العميل</h2>
-                    </div>
+          <!-- اختيار السيارة -->
+          <div id="visitCarsBox" class="card" style="display:none;background:#020617;margin-bottom:10px;">
+            <div class="card-header">
+              <h3>اختر السيارة</h3>
+            </div>
+            <div id="visitCarsList" class="list"></div>
+          </div>
 
-                    <label>رقم الجوال</label>
-                    <input id="visitsPhone" placeholder="05xxxxxxxx">
+          <!-- نموذج الزيارة -->
+          <div id="visitForm" class="card" style="display:none;background:#020617;">
+            <div class="card-header">
+              <h3>تفاصيل الزيارة</h3>
+            </div>
+            <p id="visitSelectedInfo" class="status-text"></p>
+            <label>الخدمة</label>
+            <select id="vService"></select>
+            <label>السعر</label>
+            <input type="number" id="vPrice">
+            <label>النقاط</label>
+            <input type="number" id="vPoints" readonly>
+            <button id="addVisitBtn">تسجيل الزيارة</button>
+            <p id="addVisitStatus" class="status-text"></p>
+          </div>
+        </div>
+      </section>
 
-                    <label>اختر التاريخ (اختياري)</label>
-                    <input id="visitsDate" class="datePicker" placeholder="YYYY-MM-DD">
+      <!-- Bookings -->
+      <section id="bookings" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2>الحجوزات</h2>
+          </div>
+          <label>اختر التاريخ (اختياري)</label>
+          <input id="bookingsDate" class="datePicker" placeholder="YYYY-MM-DD">
+          <div id="bookingsList" class="list" style="margin-top:10px;">جاري التحميل...</div>
+        </div>
+      </section>
 
-                    <button id="visitsBtn">عرض الزيارات</button>
-
-                    <div id="visitsList" class="list" style="margin-top:10px;"></div>
-                </div>
-            </section>
-
-            <!-- Customer Cars -->
-            <section id="cars" class="section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>سيارات العميل</h2>
-                    </div>
-
-                    <label>رقم الجوال</label>
-                    <input id="carsPhone" placeholder="05xxxxxxxx">
-
-                    <button id="carsBtn">عرض السيارات</button>
-
-                    <div id="carsList" class="list" style="margin-top:10px;"></div>
-                </div>
-            </section>
-
-            <!-- Send Notification -->
-            <section id="notify" class="section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>إرسال إشعار</h2>
-                    </div>
-
-                    <label>رقم الجوال</label>
-                    <input id="notifyPhone" placeholder="05xxxxxxxx">
-
-                    <label>نص الإشعار</label>
-                    <textarea id="notifyMsg" placeholder="اكتب نص الإشعار هنا..."></textarea>
-
-                    <button id="notifyBtn">إرسال</button>
-
-                    <p id="notifyStatus" class="status-text"></p>
-                </div>
-            </section>
-
-            <!-- Add Visit -->
-            <section id="addVisit" class="section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>إضافة زيارة</h2>
-                    </div>
-
-                    <!-- البحث عن العميل -->
-                    <div class="card" style="background:#020617;margin-bottom:10px;">
-                        <div class="card-header">
-                            <h3>بحث عن العميل</h3>
-                        </div>
-
-                        <label>رقم الجوال / العضوية / اللوحة</label>
-                        <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx أو أ ب ج 1234">
-
-                        <button id="visitSearchBtn">بحث</button>
-                    </div>
-
-                    <!-- اختيار السيارة -->
-                    <div id="visitCarsBox" class="card" style="display:none;background:#020617;margin-bottom:10px;">
-                        <div class="card-header">
-                            <h3>اختر السيارة</h3>
-                        </div>
-                        <div id="visitCarsList" class="list"></div>
-                    </div>
-
-                    <!-- نموذج الزيارة -->
-                    <div id="visitForm" class="card" style="display:none;background:#020617;">
-                        <div class="card-header">
-                            <h3>تفاصيل الزيارة</h3>
-                        </div>
-
-                        <p id="visitSelectedInfo" class="status-text"></p>
-
-                        <label>الخدمة</label>
-                        <select id="vService"></select>
-
-                        <label>السعر</label>
-                        <input type="number" id="vPrice">
-
-                        <label>النقاط</label>
-                        <input type="number" id="vPoints" readonly>
-
-                        <button id="addVisitBtn">تسجيل الزيارة</button>
-
-                        <p id="addVisitStatus" class="status-text"></p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Bookings -->
-            <section id="bookings" class="section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>الحجوزات</h2>
-                    </div>
-
-                    <label>اختر التاريخ (اختياري)</label>
-                    <input id="bookingsDate" class="datePicker" placeholder="YYYY-MM-DD">
-
-                    <div id="bookingsList" class="list" style="margin-top:10px;">جاري التحميل...</div>
-                </div>
-            </section>
-
-            <!-- Reports -->
-            <section id="reports" class="section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>التقارير</h2>
-                    </div>
-
-                    <label>اختر التاريخ (أو اتركه فارغًا لكل الفترات)</label>
-                    <input id="reportsDate" class="datePicker" placeholder="YYYY-MM-DD">
-
-                    <button id="reportsBtn">عرض التقرير</button>
-
-                    <div id="reportsList" class="list" style="margin-top:10px;"></div>
-                </div>
-            </section>
-
-        </div> <!-- /content -->
-    </main>
-</div> <!-- /layout -->
+      <!-- Reports -->
+      <section id="reports" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2>التقارير</h2>
+          </div>
+          <label>اختر التاريخ (أو اتركه فارغًا لكل الفترات)</label>
+          <input id="reportsDate" class="datePicker" placeholder="YYYY-MM-DD">
+          <button id="reportsBtn">عرض التقرير</button>
+          <div id="reportsList" class="list" style="margin-top:10px;"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
 
 <!-- سكربتات خارجية -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="api.js?v=3"></script>
 
-<!-- هنا سيكون جزء الجافاسكربت الكامل (الجزء الثاني) -->
 <script>
-/* ===========================
-   Tabs
-=========================== */
-const sections = document.querySelectorAll(".section");
-const navButtons = document.querySelectorAll(".nav-btn");
+  /* ===========================
+     Tabs
+  ============================ */
+  const sections = document.querySelectorAll(".section");
+  const navButtons = document.querySelectorAll(".nav-btn");
 
-function initTabs() {
+  function initTabs() {
     navButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            const target = btn.getAttribute("data-target");
-            sections.forEach(s => s.classList.remove("active"));
-            document.getElementById(target).classList.add("active");
-
-            navButtons.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-        });
+      btn.addEventListener("click", () => {
+        const target = btn.getAttribute("data-target");
+        sections.forEach(s => s.classList.remove("active"));
+        document.getElementById(target).classList.add("active");
+        navButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
     });
-}
+  }
 
-/* ===========================
-   Date Pickers
-=========================== */
-function initDatePickers() {
+  /* ===========================
+     Date Pickers
+  ============================ */
+  function initDatePickers() {
     const options = {
-        dateFormat: "Y-m-d",
-        allowInput: true
+      dateFormat: "Y-m-d",
+      allowInput: true
     };
     flatpickr("#visitsDate", options);
     flatpickr("#bookingsDate", options);
     flatpickr("#reportsDate", options);
-}
+  }
 
-/* ===========================
-   Dashboard
-=========================== */
-async function loadDashboard() {
+  /* ===========================
+     Dashboard + Charts
+  ============================ */
+  let visitsPerDayChart = null;
+  let servicesChart = null;
+
+  async function loadDashboard() {
     const res = await apiGet({ action: "getOwnersDashboard" });
 
+    // أرقام أساسية
     document.getElementById("stats").innerHTML = `
-        العملاء: ${res.totals.customers}<br>
-        السيارات: ${res.totals.cars}<br>
-        الزيارات: ${res.totals.visits}<br>
-        المبالغ: ${res.totals.amount}
+      العملاء: ${res.totals.customers}<br>
+      السيارات: ${res.totals.cars}<br>
+      الزيارات: ${res.totals.visits}<br>
+      المبالغ: ${res.totals.amount}
     `;
-
     document.getElementById("sCustomers").innerText = res.totals.customers;
     document.getElementById("sCars").innerText = res.totals.cars;
     document.getElementById("sVisits").innerText = res.totals.visits;
     document.getElementById("sAmount").innerText = res.totals.amount;
-}
 
-/* ===========================
-   Helper: بحث ذكي عن عميل
-   - جوال 05xxxxxxx  => getByPhone
-   - رقم عضوية رقمي  => getByMembership
-=========================== */
-async function smartSearchCustomer(query) {
+    // أرقام إضافية
+    document.getElementById("dNewCustomers").innerText = res.totals.new_customers_this_month;
+    document.getElementById("dReturningCustomers").innerText = res.totals.returning_customers;
+    document.getElementById("dRetentionRate").innerText = res.totals.retention_rate.toFixed(1) + "%";
+    document.getElementById("dAvgSpend").innerText = res.totals.avg_spend_per_customer.toFixed(1);
+    document.getElementById("dAvgVisits").innerText = res.totals.avg_visits_per_customer.toFixed(2);
+    document.getElementById("dHealthScore").innerText = res.business_health.score;
+    document.getElementById("dHealthStatus").innerText = res.business_health.status;
+
+    // مستويات العملاء
+    document.getElementById("lvlBronze").innerText = res.levels.Bronze || 0;
+    document.getElementById("lvlSilver").innerText = res.levels.Silver || 0;
+    document.getElementById("lvlGold").innerText = res.levels.Gold || 0;
+    document.getElementById("lvlPlatinum").innerText = res.levels.Platinum || 0;
+    document.getElementById("lvlVIP").innerText = res.levels.VIP || 0;
+
+    // رسم: الزيارات حسب اليوم
+    const vLabels = res.visits_per_day.map(v => v.date);
+    const vData = res.visits_per_day.map(v => v.count);
+
+    const ctxVisits = document.getElementById("visitsPerDayChart").getContext("2d");
+    if (visitsPerDayChart) visitsPerDayChart.destroy();
+    visitsPerDayChart = new Chart(ctxVisits, {
+      type: "line",
+      data: {
+        labels: vLabels,
+        datasets: [{
+          label: "عدد الزيارات",
+          data: vData,
+          borderColor: "#2563eb",
+          backgroundColor: "rgba(37,99,235,0.2)",
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            ticks: { color: "#9ca3af" },
+            grid: { color: "rgba(31,41,55,0.5)" }
+          },
+          y: {
+            ticks: { color: "#9ca3af" },
+            grid: { color: "rgba(31,41,55,0.5)" }
+          }
+        }
+      }
+    });
+
+    // رسم: الخدمات الأكثر استخدامًا
+    const sLabels = res.services_breakdown.map(s => s.service);
+    const sData = res.services_breakdown.map(s => s.count);
+
+    const ctxServices = document.getElementById("servicesChart").getContext("2d");
+    if (servicesChart) servicesChart.destroy();
+    servicesChart = new Chart(ctxServices, {
+      type: "bar",
+      data: {
+        labels: sLabels,
+        datasets: [{
+          label: "عدد الزيارات",
+          data: sData,
+          backgroundColor: "rgba(37,99,235,0.7)"
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            ticks: { color: "#9ca3af" },
+            grid: { color: "rgba(31,41,55,0.5)" }
+          },
+          y: {
+            ticks: { color: "#9ca3af" },
+            grid: { color: "rgba(31,41,55,0.2)" }
+          }
+        }
+      }
+    });
+  }
+
+  /* ===========================
+     Helper: بحث ذكي عن عميل
+     - جوال 05xxxxxxx => getByPhone
+     - رقم عضوية رقمي => getByMembership
+  ============================ */
+  async function smartSearchCustomer(query) {
     // رقم جوال
     if (query.startsWith("05") && query.length === 10) {
-        const res = await apiGet({ action: "getByPhone", phone: query });
-        if (!res.success) return null;
-        return {
-            customers: [res.customer],
-            cars: res.cars || []
-        };
+      const res = await apiGet({ action: "getByPhone", phone: query });
+      if (!res.success) return null;
+      return {
+        customers: [res.customer],
+        cars: res.cars || []
+      };
     }
 
     // رقم عضوية
     if (/^\d+$/.test(query)) {
-        const res = await apiGet({ action: "getByMembership", membership: query });
-        if (!res.success) return null;
-        const cars = [];
-        if (res.car) cars.push(res.car);
-        return {
-            customers: res.customer ? [res.customer] : [],
-            cars
-        };
+      const res = await apiGet({ action: "getByMembership", membership: query });
+      if (!res.success) return null;
+      const cars = [];
+      if (res.car) cars.push(res.car);
+      return {
+        customers: res.customer ? [res.customer] : [],
+        cars
+      };
     }
 
     // لا يوجد دعم حقيقي للوحة من الـ API الحالي
     return null;
-}
+  }
 
-/* ===========================
-   Search Customer
-=========================== */
-async function handleSearchCustomer() {
+  /* ===========================
+     Search Customer
+  ============================ */
+  async function handleSearchCustomer() {
     const btn = document.getElementById("searchBtn");
     const query = document.getElementById("searchPhone").value.trim();
-
     if (!query) return alert("أدخل قيمة للبحث");
 
     btn.classList.add("loading");
@@ -716,26 +900,25 @@ async function handleSearchCustomer() {
     container.innerHTML = "";
 
     if (!data || !data.customers || data.customers.length === 0) {
-        container.innerHTML = "<p>لا يوجد نتائج</p>";
-        return;
+      container.innerHTML = "<p>لا يوجد نتائج</p>";
+      return;
     }
 
     const c = data.customers[0];
-
     container.innerHTML = `
-        <div class="card">
-            الاسم: ${c.name}<br>
-            العضوية: ${c.membership}<br>
-            النقاط: ${c.points}<br>
-            المستوى: ${c.level}
-        </div>
+      <div class="card">
+        الاسم: ${c.name}<br>
+        العضوية: ${c.membership}<br>
+        النقاط: ${c.points}<br>
+        المستوى: ${c.level}
+      </div>
     `;
-}
+  }
 
-/* ===========================
-   Customer Visits
-=========================== */
-async function handleLoadCustomerVisits() {
+  /* ===========================
+     Customer Visits
+  ============================ */
+  async function handleLoadCustomerVisits() {
     const btn = document.getElementById("visitsBtn");
     const phone = document.getElementById("visitsPhone").value.trim();
     const dateFilter = document.getElementById("visitsDate").value.trim();
@@ -746,8 +929,8 @@ async function handleLoadCustomerVisits() {
     btn.disabled = true;
 
     const res = await apiGet({
-        action: "getVisitsByPhone",
-        phone
+      action: "getVisitsByPhone",
+      phone
     });
 
     btn.classList.remove("loading");
@@ -757,42 +940,40 @@ async function handleLoadCustomerVisits() {
     list.innerHTML = "";
 
     if (!res.visits || res.visits.length === 0) {
-        list.innerHTML = "<p>لا توجد زيارات</p>";
-        return;
+      list.innerHTML = "<p>لا توجد زيارات</p>";
+      return;
     }
 
-    // فلترة التاريخ يدويًا
     const filtered = dateFilter
-        ? res.visits.filter(v => String(v.date).slice(0, 10) === dateFilter)
-        : res.visits;
+      ? res.visits.filter(v => String(v.date).slice(0, 10) === dateFilter)
+      : res.visits;
 
     if (filtered.length === 0) {
-        list.innerHTML = "<p>لا توجد زيارات في هذا التاريخ</p>";
-        return;
+      list.innerHTML = "<p>لا توجد زيارات في هذا التاريخ</p>";
+      return;
     }
 
     filtered.forEach(v => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-            العضوية: ${v.membership}<br>
-            الخدمة: ${v.service}<br>
-            التاريخ: ${v.date}<br>
-            السعر: ${v.price}<br>
-            النقاط: ${v.points}<br>
-            الموظف: ${v.employee || "-"}<br>
-            الفرع: ${v.branch || "-"}
-        `;
-        list.appendChild(div);
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        الخدمة: ${v.service}<br>
+        التاريخ: ${v.date}<br>
+        السعر: ${v.price}<br>
+        النقاط: ${v.points}<br>
+        الموظف: ${v.employee || "-"}<br>
+        الفرع: ${v.branch || "-"}
+      `;
+      list.appendChild(div);
     });
-}
-/* ===========================
-   Customer Cars
-=========================== */
-async function handleLoadCustomerCars() {
+  }
+
+  /* ===========================
+     Customer Cars
+  ============================ */
+  async function handleLoadCustomerCars() {
     const btn = document.getElementById("carsBtn");
     const phone = document.getElementById("carsPhone").value.trim();
-
     if (!phone) return alert("أدخل رقم الجوال");
 
     btn.classList.add("loading");
@@ -807,27 +988,27 @@ async function handleLoadCustomerCars() {
     list.innerHTML = "";
 
     if (!res.cars || res.cars.length === 0) {
-        list.innerHTML = "<p>لا توجد سيارات</p>";
-        return;
+      list.innerHTML = "<p>لا توجد سيارات</p>";
+      return;
     }
 
     res.cars.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-            ${c.car} - ${c.plate_letters} ${c.plate_numbers}<br>
-            الحجم: ${c.size}<br>
-            المدينة: ${c.city}<br>
-            العضوية: ${c.membership}
-        `;
-        list.appendChild(div);
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        ${c.car} - ${c.plate_letters} ${c.plate_numbers}<br>
+        الحجم: ${c.size}<br>
+        المدينة: ${c.city}<br>
+        العضوية: ${c.membership}
+      `;
+      list.appendChild(div);
     });
-}
+  }
 
-/* ===========================
-   Send Notification
-=========================== */
-async function handleSendNotification() {
+  /* ===========================
+     Send Notification
+  ============================ */
+  async function handleSendNotification() {
     const btn = document.getElementById("notifyBtn");
     const phone = document.getElementById("notifyPhone").value.trim();
     const msg = document.getElementById("notifyMsg").value.trim();
@@ -840,39 +1021,37 @@ async function handleSendNotification() {
     const resCustomer = await apiGet({ action: "getByPhone", phone });
 
     if (!resCustomer.success) {
-        btn.classList.remove("loading");
-        btn.disabled = false;
-        document.getElementById("notifyStatus").innerText = "لم يتم العثور على العميل";
-        return;
+      btn.classList.remove("loading");
+      btn.disabled = false;
+      document.getElementById("notifyStatus").innerText = "لم يتم العثور على العميل";
+      return;
     }
 
     const membership = resCustomer.customer.membership;
 
     await apiPost({
-        action: "addRating",
-        membership,
-        rating: 0,
-        comment: msg
+      action: "addRating",
+      membership,
+      rating: 0,
+      comment: msg
     });
 
     btn.classList.remove("loading");
     btn.disabled = false;
-
     document.getElementById("notifyStatus").innerText =
-        "تم إرسال الإشعار للعميل رقم عضوية: " + membership;
-}
+      "تم إرسال الإشعار للعميل رقم عضوية: " + membership;
+  }
 
-/* ===========================
-   Add Visit
-=========================== */
-let selectedMembership = null;
-let selectedCarData = null;
-let visitServices = {};
+  /* ===========================
+     Add Visit
+  ============================ */
+  let selectedMembership = null;
+  let selectedCarData = null;
+  let visitServices = {};
 
-async function handleSearchVisitCustomer() {
+  async function handleSearchVisitCustomer() {
     const btn = document.getElementById("visitSearchBtn");
     const query = document.getElementById("visitSearch").value.trim();
-
     if (!query) return alert("أدخل رقم الجوال أو العضوية");
 
     btn.classList.add("loading");
@@ -888,70 +1067,66 @@ async function handleSearchVisitCustomer() {
     list.innerHTML = "";
 
     if (!data || !data.cars || data.cars.length === 0) {
-        alert("لا يوجد سيارات مرتبطة بهذا العميل");
-        box.style.display = "none";
-        document.getElementById("visitForm").style.display = "none";
-        return;
+      alert("لا يوجد سيارات مرتبطة بهذا العميل");
+      box.style.display = "none";
+      document.getElementById("visitForm").style.display = "none";
+      return;
     }
 
     box.style.display = "block";
 
     data.cars.forEach(car => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.style.cursor = "pointer";
-        div.innerHTML = `
-            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}<br>
-            عضوية: ${car.membership}<br>
-            مدينة: ${car.city}
-        `;
-        div.onclick = () => selectVisitCar(car);
-        list.appendChild(div);
+      const div = document.createElement("div");
+      div.className = "card";
+      div.style.cursor = "pointer";
+      div.innerHTML = `
+        <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}<br>
+        عضوية: ${car.membership}<br>
+        مدينة: ${car.city}
+      `;
+      div.onclick = () => selectVisitCar(car);
+      list.appendChild(div);
     });
-}
+  }
 
-function selectVisitCar(car) {
+  function selectVisitCar(car) {
     selectedMembership = car.membership;
     selectedCarData = car;
-
     const form = document.getElementById("visitForm");
     form.style.display = "block";
-
     document.getElementById("visitSelectedInfo").innerText =
-        `العضوية: ${car.membership} — السيارة: ${car.car} — اللوحة: ${car.plate_letters} ${car.plate_numbers}`;
-}
+      `العضوية: ${car.membership} — السيارة: ${car.car} — اللوحة: ${car.plate_letters} ${car.plate_numbers}`;
+  }
 
-async function loadVisitServices() {
+  async function loadVisitServices() {
     const res = await apiGet({ action: "getCommissions" });
-
     const select = document.getElementById("vService");
     select.innerHTML = "";
 
     res.commissions.forEach(s => {
-        visitServices[s.service] = Number(s.price) || 0;
-
-        const opt = document.createElement("option");
-        opt.value = s.service;
-        opt.textContent = s.service;
-        select.appendChild(opt);
+      visitServices[s.service] = Number(s.price) || 0;
+      const opt = document.createElement("option");
+      opt.value = s.service;
+      opt.textContent = s.service;
+      select.appendChild(opt);
     });
 
     updateVisitPrice();
-}
+  }
 
-function updateVisitPrice() {
+  function updateVisitPrice() {
     const service = document.getElementById("vService").value;
     const price = visitServices[service] || 0;
     document.getElementById("vPrice").value = price;
     updateVisitPoints();
-}
+  }
 
-function updateVisitPoints() {
+  function updateVisitPoints() {
     const price = Number(document.getElementById("vPrice").value);
     document.getElementById("vPoints").value = Math.floor(price / 5);
-}
+  }
 
-async function handleSubmitVisit() {
+  async function handleSubmitVisit() {
     if (!selectedMembership || !selectedCarData) return alert("اختر السيارة أولاً");
 
     const btn = document.getElementById("addVisitBtn");
@@ -962,128 +1137,117 @@ async function handleSubmitVisit() {
     const price = Number(document.getElementById("vPrice").value) || 0;
     const points = Number(document.getElementById("vPoints").value) || 0;
 
-    // يمكن مستقبلاً إضافة employee / branch من localStorage أو من صفحة تسجيل الدخول
     const res = await apiPost({
-        action: "addVisit",
-        membership: selectedMembership,
-        service,
-        price,
-        points,
-        employee: "",
-        branch: ""
+      action: "addVisit",
+      membership: selectedMembership,
+      service,
+      price,
+      points,
+      employee: "",
+      branch: ""
     });
 
     btn.classList.remove("loading");
     btn.disabled = false;
 
     if (res.success) {
-        document.getElementById("addVisitStatus").innerText =
-            "✔ تم تسجيل الزيارة بنجاح";
+      document.getElementById("addVisitStatus").innerText = "✔ تم تسجيل الزيارة بنجاح";
     } else {
-        document.getElementById("addVisitStatus").innerText =
-            "❌ حدث خطأ أثناء التسجيل";
+      document.getElementById("addVisitStatus").innerText = "❌ حدث خطأ أثناء التسجيل";
     }
-}
+  }
 
-/* ===========================
-   Bookings
-=========================== */
-async function loadBookings() {
+  /* ===========================
+     Bookings
+  ============================ */
+  async function loadBookings() {
     const date = document.getElementById("bookingsDate").value.trim();
-
     const res = await apiGet({
-        action: "getBookings",
-        date
+      action: "getBookings",
+      date
     });
 
     const list = document.getElementById("bookingsList");
     list.innerHTML = "";
 
     if (!res.bookings || res.bookings.length === 0) {
-        list.innerHTML = "<p>لا توجد حجوزات</p>";
-        return;
+      list.innerHTML = "<p>لا توجد حجوزات</p>";
+      return;
     }
 
     res.bookings.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-            الخدمة: ${b.service} - ${b.date} ${b.time}<br>
-            الحالة الحالية: <b>${b.status}</b><br><br>
-            <button class="secondary" onclick="confirmBooking(this, ${b.row})">تأكيد</button>
-            <button class="danger" onclick="cancelBooking(this, ${b.row})">إلغاء</button>
-        `;
-        list.appendChild(div);
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        الخدمة: ${b.service} - ${b.date} ${b.time}<br>
+        الحالة الحالية: <b>${b.status}</b><br><br>
+        <button class="secondary" onclick="confirmBooking(this, ${b.row})">تأكيد</button>
+        <button class="danger" onclick="cancelBooking(this, ${b.row})">إلغاء</button>
+      `;
+      list.appendChild(div);
     });
-}
+  }
 
-async function confirmBooking(btn, row) {
+  async function confirmBooking(btn, row) {
     btn.classList.add("loading");
     btn.disabled = true;
-
     await apiPost({ action: "updateBookingStatus", row, status: "Approved" });
-
     btn.classList.remove("loading");
     btn.disabled = false;
-
     loadBookings();
-}
+  }
 
-async function cancelBooking(btn, row) {
+  async function cancelBooking(btn, row) {
     btn.classList.add("loading");
     btn.disabled = true;
-
     await apiPost({ action: "updateBookingStatus", row, status: "Cancelled" });
-
     btn.classList.remove("loading");
     btn.disabled = false;
-
     loadBookings();
-}
+  }
 
-/* ===========================
-   Reports
-=========================== */
-async function loadReports() {
+  /* ===========================
+     Reports
+  ============================ */
+  async function loadReports() {
     const date = document.getElementById("reportsDate").value.trim();
-
     const from = date || "2000-01-01";
     const to = date || "2100-01-01";
 
     const res = await apiGet({
-        action: "getVisitsByDate",
-        from,
-        to
+      action: "getVisitsByDate",
+      from,
+      to
     });
 
     const list = document.getElementById("reportsList");
     list.innerHTML = "";
 
     if (!res.visits || res.visits.length === 0) {
-        list.innerHTML = "<p>لا توجد بيانات</p>";
-        return;
+      list.innerHTML = "<p>لا توجد بيانات</p>";
+      return;
     }
 
     res.visits.forEach(v => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-            التاريخ: ${v.date}<br>
-            الخدمة: ${v.service}<br>
-            السعر: ${v.price}<br>
-            النقاط: ${v.points}<br>
-            العضوية: ${v.membership}<br>
-            الموظف: ${v.employee || "-"}<br>
-            الفرع: ${v.branch || "-"}
-        `;
-        list.appendChild(div);
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        التاريخ: ${v.date}<br>
+        الخدمة: ${v.service}<br>
+        السعر: ${v.price}<br>
+        النقاط: ${v.points}<br>
+        العضوية: ${v.membership}<br>
+        الموظف: ${v.employee || "-"}<br>
+        الفرع: ${v.branch || "-"}
+      `;
+      list.appendChild(div);
     });
-}
+  }
 
-/* ===========================
-   Event Listeners
-=========================== */
-function initEvents() {
+  /* ===========================
+     Event Listeners
+  ============================ */
+  function initEvents() {
     document.getElementById("searchBtn").addEventListener("click", handleSearchCustomer);
     document.getElementById("visitsBtn").addEventListener("click", handleLoadCustomerVisits);
     document.getElementById("carsBtn").addEventListener("click", handleLoadCustomerCars);
@@ -1094,19 +1258,18 @@ function initEvents() {
     document.getElementById("addVisitBtn").addEventListener("click", handleSubmitVisit);
     document.getElementById("bookingsDate").addEventListener("change", loadBookings);
     document.getElementById("reportsBtn").addEventListener("click", loadReports);
-}
+  }
 
-/* ===========================
-   Initial Load
-=========================== */
-initTabs();
-initDatePickers();
-initEvents();
-loadDashboard();
-loadVisitServices();
-loadBookings();
-loadReports();
+  /* ===========================
+     Initial Load
+  ============================ */
+  initTabs();
+  initDatePickers();
+  initEvents();
+  loadDashboard();
+  loadVisitServices();
+  loadBookings();
+  loadReports();
 </script>
-    
 </body>
 </html>
