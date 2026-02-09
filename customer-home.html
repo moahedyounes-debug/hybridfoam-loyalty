@@ -2,248 +2,145 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<title>الصفحة الرئيسية للعميل</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الصفحة الرئيسية</title>
-
 <style>
-    body {
-        font-family: "Tajawal", sans-serif;
-        background: #f5f5f5;
-        padding: 20px;
-        margin: 0;
-        min-height: 100vh;
-    }
-
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-    }
-
-    .header .name {
-        font-size: 22px;
-        font-weight: bold;
-    }
-
-    .icon-btn {
-        background: #000;
-        color: white;
-        padding: 10px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-    .card {
-        background: white;
-        padding: 20px;
-        border-radius: 14px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .card h3 {
-        margin: 0 0 10px 0;
-        font-size: 18px;
-    }
-
-    .level {
-        font-size: 18px;
-        font-weight: bold;
-        margin-top: 5px;
-    }
-
-    .points {
-        font-size: 16px;
-        color: #444;
-    }
-
-    .car-item {
-        padding: 14px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        margin-top: 10px;
-        background: #fafafa;
-        font-size: 15px;
-    }
-
-    .car-item b {
-        font-size: 16px;
-    }
-
-    .add-car-btn {
-        width: 100%;
-        padding: 14px;
-        background: #000;
-        color: white;
-        border-radius: 10px;
-        text-align: center;
-        margin-top: 12px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    .actions {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-top: 10px;
-    }
-
-    .action-btn {
-        background: #000;
-        color: white;
-        padding: 14px;
-        border-radius: 10px;
-        text-align: center;
-        cursor: pointer;
-        font-size: 15px;
-    }
-
-    @media (max-width: 480px) {
-        .header .name {
-            font-size: 20px;
-        }
-        .card {
-            padding: 18px;
-        }
-        .action-btn, .add-car-btn {
-            font-size: 14px;
-            padding: 12px;
-        }
-        .car-item {
-            font-size: 14px;
-            padding: 12px;
-        }
-    }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0f172a;
+    color: #f9fafb;
+    margin: 0;
+    padding: 16px;
+  }
+  h2 {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .card {
+    background: #020617;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    border: 1px solid #1f2937;
+  }
+  .row {
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  button, .btn-link {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #2563eb;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-secondary {
+    background: #111827;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: #111827;
+    margin-left: 4px;
+  }
+  .level {
+    font-weight: 600;
+  }
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .logout {
+    font-size: 12px;
+    color: #f97373;
+    cursor: pointer;
+  }
 </style>
-
 <script src="api.js"></script>
 </head>
 <body>
 
-<div class="header">
-    <div class="name" id="custName">...</div>
-    <div class="icon-btn" onclick="goToNotifications()">الإشعارات</div>
+<div class="top-bar">
+  <div>مرحبا بك 👋</div>
+  <div class="logout" onclick="logout()">تسجيل خروج</div>
 </div>
 
-<!-- بطاقة المستوى والنقاط -->
-<div class="card">
-    <h3>مستوى العضوية</h3>
-    <div class="level" id="custLevel">...</div>
-    <div class="points" id="custPoints">...</div>
+<h2>الصفحة الرئيسية</h2>
+
+<div id="summaryCard" class="card">
+  <div class="row" id="cName">الاسم: —</div>
+  <div class="row" id="cMembership">رقم العضوية: —</div>
+  <div class="row">
+    المستوى:
+    <span class="badge level" id="cLevel">—</span>
+  </div>
+  <div class="row">النقاط: <span id="cPoints">0</span></div>
+  <div class="row">غسلة مجانية: <span id="cFreeWash">—</span></div>
 </div>
 
-<!-- سيارات العميل -->
 <div class="card">
-    <h3>سياراتي</h3>
-    <div id="carsList"></div>
-
-    <!-- زر إضافة مركبة جديدة -->
-    <div class="add-car-btn" onclick="goToAddCar()">➕ إضافة مركبة جديدة</div>
-</div>
-
-<!-- الإجراءات السريعة -->
-<div class="card">
-    <h3>الخدمات</h3>
-
-    <div class="actions">
-        <div class="action-btn" onclick="goToBooking()">حجز موعد</div>
-        <div class="action-btn" onclick="goToVisits()">سجل الزيارات</div>
-        <div class="action-btn" onclick="goToLoyalty()">النقاط</div>
-        <div class="action-btn" onclick="goToMembership()">بطاقة العضوية</div>
-        <div class="action-btn" onclick="goToRating()">تقييم آخر زيارة</div>
-        <div class="action-btn" onclick="logout()">تسجيل خروج</div>
-    </div>
+  <div class="row"><b>إجراءات سريعة</b></div>
+  <div class="actions">
+    <button onclick="goTo('my-visits.html')">سجل الزيارات</button>
+    <button onclick="goTo('rate-visit.html')">تقييم آخر زيارة</button>
+    <button onclick="goTo('membership-card.html')">بطاقة العضوية</button>
+    <button class="btn-secondary" onclick="goTo('register-car.html')">إضافة مركبة إضافية</button>
+  </div>
 </div>
 
 <script>
 let phone = localStorage.getItem("customer_phone");
 
 if (!phone) {
-    alert("يرجى تسجيل الدخول أولاً");
-    window.location.href = "login.html";
+  alert("يرجى تسجيل الدخول أولاً");
+  window.location.href = "login.html";
 }
 
-// -----------------------------
-// تحميل بيانات العميل
-// -----------------------------
 async function loadCustomer() {
-    const res = await apiGet({
-        action: "getByPhone",
-        phone
-    });
+  const res = await apiGet({
+    action: "getByPhone",
+    phone
+  });
 
-    if (!res.success) {
-        alert("خطأ في تحميل البيانات");
-        return;
-    }
+  if (!res.success) {
+    alert("لم يتم العثور على بيانات العميل");
+    return;
+  }
 
-    const c = res.customer;
-
-    document.getElementById("custName").textContent = c.name;
-    document.getElementById("custLevel").textContent = "المستوى: " + c.level;
-    document.getElementById("custPoints").textContent = "النقاط: " + c.points;
-
-    loadCars(res.cars);
+  const c = res.customer;
+  document.getElementById("cName").innerText = "الاسم: " + (c.name || "—");
+  document.getElementById("cMembership").innerText = "رقم العضوية: " + (c.membership || "—");
+  document.getElementById("cLevel").innerText = c.level || "—";
+  document.getElementById("cPoints").innerText = c.points || 0;
+  document.getElementById("cFreeWash").innerText = c.free_wash || "لا يوجد";
 }
 
-// -----------------------------
-// عرض سيارات العميل
-// -----------------------------
-function loadCars(cars) {
-    const list = document.getElementById("carsList");
-    list.innerHTML = "";
-
-    cars.forEach(car => {
-        const div = document.createElement("div");
-        div.className = "car-item";
-        div.innerHTML = `
-            <b>${car.car}</b> — ${car.plate_numbers} ${car.plate_letters}
-            <br>عضوية: ${car.membership}
-        `;
-        list.appendChild(div);
-    });
-}
-
-// -----------------------------
-// التنقل بين الصفحات
-// -----------------------------
-function goToNotifications() {
-    window.location.href = "notifications.html";
-}
-
-function goToBooking() {
-    window.location.href = "booking.html";
-}
-
-function goToVisits() {
-    window.location.href = "my-visits.html";
-}
-
-function goToLoyalty() {
-    window.location.href = "loyalty.html";
-}
-
-function goToMembership() {
-    window.location.href = "membership-card.html";
-}
-
-function goToRating() {
-    window.location.href = "rate-visit.html";
-}
-
-function goToAddCar() {
-    window.location.href = "add-car.html";
+function goTo(page) {
+  window.location.href = page;
 }
 
 function logout() {
-    localStorage.removeItem("customer_phone");
-    window.location.href = "login.html";
+  localStorage.removeItem("customer_phone");
+  window.location.href = "login.html";
 }
 
-// تحميل البيانات عند فتح الصفحة
 loadCustomer();
 </script>
 
