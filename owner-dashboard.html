@@ -2,20 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>لوحة المشرف</title>
+<title>لوحة المالك - Owner Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Date Picker -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-<!-- Barcode -->
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 :root {
-    --bg: #0f172a;
-    --bg-soft: #111827;
+    --bg: #020617;
     --card: #020617;
     --border: #1f2937;
     --accent: #2563eb;
@@ -24,13 +18,20 @@
     --success: #16a34a;
     --text-main: #f9fafb;
     --text-muted: #9ca3af;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
 }
 
-* { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
 
 body {
     margin: 0;
-    font-family: "Tajawal", sans-serif;
+    font-family: "Tajawal", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
     color: var(--text-main);
     direction: rtl;
@@ -50,25 +51,27 @@ body {
     display: flex;
     flex-direction: column;
     padding: 18px 14px;
+    gap: 10px;
 }
 
 .brand {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 22px;
+    margin-bottom: 16px;
 }
 
 .brand-logo {
     width: 40px;
     height: 40px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    border-radius: 14px;
+    background: conic-gradient(from 180deg, #2563eb, #4f46e5, #22c55e, #2563eb);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: 18px;
+    color: #e5e7eb;
 }
 
 .brand-text {
@@ -86,7 +89,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-bottom: 14px;
+    margin-bottom: 6px;
 }
 
 .nav-btn {
@@ -102,7 +105,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transition: 0.15s;
+    transition: 0.15s ease-out;
+}
+
+.nav-btn span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .nav-btn.active {
@@ -123,6 +132,7 @@ body {
     min-width: 0;
 }
 
+/* Topbar */
 .topbar {
     padding: 12px 18px;
     border-bottom: 1px solid var(--border);
@@ -136,15 +146,27 @@ body {
     z-index: 10;
 }
 
+.topbar-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .topbar-title {
     font-size: 16px;
     font-weight: 500;
+}
+
+.topbar-sub {
+    font-size: 12px;
+    color: var(--text-muted);
 }
 
 .stats-bar {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .pill {
@@ -154,6 +176,9 @@ body {
     border: 1px solid var(--border);
     font-size: 12px;
     color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* Content */
@@ -173,10 +198,23 @@ body {
 
 .card {
     background: var(--card);
-    border-radius: 14px;
-    padding: 14px;
+    border-radius: var(--radius-lg);
+    padding: 16px;
     border: 1px solid var(--border);
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.7);
+    box-shadow: var(--shadow-soft);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.card-header h2,
+.card-header h3 {
+    margin: 0;
+    text-align: center;
 }
 
 h2, h3 {
@@ -200,12 +238,21 @@ label {
 input, select, textarea {
     width: 100%;
     padding: 10px 11px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     border: 1px solid var(--border);
     background: #020617;
     color: var(--text-main);
     font-size: 14px;
     margin-bottom: 6px;
+    outline: none;
+    transition: 0.15s ease-out;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
 }
 
 textarea {
@@ -216,7 +263,7 @@ textarea {
 /* Buttons */
 button {
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     border: none;
     background: var(--accent);
     color: white;
@@ -224,7 +271,7 @@ button {
     cursor: pointer;
     margin-top: 8px;
     position: relative;
-    transition: 0.2s;
+    transition: 0.15s ease-out;
 }
 
 button.loading {
@@ -252,6 +299,16 @@ button:active {
     transform: scale(0.97);
 }
 
+button.secondary {
+    background: #111827;
+    color: var(--text-main);
+}
+
+button.danger {
+    background: var(--danger);
+}
+
+/* Loader keyframes */
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -261,6 +318,23 @@ button:active {
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+/* Grid */
+.grid {
+    display: grid;
+    gap: 10px;
+}
+.grid-2 {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* Status text */
+.status-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    text-align: center;
 }
 
 /* Responsive */
@@ -282,6 +356,14 @@ button:active {
     .nav-btn {
         white-space: nowrap;
     }
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .stats-bar {
+        justify-content: flex-start;
+    }
 }
 </style>
 </head>
@@ -292,8 +374,8 @@ button:active {
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="brand">
-            <div class="brand-logo">AD</div>
-            <div class="brand-text">لوحة المشرف</div>
+            <div class="brand-logo">OD</div>
+            <div class="brand-text">لوحة المالك</div>
         </div>
 
         <div class="nav-section-title">الرئيسية</div>
@@ -301,171 +383,14 @@ button:active {
             <button class="nav-btn active" data-target="dashboard"><span>Dashboard</span></button>
         </div>
 
-        <div class="nav-section-title">العملاء</div>
+        <div class="nav-section-title">الإدارة</div>
         <div class="nav">
-            <button class="nav-btn" data-target="search"><span>بحث عميل</span></button>
-            <button class="nav-btn" data-target="visits"><span>زيارات العميل</span></button>
-            <button class="nav-btn" data-target="cars"><span>سيارات العميل</span></button>
-            <button class="nav-btn" data-target="addVisit"><span>إضافة زيارة</span></button>
-        </div>
-<!-- ===========================
-      DASHBOARD
-=========================== -->
-<section id="dashboard" class="section active">
-    <div class="card">
-        <h2>Dashboard</h2>
-        <p id="stats">جاري التحميل...</p>
-    </div>
-</section>
-
-<!-- ===========================
-      SEARCH CUSTOMER
-=========================== -->
-<section id="search" class="section">
-    <div class="card">
-        <h2>بحث عن عميل</h2>
-
-        <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
-        <input id="searchPhone" placeholder="05xxxxxxxx أو 12345 أو أ ب ج 1234">
-
-        <button id="searchBtn" onclick="searchCustomer()">بحث</button>
-
-        <div id="searchResult" style="margin-top:10px;"></div>
-    </div>
-</section>
-
-<!-- ===========================
-      CUSTOMER VISITS
-=========================== -->
-<section id="visits" class="section">
-    <div class="card">
-        <h2>زيارات العميل</h2>
-
-        <label>رقم الجوال</label>
-        <input id="visitsPhone" placeholder="05xxxxxxxx">
-
-        <label>اختر التاريخ</label>
-        <input id="visitsDate" class="datePicker">
-
-        <button id="visitsBtn" onclick="loadCustomerVisits()">عرض الزيارات</button>
-
-        <div id="visitsList" class="list" style="margin-top:10px;"></div>
-    </div>
-</section>
-
-<!-- ===========================
-      CUSTOMER CARS
-=========================== -->
-<section id="cars" class="section">
-    <div class="card">
-        <h2>سيارات العميل</h2>
-
-        <label>رقم الجوال</label>
-        <input id="carsPhone" placeholder="05xxxxxxxx">
-
-        <button id="carsBtn" onclick="loadCustomerCars()">عرض السيارات</button>
-
-        <div id="carsList" class="list" style="margin-top:10px;"></div>
-    </div>
-</section>
-
-<!-- ===========================
-      SEND NOTIFICATION
-=========================== -->
-<section id="notify" class="section">
-    <div class="card">
-        <h2>إرسال إشعار</h2>
-
-        <label>رقم الجوال</label>
-        <input id="notifyPhone" placeholder="05xxxxxxxx">
-
-        <label>نص الإشعار</label>
-        <textarea id="notifyMsg" placeholder="اكتب نص الإشعار هنا..."></textarea>
-
-        <button id="notifyBtn" onclick="sendNotification()">إرسال</button>
-
-        <p id="notifyStatus" class="status-text"></p>
-    </div>
-</section>
-
-<!-- ===========================
-      ADD VISIT
-=========================== -->
-<section id="addVisit" class="section">
-    <div class="card">
-        <h2>إضافة زيارة</h2>
-
-        <!-- البحث -->
-        <div class="card" style="background:#020617;margin-bottom:10px;">
-            <h3>بحث عن العميل</h3>
-
-            <label>رقم الجوال / العضوية / اللوحة</label>
-            <input id="visitSearch" placeholder="05xxxxxxxx أو 12345 أو أ ب ج 1234">
-
-            <button id="visitSearchBtn" onclick="searchVisitCustomer()">بحث</button>
-        </div>
-
-        <!-- اختيار السيارة -->
-        <div id="visitCarsBox" class="card" style="display:none;background:#020617;margin-bottom:10px;">
-            <h3>اختر السيارة</h3>
-            <div id="visitCarsList" class="list"></div>
-        </div>
-
-        <!-- نموذج الزيارة -->
-        <div id="visitForm" class="card" style="display:none;background:#020617;">
-            <h3>تفاصيل الزيارة</h3>
-
-            <p id="visitSelectedInfo" class="status-text"></p>
-
-            <label>الخدمة</label>
-            <select id="vService" onchange="updateVisitPrice()"></select>
-
-            <label>السعر</label>
-            <input type="number" id="vPrice" onchange="updateVisitPoints()">
-
-            <label>النقاط</label>
-            <input type="number" id="vPoints" readonly>
-
-            <button id="addVisitBtn" onclick="submitVisit()">تسجيل الزيارة</button>
-
-            <p id="addVisitStatus" class="status-text"></p>
-        </div>
-    </div>
-</section>
-
-<!-- ===========================
-      BOOKINGS
-=========================== -->
-<section id="bookings" class="section">
-    <div class="card">
-        <h2>الحجوزات</h2>
-
-        <label>اختر التاريخ</label>
-        <input id="bookingsDate" class="datePicker">
-
-        <div id="bookingsList" class="list" style="margin-top:10px;">جاري التحميل...</div>
-    </div>
-</section>
-
-<!-- ===========================
-      REPORTS
-=========================== -->
-<section id="reports" class="section">
-    <div class="card">
-        <h2>التقارير</h2>
-
-        <label>اختر التاريخ</label>
-        <input id="reportsDate" class="datePicker">
-
-        <button onclick="loadReports()">عرض التقرير</button>
-
-        <div id="reportsList" class="list" style="margin-top:10px;"></div>
-    </div>
-</section>
-        <div class="nav-section-title">التفاعل</div>
-        <div class="nav">
-            <button class="nav-btn" data-target="notify"><span>إرسال إشعار</span></button>
+            <button class="nav-btn" data-target="services"><span>الخدمات</span></button>
+            <button class="nav-btn" data-target="visits"><span>الزيارات</span></button>
             <button class="nav-btn" data-target="bookings"><span>الحجوزات</span></button>
+            <button class="nav-btn" data-target="employees"><span>الموظفون والرواتب</span></button>
+            <button class="nav-btn" data-target="branches"><span>الفروع</span></button>
+            <button class="nav-btn" data-target="notifications"><span>الإشعارات</span></button>
             <button class="nav-btn" data-target="reports"><span>التقارير</span></button>
         </div>
     </aside>
@@ -473,7 +398,10 @@ button:active {
     <!-- Main -->
     <main class="main">
         <div class="topbar">
-            <div class="topbar-title">لوحة المشرف</div>
+            <div class="topbar-left">
+                <div class="topbar-title">لوحة المالك</div>
+                <div class="topbar-sub">نظرة شاملة على الأداء، الخدمات، الزيارات، الحجوزات والموظفين</div>
+            </div>
             <div class="stats-bar">
                 <div class="pill">👥 العملاء: <span id="sCustomers">0</span></div>
                 <div class="pill">🚗 السيارات: <span id="sCars">0</span></div>
@@ -483,454 +411,557 @@ button:active {
         </div>
 
         <div class="content">
-                    </div> <!-- /content -->
-    </main>
-</div> <!-- /layout -->
 
+            <!-- Dashboard -->
+            <section id="dashboard" class="section active">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header"><h2>ملخص عام</h2></div>
+                        <p id="stats">جاري التحميل...</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><h2>مستويات العملاء</h2></div>
+                        <div id="levelsBox" class="list"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header"><h3>الخدمات الأكثر استخدامًا</h3></div>
+                        <div id="servicesBreakdown" class="list"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>إحصائيات السيارات</h3></div>
+                        <div id="carsStats" class="list"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>صحة العمل</h3></div>
+                    <p id="businessHealth"></p>
+                </div>
+            </section>
+
+            <!-- Services -->
+            <section id="services" class="section">
+                <div class="card">
+                    <div class="card-header"><h2>الخدمات (Commissions)</h2></div>
+                    <div id="servicesListFull" class="list"></div>
+                </div>
+            </section>
+
+            <!-- Visits -->
+            <section id="visits" class="section">
+                <div class="card">
+                    <div class="card-header"><h2>الزيارات حسب التاريخ</h2></div>
+
+                    <label>من تاريخ</label>
+                    <input id="visitsFrom" class="datePicker" placeholder="YYYY-MM-DD">
+
+                    <label>إلى تاريخ</label>
+                    <input id="visitsTo" class="datePicker" placeholder="YYYY-MM-DD">
+
+                    <button id="visitsOwnerBtn">عرض الزيارات</button>
+
+                    <div id="visitsOwnerList" class="list" style="margin-top:10px;"></div>
+                </div>
+            </section>
+
+            <!-- Bookings -->
+            <section id="bookings" class="section">
+                <div class="card">
+                    <div class="card-header"><h2>الحجوزات</h2></div>
+
+                    <label>اختر التاريخ (اختياري)</label>
+                    <input id="bookingsDateOwner" class="datePicker" placeholder="YYYY-MM-DD">
+
+                    <div id="bookingsListOwner" class="list" style="margin-top:10px;">جاري التحميل...</div>
+                </div>
+            </section>
+
+            <!-- Employees / Payroll -->
+            <section id="employees" class="section">
+                <div class="card">
+                    <div class="card-header"><h2>الموظفون والرواتب</h2></div>
+
+                    <div class="grid grid-2">
+                        <div>
+                            <h3>قائمة الموظفين</h3>
+                            <div id="employeesList" class="list"></div>
+                        </div>
+                        <div>
+                            <h3>حساب الرواتب</h3>
+                            <label>الموظف</label>
+                            <select id="payrollEmployee"></select>
+
+                            <label>من تاريخ</label>
+                            <input id="payrollFrom" class="datePicker" placeholder="YYYY-MM-DD">
+
+                            <label>إلى تاريخ</label>
+                            <input id="payrollTo" class="datePicker" placeholder="YYYY-MM-DD">
+
+                            <button id="payrollBtn">حساب</button>
+
+                            <div id="payrollResult" class="status-text" style="margin-top:10px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Branches -->
+            <section id="branches" class="section">
+                <div class="card">
+                    <div class="card-header"><h2>الفروع</h2></div>
+                    <div id="branchesList" class="list"></div>
+                </div>
+            </section>
+
+            <!-- Notifications -->
+            <section id="notifications" class="section">
+                <div class="card">
+                    <div class="card-header"><h2>الإشعارات</h2></div>
+
+                    <label>رقم الجوال</label>
+                    <input id="notifPhone" placeholder="05xxxxxxxx">
+
+                    <button id="notifLoadBtn">عرض الإشعارات</button>
+
+                    <div id="notifList" class="list" style="margin-top:10px;"></div>
+                </div>
+            </section>
+
+            <!-- Reports -->
+            <section id="reports" class="section">
+                <div class="card">
+                    <div class="card-header"><h2>التقارير</h2></div>
+
+                    <label>من تاريخ</label>
+                    <input id="reportsFrom" class="datePicker" placeholder="YYYY-MM-DD">
+
+                    <label>إلى تاريخ</label>
+                    <input id="reportsTo" class="datePicker" placeholder="YYYY-MM-DD">
+
+                    <button id="reportsOwnerBtn">عرض التقرير</button>
+
+                    <div id="reportsOwnerList" class="list" style="margin-top:10px;"></div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="api.js?v=3"></script>
 
 <script>
-/* ===========================
-   Tabs
-=========================== */
-const sections = document.querySelectorAll(".section");
-const navButtons = document.querySelectorAll(".nav-btn");
+/* ========== Helpers ========== */
+const $ = (id) => document.getElementById(id);
 
-navButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-        const target = btn.getAttribute("data-target");
-        sections.forEach(s => s.classList.remove("active"));
-        document.getElementById(target).classList.add("active");
-
-        navButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-    });
-});
-
-/* ===========================
-   Date Pickers
-=========================== */
-function initDatePickers() {
-    const options = {
-        dateFormat: "Y-m-d",
-        allowInput: true
-    };
-    flatpickr("#visitsDate", options);
-    flatpickr("#bookingsDate", options);
-    flatpickr("#reportsDate", options);
+function setLoading(btn, state = true) {
+    if (!btn) return;
+    if (state) {
+        btn.classList.add("loading");
+        btn.disabled = true;
+    } else {
+        btn.classList.remove("loading");
+        btn.disabled = false;
+    }
 }
 
-/* ===========================
-   Dashboard
-=========================== */
+function createCard(html) {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = html;
+    return div;
+}
+
+function clear(el) {
+    if (el) el.innerHTML = "";
+}
+
+/* ========== Tabs ========== */
+function initTabs() {
+    const sections = document.querySelectorAll(".section");
+    const navButtons = document.querySelectorAll(".nav-btn");
+
+    navButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const target = btn.dataset.target;
+
+            sections.forEach(s => s.classList.remove("active"));
+            $(target).classList.add("active");
+
+            navButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        });
+    });
+}
+
+/* ========== Date Pickers ========== */
+function initDatePickers() {
+    const options = { dateFormat: "Y-m-d", allowInput: true };
+    flatpickr("#visitsFrom", options);
+    flatpickr("#visitsTo", options);
+    flatpickr("#bookingsDateOwner", options);
+    flatpickr("#payrollFrom", options);
+    flatpickr("#payrollTo", options);
+    flatpickr("#reportsFrom", options);
+    flatpickr("#reportsTo", options);
+}
+
+/* ========== Dashboard ========== */
 async function loadDashboard() {
     const res = await apiGet({ action: "getOwnersDashboard" });
 
-    document.getElementById("stats").innerHTML = `
+    $("stats").innerHTML = `
         العملاء: ${res.totals.customers}<br>
         السيارات: ${res.totals.cars}<br>
         الزيارات: ${res.totals.visits}<br>
         المبالغ: ${res.totals.amount}
     `;
 
-    document.getElementById("sCustomers").innerText = res.totals.customers;
-    document.getElementById("sCars").innerText = res.totals.cars;
-    document.getElementById("sVisits").innerText = res.totals.visits;
-    document.getElementById("sAmount").innerText = res.totals.amount;
-}
+    $("sCustomers").innerText = res.totals.customers;
+    $("sCars").innerText = res.totals.cars;
+    $("sVisits").innerText = res.totals.visits;
+    $("sAmount").innerText = res.totals.amount;
 
-/* ===========================
-   Helper: بحث ذكي عن عميل
-=========================== */
-async function smartSearchCustomer(query) {
-    const res = await apiGet({ action: "searchCustomer", query });
+    // مستويات العملاء
+    const levelsBox = $("levelsBox");
+    clear(levelsBox);
+    Object.entries(res.levels).forEach(([level, count]) => {
+        levelsBox.appendChild(createCard(`${level}: ${count}`));
+    });
 
-    if (!res.success) return null;
+    // الخدمات الأكثر استخدامًا
+    const servicesBox = $("servicesBreakdown");
+    clear(servicesBox);
+    res.services_breakdown
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+        .forEach(s => {
+            servicesBox.appendChild(createCard(`
+                الخدمة: ${s.service}<br>
+                عدد الزيارات: ${s.count}<br>
+                إجمالي المبالغ: ${s.amount}
+            `));
+        });
 
-    const customers = res.customers || (res.customer ? [res.customer] : []);
-    const cars = res.cars || [];
+    // إحصائيات السيارات
+    const carsBox = $("carsStats");
+    clear(carsBox);
+    carsBox.appendChild(createCard(
+        "<b>أكثر أنواع السيارات:</b><br>" +
+        res.cars_stats.top_car_types
+            .slice(0, 5)
+            .map(c => `${c.car}: ${c.count}`)
+            .join("<br>")
+    ));
+    carsBox.appendChild(createCard(
+        "<b>أكثر الأحجام:</b><br>" +
+        res.cars_stats.top_sizes
+            .map(c => `${c.size}: ${c.count}`)
+            .join("<br>")
+    ));
+    carsBox.appendChild(createCard(
+        "<b>أكثر المدن:</b><br>" +
+        res.cars_stats.top_cities
+            .map(c => `${c.city}: ${c.count}`)
+            .join("<br>")
+    ));
 
-    return { customers, cars };
-}
-
-/* ===========================
-   Search Customer
-=========================== */
-async function searchCustomer() {
-    const btn = document.getElementById("searchBtn");
-    const query = document.getElementById("searchPhone").value.trim();
-
-    if (!query) return alert("أدخل قيمة للبحث");
-
-    btn.classList.add("loading");
-    btn.disabled = true;
-
-    const data = await smartSearchCustomer(query);
-
-    btn.classList.remove("loading");
-    btn.disabled = false;
-
-    if (!data || data.customers.length === 0) {
-        document.getElementById("searchResult").innerHTML = "لا يوجد نتائج";
-        return;
-    }
-
-    const c = data.customers[0];
-
-    document.getElementById("searchResult").innerHTML = `
-        <div class="card">
-            الاسم: ${c.name}<br>
-            العضوية: ${c.membership}<br>
-            النقاط: ${c.points}<br>
-            المستوى: ${c.level}
-        </div>
+    // صحة العمل
+    $("businessHealth").innerHTML = `
+        التقييم العام: ${res.business_health.score} / 100<br>
+        الحالة: ${res.business_health.status}<br>
+        معدل الاحتفاظ بالعملاء: ${res.totals.retention_rate.toFixed(1)}%<br>
+        متوسط الإنفاق لكل عميل: ${res.totals.avg_spend_per_customer.toFixed(1)}<br>
+        متوسط الزيارات لكل عميل: ${res.totals.avg_visits_per_customer.toFixed(1)}
     `;
 }
 
-/* ===========================
-   Customer Visits
-=========================== */
-async function loadCustomerVisits() {
-    const btn = document.getElementById("visitsBtn");
-    const phone = document.getElementById("visitsPhone").value.trim();
-    const date = document.getElementById("visitsDate").value.trim();
+/* ========== Services (Commissions) ========== */
+async function loadServicesFull() {
+    const res = await apiGet({ action: "getCommissions" });
+    const list = $("servicesListFull");
+    clear(list);
 
-    if (!phone) return alert("أدخل رقم الجوال");
+    if (!res.commissions || !res.commissions.length) {
+        list.innerHTML = "<p>لا توجد خدمات مسجلة</p>";
+        return;
+    }
 
-    btn.classList.add("loading");
-    btn.disabled = true;
+    res.commissions.forEach(s => {
+        list.appendChild(createCard(`
+            الخدمة: ${s.service}<br>
+            العمولة: ${s.commission}<br>
+            السعر الافتراضي: ${s.price || 0}<br>
+            المدة: ${s.duration || 30} دقيقة
+        `));
+    });
+}
+
+/* ========== Visits (owner) ========== */
+async function loadVisitsOwner() {
+    const btn = $("visitsOwnerBtn");
+    const from = $("visitsFrom").value.trim();
+    const to = $("visitsTo").value.trim();
+
+    if (!from || !to) return alert("اختر من وإلى تاريخ");
+
+    setLoading(btn, true);
 
     const res = await apiGet({
-        action: "getVisitsByPhone",
-        phone,
-        date
+        action: "getVisitsByDate",
+        from,
+        to
     });
 
-    btn.classList.remove("loading");
-    btn.disabled = false;
+    setLoading(btn, false);
 
-    const list = document.getElementById("visitsList");
-    list.innerHTML = "";
+    const list = $("visitsOwnerList");
+    clear(list);
 
-    if (!res.visits || res.visits.length === 0) {
-        list.innerHTML = "<p>لا توجد زيارات</p>";
+    if (!res.visits.length) {
+        list.innerHTML = "<p>لا توجد زيارات في هذه الفترة</p>";
         return;
     }
 
     res.visits.forEach(v => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-            الخدمة: ${v.service}<br>
+        list.appendChild(createCard(`
             التاريخ: ${v.date}<br>
+            الخدمة: ${v.service}<br>
             السعر: ${v.price}<br>
             النقاط: ${v.points}<br>
-            العضوية: ${v.membership || "-"}<br>
-            السيارة: ${v.car || "-"}
-        `;
-        list.appendChild(div);
+            العضوية: ${v.membership}<br>
+            الموظف: ${v.employee || "-"}<br>
+            الفرع: ${v.branch || "-"}
+        `));
     });
 }
 
-/* ===========================
-   Customer Cars
-=========================== */
-async function loadCustomerCars() {
-    const btn = document.getElementById("carsBtn");
-    const phone = document.getElementById("carsPhone").value.trim();
-
-    if (!phone) return alert("أدخل رقم الجوال");
-
-    btn.classList.add("loading");
-    btn.disabled = true;
-
-    const res = await apiGet({ action: "getCarsByPhone", phone });
-
-    btn.classList.remove("loading");
-    btn.disabled = false;
-
-    const list = document.getElementById("carsList");
-    list.innerHTML = "";
-
-    if (!res.cars || res.cars.length === 0) {
-        list.innerHTML = "<p>لا توجد سيارات</p>";
-        return;
-    }
-
-    res.cars.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-            ${c.car} - ${c.plate_letters} ${c.plate_numbers}<br>
-            الحجم: ${c.size}<br>
-            المدينة: ${c.city}<br>
-            العضوية: ${c.membership}
-        `;
-        list.appendChild(div);
-    });
-}
-
-/* ===========================
-   Send Notification
-=========================== */
-async function sendNotification() {
-    const btn = document.getElementById("notifyBtn");
-    const phone = document.getElementById("notifyPhone").value.trim();
-    const msg = document.getElementById("notifyMsg").value.trim();
-
-    if (!phone || !msg) return alert("أدخل رقم الجوال ونص الإشعار");
-
-    btn.classList.add("loading");
-    btn.disabled = true;
-
-    const resCustomer = await apiGet({ action: "getByPhone", phone });
-
-    if (!resCustomer.success) {
-        btn.classList.remove("loading");
-        btn.disabled = false;
-        document.getElementById("notifyStatus").innerText = "لم يتم العثور على العميل";
-        return;
-    }
-
-    const membership = resCustomer.customer.membership;
-
-    await apiPost({
-        action: "addRating",
-        membership,
-        rating: 0,
-        comment: msg
-    });
-
-    btn.classList.remove("loading");
-    btn.disabled = false;
-
-    document.getElementById("notifyStatus").innerText =
-        "تم إرسال الإشعار للعميل رقم عضوية: " + membership;
-}
-
-/* ===========================
-   Add Visit
-=========================== */
-let selectedMembership = null;
-let selectedCarData = null;
-let visitServices = {};
-
-async function searchVisitCustomer() {
-    const btn = document.getElementById("visitSearchBtn");
-    const query = document.getElementById("visitSearch").value.trim();
-
-    if (!query) return alert("أدخل رقم الجوال أو العضوية أو اللوحة");
-
-    btn.classList.add("loading");
-    btn.disabled = true;
-
-    const data = await smartSearchCustomer(query);
-
-    btn.classList.remove("loading");
-    btn.disabled = false;
-
-    if (!data || data.cars.length === 0) {
-        alert("لا يوجد نتائج");
-        return;
-    }
-
-    document.getElementById("visitCarsBox").style.display = "block";
-
-    const list = document.getElementById("visitCarsList");
-    list.innerHTML = "";
-
-    data.cars.forEach(car => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.style.cursor = "pointer";
-        div.innerHTML = `
-            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}<br>
-            عضوية: ${car.membership}<br>
-            مدينة: ${car.city}
-        `;
-        div.onclick = () => selectVisitCar(car);
-        list.appendChild(div);
-    });
-}
-
-function selectVisitCar(car) {
-    selectedMembership = car.membership;
-    selectedCarData = car;
-
-    document.getElementById("visitForm").style.display = "block";
-    document.getElementById("visitSelectedInfo").innerText =
-        `العضوية: ${car.membership} — السيارة: ${car.car} — اللوحة: ${car.plate_letters} ${car.plate_numbers}`;
-}
-
-async function loadVisitServices() {
-    const res = await apiGet({ action: "getCommissions" });
-
-    const select = document.getElementById("vService");
-    select.innerHTML = "";
-
-    res.commissions.forEach(s => {
-        visitServices[s.service] = Number(s.price);
-
-        const opt = document.createElement("option");
-        opt.value = s.service;
-        opt.textContent = s.service;
-        select.appendChild(opt);
-    });
-
-    updateVisitPrice();
-}
-
-function updateVisitPrice() {
-    const service = document.getElementById("vService").value;
-    const price = visitServices[service] || 0;
-    document.getElementById("vPrice").value = price;
-    updateVisitPoints();
-}
-
-function updateVisitPoints() {
-    const price = Number(document.getElementById("vPrice").value);
-    document.getElementById("vPoints").value = Math.floor(price / 5);
-}
-
-async function submitVisit() {
-    if (!selectedMembership || !selectedCarData) return alert("اختر السيارة أولاً");
-
-    const btn = document.getElementById("addVisitBtn");
-    btn.classList.add("loading");
-    btn.disabled = true;
-
-    const service = document.getElementById("vService").value;
-    const price = document.getElementById("vPrice").value;
-    const points = document.getElementById("vPoints").value;
-
-    const supervisor = localStorage.getItem("supervisor_name") || "غير معروف";
-    const timestamp = new Date().toISOString();
-
-    const res = await apiPost({
-        action: "addVisit",
-        membership: selectedMembership,
-        service,
-        price,
-        points,
-        car: selectedCarData.car,
-        plate_letters: selectedCarData.plate_letters,
-        plate_numbers: selectedCarData.plate_numbers,
-        city: selectedCarData.city,
-        supervisor,
-        timestamp
-    });
-
-    btn.classList.remove("loading");
-    btn.disabled = false;
-
-    if (res.success) {
-        document.getElementById("addVisitStatus").innerText =
-            "✔ تم تسجيل الزيارة بنجاح بواسطة: " + supervisor;
-    } else {
-        document.getElementById("addVisitStatus").innerText =
-            "❌ حدث خطأ أثناء التسجيل";
-    }
-}
-
-/* ===========================
-   Bookings
-=========================== */
-async function loadBookings() {
-    const date = document.getElementById("bookingsDate").value.trim();
+/* ========== Bookings (owner) ========== */
+async function loadBookingsOwner() {
+    const date = $("bookingsDateOwner").value.trim();
 
     const res = await apiGet({
-        action: "getAllBookings",
+        action: "getBookings",
         date
     });
 
-    const list = document.getElementById("bookingsList");
-    list.innerHTML = "";
+    const list = $("bookingsListOwner");
+    clear(list);
 
-    if (!res.bookings || res.bookings.length === 0) {
+    if (!res.bookings.length) {
         list.innerHTML = "<p>لا توجد حجوزات</p>";
         return;
     }
 
     res.bookings.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-            الخدمة: ${b.service} - ${b.date} ${b.time}<br>
+        const div = createCard(`
+            الجوال: ${b.phone}<br>
+            العضوية: ${b.membership}<br>
+            الخدمة: ${b.service}<br>
+            التاريخ: ${b.date} ${b.time}<br>
             الحالة الحالية: <b>${b.status}</b><br><br>
-            <button onclick="confirmBooking(this, ${b.row})">تأكيد</button>
-            <button onclick="cancelBooking(this, ${b.row})" style="background:var(--danger)">إلغاء</button>
-        `;
+            <button class="secondary" onclick="confirmBookingOwner(this, ${b.row})">تأكيد</button>
+            <button class="danger" onclick="cancelBookingOwner(this, ${b.row})">إلغاء</button>
+        `);
         list.appendChild(div);
     });
 }
 
-async function confirmBooking(btn, row) {
-    btn.classList.add("loading");
-    btn.disabled = true;
-
+async function confirmBookingOwner(btn, row) {
+    setLoading(btn, true);
     await apiPost({ action: "updateBookingStatus", row, status: "Approved" });
-
-    btn.classList.remove("loading");
-    btn.disabled = false;
-
-    loadBookings();
+    setLoading(btn, false);
+    loadBookingsOwner();
 }
 
-async function cancelBooking(btn, row) {
-    btn.classList.add("loading");
-    btn.disabled = true;
-
+async function cancelBookingOwner(btn, row) {
+    setLoading(btn, true);
     await apiPost({ action: "updateBookingStatus", row, status: "Cancelled" });
-
-    btn.classList.remove("loading");
-    btn.disabled = false;
-
-    loadBookings();
+    setLoading(btn, false);
+    loadBookingsOwner();
 }
 
-/* ===========================
-   Reports
-=========================== */
-async function loadReports() {
-    const date = document.getElementById("reportsDate").value.trim();
+/* ========== Employees & Payroll ========== */
+async function loadEmployees() {
+    const res = await apiGet({ action: "getEmployees" });
+
+    const list = $("employeesList");
+    clear(list);
+
+    const select = $("payrollEmployee");
+    select.innerHTML = "";
+
+    if (!res.employees || !res.employees.length) {
+        list.innerHTML = "<p>لا يوجد موظفون</p>";
+        return;
+    }
+
+    res.employees.forEach(e => {
+        list.appendChild(createCard(`
+            الاسم: ${e.employee}<br>
+            الحالة: ${e.status}<br>
+            الجوال: ${e.phone || "-"}<br>
+            الفرع: ${e.branch || "-"}
+        `));
+
+        const opt = document.createElement("option");
+        opt.value = e.employee;
+        opt.textContent = e.employee;
+        select.appendChild(opt);
+    });
+}
+
+async function loadPayroll() {
+    const btn = $("payrollBtn");
+    const employee = $("payrollEmployee").value;
+    const from = $("payrollFrom").value.trim();
+    const to = $("payrollTo").value.trim();
+
+    if (!employee || !from || !to) return alert("اختر الموظف والفترة");
+
+    setLoading(btn, true);
+
+    const res = await apiGet({
+        action: "getPayroll",
+        employee,
+        from,
+        to
+    });
+
+    setLoading(btn, false);
+
+    $("payrollResult").innerHTML = `
+        الموظف: ${res.employee}<br>
+        عدد الزيارات: ${res.total_visits}<br>
+        إجمالي العمولة: ${res.total_commission}<br>
+        عدد الغسلات: ${res.total_washes}
+    `;
+}
+
+/* ========== Branches ========== */
+async function loadBranches() {
+    const res = await apiGet({ action: "getBranches" });
+    const list = $("branchesList");
+    clear(list);
+
+    if (!res.branches || !res.branches.length) {
+        list.innerHTML = "<p>لا توجد فروع</p>";
+        return;
+    }
+
+    res.branches.forEach(b => {
+        list.appendChild(createCard(`
+            الفرع: ${b.branch}<br>
+            المدينة: ${b.city}<br>
+            المدير: ${b.manager || "-"}
+        `));
+    });
+}
+
+/* ========== Notifications ========== */
+async function loadNotifications() {
+    const btn = $("notifLoadBtn");
+    const phone = $("notifPhone").value.trim();
+
+    if (!phone) return alert("أدخل رقم الجوال");
+
+    setLoading(btn, true);
+
+    const res = await apiGet({
+        action: "getNotifications",
+        phone
+    });
+
+    setLoading(btn, false);
+
+    const list = $("notifList");
+    clear(list);
+
+    if (!res.notifications || !res.notifications.length) {
+        list.innerHTML = "<p>لا توجد إشعارات لهذا الرقم</p>";
+        return;
+    }
+
+    res.notifications.forEach(n => {
+        const div = createCard(`
+            الرسالة: ${n.message}<br>
+            النوع: ${n.type}<br>
+            التاريخ: ${n.created_at}<br>
+            مقروء: ${n.read ? "نعم" : "لا"}<br><br>
+            ${n.read ? "" : `<button class="secondary" onclick="markNotifRead(this, ${n.row})">تحديد كمقروء</button>`}
+        `);
+        list.appendChild(div);
+    });
+}
+
+async function markNotifRead(btn, row) {
+    setLoading(btn, true);
+    await apiGet({ action: "markNotificationRead", row });
+    setLoading(btn, false);
+    $("notifLoadBtn").click();
+}
+
+/* ========== Reports (owner) ========== */
+async function loadReportsOwner() {
+    const btn = $("reportsOwnerBtn");
+    const from = $("reportsFrom").value.trim();
+    const to = $("reportsTo").value.trim();
+
+    if (!from || !to) return alert("اختر من وإلى تاريخ");
+
+    setLoading(btn, true);
 
     const res = await apiGet({
         action: "getVisitsByDate",
-        from: date || "2000-01-01",
-        to: date || "2100-01-01"
+        from,
+        to
     });
 
-    const list = document.getElementById("reportsList");
-    list.innerHTML = "";
+    setLoading(btn, false);
 
-    if (!res.visits || res.visits.length === 0) {
+    const list = $("reportsOwnerList");
+    clear(list);
+
+    if (!res.visits.length) {
         list.innerHTML = "<p>لا توجد بيانات</p>";
         return;
     }
 
     res.visits.forEach(v => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
+        list.appendChild(createCard(`
             التاريخ: ${v.date}<br>
             الخدمة: ${v.service}<br>
             السعر: ${v.price}<br>
             النقاط: ${v.points}<br>
-            العضوية: ${v.membership || "-"}<br>
-            السيارة: ${v.car || "-"}
-        `;
-        list.appendChild(div);
+            العضوية: ${v.membership}<br>
+            الموظف: ${v.employee || "-"}<br>
+            الفرع: ${v.branch || "-"}
+        `));
     });
 }
 
-/* ===========================
-   Initial Load
-=========================== */
+/* ========== Events & Init ========== */
+function initEvents() {
+    $("visitsOwnerBtn").onclick = loadVisitsOwner;
+    $("bookingsDateOwner").onchange = loadBookingsOwner;
+    $("payrollBtn").onclick = loadPayroll;
+    $("notifLoadBtn").onclick = loadNotifications;
+    $("reportsOwnerBtn").onclick = loadReportsOwner;
+}
+
+initTabs();
 initDatePickers();
+initEvents();
 loadDashboard();
-loadBookings();
-loadVisitServices();
-loadReports();
+loadServicesFull();
+loadBookingsOwner();
+loadEmployees();
+loadBranches();
 </script>
 
 </body>
