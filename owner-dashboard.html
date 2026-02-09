@@ -1,1328 +1,310 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>لوحة المالك - Owner Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ECharts -->
-<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-
-<!-- Flatpickr -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-<style>
-:root {
-  --bg: #020617;
-  --bg-soft: #020617;
-  --card: #020617;
-  --border: #1f2937;
-  --accent: #2563eb;
-  --accent-soft: #1d4ed8;
-  --danger: #dc2626;
-  --success: #16a34a;
-  --text-main: #f9fafb;
-  --text-muted: #9ca3af;
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
-}
-
-body.light {
-  --bg: #f3f4f6;
-  --bg-soft: #e5e7eb;
-  --card: #ffffff;
-  --border: #d1d5db;
-  --accent: #2563eb;
-  --accent-soft: #1d4ed8;
-  --danger: #dc2626;
-  --success: #16a34a;
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.15);
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: "Tajawal", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
-  color: var(--text-main);
-  direction: rtl;
-}
-
-/* Layout */
-.layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 260px;
-  background: rgba(15, 23, 42, 0.96);
-  border-left: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 18px 14px;
-  gap: 10px;
-}
-
-body.light .sidebar {
-  background: #ffffff;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.brand-logo-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  object-fit: contain;
-  background: #020617;
-}
-
-.brand-text {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.nav-section-title {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin: 10px 4px 4px;
-}
-
-.nav {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.nav-btn {
-  width: 100%;
-  text-align: right;
-  padding: 9px 11px;
-  border-radius: 10px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  transition: 0.15s ease-out;
-}
-
-.nav-btn span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.nav-btn.active {
-  background: rgba(37, 99, 235, 0.22);
-  color: var(--text-main);
-}
-
-.nav-btn:hover {
-  background: rgba(15, 23, 42, 0.9);
-  color: var(--text-main);
-}
-
-body.light .nav-btn:hover {
-  background: #e5e7eb;
-}
-
-/* Main */
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-/* Topbar */
-.topbar {
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(15, 23, 42, 0.9);
-  backdrop-filter: blur(10px);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-body.light .topbar {
-  background: rgba(249, 250, 251, 0.9);
-}
-
-.topbar-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.topbar-title {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.topbar-sub {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.stats-bar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.pill {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--text-muted);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-body.light .pill {
-  background: #ffffff;
-}
-
-/* Theme toggle */
-.theme-toggle {
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-main);
-  font-size: 12px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Content */
-.content {
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.section {
-  display: none;
-}
-
-.section.active {
-  display: block;
-}
-
-.card {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-soft);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.card-header h2,
-.card-header h3 {
-  margin: 0;
-}
-
-h2, h3 {
-  margin: 0 0 10px;
-}
-
-p {
-  margin: 0;
-}
-
-/* KPI Cards */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px;
-}
-
-.kpi-card {
-  background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(15,23,42,0.9));
-  border-radius: 14px;
-  padding: 12px;
-  border: 1px solid rgba(37,99,235,0.4);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-body.light .kpi-card {
-  background: linear-gradient(135deg, #eff6ff, #ffffff);
-}
-
-.kpi-label {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.kpi-value {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.kpi-trend {
-  font-size: 11px;
-}
-
-/* Inputs */
-label {
-  display: block;
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 8px;
-  margin-bottom: 3px;
-}
-
-input, select, textarea {
-  width: 100%;
-  padding: 10px 11px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: #020617;
-  color: var(--text-main);
-  font-size: 14px;
-  margin-bottom: 6px;
-  outline: none;
-  transition: 0.15s ease-out;
-}
-
-body.light input,
-body.light select,
-body.light textarea {
-  background: #f9fafb;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
-}
-
-textarea {
-  min-height: 90px;
-  resize: vertical;
-}
-
-/* Buttons */
-button {
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: none;
-  background: var(--accent);
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  margin-top: 8px;
-  position: relative;
-  transition: 0.15s ease-out;
-}
-
-button.loading {
-  color: transparent !important;
-  cursor: not-allowed;
-  background: #6b7280 !important;
-}
-
-button.loading::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  margin-top: -10px;
-  margin-left: -10px;
-  border: 3px solid white;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-button:active {
-  transform: scale(0.97);
-}
-
-button.secondary {
-  background: #111827;
-  color: var(--text-main);
-}
-
-button.danger {
-  background: var(--danger);
-}
-
-/* Loader keyframes */
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Lists */
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Grid */
-.grid {
-  display: grid;
-  gap: 10px;
-}
-
-.grid-2 {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-/* Status text */
-.status-text {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 6px;
-  text-align: center;
-}
-
-/* Charts */
-.chart-box {
-  width: 100%;
-  height: 260px;
-}
-
-/* Table */
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-th, td {
-  padding: 8px 6px;
-  border-bottom: 1px solid var(--border);
-  text-align: right;
-  white-space: nowrap;
-}
-
-th {
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .layout {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    flex-direction: row;
-    overflow-x: auto;
-    border-left: none;
-    border-bottom: 1px solid var(--border);
-  }
-  .nav {
-    flex-direction: row;
-    flex-wrap: nowrap;
-  }
-  .nav-btn {
-    white-space: nowrap;
-  }
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .stats-bar {
-    justify-content: flex-start;
-  }
-}
-</style>
+    <meta charset="UTF-8">
+    <title>لوحة القيادة - المالك</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a; --card-dark: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8;
+            --accent: #3b82f6; --success: #22c55e; --border: #334155;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Tajawal', sans-serif; background-color: var(--bg-dark); color: var(--text-main); display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--card-dark); border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .logo { font-size: 20px; font-weight: bold; color: var(--accent); margin-bottom: 20px; text-align: center; }
+        .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 12px; text-align: right; cursor: pointer; border-radius: 8px; font-size: 15px; transition: 0.2s; width: 100%; }
+        .nav-btn:hover, .nav-btn.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
+
+        /* Main Content */
+        .main { flex: 1; padding: 20px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .card { background: var(--card-dark); border-radius: 12px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
+        
+        /* Grid & Charts */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .kpi-value { font-size: 24px; font-weight: bold; margin-top: 5px; }
+        .kpi-label { color: var(--text-muted); font-size: 14px; }
+        .chart-container { height: 350px; width: 100%; }
+
+        /* Forms & Tables */
+        .controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        input, select { background: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; outline: none; }
+        button.action { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        button.export { background: var(--success); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { text-align: right; color: var(--text-muted); padding: 12px; border-bottom: 1px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); }
+        
+        /* Utilities */
+        .hidden { display: none; }
+        .loading { opacity: 0.5; pointer-events: none; }
+    </style>
 </head>
-<body class="dark">
+<body>
 
-<div class="layout">
+    <aside class="sidebar">
+        <div class="logo">🏢 لوحة المالك</div>
+        <button class="nav-btn active" onclick="showSection('dashboard', this)">📊 نظرة عامة</button>
+        <button class="nav-btn" onclick="showSection('financial', this)">💰 التقارير المالية</button>
+        <button class="nav-btn" onclick="showSection('employees', this)">👥 الموظفين والرواتب</button>
+    </aside>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="brand">
-      <img src="logo.png" class="brand-logo-img" alt="Logo">
-      <div class="brand-text">لوحة المالك</div>
-    </div>
+    <main class="main">
+        
+        <section id="dashboard">
+            <div class="header">
+                <h2>نظرة عامة على الأداء</h2>
+                <div style="font-size:14px; color:var(--text-muted)" id="lastUpdate">جاري التحديث...</div>
+            </div>
 
-    <div class="nav-section-title">الرئيسية</div>
-    <div class="nav">
-      <button class="nav-btn active" data-target="dashboard"><span>Dashboard</span></button>
-    </div>
+            <div class="kpi-grid">
+                <div class="card">
+                    <div class="kpi-label">إجمالي الإيرادات</div>
+                    <div class="kpi-value" id="kpiRevenue">0 ر.س</div>
+                </div>
+                <div class="card">
+                    <div class="kpi-label">إجمالي الزيارات</div>
+                    <div class="kpi-value" id="kpiVisits">0</div>
+                </div>
+                <div class="card">
+                    <div class="kpi-label">عدد العملاء</div>
+                    <div class="kpi-value" id="kpiCustomers">0</div>
+                </div>
+                <div class="card">
+                    <div class="kpi-label">متوسط الفاتورة</div>
+                    <div class="kpi-value" id="kpiAvg">0 ر.س</div>
+                </div>
+            </div>
 
-    <div class="nav-section-title">التقارير والتحليلات</div>
-    <div class="nav">
-      <button class="nav-btn" data-target="financial"><span>التقارير المالية</span></button>
-      <button class="nav-btn" data-target="visits"><span>الزيارات</span></button>
-      <button class="nav-btn" data-target="bookings"><span>الحجوزات</span></button>
-      <button class="nav-btn" data-target="employees"><span>الموظفون والرواتب</span></button>
-      <button class="nav-btn" data-target="branches"><span>الفروع</span></button>
-      <button class="nav-btn" data-target="notifications"><span>الإشعارات</span></button>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <main class="main">
-
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-title">لوحة المالك</div>
-        <div class="topbar-sub">نظرة شاملة على الأداء، الزيارات، الإيرادات، الموظفين والفروع</div>
-      </div>
-
-      <div class="stats-bar">
-        <div class="pill">👥 العملاء: <span id="sCustomers">0</span></div>
-        <div class="pill">🚗 السيارات: <span id="sCars">0</span></div>
-        <div class="pill">🧾 الزيارات: <span id="sVisits">0</span></div>
-        <div class="pill">💰 المبالغ: <span id="sAmount">0</span></div>
-        <button class="theme-toggle" id="themeToggle">🌓 تبديل الوضع</button>
-      </div>
-    </div>
-
-    <div class="content">
-
-      <!-- Dashboard -->
-      <section id="dashboard" class="section active">
-        <div class="card">
-          <div class="card-header">
-            <h2>ملخص عام</h2>
-          </div>
-          <div class="kpi-grid">
-            <div class="kpi-card">
-              <div class="kpi-label">إجمالي العملاء</div>
-              <div class="kpi-value" id="kpiCustomers">0</div>
-              <div class="kpi-trend" id="kpiCustomersTrend"></div>
+            <div class="card">
+                <h3>📈 الإيرادات والزيارات (آخر 30 يوم)</h3>
+                <div id="mainChart" class="chart-container"></div>
             </div>
-            <div class="kpi-card">
-              <div class="kpi-label">إجمالي السيارات</div>
-              <div class="kpi-value" id="kpiCars">0</div>
-              <div class="kpi-trend" id="kpiCarsTrend"></div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">إجمالي الزيارات</div>
-              <div class="kpi-value" id="kpiVisits">0</div>
-              <div class="kpi-trend" id="kpiVisitsTrend"></div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">إجمالي المبالغ</div>
-              <div class="kpi-value" id="kpiAmount">0</div>
-              <div class="kpi-trend" id="kpiAmountTrend"></div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">معدل الاحتفاظ بالعملاء</div>
-              <div class="kpi-value" id="kpiRetention">0%</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">متوسط الإنفاق لكل عميل</div>
-              <div class="kpi-value" id="kpiAvgSpend">0</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">متوسط الزيارات لكل عميل</div>
-              <div class="kpi-value" id="kpiAvgVisits">0</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">صحة العمل</div>
-              <div class="kpi-value" id="kpiHealthScore">0 / 100</div>
-              <div class="kpi-trend" id="kpiHealthStatus"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-2">
-          <div class="card">
-            <div class="card-header">
-              <h3>المبالغ اليومية</h3>
-            </div>
-            <div id="chartAmountPerDay" class="chart-box"></div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <h3>الزيارات اليومية</h3>
-            </div>
-            <div id="chartVisitsPerDay" class="chart-box"></div>
-          </div>
-        </div>
-
-        <div class="grid grid-2">
-          <div class="card">
-            <div class="card-header">
-              <h3>الخدمات الأكثر استخدامًا</h3>
-            </div>
-            <div id="chartServices" class="chart-box"></div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <h3>مستويات العملاء</h3>
-            </div>
-            <div id="chartLevels" class="chart-box"></div>
-          </div>
-        </div>
-
-        <div class="grid grid-2">
-          <div class="card">
-            <div class="card-header">
-              <h3>ساعات الذروة</h3>
-            </div>
-            <div id="chartPeakHours" class="chart-box"></div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <h3>إحصائيات السيارات</h3>
-            </div>
-            <div id="chartCars" class="chart-box"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Financial Reports -->
-      <section id="financial" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>التقارير المالية التفصيلية</h2>
-          </div>
-
-          <div class="grid grid-2">
-            <div>
-              <label>من تاريخ</label>
-              <input id="finFrom" class="datePicker" placeholder="YYYY-MM-DD">
-            </div>
-            <div>
-              <label>إلى تاريخ</label>
-              <input id="finTo" class="datePicker" placeholder="YYYY-MM-DD">
-            </div>
-          </div>
-
-<button id="finLoadBtn">عرض التقرير المالي</button>
-<button id="finExportBtn" style="background:#16a34a;display:none;">⬇️ تصدير Excel</button>
-<div class="status-text" id="finStatus"></div>
-
             
-          <div class="table-wrapper" style="margin-top:10px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>العميل</th>
-                  <th>الجوال</th>
-                  <th>العضوية</th>
-                  <th>السيارة</th>
-                  <th>الخدمة</th>
-                  <th>السعر</th>
-                  <th>العمولة</th>
-                  <th>الفرع</th>
-                  <th>الموظف</th>
-                  <th>التاريخ</th>
-                </tr>
-              </thead>
-              <tbody id="finTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- Visits -->
-      <section id="visits" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>الزيارات حسب التاريخ</h2>
-          </div>
-
-          <label>من تاريخ</label>
-          <input id="visitsFrom" class="datePicker" placeholder="YYYY-MM-DD">
-
-          <label>إلى تاريخ</label>
-          <input id="visitsTo" class="datePicker" placeholder="YYYY-MM-DD">
-
-          <button id="visitsOwnerBtn">عرض الزيارات</button>
-
-          <div id="visitsOwnerList" class="list" style="margin-top:10px;"></div>
-        </div>
-      </section>
-
-      <!-- Bookings -->
-      <section id="bookings" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>الحجوزات</h2>
-          </div>
-
-          <label>اختر التاريخ (اختياري)</label>
-          <input id="bookingsDateOwner" class="datePicker" placeholder="YYYY-MM-DD">
-
-          <div id="bookingsListOwner" class="list" style="margin-top:10px;">جاري التحميل...</div>
-        </div>
-      </section>
-
-      <!-- Employees / Payroll -->
-      <section id="employees" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>الموظفون والرواتب</h2>
-          </div>
-
-          <div class="grid grid-2">
-            <div>
-              <h3>قائمة الموظفين</h3>
-              <div id="employeesList" class="list"></div>
+            <div class="controls" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                 <div class="card">
+                    <h3>🚗 أكثر الخدمات طلباً</h3>
+                    <div id="servicesChart" class="chart-container" style="height: 250px;"></div>
+                 </div>
+                 <div class="card">
+                    <h3>🏆 مستويات العملاء</h3>
+                    <div id="levelsChart" class="chart-container" style="height: 250px;"></div>
+                 </div>
             </div>
-            <div>
-              <h3>حساب الرواتب</h3>
-              <label>الموظف</label>
-              <select id="payrollEmployee"></select>
+        </section>
 
-              <label>من تاريخ</label>
-              <input id="payrollFrom" class="datePicker" placeholder="YYYY-MM-DD">
-
-              <label>إلى تاريخ</label>
-              <input id="payrollTo" class="datePicker" placeholder="YYYY-MM-DD">
-
-              <button id="payrollBtn">حساب</button>
-              <div id="payrollResult" class="status-text" style="margin-top:10px;"></div>
+        <section id="financial" class="hidden">
+            <div class="header">
+                <h2>التقارير المالية التفصيلية</h2>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Branches -->
-      <section id="branches" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>الفروع</h2>
-          </div>
-          <div id="branchesList" class="list"></div>
-        </div>
-      </section>
-
-      <!-- Notifications -->
-      <section id="notifications" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>الإشعارات</h2>
-          </div>
-
-          <label>رقم الجوال</label>
-          <input id="notifPhone" placeholder="05xxxxxxxx">
-
-          <button id="notifLoadBtn">عرض الإشعارات</button>
-
-          <div id="notifList" class="list" style="margin-top:10px;"></div>
-        </div>
-      </section>
-
-    </div>
-  </main>
-</div>
-
-<script src="api.js?v=3"></script>
-<script>
-/* ========== Helpers ========== */
-const $ = (id) => document.getElementById(id);
-
-function setLoading(btn, state = true) {
-  if (!btn) return;
-  if (state) {
-    btn.classList.add("loading");
-    btn.disabled = true;
-  } else {
-    btn.classList.remove("loading");
-    btn.disabled = false;
-  }
-}
-
-function createCard(html) {
-  const div = document.createElement("div");
-  div.className = "card";
-  div.innerHTML = html;
-  return div;
-}
-
-function clear(el) {
-  if (el) el.innerHTML = "";
-}
-
-/* ========== Tabs ========== */
-function initTabs() {
-  const sections = document.querySelectorAll(".section");
-  const navButtons = document.querySelectorAll(".nav-btn");
-
-  navButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const target = btn.dataset.target;
-      sections.forEach(s => s.classList.remove("active"));
-      $(target).classList.add("active");
-      navButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    });
-  });
-}
-
-/* ========== Theme Toggle ========== */
-function initTheme() {
-  const btn = $("themeToggle");
-  const saved = localStorage.getItem("owner_theme");
-  if (saved === "light") {
-    document.body.classList.add("light");
-  }
-
-  btn.addEventListener("click", () => {
-    document.body.classList.toggle("light");
-    localStorage.setItem("owner_theme", document.body.classList.contains("light") ? "light" : "dark");
-  });
-}
-
-/* ========== Date Pickers ========== */
-function initDatePickers() {
-  const options = { dateFormat: "Y-m-d", allowInput: true };
-  flatpickr("#visitsFrom", options);
-  flatpickr("#visitsTo", options);
-  flatpickr("#bookingsDateOwner", options);
-  flatpickr("#payrollFrom", options);
-  flatpickr("#payrollTo", options);
-  flatpickr("#reportsFrom", options);
-  flatpickr("#reportsTo", options);
-  flatpickr("#finFrom", options);
-  flatpickr("#finTo", options);
-}
-
-/* ========== Dashboard & Charts ========== */
-let dashboardData = null;
-
-async function loadDashboard() {
-  const res = await apiGet({ action: "getOwnersDashboard" });
-  dashboardData = res;
-
-  // KPIs
-  $("kpiCustomers").innerText = res.totals.customers;
-  $("kpiCars").innerText = res.totals.cars;
-  $("kpiVisits").innerText = res.totals.visits;
-  $("kpiAmount").innerText = res.totals.amount.toFixed(0);
-  $("kpiRetention").innerText = res.totals.retention_rate.toFixed(1) + "%";
-  $("kpiAvgSpend").innerText = res.totals.avg_spend_per_customer.toFixed(1);
-  $("kpiAvgVisits").innerText = res.totals.avg_visits_per_customer.toFixed(1);
-  $("kpiHealthScore").innerText = res.business_health.score + " / 100";
-  $("kpiHealthStatus").innerText = res.business_health.status;
-
-  $("sCustomers").innerText = res.totals.customers;
-  $("sCars").innerText = res.totals.cars;
-  $("sVisits").innerText = res.totals.visits;
-  $("sAmount").innerText = res.totals.amount.toFixed(0);
-
-  initChartsFromDashboard(res);
-}
-
-function initChartsFromDashboard(res) {
-  // Amount per day (approx using visits_per_day * avg price)
-  const dates = res.visits_per_day.map(v => v.date);
-  const visitsCounts = res.visits_per_day.map(v => v.count);
-
-  // Services breakdown
-  const servicesNames = res.services_breakdown.map(s => s.service);
-  const servicesCounts = res.services_breakdown.map(s => s.count);
-
-  // Levels
-  const levelsNames = Object.keys(res.levels);
-  const levelsCounts = Object.values(res.levels);
-
-  // Peak hours
-  const peakHours = res.peak_hours.sort((a,b) => a.hour - b.hour);
-  const peakHoursLabels = peakHours.map(h => h.hour + ":00");
-  const peakHoursCounts = peakHours.map(h => h.count);
-
-  // Cars stats (top car types)
-  const carTypes = res.cars_stats.top_car_types.slice(0, 6);
-  const carTypesNames = carTypes.map(c => c.car);
-  const carTypesCounts = carTypes.map(c => c.count);
-
-  // Chart: Visits per day
-  const chartVisits = echarts.init($("chartVisitsPerDay"));
-  chartVisits.setOption({
-    tooltip: { trigger: "axis" },
-    xAxis: { type: "category", data: dates },
-    yAxis: { type: "value" },
-    series: [{
-      name: "الزيارات",
-      type: "line",
-      smooth: true,
-      data: visitsCounts,
-      areaStyle: {}
-    }]
-  });
-
-  // Chart: Amount per day (تقريب باستخدام متوسط المبلغ لكل زيارة)
-  const avgAmountPerVisit = res.totals.visits > 0 ? res.totals.amount / res.totals.visits : 0;
-  const amountPerDay = visitsCounts.map(c => (c * avgAmountPerVisit).toFixed(0));
-
-  const chartAmount = echarts.init($("chartAmountPerDay"));
-  chartAmount.setOption({
-    tooltip: { trigger: "axis" },
-    xAxis: { type: "category", data: dates },
-    yAxis: { type: "value" },
-    series: [{
-      name: "المبالغ (تقريب)",
-      type: "bar",
-      data: amountPerDay,
-      itemStyle: { color: "#22c55e" }
-    }]
-  });
-
-  // Chart: Services
-  const chartServices = echarts.init($("chartServices"));
-  chartServices.setOption({
-    tooltip: { trigger: "axis" },
-    xAxis: { type: "category", data: servicesNames },
-    yAxis: { type: "value" },
-    series: [{
-      name: "عدد الزيارات",
-      type: "bar",
-      data: servicesCounts,
-      itemStyle: { color: "#2563eb" }
-    }]
-  });
-
-  // Chart: Levels
-  const chartLevels = echarts.init($("chartLevels"));
-  chartLevels.setOption({
-    tooltip: { trigger: "item" },
-    series: [{
-      type: "pie",
-      radius: "65%",
-      data: levelsNames.map((name, i) => ({
-        name,
-        value: levelsCounts[i]
-      }))
-    }]
-  });
-
-  // Chart: Peak hours
-  const chartPeak = echarts.init($("chartPeakHours"));
-  chartPeak.setOption({
-    tooltip: { trigger: "axis" },
-    xAxis: { type: "category", data: peakHoursLabels },
-    yAxis: { type: "value" },
-    series: [{
-      name: "الزيارات",
-      type: "line",
-      smooth: true,
-      data: peakHoursCounts
-    }]
-  });
-
-  // Chart: Cars
-  const chartCars = echarts.init($("chartCars"));
-  chartCars.setOption({
-    tooltip: { trigger: "axis" },
-    xAxis: { type: "category", data: carTypesNames },
-    yAxis: { type: "value" },
-    series: [{
-      name: "عدد السيارات",
-      type: "bar",
-      data: carTypesCounts,
-      itemStyle: { color: "#f97316" }
-    }]
-  });
-
-  window.addEventListener("resize", () => {
-    chartVisits.resize();
-    chartAmount.resize();
-    chartServices.resize();
-    chartLevels.resize();
-    chartPeak.resize();
-    chartCars.resize();
-  });
-}
-
-/* ========== Visits (owner) ========== */
-async function loadVisitsOwner() {
-  const btn = $("visitsOwnerBtn");
-  const from = $("visitsFrom").value.trim();
-  const to = $("visitsTo").value.trim();
-
-  setLoading(btn, true);
-
-  let fromDate, toDate;
-  if (!from && !to) {
-    fromDate = "2000-01-01T00:00:00.000Z";
-    toDate = "2100-01-01T23:59:59.000Z";
-  } else {
-    const f = from || to;
-    const t = to || from;
-    fromDate = new Date(f + "T00:00:00").toISOString();
-    toDate = new Date(t + "T23:59:59").toISOString();
-  }
-
-  const res = await apiGet({
-    action: "getVisitsByDate",
-    from: fromDate,
-    to: toDate
-  });
-
-  setLoading(btn, false);
-
-  const list = $("visitsOwnerList");
-  list.innerHTML = "";
-
-  if (!res.visits || res.visits.length === 0) {
-    list.innerHTML = "<p>لا توجد زيارات</p>";
-    return;
-  }
-
-  res.visits.forEach(v => {
-    list.appendChild(createCard(`
-      التاريخ: ${v.date}<br>
-      الخدمة: ${v.service}<br>
-      السعر: ${v.price}<br>
-      النقاط: ${v.points}<br>
-      العضوية: ${v.membership}<br>
-      الموظف: ${v.employee || "-"}<br>
-      الفرع: ${v.branch || "-"}
-    `));
-  });
-}
-
-/* ========== Bookings (owner) ========== */
-async function loadBookingsOwner() {
-  const date = $("bookingsDateOwner").value.trim();
-  const res = await apiGet({
-    action: "getBookings",
-    date
-  });
-
-  const list = $("bookingsListOwner");
-  clear(list);
-
-  if (!res.bookings.length) {
-    list.innerHTML = "<p>لا توجد حجوزات</p>";
-    return;
-  }
-
-  res.bookings.forEach(b => {
-    const div = createCard(`
-      الجوال: ${b.phone}<br>
-      العضوية: ${b.membership}<br>
-      الخدمة: ${b.service}<br>
-      التاريخ: ${b.date} ${b.time}<br>
-      الحالة الحالية: <b>${b.status}</b><br><br>
-      <button class="secondary" onclick="confirmBookingOwner(this, ${b.row})">تأكيد</button>
-      <button class="danger" onclick="cancelBookingOwner(this, ${b.row})">إلغاء</button>
-    `);
-    list.appendChild(div);
-  });
-}
-
-async function confirmBookingOwner(btn, row) {
-  setLoading(btn, true);
-  await apiPost({ action: "updateBookingStatus", row, status: "Approved" });
-  setLoading(btn, false);
-  loadBookingsOwner();
-}
-
-async function cancelBookingOwner(btn, row) {
-  setLoading(btn, true);
-  await apiPost({ action: "updateBookingStatus", row, status: "Cancelled" });
-  setLoading(btn, false);
-  loadBookingsOwner();
-}
-
-/* ========== Employees & Payroll ========== */
-async function loadEmployees() {
-  const res = await apiGet({ action: "getEmployees" });
-  const list = $("employeesList");
-  clear(list);
-  const select = $("payrollEmployee");
-  select.innerHTML = "";
-
-  if (!res.employees || !res.employees.length) {
-    list.innerHTML = "<p>لا يوجد موظفون</p>";
-    return;
-  }
-
-  res.employees.forEach(e => {
-    list.appendChild(createCard(`
-      الاسم: ${e.employee}<br>
-      الحالة: ${e.status}<br>
-      الجوال: ${e.phone || "-"}<br>
-      الفرع: ${e.branch || "-"}
-    `));
-
-    const opt = document.createElement("option");
-    opt.value = e.employee;
-    opt.textContent = e.employee;
-    select.appendChild(opt);
-  });
-}
-
-async function loadPayroll() {
-  const btn = $("payrollBtn");
-  const employee = $("payrollEmployee").value;
-  const from = $("payrollFrom").value.trim();
-  const to = $("payrollTo").value.trim();
-
-  if (!employee || !from || !to) return alert("اختر الموظف والفترة");
-
-  setLoading(btn, true);
-
-  const res = await apiGet({
-    action: "getPayroll",
-    employee,
-    from,
-    to
-  });
-
-  setLoading(btn, false);
-
-  $("payrollResult").innerHTML = `
-    الموظف: ${res.employee}<br>
-    عدد الزيارات: ${res.total_visits}<br>
-    إجمالي العمولة: ${res.total_commission}<br>
-    عدد الغسلات: ${res.total_washes}
-  `;
-}
-
-/* ========== Branches ========== */
-async function loadBranches() {
-  const res = await apiGet({ action: "getBranches" });
-  const list = $("branchesList");
-  clear(list);
-
-  if (!res.branches || !res.branches.length) {
-    list.innerHTML = "<p>لا توجد فروع</p>";
-    return;
-  }
-
-  res.branches.forEach(b => {
-    list.appendChild(createCard(`
-      الفرع: ${b.branch}<br>
-      المدينة: ${b.city}<br>
-      المدير: ${b.manager || "-"}
-    `));
-  });
-}
-
-/* ========== Notifications ========== */
-async function loadNotifications() {
-  const btn = $("notifLoadBtn");
-  const phone = $("notifPhone").value.trim();
-  if (!phone) return alert("أدخل رقم الجوال");
-
-  setLoading(btn, true);
-
-  const res = await apiGet({
-    action: "getNotifications",
-    phone
-  });
-
-  setLoading(btn, false);
-
-  const list = $("notifList");
-  clear(list);
-
-  if (!res.notifications || !res.notifications.length) {
-    list.innerHTML = "<p>لا توجد إشعارات لهذا الرقم</p>";
-    return;
-  }
-
-  res.notifications.forEach(n => {
-    const div = createCard(`
-      الرسالة: ${n.message}<br>
-      النوع: ${n.type}<br>
-      التاريخ: ${n.created_at}<br>
-      مقروء: ${n.read ? "نعم" : "لا"}<br><br>
-      ${n.read ? "" : `<button class="secondary" onclick="markNotifRead(this, ${n.row})">تحديد كمقروء</button>`}
-    `);
-    list.appendChild(div);
-  });
-}
-
-async function markNotifRead(btn, row) {
-  setLoading(btn, true);
-  await apiGet({ action: "markNotificationRead", row });
-  setLoading(btn, false);
-  $("notifLoadBtn").click();
-}
-
-/* ========== Financial Reports ========== */
-async function loadFinancialReport() {
-  const btn = $("finLoadBtn");
-  const from = $("finFrom").value.trim();
-  const to = $("finTo").value.trim();
-  const status = $("finStatus");
-  const tbody = $("finTableBody");
-
-  if (!from || !to) {
-    alert("اختر من وإلى تاريخ");
-    return;
-  }
-
-  setLoading(btn, true);
-  status.innerText = "جاري تحميل البيانات المالية...";
-  tbody.innerHTML = "";
-
-  const fromDate = new Date(from + "T00:00:00").toISOString();
-  const toDate = new Date(to + "T23:59:59").toISOString();
-
-  const res = await apiGet({
-    action: "getVisitsByDate",
-    from: fromDate,
-    to: toDate
-  });
-
-  if (!res.visits || res.visits.length === 0) {
-    status.innerText = "لا توجد بيانات في هذه الفترة";
-      $("finExportBtn").style.display = "block";
-    setLoading(btn, false);
-    return;
-  }
-
-  // نجمع العضويات الفريدة
-  const memberships = [...new Set(res.visits.map(v => String(v.membership)))];
-
-  // نجيب بيانات كل عضوية من API
-  const membershipMap = {};
-  for (const m of memberships) {
-    const info = await apiGet({ action: "getByMembership", membership: m });
-    membershipMap[m] = info;
-  }
-
-  // نعرض الجدول
-  res.visits.forEach(v => {
-    const m = String(v.membership);
-    const info = membershipMap[m];
-    const customer = info && info.customer ? info.customer : null;
-    const car = info && info.car ? info.car : null;
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${customer ? customer.name : "-"}</td>
-      <td>${customer ? customer.phone : "-"}</td>
-      <td>${m}</td>
-      <td>${car ? `${car.car} — ${car.plate_numbers} ${car.plate_letters}` : "-"}</td>
-      <td>${v.service}</td>
-      <td>${v.price}</td>
-      <td>${v.commission}</td>
-      <td>${v.branch || "-"}</td>
-      <td>${v.employee || "-"}</td>
-      <td>${v.date}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  status.innerText = `تم تحميل ${res.visits.length} زيارة مالية.`;
-  setLoading(btn, false);
-}
-
-/* ========== Events & Init ========== */
-function initEvents() {
-  $("visitsOwnerBtn").onclick = loadVisitsOwner;
-  $("bookingsDateOwner").onchange = loadBookingsOwner;
-  $("payrollBtn").onclick = loadPayroll;
-  $("notifLoadBtn").onclick = loadNotifications;
-  $("finLoadBtn").onclick = loadFinancialReport;
-  $("finExportBtn").onclick = exportFinancialToExcel;
-}
-
-initTabs();
-initTheme();
-initDatePickers();
-initEvents();
-loadDashboard();
-loadBookingsOwner();
-loadEmployees();
-loadBranches();
-
-    /* ========== Export to Excel ========== */
-function exportFinancialToExcel() {
-  const rows = [];
-  const table = document.getElementById("finTableBody");
-  const trs = table.querySelectorAll("tr");
-
-  // Header
-  rows.push([
-    "العميل",
-    "الجوال",
-    "العضوية",
-    "السيارة",
-    "الخدمة",
-    "السعر",
-    "العمولة",
-    "الفرع",
-    "الموظف",
-    "التاريخ"
-  ]);
-
-  // Rows
-  trs.forEach(tr => {
-    const cells = [...tr.querySelectorAll("td")].map(td => td.innerText);
-    rows.push(cells);
-  });
-
-  // Convert to CSV
-  let csv = "";
-  rows.forEach(r => {
-    csv += r.map(v => `"${v}"`).join(",") + "\n";
-  });
-
-  // Convert CSV → Excel Blob
-  const blob = new Blob([csv], { type: "application/vnd.ms-excel" });
-  const url = URL.createObjectURL(blob);
-
-  // Download
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "financial-report.xlsx";
-  a.click();
-
-  URL.revokeObjectURL(url);
-}
-
-</script>
-
+            <div class="card">
+                <div class="controls">
+                    <input id="finFrom" class="date-picker" placeholder="من تاريخ">
+                    <input id="finTo" class="date-picker" placeholder="إلى تاريخ">
+                    <button class="action" onclick="loadFinancialData()">عرض التقرير</button>
+                    <button class="action export" onclick="exportToExcel()">تصدير Excel 📥</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="finTable">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>اسم العميل</th>
+                                <th>رقم الجوال</th>
+                                <th>الخدمة</th>
+                                <th>وصف الخدمة</th> <th>السعر</th>
+                                <th>العمولة</th>
+                                <th>الموظف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finBody">
+                            <tr><td colspan="8" style="text-align:center">يرجى اختيار الفترة الزمنية</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="employees" class="hidden">
+            <div class="header"><h2>سجل الموظفين</h2></div>
+            <div class="card">
+                <div id="empList">جاري التحميل...</div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="api.js"></script>
+    
+    <script>
+        // --- 1. إعداد البيانات والخدمات ---
+        const servicesDescription = {
+            "خارجي صغير": "غسيل خارجي لسيارة سيدان صغيرة",
+            "خارجي وداخلي صغير": "غسيل كامل لسيارة صغيرة شامل الكنس",
+            "خارجي وسط": "غسيل خارجي لسيارة كروس أوفر/جيب صغير",
+            "خارجي وداخلي وسط": "غسيل كامل لسيارة وسط",
+            "خارجي كبير": "غسيل خارجي لسيارة جيب/عائلي",
+            "خارجي وداخلي كبير": "غسيل كامل لسيارة عائلية",
+            "غسيل مكينة": "تنظيف المحرك وإزالة الزيوت",
+            "تلميع كفرات": "تلميع الإطارات بمواد خاصة",
+            // أضف أي خدمات أخرى هنا ليتم التعرف عليها
+        };
+
+        // --- 2. تهيئة الصفحة ---
+        document.addEventListener("DOMContentLoaded", () => {
+            flatpickr(".date-picker", { dateFormat: "Y-m-d" });
+            loadDashboardData(); // تحميل البيانات عند الفتح
+        });
+
+        // --- 3. التنقل بين الأقسام ---
+        function showSection(id, btn) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // --- 4. تحميل بيانات الداشبورد ---
+        async function loadDashboardData() {
+            const updateLabel = document.getElementById('lastUpdate');
+            updateLabel.innerText = "جاري الاتصال بالنظام...";
+            
+            // استدعاء API المالك
+            const res = await apiGet({ action: "getOwnersDashboard" });
+            
+            if (!res || !res.totals) {
+                updateLabel.innerText = "خطأ في الاتصال";
+                return;
+            }
+
+            // تحديث البطاقات (KPIs)
+            document.getElementById('kpiRevenue').innerText = parseInt(res.totals.amount).toLocaleString() + " ر.س";
+            document.getElementById('kpiVisits').innerText = res.totals.visits;
+            document.getElementById('kpiCustomers').innerText = res.totals.customers;
+            document.getElementById('kpiAvg').innerText = res.totals.avg_spend_per_customer.toFixed(1) + " ر.س";
+            updateLabel.innerText = "تم التحديث: " + new Date().toLocaleTimeString();
+
+            // رسم الشارتات
+            renderMainChart(res.visits_per_day);
+            renderServicesChart(res.services_breakdown);
+            renderLevelsChart(res.levels);
+        }
+
+        // --- 5. وظائف الرسم البياني (ECharts) ---
+        function renderMainChart(data) {
+            const chart = echarts.init(document.getElementById('mainChart'));
+            const dates = data.map(i => i.date);
+            const counts = data.map(i => i.count);
+            
+            chart.setOption({
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: dates, axisLabel: { color: '#94a3b8' } },
+                yAxis: { type: 'value', axisLabel: { color: '#94a3b8' } },
+                series: [{ 
+                    data: counts, type: 'line', smooth: true, 
+                    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: '#3b82f6'}, {offset: 1, color: 'rgba(59,130,246,0.1)'}]) },
+                    itemStyle: { color: '#3b82f6' }
+                }]
+            });
+        }
+
+        function renderServicesChart(data) {
+            const chart = echarts.init(document.getElementById('servicesChart'));
+            chart.setOption({
+                tooltip: { trigger: 'item' },
+                series: [{
+                    type: 'pie', radius: ['40%', '70%'],
+                    data: data.map(i => ({ value: i.count, name: i.service })),
+                    label: { color: '#fff' }
+                }]
+            });
+        }
+
+        function renderLevelsChart(levels) {
+            const chart = echarts.init(document.getElementById('levelsChart'));
+            chart.setOption({
+                xAxis: { type: 'category', data: Object.keys(levels), axisLabel: { color: '#fff' } },
+                yAxis: { type: 'value', show: false },
+                series: [{ type: 'bar', data: Object.values(levels), itemStyle: { borderRadius: [5, 5, 0, 0], color: '#22c55e' } }]
+            });
+        }
+
+        // --- 6. التقرير المالي والفلترة ---
+        async function loadFinancialData() {
+            const from = document.getElementById('finFrom').value;
+            const to = document.getElementById('finTo').value;
+            const tbody = document.getElementById('finBody');
+
+            if(!from || !to) return alert("الرجاء تحديد التاريخ من وإلى");
+
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center">جاري جلب البيانات...</td></tr>`;
+            
+            // جلب البيانات من API
+            const res = await apiGet({ action: "getVisitsByDate", from, to });
+            
+            tbody.innerHTML = "";
+            if(!res.visits || res.visits.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center">لا توجد بيانات في هذه الفترة</td></tr>`;
+                return;
+            }
+
+            res.visits.forEach(v => {
+                // جلب الوصف من القاموس أو كتابة "خدمة عامة"
+                const desc = servicesDescription[v.service] || "خدمة قياسية";
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${v.date}</td>
+                    <td>${v.customerName || "-"}</td>
+                    <td>${v.customerPhone || "-"}</td>
+                    <td>${v.service}</td>
+                    <td style="color:#94a3b8">${desc}</td>
+                    <td>${v.price}</td>
+                    <td>${v.commission}</td>
+                    <td>${v.employee || "-"}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- 7. تصدير Excel (CSV) ---
+        function exportToExcel() {
+            const table = document.getElementById("finTable");
+            let csv = [];
+            
+            // الهيدر
+            const headers = Array.from(table.querySelectorAll("th")).map(th => th.innerText);
+            csv.push(headers.join(","));
+
+            // الصفوف
+            const rows = table.querySelectorAll("tbody tr");
+            rows.forEach(row => {
+                const cols = Array.from(row.querySelectorAll("td")).map(td => `"${td.innerText}"`);
+                csv.push(cols.join(","));
+            });
+
+            // إنشاء ملف وتحميله
+            const csvContent = "\uFEFF" + csv.join("\n"); // \uFEFF لدعم اللغة العربية
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "التقرير_المالي.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
 </body>
 </html>
