@@ -54,6 +54,32 @@
         margin-top: 20px;
         font-size: 17px;
         cursor: pointer;
+        position: relative;
+        transition: 0.2s;
+    }
+
+    button.loading {
+        color: transparent !important;
+        cursor: not-allowed;
+    }
+
+    button.loading::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 22px;
+        height: 22px;
+        margin-top: -11px;
+        margin-left: -11px;
+        border: 3px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     @media (max-width: 480px) {
@@ -125,7 +151,7 @@
     <label>حروف اللوحة</label>
     <input type="text" id="plate_letters" placeholder="أ ب ج">
 
-    <button onclick="register()">تسجيل</button>
+    <button id="registerBtn" onclick="register()">تسجيل</button>
 </div>
 
 <script>
@@ -157,6 +183,12 @@ document.getElementById("car").addEventListener("change", function () {
 });
 
 async function register() {
+    const btn = document.getElementById("registerBtn");
+
+    // تشغيل اللودر
+    btn.classList.add("loading");
+    btn.disabled = true;
+
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
     const car = document.getElementById("car").value.trim();
@@ -167,6 +199,8 @@ async function register() {
 
     if (!name || !phone || !car || !plate_numbers || !plate_letters) {
         alert("يرجى تعبئة جميع الحقول");
+        btn.classList.remove("loading");
+        btn.disabled = false;
         return;
     }
 
@@ -180,6 +214,10 @@ async function register() {
         plate_letters,
         plate_numbers
     });
+
+    // إيقاف اللودر
+    btn.classList.remove("loading");
+    btn.disabled = false;
 
     if (res.success) {
         alert("تم التسجيل بنجاح");
