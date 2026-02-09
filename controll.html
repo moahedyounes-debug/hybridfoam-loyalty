@@ -5,328 +5,182 @@
 <title>لوحة المشرف</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- مكتبة الباركود -->
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-    :root {
-        --bg: #0f172a;
-        --bg-soft: #111827;
-        --accent: #2563eb;
-        --accent-soft: #1d4ed8;
-        --card-bg: #0b1120;
-        --border: #1f2937;
-        --text-main: #f9fafb;
-        --text-muted: #9ca3af;
-        --danger: #dc2626;
-        --success: #16a34a;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-        margin: 0;
-        font-family: "Tajawal", sans-serif;
-        background: var(--bg);
-        color: var(--text-main);
-        direction: rtl;
-    }
-
-    .layout {
-        display: flex;
-        min-height: 100vh;
-    }
-
-    /* Sidebar */
-    .sidebar {
-        width: 260px;
-        background: var(--bg-soft);
-        border-left: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        padding: 20px 16px;
-    }
-
-    .brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 24px;
-    }
-
-    .brand-logo {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #2563eb, #4f46e5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 18px;
-    }
-
-    .brand-text {
-        font-size: 18px;
-        font-weight: 600;
-    }
-
-    .nav-section-title {
-        font-size: 12px;
-        color: var(--text-muted);
-        margin: 10px 4px;
-    }
-
-    .nav {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-bottom: 20px;
-    }
-
-    .nav-btn {
-        width: 100%;
-        text-align: right;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: none;
-        background: transparent;
-        color: var(--text-muted);
-        font-size: 14px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        transition: 0.15s;
-    }
-
-    .nav-btn.active {
-        background: rgba(37, 99, 235, 0.18);
-        color: var(--text-main);
-    }
-
-    .nav-btn:hover {
-        background: rgba(15, 23, 42, 0.9);
-        color: var(--text-main);
-    }
-
-    /* Main */
-    .main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-    }
-
-    .topbar {
-        padding: 14px 18px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(15, 23, 42, 0.9);
-        backdrop-filter: blur(10px);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-
-    .content {
-        padding: 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-    }
-
-    .section { display: none; }
-    .section.active { display: block; }
-
-    .card {
-        background: var(--card-bg);
-        border-radius: 14px;
-        padding: 14px;
-        border: 1px solid var(--border);
-    }
-
-    input, select, textarea {
-        width: 100%;
-        padding: 10px 11px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: #020617;
-        color: var(--text-main);
-        font-size: 14px;
-        margin-top: 8px;
-    }
-
-    button {
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: none;
-        background: var(--accent);
-        color: white;
-        font-size: 14px;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-
-    button.loading {
-        background: #6b7280 !important;
-        cursor: default;
-    }
-
-    .list { display: flex; flex-direction: column; gap: 10px; }
+body {
+    font-family: "Tajawal", sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+}
+.tabs {
+    display: flex;
+    overflow-x: auto;
+    background: #2563eb;
+    color: white;
+}
+.tab {
+    padding: 14px 20px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.tab.active {
+    background: #1e40af;
+}
+.section {
+    display: none;
+    padding: 15px;
+}
+.section.active {
+    display: block;
+}
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+input, select, button, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    font-size: 16px;
+    transition: 0.2s;
+}
+button.loading {
+    background: #6b7280 !important;
+    cursor: not-allowed;
+}
+button:active {
+    transform: scale(0.97);
+}
 </style>
 </head>
+
 <body>
 
-<div class="layout">
+<!-- Tabs -->
+<div class="tabs">
+    <div class="tab active" onclick="showTab('dashboard', this)">Dashboard</div>
+    <div class="tab" onclick="showTab('search', this)">بحث عميل</div>
+    <div class="tab" onclick="showTab('visits', this)">زيارات العميل</div>
+    <div class="tab" onclick="showTab('cars', this)">سيارات العميل</div>
+    <div class="tab" onclick="showTab('notify', this)">إرسال إشعار</div>
+    <div class="tab" onclick="showTab('addVisit', this)">إضافة زيارة</div>
+    <div class="tab" onclick="showTab('bookings', this)">الحجوزات</div>
+    <div class="tab" onclick="showTab('ratings', this)">التقييمات</div>
+</div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-logo">AD</div>
-            <div class="brand-text">لوحة المشرف</div>
-        </div>
+<!-- Dashboard -->
+<div id="dashboard" class="section active">
+    <h2>Dashboard</h2>
+    <div class="card">
+        <h3>إحصائيات</h3>
+        <p id="stats">جاري التحميل...</p>
+    </div>
+</div>
 
-        <div class="nav-section-title">الرئيسية</div>
-        <div class="nav">
-            <button class="nav-btn active" data-target="dashboard">Dashboard</button>
-        </div>
+<!-- Search Customer -->
+<div id="search" class="section">
+    <h2>بحث عن عميل</h2>
+    <input id="searchPhone" placeholder="رقم الجوال أو العضوية أو اللوحة">
+    <button id="searchBtn" onclick="searchCustomer()">بحث</button>
+    <div id="searchResult"></div>
+</div>
 
-        <div class="nav-section-title">العملاء</div>
-        <div class="nav">
-            <button class="nav-btn" data-target="search">بحث عميل</button>
-            <button class="nav-btn" data-target="visits">زيارات العميل</button>
-            <button class="nav-btn" data-target="cars">سيارات العميل</button>
-            <button class="nav-btn" data-target="addVisit">إضافة زيارة</button>
-        </div>
+<!-- Customer Visits -->
+<div id="visits" class="section">
+    <h2>زيارات العميل</h2>
+    <input id="visitsPhone" placeholder="رقم الجوال">
+    <button id="visitsBtn" onclick="loadCustomerVisits()">عرض الزيارات</button>
+    <div id="visitsList"></div>
+</div>
 
-        <div class="nav-section-title">التفاعل</div>
-        <div class="nav">
-            <button class="nav-btn" data-target="notify">إرسال إشعار</button>
-            <button class="nav-btn" data-target="bookings">الحجوزات</button>
-            <button class="nav-btn" data-target="ratings">التقييمات</button>
-        </div>
-    </aside>
+<!-- Customer Cars -->
+<div id="cars" class="section">
+    <h2>سيارات العميل</h2>
+    <input id="carsPhone" placeholder="رقم الجوال">
+    <button id="carsBtn" onclick="loadCustomerCars()">عرض السيارات</button>
+    <div id="carsList"></div>
+</div>
 
-    <!-- Main -->
-    <main class="main">
+<!-- Send Notification -->
+<div id="notify" class="section">
+    <h2>إرسال إشعار</h2>
+    <textarea id="notifyMsg" placeholder="نص الإشعار"></textarea>
+    <button id="notifyBtn" onclick="sendNotification()">إرسال</button>
+    <p id="notifyStatus"></p>
+</div>
 
-        <div class="topbar">
-            <div>لوحة المشرف</div>
-        </div>
+<!-- Add Visit -->
+<div id="addVisit" class="section">
+    <h2>إضافة زيارة</h2>
 
-        <div class="content">
+    <div class="card">
+        <h3>بحث عن العميل</h3>
+        <input id="visitSearch" placeholder="رقم الجوال / العضوية / اللوحة">
+        <button id="visitSearchBtn" onclick="searchVisitCustomer()">بحث</button>
+    </div>
 
-            <!-- Dashboard -->
-            <section id="dashboard" class="section active">
-                <div class="card">
-                    <h3>إحصائيات</h3>
-                    <p id="stats">جاري التحميل...</p>
-                </div>
-            </section>
+    <div id="visitCarsBox" class="card" style="display:none;">
+        <h3>اختر السيارة</h3>
+        <div id="visitCarsList"></div>
+    </div>
 
-            <!-- Search -->
-            <section id="search" class="section">
-                <div class="card">
-                    <h3>بحث عميل</h3>
-                    <input id="searchPhone" placeholder="رقم الجوال أو العضوية">
-                    <button onclick="searchCustomer()">بحث</button>
-                    <div id="searchResult" style="margin-top:10px;"></div>
-                </div>
-            </section>
+    <div id="visitForm" class="card" style="display:none;">
+        <h3>تفاصيل الزيارة</h3>
 
-            <!-- Visits -->
-            <section id="visits" class="section">
-                <div class="card">
-                    <h3>زيارات العميل</h3>
-                    <input id="visitsPhone" placeholder="رقم الجوال">
-                    <button onclick="loadCustomerVisits()">عرض الزيارات</button>
-                    <div id="visitsList" class="list"></div>
-                </div>
-            </section>
+        <label>الخدمة</label>
+        <select id="vService" onchange="updateVisitPrice()"></select>
 
-            <!-- Cars -->
-            <section id="cars" class="section">
-                <div class="card">
-                    <h3>سيارات العميل</h3>
-                    <input id="carsPhone" placeholder="رقم الجوال">
-                    <button onclick="loadCustomerCars()">عرض السيارات</button>
-                    <div id="carsList" class="list"></div>
-                </div>
-            </section>
+        <label>السعر</label>
+        <input type="number" id="vPrice" onchange="updateVisitPoints()">
 
-            <!-- Notify -->
-            <section id="notify" class="section">
-                <div class="card">
-                    <h3>إرسال إشعار</h3>
-                    <textarea id="notifyMsg" placeholder="نص الإشعار"></textarea>
-                    <button onclick="sendNotification()">إرسال</button>
-                    <p id="notifyStatus"></p>
-                </div>
-            </section>
+        <label>النقاط</label>
+        <input type="number" id="vPoints" readonly>
 
-            <!-- Add Visit -->
-            <section id="addVisit" class="section">
-                <div class="card">
-                    <h3>إضافة زيارة</h3>
+        <button id="addVisitBtn" onclick="submitVisit()">تسجيل الزيارة</button>
+        <p id="addVisitStatus"></p>
+    </div>
+</div>
 
-                    <label>رقم العضوية</label>
-                    <input id="vMembership">
+<!-- Bookings -->
+<div id="bookings" class="section">
+    <h2>الحجوزات</h2>
+    <div id="bookingsList">جاري التحميل...</div>
+</div>
 
-                    <label>الخدمة</label>
-                    <select id="vService" onchange="updateVisitPrice()"></select>
-
-                    <label>السعر</label>
-                    <input id="vPrice" type="number" onchange="updateVisitPoints()">
-
-                    <label>النقاط</label>
-                    <input id="vPoints" readonly>
-
-                    <button onclick="addVisit()">إضافة</button>
-                    <p id="addVisitStatus"></p>
-                </div>
-            </section>
-
-            <!-- Bookings -->
-            <section id="bookings" class="section">
-                <div class="card">
-                    <h3>الحجوزات</h3>
-                    <div id="bookingsList" class="list"></div>
-                </div>
-            </section>
-
-            <!-- Ratings -->
-            <section id="ratings" class="section">
-                <div class="card">
-                    <h3>التقييمات</h3>
-                    <div id="ratingsList" class="list"></div>
-                </div>
-            </section>
-
-        </div>
-    </main>
+<!-- Ratings -->
+<div id="ratings" class="section">
+    <h2>التقييمات</h2>
+    <div id="ratingsList">جاري التحميل...</div>
 </div>
 
 <script src="api.js?v=3"></script>
-    <script>
-/* ========== Navigation ========== */
-const sections = document.querySelectorAll(".section");
-const navButtons = document.querySelectorAll(".nav-btn");
 
-navButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-        const target = btn.getAttribute("data-target");
-        sections.forEach(s => s.classList.remove("active"));
-        document.getElementById(target).classList.add("active");
+<script>
+/* ===========================
+   Tabs
+=========================== */
+function showTab(id, el) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
 
-        navButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-    });
-});
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    el.classList.add("active");
+}
 
-/* ========== Dashboard ========== */
+/* ===========================
+   Dashboard
+=========================== */
 async function loadDashboard() {
     const res = await apiGet({ action: "getOwnersDashboard" });
 
@@ -338,56 +192,64 @@ async function loadDashboard() {
     `;
 }
 
-/* ========== Search Customer ========== */
+/* ===========================
+   Search Customer
+=========================== */
 async function searchCustomer() {
-    const phone = document.getElementById("searchPhone").value.trim();
     const btn = document.getElementById("searchBtn");
+    const query = document.getElementById("searchPhone").value.trim();
 
-    if (!phone) return alert("أدخل رقم الجوال");
+    if (!query) return alert("أدخل قيمة للبحث");
 
     btn.classList.add("loading");
     btn.innerText = "جاري البحث...";
+    btn.disabled = true;
 
-    const res = await apiGet({ action: "getByPhone", phone });
+    const res = await apiGet({ action: "searchCustomer", query });
 
     btn.classList.remove("loading");
     btn.innerText = "بحث";
+    btn.disabled = false;
 
-    if (!res.success) {
-        document.getElementById("searchResult").innerHTML = "غير موجود";
+    if (!res.success || res.customers.length === 0) {
+        document.getElementById("searchResult").innerHTML = "لا يوجد نتائج";
         return;
     }
 
+    const c = res.customers[0];
+
     document.getElementById("searchResult").innerHTML = `
         <div class="card">
-            الاسم: ${res.customer.name}<br>
-            العضوية: ${res.customer.membership}<br>
-            النقاط: ${res.customer.points}<br>
-            المستوى: ${res.customer.level}
+            الاسم: ${c.name}<br>
+            العضوية: ${c.membership}<br>
+            النقاط: ${c.points}<br>
+            المستوى: ${c.level}
         </div>
     `;
 }
 
-/* ========== Customer Visits ========== */
+/* ===========================
+   Visits
+=========================== */
 async function loadCustomerVisits() {
-    const phone = document.getElementById("visitsPhone").value.trim();
     const btn = document.getElementById("visitsBtn");
+    const phone = document.getElementById("visitsPhone").value.trim();
 
     if (!phone) return alert("أدخل رقم الجوال");
 
     btn.classList.add("loading");
     btn.innerText = "جاري التحميل...";
+    btn.disabled = true;
 
     const res = await apiGet({ action: "getVisitsByPhone", phone });
 
     btn.classList.remove("loading");
     btn.innerText = "عرض الزيارات";
+    btn.disabled = false;
 
-    const list = document.getElementById("visitsList");
-    list.innerHTML = "";
-
+    let html = "";
     res.visits.forEach(v => {
-        list.innerHTML += `
+        html += `
             <div class="card">
                 ${v.service} - ${v.date}<br>
                 السعر: ${v.price}<br>
@@ -395,28 +257,32 @@ async function loadCustomerVisits() {
             </div>
         `;
     });
+
+    document.getElementById("visitsList").innerHTML = html;
 }
 
-/* ========== Customer Cars ========== */
+/* ===========================
+   Cars
+=========================== */
 async function loadCustomerCars() {
-    const phone = document.getElementById("carsPhone").value.trim();
     const btn = document.getElementById("carsBtn");
+    const phone = document.getElementById("carsPhone").value.trim();
 
     if (!phone) return alert("أدخل رقم الجوال");
 
     btn.classList.add("loading");
     btn.innerText = "جاري التحميل...";
+    btn.disabled = true;
 
     const res = await apiGet({ action: "getCarsByPhone", phone });
 
     btn.classList.remove("loading");
     btn.innerText = "عرض السيارات";
+    btn.disabled = false;
 
-    const list = document.getElementById("carsList");
-    list.innerHTML = "";
-
+    let html = "";
     res.cars.forEach(c => {
-        list.innerHTML += `
+        html += `
             <div class="card">
                 ${c.car} - ${c.plate_letters} ${c.plate_numbers}<br>
                 الحجم: ${c.size}<br>
@@ -424,17 +290,22 @@ async function loadCustomerCars() {
             </div>
         `;
     });
+
+    document.getElementById("carsList").innerHTML = html;
 }
 
-/* ========== Send Notification ========== */
+/* ===========================
+   Send Notification
+=========================== */
 async function sendNotification() {
-    const msg = document.getElementById("notifyMsg").value.trim();
     const btn = document.getElementById("notifyBtn");
+    const msg = document.getElementById("notifyMsg").value.trim();
 
     if (!msg) return alert("أدخل نص الإشعار");
 
     btn.classList.add("loading");
     btn.innerText = "جاري الإرسال...";
+    btn.disabled = true;
 
     await apiPost({
         action: "addRating",
@@ -445,16 +316,70 @@ async function sendNotification() {
 
     btn.classList.remove("loading");
     btn.innerText = "إرسال";
+    btn.disabled = false;
 
     document.getElementById("notifyStatus").innerText = "تم الإرسال";
 }
 
-/* ============================================================
-   ADD VISIT — خدمة منسدلة + سعر تلقائي + نقاط تلقائية
-============================================================ */
+/* ===========================
+   Add Visit — Search
+=========================== */
+let selectedMembership = null;
+let visitServices = {};
 
-let visitServices = {}; // { "غسيل خارجي": 20, "غسيل كامل": 40 }
+async function searchVisitCustomer() {
+    const btn = document.getElementById("visitSearchBtn");
+    const query = document.getElementById("visitSearch").value.trim();
 
+    if (!query) return alert("أدخل رقم الجوال أو العضوية أو اللوحة");
+
+    btn.classList.add("loading");
+    btn.innerText = "جاري البحث...";
+    btn.disabled = true;
+
+    const res = await apiGet({
+        action: "searchCustomer",
+        query
+    });
+
+    btn.classList.remove("loading");
+    btn.innerText = "بحث";
+    btn.disabled = false;
+
+    if (!res.success || res.cars.length === 0) {
+        alert("لا يوجد نتائج");
+        return;
+    }
+
+    document.getElementById("visitCarsBox").style.display = "block";
+
+    const list = document.getElementById("visitCarsList");
+    list.innerHTML = "";
+
+    res.cars.forEach(car => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.style.cursor = "pointer";
+        div.innerHTML = `
+            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}<br>
+            عضوية: ${car.membership}
+        `;
+        div.onclick = () => selectVisitCar(car.membership);
+        list.appendChild(div);
+    });
+}
+
+/* ===========================
+   Add Visit — Select Car
+=========================== */
+function selectVisitCar(membership) {
+    selectedMembership = membership;
+    document.getElementById("visitForm").style.display = "block";
+}
+
+/* ===========================
+   Add Visit — Load Services
+=========================== */
 async function loadVisitServices() {
     const res = await apiGet({ action: "getCommissions" });
 
@@ -483,46 +408,53 @@ function updateVisitPrice() {
 
 function updateVisitPoints() {
     const price = Number(document.getElementById("vPrice").value);
-    const points = Math.floor(price / 5); // مثال: كل 5 ريال = نقطة
-
-    document.getElementById("vPoints").value = points;
+    document.getElementById("vPoints").value = Math.floor(price / 5);
 }
 
-async function addVisit() {
-    const membership = document.getElementById("vMembership").value.trim();
+/* ===========================
+   Add Visit — Submit
+=========================== */
+async function submitVisit() {
+    if (!selectedMembership) return alert("اختر السيارة أولاً");
+
+    const btn = document.getElementById("addVisitBtn");
+
+    btn.classList.add("loading");
+    btn.innerText = "جاري التسجيل...";
+    btn.disabled = true;
+
     const service = document.getElementById("vService").value;
     const price = document.getElementById("vPrice").value;
     const points = document.getElementById("vPoints").value;
-    const btn = document.getElementById("addVisitBtn");
 
-    if (!membership) return alert("أدخل رقم العضوية");
-
-    btn.classList.add("loading");
-    btn.innerText = "جاري الإضافة...";
-
-    await apiPost({
+    const res = await apiPost({
         action: "addVisit",
-        membership,
+        membership: selectedMembership,
         service,
         price,
         points
     });
 
     btn.classList.remove("loading");
-    btn.innerText = "إضافة";
+    btn.innerText = "تسجيل الزيارة";
+    btn.disabled = false;
 
-    document.getElementById("addVisitStatus").innerText = "تمت الإضافة بنجاح";
+    if (res.success) {
+        document.getElementById("addVisitStatus").innerText = "✔ تم تسجيل الزيارة بنجاح";
+    } else {
+        document.getElementById("addVisitStatus").innerText = "❌ حدث خطأ أثناء التسجيل";
+    }
 }
 
-/* ========== Bookings ========== */
+/* ===========================
+   Bookings
+=========================== */
 async function loadBookings() {
     const res = await apiGet({ action: "getAllBookings" });
 
-    const list = document.getElementById("bookingsList");
-    list.innerHTML = "";
-
+    let html = "";
     res.bookings.forEach(b => {
-        list.innerHTML += `
+        html += `
             <div class="card">
                 ${b.service} - ${b.date} ${b.time}<br>
                 الحالة: ${b.status}<br>
@@ -531,6 +463,8 @@ async function loadBookings() {
             </div>
         `;
     });
+
+    document.getElementById("bookingsList").innerHTML = html;
 }
 
 async function confirmBooking(row) {
@@ -543,7 +477,9 @@ async function cancelBooking(row) {
     loadBookings();
 }
 
-/* ========== Ratings ========== */
+/* ===========================
+   Ratings
+=========================== */
 async function loadRatings() {
     const res = await apiGet({
         action: "getVisitsByDate",
@@ -551,24 +487,27 @@ async function loadRatings() {
         to: "2100-01-01"
     });
 
-    const list = document.getElementById("ratingsList");
-    list.innerHTML = "";
-
+    let html = "";
     res.visits.forEach(v => {
-        list.innerHTML += `
+        html += `
             <div class="card">
                 ${v.service} - ${v.date}<br>
                 نقاط: ${v.points}
             </div>
         `;
     });
+
+    document.getElementById("ratingsList").innerHTML = html;
 }
 
-/* ========== INITIAL LOAD ========== */
+/* ===========================
+   Initial Load
+=========================== */
 loadDashboard();
 loadBookings();
 loadRatings();
 loadVisitServices();
 </script>
 
-    
+</body>
+</html>
