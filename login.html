@@ -115,8 +115,10 @@ async function login() {
     btn.classList.remove("loading");
     btn.textContent = "متابعة";
 
+    console.log("API Response:", res); // 👈 مهم جدًا
+
     if (!res.success) {
-        alert("حدث خطأ أثناء التحقق");
+        alert("خطأ في الاتصال بالسيرفر");
         return;
     }
 
@@ -127,6 +129,7 @@ async function login() {
     } else {
         window.location.href = "full-register.html";
     }
+}
 }
 </script>
 
