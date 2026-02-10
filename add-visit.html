@@ -63,10 +63,6 @@
         transition: 0.2s;
     }
 
-    .car-item:hover {
-        background: #f0f0f0;
-    }
-
     .car-item.selected {
         border-color: #000;
         background: #e8e8e8;
@@ -97,8 +93,13 @@
 <div id="visitBox" class="box" style="display:none;">
     <h3>تفاصيل الزيارة</h3>
 
-    <label>الخدمة</label>
-    <select id="service" onchange="updatePriceAndPoints()"></select>
+    <!-- نوع الخدمة -->
+    <label>نوع الخدمة</label>
+    <select id="service_type" onchange="filterServiceDetails()"></select>
+
+    <!-- تفاصيل الخدمة -->
+    <label>تفاصيل الخدمة</label>
+    <select id="service_detail" onchange="updatePrice()"></select>
 
     <label>السعر</label>
     <input type="number" id="price" onchange="updatePoints()">
@@ -106,13 +107,13 @@
     <label>النقاط</label>
     <input type="number" id="points">
 
-    <label>اسم الموظف (اختياري)</label>
-    <input type="text" id="employee">
+    <!-- الموظفين -->
+    <label>اسم الموظف</label>
+    <select id="employee"></select>
 
+    <!-- الفروع -->
     <label>الفرع</label>
-    <select id="branch">
-        <option value="مكة">مكة</option>
-    </select>
+    <select id="branch"></select>
 
     <!-- حالة الدفع -->
     <label>حالة الدفع</label>
@@ -130,58 +131,99 @@
 
 <script>
 let selectedMembership = null;
-let servicesData = {}; // { serviceName: price }
+let commissions = [];
+let employees = [];
+let branches = [];
 
-// -----------------------------
-// تحميل قائمة الخدمات من API
-// -----------------------------
+// تحميل الخدمات
 async function loadServices() {
     const res = await apiGet({ action: "getCommissions" });
-
     if (!res.success) return alert("خطأ في تحميل الخدمات");
 
-    const serviceSelect = document.getElementById("service");
-    serviceSelect.innerHTML = "";
+    commissions = res.commissions;
 
-    // ترتيب الخدمات أبجديًا
-    res.commissions.sort((a, b) => a.service.localeCompare(b.service));
+    const types = [...new Set(commissions.map(r => r.type))];
 
-    res.commissions.forEach(row => {
-        const name = row.service;
-        const price = Number(row.price || 0);
+    const typeSelect = document.getElementById("service_type");
+    typeSelect.innerHTML = "";
 
-        servicesData[name] = price;
-
+    types.forEach(t => {
         const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        serviceSelect.appendChild(opt);
+        opt.value = t;
+        opt.textContent = t;
+        typeSelect.appendChild(opt);
     });
 
-    updatePriceAndPoints();
+    filterServiceDetails();
 }
 
-// -----------------------------
-// تحديث السعر والنقاط تلقائيًا
-// -----------------------------
-function updatePriceAndPoints() {
-    const service = document.getElementById("service").value;
-    const price = servicesData[service] || 0;
+// تصفية تفاصيل الخدمة حسب النوع
+function filterServiceDetails() {
+    const type = document.getElementById("service_type").value;
+    const detailSelect = document.getElementById("service_detail");
 
-    document.getElementById("price").value = price;
+    detailSelect.innerHTML = "";
+
+    commissions
+        .filter(r => r.type === type)
+        .forEach(r => {
+            const opt = document.createElement("option");
+            opt.value = r.detail;
+            opt.textContent = r.detail;
+            detailSelect.appendChild(opt);
+        });
+
+    updatePrice();
+}
+
+// تحديث السعر
+function updatePrice() {
+    const detail = document.getElementById("service_detail").value;
+    const row = commissions.find(r => r.detail === detail);
+
+    document.getElementById("price").value = row ? row.price : 0;
     updatePoints();
 }
 
+// النقاط
 function updatePoints() {
     const price = Number(document.getElementById("price").value || 0);
-    const points = Math.floor(price / 5); // كل 5 ريال = نقطة
-
-    document.getElementById("points").value = points;
+    document.getElementById("points").value = Math.floor(price / 5);
 }
 
-// -----------------------------
+// تحميل الموظفين
+async function loadEmployees() {
+    const res = await apiGet({ action: "getEmployees" });
+    if (!res.success) return;
+
+    const select = document.getElementById("employee");
+    select.innerHTML = "";
+
+    res.employees.forEach(e => {
+        const opt = document.createElement("option");
+        opt.value = e.name;
+        opt.textContent = e.name;
+        select.appendChild(opt);
+    });
+}
+
+// تحميل الفروع
+async function loadBranches() {
+    const res = await apiGet({ action: "getBranches" });
+    if (!res.success) return;
+
+    const select = document.getElementById("branch");
+    select.innerHTML = "";
+
+    res.branches.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b.name;
+        opt.textContent = b.name;
+        select.appendChild(opt);
+    });
+}
+
 // البحث عن سيارات العميل
-// -----------------------------
 async function searchCustomer() {
     const phone = document.getElementById("phone").value.trim();
     if (!phone) return alert("أدخل رقم الجوال");
@@ -190,10 +232,7 @@ async function searchCustomer() {
     btn.classList.add("loading");
     btn.textContent = "جاري البحث...";
 
-    const res = await apiGet({
-        action: "getCarsByPhone",
-        phone
-    });
+    const res = await apiGet({ action: "getCarsByPhone", phone });
 
     btn.classList.remove("loading");
     btn.textContent = "بحث";
@@ -220,9 +259,7 @@ async function searchCustomer() {
     });
 }
 
-// -----------------------------
-// اختيار السيارة (العضوية)
-// -----------------------------
+// اختيار السيارة
 function selectCar(element, membership) {
     selectedMembership = membership;
 
@@ -232,9 +269,7 @@ function selectCar(element, membership) {
     document.getElementById("visitBox").style.display = "block";
 }
 
-// -----------------------------
 // إرسال الزيارة
-// -----------------------------
 async function submitVisit() {
     if (!selectedMembership) return alert("اختر السيارة أولاً");
 
@@ -242,25 +277,17 @@ async function submitVisit() {
     btn.classList.add("loading");
     btn.textContent = "جاري التسجيل...";
 
-    const service        = document.getElementById("service").value;
-    const price          = document.getElementById("price").value;
-    const points         = document.getElementById("points").value;
-    const employee       = document.getElementById("employee").value;
-    const branch         = document.getElementById("branch").value;
-
-    const payment_status = document.getElementById("payment_status").value;
-    const parking_slot   = document.getElementById("parking_slot").value;
-
     const res = await apiPost({
         action: "addVisit",
         membership: selectedMembership,
-        service,
-        price,
-        points,
-        employee,
-        branch,
-        payment_status,
-        parking_slot
+        service_type: document.getElementById("service_type").value,
+        service_detail: document.getElementById("service_detail").value,
+        price: document.getElementById("price").value,
+        points: document.getElementById("points").value,
+        employee: document.getElementById("employee").value,
+        branch: document.getElementById("branch").value,
+        payment_status: document.getElementById("payment_status").value,
+        parking_slot: document.getElementById("parking_slot").value
     });
 
     btn.classList.remove("loading");
@@ -274,8 +301,10 @@ async function submitVisit() {
     }
 }
 
-// تحميل الخدمات عند فتح الصفحة
+// تحميل البيانات عند فتح الصفحة
 loadServices();
+loadEmployees();
+loadBranches();
 </script>
 
 </body>
