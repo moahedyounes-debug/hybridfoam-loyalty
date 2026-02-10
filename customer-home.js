@@ -2,7 +2,7 @@
 // حماية الصفحة – لو ما فيه رقم جوال مخزن يرجع للّوجين
 // =====================================================
 if (!localStorage.getItem("phone")) {
-    window.location.href = "login.html";
+    window.location.href = "full-register.html";
 }
 
 // =====================================================
