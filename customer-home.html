@@ -4,86 +4,22 @@
 <meta charset="UTF-8">
 <title>الصفحة الرئيسية للعميل</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #0f172a;
-    color: #f9fafb;
-    margin: 0;
-    padding: 16px;
-  }
-  h2 {
-    text-align: center;
-    margin-bottom: 16px;
-  }
-  .card {
-    background: #020617;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 14px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    border: 1px solid #1f2937;
-  }
-  .row {
-    margin-bottom: 6px;
-    font-size: 14px;
-  }
-  .actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 10px;
-  }
-  button, .btn-link {
-    width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
-    background: #2563eb;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .btn-secondary {
-    background: #111827;
-  }
-  .badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    background: #111827;
-    margin-left: 4px;
-  }
-  .level {
-    font-weight: 600;
-  }
-  .top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .logout {
-    font-size: 12px;
-    color: #f97373;
-    cursor: pointer;
-  }
-</style>
+<link rel="stylesheet" href="customer-home.css">
 <script src="api.js"></script>
 </head>
+
 <body>
 
 <div class="top-bar">
-  <div>مرحبا بك 👋</div>
-  <div class="logout" onclick="logout()">تسجيل خروج</div>
+  <div class="username" id="cNameTop">—</div>
+
+  <div class="notif-icon" onclick="goTo('notifications.html')">
+    🔔
+    <span id="notifDot" class="notif-dot" style="display:none;"></span>
+  </div>
 </div>
 
-<h2>الصفحة الرئيسية</h2>
-
+<!-- بطاقة العضوية -->
 <div id="summaryCard" class="card">
   <div class="row" id="cName">الاسم: —</div>
   <div class="row" id="cMembership">رقم العضوية: —</div>
@@ -95,54 +31,44 @@
   <div class="row">غسلة مجانية: <span id="cFreeWash">—</span></div>
 </div>
 
+<!-- كرت عنوان الولاء -->
 <div class="card">
-  <div class="row"><b>إجراءات سريعة</b></div>
-  <div class="actions">
-    <button onclick="goTo('my-visits.html')">سجل الزيارات</button>
-    <button onclick="goTo('rate-visit.html')">تقييم آخر زيارة</button>
-    <button onclick="goTo('membership-card.html')">بطاقة العضوية</button>
-    <button class="btn-secondary" onclick="goTo('register-car.html')">إضافة مركبة إضافية</button>
+  <div class="row title">برنامج الولاء</div>
+</div>
+
+<!-- كرت الولاء (progress bar) -->
+<div class="card">
+  <div class="row">مستواك الحالي: <span id="loyaltyLevel">—</span></div>
+  <div class="row">نقاطك: <span id="loyaltyPoints">0</span></div>
+  <div class="row">تبقى لك: <span id="loyaltyRemaining">—</span></div>
+
+  <div class="progress-container">
+    <div id="progressBar" class="progress-bar"></div>
   </div>
 </div>
 
-<script>
-let phone = localStorage.getItem("customer_phone");
+<!-- بطاقة السيارة -->
+<div class="card">
+  <div class="row"><b>سيارتي</b></div>
+  <div class="row" id="carInfo">—</div>
+  <div class="row" id="carMembership">عضوية: —</div>
+  <button class="btn-secondary" onclick="goTo('register-car.html')">إضافة مركبة جديدة +</button>
+</div>
 
-if (!phone) {
-  alert("يرجى تسجيل الدخول أولاً");
-  window.location.href = "login.html";
-}
+<!-- الخدمات -->
+<div class="card">
+  <div class="row"><b>الخدمات</b></div>
 
-async function loadCustomer() {
-  const res = await apiGet({
-    action: "getByPhone",
-    phone
-  });
+  <div class="actions">
+    <button onclick="goTo('booking.html')">حجز موعد</button>
+    <button onclick="goTo('loyalty.html')">النقاط</button>
+    <button onclick="goTo('rate-visit.html')">تقييم آخر زيارة</button>
+    <button onclick="goTo('membership-card.html')">بطاقة العضوية</button>
+    <button onclick="goTo('my-visits.html')">سجل الزيارات</button>
+    <button class="btn-danger" onclick="logout()">تسجيل خروج</button>
+  </div>
+</div>
 
-  if (!res.success) {
-    alert("لم يتم العثور على بيانات العميل");
-    return;
-  }
-
-  const c = res.customer;
-  document.getElementById("cName").innerText = "الاسم: " + (c.name || "—");
-  document.getElementById("cMembership").innerText = "رقم العضوية: " + (c.membership || "—");
-  document.getElementById("cLevel").innerText = c.level || "—";
-  document.getElementById("cPoints").innerText = c.points || 0;
-  document.getElementById("cFreeWash").innerText = c.free_wash || "لا يوجد";
-}
-
-function goTo(page) {
-  window.location.href = page;
-}
-
-function logout() {
-  localStorage.removeItem("customer_phone");
-  window.location.href = "login.html";
-}
-
-loadCustomer();
-</script>
-
+<script src="customer-home.js"></script>
 </body>
 </html>
