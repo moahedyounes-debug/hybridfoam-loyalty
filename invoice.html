@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>فاتورة الزيارة</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: "Tajawal", sans-serif;
+    background: #f5f5f5;
+    padding: 20px;
+    direction: rtl;
+}
+
+.invoice {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.section-title {
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.info-box {
+    background: #fafafa;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.total {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: left;
+    margin-top: 15px;
+}
+
+.btns {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.print-btn {
+    background: #000;
+    color: white;
+}
+
+.whatsapp-btn {
+    background: #25D366;
+    color: white;
+}
+
+.qr-box {
+    text-align: center;
+    margin-top: 20px;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+
+<body>
+
+<div class="invoice">
+
+    <h2>فاتورة الزيارة</h2>
+
+    <div class="section-title">بيانات العميل</div>
+    <div class="info-box">
+        <div>الاسم: <span id="cName"></span></div>
+        <div>رقم الجوال: <span id="cPhone"></span></div>
+        <div>رقم العضوية: <span id="cMembership"></span></div>
+    </div>
+
+    <div class="section-title">بيانات السيارة</div>
+    <div class="info-box">
+        <div>السيارة: <span id="carName"></span></div>
+        <div>اللوحة: <span id="carPlate"></span></div>
+    </div>
+
+    <div class="section-title">الخدمات</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>الخدمة</th>
+                <th>السعر</th>
+            </tr>
+        </thead>
+        <tbody id="servicesTable"></tbody>
+    </table>
+
+    <div class="total">الإجمالي: <span id="totalPrice"></span> ريال</div>
+
+    <div class="section-title">الفرع والتاريخ</div>
+    <div class="info-box">
+        <div>الفرع: <span id="branch"></span></div>
+        <div>التاريخ: <span id="date"></span></div>
+        <div>طريقة الدفع: <span id="payment"></span></div>
+    </div>
+
+    <div class="qr-box">
+        <canvas id="qr"></canvas>
+    </div>
+
+    <div class="btns">
+        <button class="print-btn" onclick="window.print()">طباعة</button>
+        <button class="whatsapp-btn" onclick="sendWhatsApp()">إرسال للعميل</button>
+    </div>
+
+</div>
+
+<script>
+function loadInvoice() {
+    const data = JSON.parse(localStorage.getItem("invoice_data") || "{}");
+
+    document.getElementById("cName").textContent = data.customer_name;
+    document.getElementById("cPhone").textContent = data.customer_phone;
+    document.getElementById("cMembership").textContent = data.membership;
+
+    document.getElementById("carName").textContent = data.car;
+    document.getElementById("carPlate").textContent = data.plate;
+
+    document.getElementById("branch").textContent = data.branch;
+    document.getElementById("date").textContent = data.date;
+    document.getElementById("payment").textContent = data.payment;
+
+    const table = document.getElementById("servicesTable");
+    let total = 0;
+
+    data.services.forEach(s => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${s.name}</td>
+            <td>${s.price} ريال</td>
+        `;
+        table.appendChild(row);
+        total += s.price;
+    });
+
+    document.getElementById("totalPrice").textContent = total;
+
+    QRCode.toCanvas(
+        document.getElementById("qr"),
+        `فاتورة زيارة\nالعميل: ${data.customer_name}\nالإجمالي: ${total} ريال`,
+        { width: 150 }
+    );
+}
+
+function sendWhatsApp() {
+    const data = JSON.parse(localStorage.getItem("invoice_data") || "{}");
+    const total = data.services.reduce((s, x) => s + x.price, 0);
+
+    const msg =
+`فاتورتك من مغسلة VIP
+--------------------
+العميل: ${data.customer_name}
+الإجمالي: ${total} ريال
+الفرع: ${data.branch}
+التاريخ: ${data.date}
+شكراً لزيارتك`;
+
+    const phone = data.customer_phone.replace(/^0/, "966");
+
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
+}
+
+loadInvoice();
+</script>
+
+</body>
+</html>
