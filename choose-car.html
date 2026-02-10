@@ -87,19 +87,6 @@
         font-size: 16px;
         text-align: center;
     }
-
-    @media (max-width: 480px) {
-        h1 {
-            font-size: 20px;
-        }
-        .box {
-            padding: 16px;
-        }
-        input, button, .car-btn {
-            font-size: 15px;
-            padding: 13px;
-        }
-    }
 </style>
 </head>
 
@@ -124,13 +111,20 @@
 <script src="api.js"></script>
 
 <script>
-let customerPhone = localStorage.getItem("customer_phone");
 
-if (customerPhone) {
+// =====================================================
+// لو العميل مسجّل دخول → استخدم رقم الجوال مباشرة
+// =====================================================
+let savedPhone = localStorage.getItem("phone");
+
+if (savedPhone) {
     document.getElementById("phoneBox").style.display = "none";
-    loadCars(customerPhone);
+    loadCars(savedPhone);
 }
 
+// =====================================================
+// تحميل سيارات العميل
+// =====================================================
 async function loadCars(forcedPhone = null) {
     const phone = forcedPhone || document.getElementById("phone").value.trim();
     const msg = document.getElementById("msg");
@@ -146,7 +140,7 @@ async function loadCars(forcedPhone = null) {
 
     const data = await apiGet({
         action: "getCarsByPhone",
-        phone: phone
+        phone
     });
 
     if (!data.success || data.cars.length === 0) {
@@ -157,30 +151,33 @@ async function loadCars(forcedPhone = null) {
     msg.innerHTML = "";
     list.innerHTML = "";
 
-    if (data.cars.length === 1 && customerPhone) {
+    // لو العميل عنده سيارة واحدة → اختارها تلقائيًا
+    if (data.cars.length === 1) {
         sessionStorage.setItem("membership", data.cars[0].membership);
+        localStorage.setItem("phone", phone);
         window.location.href = "customer-home.html";
         return;
     }
 
+    // عرض السيارات للاختيار
     data.cars.forEach(car => {
         const btn = document.createElement("button");
         btn.className = "car-btn";
         btn.textContent = `${car.car} — ${car.plate_letters} ${car.plate_numbers}`;
-        btn.onclick = () => selectCar(car.membership);
+        btn.onclick = () => selectCar(car.membership, phone);
         list.appendChild(btn);
     });
 }
 
-function selectCar(membership) {
+// =====================================================
+// اختيار السيارة
+// =====================================================
+function selectCar(membership, phone) {
     sessionStorage.setItem("membership", membership);
-
-    if (customerPhone) {
-        window.location.href = "customer-home.html";
-    } else {
-        window.location.href = "add-visit.html";
-    }
+    localStorage.setItem("phone", phone);
+    window.location.href = "customer-home.html";
 }
+
 </script>
 
 </body>
