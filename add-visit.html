@@ -6,7 +6,7 @@
 
 <style>
     body {
-        font-family: sans-serif;
+        font-family: "Tajawal", sans-serif;
         padding: 20px;
         background: #f5f5f5;
         max-width: 600px;
@@ -49,28 +49,42 @@
         transition: 0.2s;
     }
 
-    button.loading {
-        background: #444;
-        cursor: wait;
-    }
-
     .car-item {
         padding: 12px;
         border: 1px solid #ccc;
         border-radius: 8px;
         margin-top: 10px;
         cursor: pointer;
-        transition: 0.2s;
     }
 
     .car-item.selected {
         border-color: #000;
         background: #e8e8e8;
     }
+
+    .service-card {
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 10px;
+        background: #fafafa;
+    }
+
+    .remove-btn {
+        background: #c00;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 5px;
+    }
 </style>
 
 <script src="api.js?v=3"></script>
+<script src="add-visit.js"></script>
 </head>
+
 <body>
 
 <h2>تسجيل زيارة للعميل</h2>
@@ -80,7 +94,7 @@
     <label>رقم الجوال</label>
     <input type="text" id="phone" placeholder="05xxxxxxxx" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-    <button id="searchBtn" onclick="searchCustomer()">بحث</button>
+    <button onclick="searchCustomer()">بحث</button>
 </div>
 
 <!-- اختيار السيارة -->
@@ -93,11 +107,9 @@
 <div id="visitBox" class="box" style="display:none;">
     <h3>تفاصيل الزيارة</h3>
 
-    <!-- نوع الخدمة -->
     <label>نوع الخدمة</label>
     <select id="service_type" onchange="filterServiceDetails()"></select>
 
-    <!-- تفاصيل الخدمة -->
     <label>تفاصيل الخدمة</label>
     <select id="service_detail" onchange="updatePrice()"></select>
 
@@ -105,207 +117,28 @@
     <input type="number" id="price" onchange="updatePoints()">
 
     <label>النقاط</label>
-    <input type="number" id="points">
+    <input type="number" id="points" readonly>
 
-    <!-- الموظفين -->
-    <label>اسم الموظف</label>
-    <select id="employee"></select>
+    <button onclick="addService()">إضافة خدمة +</button>
 
-    <!-- الفروع -->
+    <div id="servicesList"></div>
+
+    <h3>الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+
+    <label>طريقة الدفع</label>
+    <select id="paymentMethod">
+        <option value="نقدًا">نقدًا</option>
+        <option value="مدى">مدى</option>
+        <option value="Apple Pay">Apple Pay</option>
+        <option value="STC Pay">STC Pay</option>
+        <option value="تحويل بنكي">تحويل بنكي</option>
+    </select>
+
     <label>الفرع</label>
     <select id="branch"></select>
 
-    <!-- حالة الدفع -->
-    <label>حالة الدفع</label>
-    <select id="payment_status">
-        <option value="Paid">مدفوع</option>
-        <option value="Unpaid">غير مدفوع</option>
-    </select>
-
-    <!-- رقم الموقف -->
-    <label>رقم الموقف</label>
-    <input type="number" id="parking_slot" min="1" max="50" placeholder="مثال: 3">
-
-    <button id="submitBtn" onclick="submitVisit()">تسجيل الزيارة</button>
+    <button onclick="submitVisit()">تسجيل الزيارة</button>
 </div>
-
-<script>
-let selectedMembership = null;
-let commissions = [];
-let employees = [];
-let branches = [];
-
-// تحميل الخدمات
-async function loadServices() {
-    const res = await apiGet({ action: "getCommissions" });
-    if (!res.success) return alert("خطأ في تحميل الخدمات");
-
-    commissions = res.commissions;
-
-    const types = [...new Set(commissions.map(r => r.type))];
-
-    const typeSelect = document.getElementById("service_type");
-    typeSelect.innerHTML = "";
-
-    types.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        typeSelect.appendChild(opt);
-    });
-
-    filterServiceDetails();
-}
-
-// تصفية تفاصيل الخدمة حسب النوع
-function filterServiceDetails() {
-    const type = document.getElementById("service_type").value;
-    const detailSelect = document.getElementById("service_detail");
-
-    detailSelect.innerHTML = "";
-
-    commissions
-        .filter(r => r.type === type)
-        .forEach(r => {
-            const opt = document.createElement("option");
-            opt.value = r.detail;
-            opt.textContent = r.detail;
-            detailSelect.appendChild(opt);
-        });
-
-    updatePrice();
-}
-
-// تحديث السعر
-function updatePrice() {
-    const detail = document.getElementById("service_detail").value;
-    const row = commissions.find(r => r.detail === detail);
-
-    document.getElementById("price").value = row ? row.price : 0;
-    updatePoints();
-}
-
-// النقاط
-function updatePoints() {
-    const price = Number(document.getElementById("price").value || 0);
-    document.getElementById("points").value = Math.floor(price / 5);
-}
-
-// تحميل الموظفين
-async function loadEmployees() {
-    const res = await apiGet({ action: "getEmployees" });
-    if (!res.success) return;
-
-    const select = document.getElementById("employee");
-    select.innerHTML = "";
-
-    res.employees.forEach(e => {
-        const opt = document.createElement("option");
-        opt.value = e.name;
-        opt.textContent = e.name;
-        select.appendChild(opt);
-    });
-}
-
-// تحميل الفروع
-async function loadBranches() {
-    const res = await apiGet({ action: "getBranches" });
-    if (!res.success) return;
-
-    const select = document.getElementById("branch");
-    select.innerHTML = "";
-
-    res.branches.forEach(b => {
-        const opt = document.createElement("option");
-        opt.value = b.name;
-        opt.textContent = b.name;
-        select.appendChild(opt);
-    });
-}
-
-// البحث عن سيارات العميل
-async function searchCustomer() {
-    const phone = document.getElementById("phone").value.trim();
-    if (!phone) return alert("أدخل رقم الجوال");
-
-    const btn = document.getElementById("searchBtn");
-    btn.classList.add("loading");
-    btn.textContent = "جاري البحث...";
-
-    const res = await apiGet({ action: "getCarsByPhone", phone });
-
-    btn.classList.remove("loading");
-    btn.textContent = "بحث";
-
-    if (!res.success || res.cars.length === 0) {
-        alert("لا يوجد سيارات لهذا العميل");
-        return;
-    }
-
-    document.getElementById("carsBox").style.display = "block";
-
-    const list = document.getElementById("carsList");
-    list.innerHTML = "";
-
-    res.cars.forEach(car => {
-        const div = document.createElement("div");
-        div.className = "car-item";
-        div.innerHTML = `
-            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}
-            <br>عضوية: ${car.membership}
-        `;
-        div.onclick = () => selectCar(div, car.membership);
-        list.appendChild(div);
-    });
-}
-
-// اختيار السيارة
-function selectCar(element, membership) {
-    selectedMembership = membership;
-
-    document.querySelectorAll(".car-item").forEach(el => el.classList.remove("selected"));
-    element.classList.add("selected");
-
-    document.getElementById("visitBox").style.display = "block";
-}
-
-// إرسال الزيارة
-async function submitVisit() {
-    if (!selectedMembership) return alert("اختر السيارة أولاً");
-
-    const btn = document.getElementById("submitBtn");
-    btn.classList.add("loading");
-    btn.textContent = "جاري التسجيل...";
-
-    const res = await apiPost({
-        action: "addVisit",
-        membership: selectedMembership,
-        service_type: document.getElementById("service_type").value,
-        service_detail: document.getElementById("service_detail").value,
-        price: document.getElementById("price").value,
-        points: document.getElementById("points").value,
-        employee: document.getElementById("employee").value,
-        branch: document.getElementById("branch").value,
-        payment_status: document.getElementById("payment_status").value,
-        parking_slot: document.getElementById("parking_slot").value
-    });
-
-    btn.classList.remove("loading");
-    btn.textContent = "تسجيل الزيارة";
-
-    if (res.success) {
-        alert("تم تسجيل الزيارة بنجاح");
-        location.reload();
-    } else {
-        alert("خطأ في التسجيل");
-    }
-}
-
-// تحميل البيانات عند فتح الصفحة
-loadServices();
-loadEmployees();
-loadBranches();
-</script>
 
 </body>
 </html>
