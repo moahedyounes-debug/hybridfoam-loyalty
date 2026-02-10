@@ -117,8 +117,13 @@ async function login() {
 
     console.log("🔍 رد checkCustomer:", res);
 
-    if (!res || !res.success) {
-        alert("خطأ: checkCustomer لم يرجّع بيانات");
+    if (!res) {
+        alert("❌ السيرفر لم يرجّع أي رد");
+        return;
+    }
+
+    if (!res.success) {
+        alert("❌ checkCustomer لم يرجّع success=true");
         return;
     }
 
