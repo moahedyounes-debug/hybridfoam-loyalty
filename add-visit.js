@@ -1,6 +1,5 @@
 let selectedMembership = null;
 let commissions = [];
-let addedServices = [];
 let branches = [];
 
 // تحميل الخدمات
@@ -97,47 +96,6 @@ function selectCar(element, car) {
     document.getElementById("visitBox").style.display = "block";
 }
 
-// إضافة خدمة
-function addService() {
-    const name = document.getElementById("service_detail").value;
-    const price = Number(document.getElementById("price").value);
-    const points = Number(document.getElementById("points").value);
-
-    addedServices.push({ name, price, points });
-
-    renderServices();
-}
-
-// عرض الخدمات
-function renderServices() {
-    const box = document.getElementById("servicesList");
-    box.innerHTML = "";
-
-    let total = 0;
-
-    addedServices.forEach((s, i) => {
-        total += s.price;
-
-        const div = document.createElement("div");
-        div.className = "service-card";
-        div.innerHTML = `
-            <b>${s.name}</b><br>
-            السعر: ${s.price} ريال<br>
-            النقاط: ${s.points}<br>
-            <button class="remove-btn" onclick="removeService(${i})">حذف</button>
-        `;
-        box.appendChild(div);
-    });
-
-    document.getElementById("totalPrice").textContent = total;
-}
-
-// حذف خدمة
-function removeService(i) {
-    addedServices.splice(i, 1);
-    renderServices();
-}
-
 // تحميل الفروع
 async function loadBranches() {
     const res = await apiGet({ action: "getBranches" });
@@ -157,41 +115,26 @@ async function loadBranches() {
 // إرسال الزيارة
 async function submitVisit() {
     if (!selectedMembership) return alert("اختر السيارة أولاً");
-    if (addedServices.length === 0) return alert("أضف خدمة واحدة على الأقل");
 
-    const branch = document.getElementById("branch").value;
-    const payment = document.getElementById("paymentMethod").value;
-
-    // حفظ بيانات الفاتورة
-    localStorage.setItem("invoice_data", JSON.stringify({
-        customer_name: selectedCar.name,
-        customer_phone: selectedCar.phone,
+    const res = await apiPost({
+        action: "addVisit",
         membership: selectedMembership,
-        car: selectedCar.car,
-        plate: `${selectedCar.plate_letters} ${selectedCar.plate_numbers}`,
-        branch,
-        date: new Date().toLocaleString("ar-SA"),
-        payment,
-        services: addedServices
-    }));
+        service_type: document.getElementById("service_type").value,
+        service_detail: document.getElementById("service_detail").value,
+        price: document.getElementById("price").value,
+        points: document.getElementById("points").value,
+        employee: "",
+        branch: document.getElementById("branch").value,
+        payment_status: document.getElementById("payment_status").value,
+        parking_slot: document.getElementById("parking_slot").value
+    });
 
-    // تسجيل كل خدمة كسطر مستقل
-    for (const s of addedServices) {
-        await apiPost({
-            action: "addVisit",
-            membership: selectedMembership,
-            service_type: "",
-            service_detail: s.name,
-            price: s.price,
-            points: s.points,
-            employee: "",
-            branch,
-            payment_status: payment,
-            parking_slot: ""
-        });
+    if (res.success) {
+        alert("تم تسجيل الزيارة بنجاح");
+        location.reload();
+    } else {
+        alert("خطأ في التسجيل");
     }
-
-    window.location.href = "invoice.html";
 }
 
 // تشغيل الصفحة
