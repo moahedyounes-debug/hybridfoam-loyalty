@@ -61,19 +61,6 @@ button {
 button:hover {
     opacity: 0.9;
 }
-
-@media (max-width: 480px) {
-    h2 {
-        font-size: 20px;
-    }
-    select, input, button {
-        font-size: 15px;
-        padding: 13px;
-    }
-    .box {
-        padding: 18px;
-    }
-}
 </style>
 
 <script src="api.js"></script>
@@ -99,39 +86,50 @@ button:hover {
 </div>
 
 <script>
-let servicesData = {};
-let membership = null;
+let servicesData = [];
 
+// =====================================================
 // تحميل سيارات العميل
+// =====================================================
 async function loadCars() {
-    const phone = localStorage.getItem("customer_phone");
+    const phone = localStorage.getItem("phone");
     if (!phone) return alert("خطأ: لم يتم العثور على رقم العميل");
 
     const res = await apiGet({ action: "getCarsByPhone", phone });
 
     const select = document.getElementById("carSelect");
+    select.innerHTML = "";
+
     res.cars.forEach(c => {
         const opt = document.createElement("option");
         opt.value = c.membership;
-        opt.textContent = `${c.car} - ${c.plate_numbers} ${c.plate_letters}`;
+        opt.textContent = `${c.car} - ${c.plate_letters} ${c.plate_numbers}`;
         select.appendChild(opt);
     });
 }
 
+// =====================================================
 // تحميل الخدمات
+// =====================================================
 async function loadServices() {
     const res = await apiGet({ action: "getCommissions" });
 
     const select = document.getElementById("service");
+    select.innerHTML = "";
+
+    servicesData = res.commissions;
+
     res.commissions.forEach(s => {
         const opt = document.createElement("option");
-        opt.value = s.service;
-        opt.textContent = s.service;
+        opt.value = s.detail;   // اسم الخدمة الصحيح
+        opt.textContent = s.detail;
         select.appendChild(opt);
     });
 }
 
+// =====================================================
 // تحميل الأوقات المتاحة
+// =====================================================
 async function loadTimes() {
     const date = document.getElementById("date").value;
     const service = document.getElementById("service").value;
@@ -155,13 +153,20 @@ async function loadTimes() {
     });
 }
 
+// =====================================================
 // إرسال الحجز
+// =====================================================
 async function submitBooking() {
-    const phone = localStorage.getItem("customer_phone");
+    const phone = localStorage.getItem("phone");
     const membership = document.getElementById("carSelect").value;
     const service = document.getElementById("service").value;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
+
+    if (!phone || !membership || !service || !date || !time) {
+        alert("الرجاء تعبئة جميع الحقول");
+        return;
+    }
 
     const res = await apiPost({
         action: "addBooking",
@@ -180,7 +185,9 @@ async function submitBooking() {
     }
 }
 
-// تشغيل عند فتح الصفحة
+// =====================================================
+// تشغيل الصفحة
+// =====================================================
 loadCars();
 loadServices();
 </script>
