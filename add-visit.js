@@ -161,8 +161,8 @@ async function submitVisit() {
 
     const branch = document.getElementById("branch").value;
     const payment_status = document.getElementById("payment_status").value;
-    const parking_slot = document.getElementById("parking_slot").value;
     const payment_method = document.getElementById("payment_method").value;
+    const parking_slot = document.getElementById("parking_slot").value;
 
     for (const s of addedServices) {
         await apiPost({
