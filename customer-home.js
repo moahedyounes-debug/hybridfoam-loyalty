@@ -1,8 +1,30 @@
 // =====================================================
-// حماية الصفحة – لو ما فيه رقم جوال مخزن يرجع للّوجين
+// حماية الصفحة – تحقق من وجود رقم + تحقق من وجوده في الشيت
 // =====================================================
-if (!localStorage.getItem("phone")) {
-    window.location.href = "full-register.html";
+async function protectPage() {
+    const phone = localStorage.getItem("phone");
+
+    // لو ما فيه رقم جوال → رجّعه للتسجيل
+    if (!phone) {
+        window.location.href = "full-register.html";
+        return;
+    }
+
+    // تحقق من وجود العميل في Google Sheet
+    const res = await apiGet({
+        action: "getByPhone",
+        phone
+    });
+
+    // لو العميل غير موجود في الشيت → رجّعه للتسجيل
+    if (!res.success || !res.customer) {
+        window.location.href = "full-register.html";
+        return;
+    }
+
+    // لو كل شيء تمام → كمل تحميل الصفحة
+    loadCustomer(res);
+    loadNotifications();
 }
 
 // =====================================================
@@ -21,19 +43,7 @@ function logout() {
 // =====================================================
 // تحميل بيانات العميل
 // =====================================================
-async function loadCustomer() {
-    const phone = localStorage.getItem("phone");
-
-    const res = await apiGet({
-        action: "getByPhone",
-        phone
-    });
-
-    if (!res.success) {
-        alert("خطأ في تحميل بيانات العميل");
-        return;
-    }
-
+function loadCustomer(res) {
     const c = res.customer;
 
     // الاسم في الهيدر
@@ -55,7 +65,6 @@ async function loadCustomer() {
     else if (c.points < 500) nextLevelPoints = 500 - c.points;
     else if (c.points < 1000) nextLevelPoints = 1000 - c.points;
     else if (c.points < 2000) nextLevelPoints = 2000 - c.points;
-    else nextLevelPoints = 0;
 
     document.getElementById("loyaltyRemaining").textContent = nextLevelPoints;
 
@@ -100,7 +109,6 @@ async function loadNotifications() {
 }
 
 // =====================================================
-// تشغيل الصفحة
+// تشغيل الحماية أولًا
 // =====================================================
-loadCustomer();
-loadNotifications();
+protectPage();
