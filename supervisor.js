@@ -70,7 +70,6 @@ async function loadBranches() {
 
   branchesList.forEach((b) => {
     const opt = document.createElement("option");
-    // API: { name, city, manager }
     opt.value = b.name;
     opt.textContent = `${b.name} — ${b.city}`;
     select.appendChild(opt);
@@ -103,13 +102,10 @@ let servicesChart = null;
 async function loadDashboard() {
   if (!currentBranch) return;
 
-  const fromDate = "2000-01-01T00:00:00.000Z";
-  const toDate = "2100-01-01T23:59:59.000Z";
-
   const res = await apiGet({
     action: "getVisitsByDate",
-    from: fromDate,
-    to: toDate,
+    from: "2000-01-01T00:00:00.000Z",
+    to: "2100-01-01T23:59:59.000Z",
   });
 
   const visits = (res.visits || []).filter((v) => v.branch === currentBranch);
@@ -127,13 +123,9 @@ async function loadDashboard() {
   $("mAmount").textContent = totalAmount;
   $("mAvgSpend").textContent = avgSpend;
 
-  const maxVisits = 200;
-  const maxAmount = 50000;
-  const maxCustomers = 200;
-
-  $("barCustomers").style.width = Math.min(100, (customers / maxCustomers) * 100) + "%";
-  $("barVisits").style.width = Math.min(100, (totalVisits / maxVisits) * 100) + "%";
-  $("barAmount").style.width = Math.min(100, (totalAmount / maxAmount) * 100) + "%";
+  $("barCustomers").style.width = Math.min(100, (customers / 200) * 100) + "%";
+  $("barVisits").style.width = Math.min(100, (totalVisits / 200) * 100) + "%";
+  $("barAmount").style.width = Math.min(100, (totalAmount / 50000) * 100) + "%";
 
   renderVisitsChart(visits);
   renderServicesChart(visits);
@@ -144,7 +136,7 @@ function renderVisitsChart(visits) {
   const map = {};
 
   visits.forEach((v) => {
-    const d = v.date; // already formatted in API
+    const d = v.date;
     map[d] = (map[d] || 0) + 1;
   });
 
@@ -168,13 +160,7 @@ function renderVisitsChart(visits) {
         },
       ],
     },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { autoSkip: true, maxTicksLimit: 7 } },
-      },
-    },
+    options: { responsive: true, plugins: { legend: { display: false } } },
   });
 }
 
@@ -183,7 +169,7 @@ function renderServicesChart(visits) {
   const map = {};
 
   visits.forEach((v) => {
-    const s = v.service || "غير محدد";
+    const s = v.service_detail || "غير محدد";
     map[s] = (map[s] || 0) + 1;
   });
 
@@ -200,31 +186,20 @@ function renderServicesChart(visits) {
     type: "bar",
     data: {
       labels,
-      datasets: [
-        {
-          label: "عدد الزيارات",
-          data,
-          backgroundColor: "#f59e0b",
-        },
-      ],
+      datasets: [{ label: "عدد الزيارات", data, backgroundColor: "#f59e0b" }],
     },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-    },
+    options: { responsive: true, plugins: { legend: { display: false } } },
   });
 }
 
 // ======================= Smart Customer Search ===========
 async function smartSearchCustomer(query) {
-  // جوال
   if (query.startsWith("05") && query.length === 10) {
     const res = await apiGet({ action: "getByPhone", phone: query });
     if (!res.success) return null;
     return { customers: [res.customer], cars: res.cars || [] };
   }
 
-  // عضوية
   if (/^\d+$/.test(query)) {
     const res = await apiGet({ action: "getByMembership", membership: query });
     if (!res.success) return null;
@@ -236,140 +211,29 @@ async function smartSearchCustomer(query) {
   return null;
 }
 
-// ======================= Customers =======================
-async function handleCustomerSearch() {
-  const btn = $("searchBtn");
-  const query = $("searchPhone").value.trim();
-  if (!query) return alert("أدخل رقم الجوال أو العضوية");
-
-  setLoading(btn, true);
-  const data = await smartSearchCustomer(query);
-  setLoading(btn, false);
-
-  const box = $("searchResult");
-  box.innerHTML = "";
-
-  if (!data || !data.customers.length) {
-    box.innerHTML = "<p>لا يوجد نتائج</p>";
-    return;
-  }
-
-  const c = data.customers[0];
-
-  box.innerHTML = `
-    <div class="card">
-      الاسم: ${c.name}<br>
-      الجوال: ${c.phone}<br>
-      العضوية: ${c.membership}<br>
-      النقاط: ${c.points}<br>
-      المستوى: ${c.level}<br>
-      آخر زيارة: ${c.last_visit || "—"}<br>
-      عدد الزيارات: ${c.visit_count}
-    </div>
-  `;
-}
-
-// ======================= Visits ==========================
-async function handleLoadVisits() {
-  if (!currentBranch) return alert("اختر الفرع أولاً");
-
-  const btn = $("visitsBtn");
-  const from = $("visitsFrom").value.trim();
-  const to = $("visitsTo").value.trim();
-
-  setLoading(btn, true);
-
-  let fromDate, toDate;
-  if (!from && !to) {
-    fromDate = "2000-01-01T00:00:00.000Z";
-    toDate = "2100-01-01T23:59:59.000Z";
-  } else {
-    const f = from || to;
-    const t = to || from;
-    fromDate = new Date(f + "T00:00:00").toISOString();
-    toDate = new Date(t + "T23:59:59").toISOString();
-  }
-
-  const res = await apiGet({
-    action: "getVisitsByDate",
-    from: fromDate,
-    to: toDate,
-  });
-
-  setLoading(btn, false);
-
-  const list = $("visitsList");
-  list.innerHTML = "";
-
-  const visits = (res.visits || []).filter((v) => v.branch === currentBranch);
-
-  if (!visits.length) {
-    list.innerHTML = "<p>لا توجد زيارات</p>";
-    return;
-  }
-
-  visits.forEach((v) => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `
-      رقم العضوية: ${v.membership}<br>
-      نوع الخدمة: ${v.service}<br>
-      المبلغ: ${v.price}<br>
-      العمولة: ${v.commission}<br>
-      النقاط: ${v.points}<br>
-      الموظف: ${v.employee || "—"}<br>
-      الفرع: ${v.branch || "—"}<br>
-      التاريخ: ${v.date}
-    `;
-    list.appendChild(div);
-  });
-}
-
-// ======================= Cars ============================
-async function handleLoadCars() {
-  const btn = $("carsBtn");
-  const phone = $("carsPhone").value.trim();
-  if (!phone) return alert("أدخل رقم الجوال");
-
-  setLoading(btn, true);
-  const res = await apiGet({ action: "getCarsByPhone", phone });
-  setLoading(btn, false);
-
-  const list = $("carsList");
-  list.innerHTML = "";
-
-  if (!res.cars || !res.cars.length) {
-    list.innerHTML = "<p>لا توجد سيارات</p>";
-    return;
-  }
-
-  res.cars.forEach((c) => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `
-      السيارة: ${c.car} — ${c.plate_letters} ${c.plate_numbers}<br>
-      الحجم: ${c.size}<br>
-      المدينة: ${c.city}<br>
-      رقم العضوية: ${c.membership}
-    `;
-    list.appendChild(div);
-  });
-}
-
 // ======================= Add Visit =======================
 let selectedMembership = null;
 let selectedCar = null;
+
 let servicesMap = {};
+let addedServices = [];
 
 async function loadServicesForVisit() {
   const res = await apiGet({ action: "getCommissions" });
+
   const select = $("vService");
   select.innerHTML = "";
+
   servicesMap = {};
 
   res.commissions.forEach((s) => {
-    // API: detail, commission, price, duration, type
-    servicesMap[s.detail] = Number(s.price) || 0;
+    servicesMap[s.detail] = {
+      price: Number(s.price) || 0,
+      commission: Number(s.commission) || 0,
+      duration: s.duration || "",
+      type: s.type || "",
+    };
+
     const opt = document.createElement("option");
     opt.value = s.detail;
     opt.textContent = s.detail;
@@ -380,8 +244,8 @@ async function loadServicesForVisit() {
 }
 
 function updateVisitPrice() {
-  const s = $("vService").value;
-  $("vPrice").value = servicesMap[s] || 0;
+  const serviceName = $("vService").value;
+  $("vPrice").value = servicesMap[serviceName].price;
   updateVisitPoints();
 }
 
@@ -393,6 +257,7 @@ function updateVisitPoints() {
 async function handleVisitSearch() {
   const btn = $("visitSearchBtn");
   const query = $("visitSearch").value.trim();
+
   if (!query) return alert("أدخل رقم الجوال أو العضوية");
 
   setLoading(btn, true);
@@ -429,44 +294,92 @@ async function handleVisitSearch() {
 function selectVisitCar(c) {
   selectedMembership = c.membership;
   selectedCar = c;
+
   $("visitSelectedInfo").textContent =
     `رقم العضوية: ${c.membership} — السيارة: ${c.car} — اللوحة: ${c.plate_letters} ${c.plate_numbers}`;
+
   $("visitForm").style.display = "block";
 }
 
+// ======================= Multiple Services =======================
+$("addServiceBtn").onclick = () => {
+  const serviceName = $("vService").value;
+  const price = Number($("vPrice").value);
+  const points = Number($("vPoints").value);
+
+  const serviceObj = {
+    name: serviceName,
+    price,
+    points,
+    commission: servicesMap[serviceName].commission,
+    type: servicesMap[serviceName].type,
+  };
+
+  addedServices.push(serviceObj);
+  renderServicesList();
+};
+
+function renderServicesList() {
+  const box = $("servicesList");
+  box.innerHTML = "";
+
+  let total = 0;
+
+  addedServices.forEach((s, i) => {
+    total += s.price;
+
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <b>${s.name}</b><br>
+      السعر: ${s.price} ريال<br>
+      النقاط: ${s.points}<br>
+      <button class="btn-danger btn-sm" onclick="removeService(${i})">حذف</button>
+    `;
+    box.appendChild(div);
+  });
+
+  $("totalPrice").textContent = total;
+}
+
+function removeService(index) {
+  addedServices.splice(index, 1);
+  renderServicesList();
+}
+
+// ======================= Save Visit =======================
 async function handleAddVisit() {
   if (!currentBranch) return alert("اختر الفرع أولاً");
   if (!selectedMembership) return alert("اختر السيارة أولاً");
+  if (addedServices.length === 0) return alert("أضف خدمة واحدة على الأقل");
 
   const btn = $("addVisitBtn");
   setLoading(btn, true);
 
-  const service = $("vService").value;
-  const price = Number($("vPrice").value);
-  const points = Number($("vPoints").value);
-
-  const res = await apiPost({
-    action: "addVisit",
-    membership: selectedMembership,
-    service_type: "",          // غير مستخدم في الـ API لكن موجود
-    service_detail: service,   // مهم لحساب العمولة
-    price,
-    points,
-    employee: "",
-    branch: currentBranch,
-    rating: "",
-    payment_status: "Paid",
-    parking_slot: ""
-  });
+  for (const s of addedServices) {
+    await apiPost({
+      action: "addVisit",
+      membership: selectedMembership,
+      service_type: s.type,
+      service_detail: s.name,
+      price: s.price,
+      points: s.points,
+      commission: s.commission,
+      employee: "",
+      branch: currentBranch,
+      rating: "",
+      payment_status: "Paid",
+      parking_slot: "",
+    });
+  }
 
   setLoading(btn, false);
 
-  if (res.success) {
-    $("addVisitStatus").textContent = "✔ تم تسجيل الزيارة بنجاح";
-    loadDashboard();
-  } else {
-    $("addVisitStatus").textContent = "❌ حدث خطأ أثناء التسجيل";
-  }
+  $("addVisitStatus").textContent = "✔ تم تسجيل الزيارة بنجاح";
+
+  addedServices = [];
+  renderServicesList();
+  loadDashboard();
 }
 
 // ======================= Bookings ========================
@@ -520,13 +433,10 @@ async function loadReports() {
 
   setLoading(btn, true);
 
-  const fromDate = new Date(from + "T00:00:00").toISOString();
-  const toDate = new Date(to + "T23:59:59").toISOString();
-
   const res = await apiGet({
     action: "getVisitsByDate",
-    from: fromDate,
-    to: toDate,
+    from: new Date(from + "T00:00:00").toISOString(),
+    to: new Date(to + "T23:59:59").toISOString(),
   });
 
   setLoading(btn, false);
@@ -546,7 +456,7 @@ async function loadReports() {
     div.className = "card";
     div.innerHTML = `
       رقم العضوية: ${v.membership}<br>
-      الخدمة: ${v.service}<br>
+      الخدمة: ${v.service_detail}<br>
       المبلغ: ${v.price}<br>
       العمولة: ${v.commission}<br>
       النقاط: ${v.points}<br>
@@ -566,13 +476,10 @@ async function handleExport() {
   const to = $("exportTo").value.trim();
   if (!from || !to) return alert("اختر من وإلى تاريخ");
 
-  const fromDate = new Date(from + "T00:00:00").toISOString();
-  const toDate = new Date(to + "T23:59:59").toISOString();
-
   const res = await apiGet({
     action: "getVisitsByDate",
-    from: fromDate,
-    to: toDate,
+    from: new Date(from + "T00:00:00").toISOString(),
+    to: new Date(to + "T23:59:59").toISOString(),
   });
 
   const visits = (res.visits || []).filter((v) => v.branch === currentBranch);
@@ -582,10 +489,9 @@ async function handleExport() {
     return;
   }
 
-  // نحتاج بيانات العميل/السيارة من Sheets أخرى؟ هنا نكتفي بما هو متاح
   const rows = visits.map((v) => ({
     membership: v.membership,
-    service: v.service,
+    service: v.service_detail,
     price: v.price,
     commission: v.commission,
     points: v.points,
@@ -602,9 +508,6 @@ async function handleExport() {
 
 // ======================= Init ============================
 function initEvents() {
-  $("searchBtn").onclick = handleCustomerSearch;
-  $("visitsBtn").onclick = handleLoadVisits;
-  $("carsBtn").onclick = handleLoadCars;
   $("visitSearchBtn").onclick = handleVisitSearch;
   $("vService").onchange = updateVisitPrice;
   $("vPrice").oninput = updateVisitPoints;
@@ -615,12 +518,6 @@ function initEvents() {
 }
 
 async function initSupervisor() {
-  // لو حاب تحط حماية للمشرف:
-  // if (!localStorage.getItem("supervisor_username")) {
-  //   window.location.href = "supervisor-login.html";
-  //   return;
-  // }
-
   initEvents();
   await loadBranches();
   await loadServicesForVisit();
