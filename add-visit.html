@@ -114,6 +114,17 @@
         <option value="مكة">مكة</option>
     </select>
 
+    <!-- حالة الدفع -->
+    <label>حالة الدفع</label>
+    <select id="payment_status">
+        <option value="Paid">مدفوع</option>
+        <option value="Unpaid">غير مدفوع</option>
+    </select>
+
+    <!-- رقم الموقف -->
+    <label>رقم الموقف</label>
+    <input type="number" id="parking_slot" min="1" max="50" placeholder="مثال: 3">
+
     <button id="submitBtn" onclick="submitVisit()">تسجيل الزيارة</button>
 </div>
 
@@ -231,11 +242,14 @@ async function submitVisit() {
     btn.classList.add("loading");
     btn.textContent = "جاري التسجيل...";
 
-    const service  = document.getElementById("service").value;
-    const price    = document.getElementById("price").value;
-    const points   = document.getElementById("points").value;
-    const employee = document.getElementById("employee").value;
-    const branch   = document.getElementById("branch").value;
+    const service        = document.getElementById("service").value;
+    const price          = document.getElementById("price").value;
+    const points         = document.getElementById("points").value;
+    const employee       = document.getElementById("employee").value;
+    const branch         = document.getElementById("branch").value;
+
+    const payment_status = document.getElementById("payment_status").value;
+    const parking_slot   = document.getElementById("parking_slot").value;
 
     const res = await apiPost({
         action: "addVisit",
@@ -244,7 +258,9 @@ async function submitVisit() {
         price,
         points,
         employee,
-        branch
+        branch,
+        payment_status,
+        parking_slot
     });
 
     btn.classList.remove("loading");
