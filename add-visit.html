@@ -1,189 +1,147 @@
-let selectedMembership = null;
-let commissions = [];
-let addedServices = [];
-let branches = [];
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تسجيل زيارة</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-// تحميل الخدمات
-async function loadServices() {
-    const res = await apiGet({ action: "getCommissions" });
-    commissions = res.commissions;
-
-    const types = [...new Set(commissions.map(r => r.type))];
-
-    const typeSelect = document.getElementById("service_type");
-    typeSelect.innerHTML = "";
-
-    types.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        typeSelect.appendChild(opt);
-    });
-
-    filterServiceDetails();
-}
-
-// تصفية تفاصيل الخدمة
-function filterServiceDetails() {
-    const type = document.getElementById("service_type").value;
-    const detailSelect = document.getElementById("service_detail");
-
-    detailSelect.innerHTML = "";
-
-    commissions
-        .filter(r => r.type === type)
-        .forEach(r => {
-            const opt = document.createElement("option");
-            opt.value = r.detail;
-            opt.textContent = r.detail;
-            detailSelect.appendChild(opt);
-        });
-
-    updatePrice();
-}
-
-// تحديث السعر
-function updatePrice() {
-    const detail = document.getElementById("service_detail").value;
-    const row = commissions.find(r => r.detail === detail);
-
-    document.getElementById("price").value = row ? row.price : 0;
-    updatePoints();
-}
-
-// النقاط
-function updatePoints() {
-    const price = Number(document.getElementById("price").value || 0);
-    document.getElementById("points").value = Math.floor(price / 5);
-}
-
-// البحث عن سيارات العميل
-async function searchCustomer() {
-    const phone = document.getElementById("phone").value.trim();
-    if (!phone) return alert("أدخل رقم الجوال");
-
-    const res = await apiGet({ action: "getCarsByPhone", phone });
-
-    if (!res.success || res.cars.length === 0) {
-        alert("لا يوجد سيارات لهذا العميل");
-        return;
+<style>
+    body {
+        font-family: "Tajawal", sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        max-width: 600px;
+        margin: auto;
     }
 
-    document.getElementById("carsBox").style.display = "block";
-
-    const list = document.getElementById("carsList");
-    list.innerHTML = "";
-
-    res.cars.forEach(car => {
-        const div = document.createElement("div");
-        div.className = "car-item";
-        div.innerHTML = `
-            <b>${car.car}</b> — ${car.plate_letters} ${car.plate_numbers}
-            <br>عضوية: ${car.membership}
-        `;
-        div.onclick = () => selectCar(div, car);
-        list.appendChild(div);
-    });
-}
-
-// اختيار السيارة
-function selectCar(element, car) {
-    selectedMembership = car.membership;
-    selectedCar = car;
-
-    document.querySelectorAll(".car-item").forEach(el => el.classList.remove("selected"));
-    element.classList.add("selected");
-
-    document.getElementById("visitBox").style.display = "block";
-}
-
-// إضافة خدمة
-function addService() {
-    const name = document.getElementById("service_detail").value;
-    const price = Number(document.getElementById("price").value);
-    const points = Number(document.getElementById("points").value);
-
-    addedServices.push({ name, price, points });
-
-    renderServices();
-}
-
-// عرض الخدمات
-function renderServices() {
-    const box = document.getElementById("servicesList");
-    box.innerHTML = "";
-
-    let total = 0;
-
-    addedServices.forEach((s, i) => {
-        total += s.price;
-
-        const div = document.createElement("div");
-        div.className = "service-card";
-        div.innerHTML = `
-            <b>${s.name}</b><br>
-            السعر: ${s.price} ريال<br>
-            النقاط: ${s.points}<br>
-            <button class="remove-btn" onclick="removeService(${i})">حذف</button>
-        `;
-        box.appendChild(div);
-    });
-
-    document.getElementById("totalPrice").textContent = total;
-}
-
-// حذف خدمة
-function removeService(i) {
-    addedServices.splice(i, 1);
-    renderServices();
-}
-
-// تحميل الفروع
-async function loadBranches() {
-    const res = await apiGet({ action: "getBranches" });
-    branches = res.branches;
-
-    const select = document.getElementById("branch");
-    select.innerHTML = "";
-
-    branches.forEach(b => {
-        const opt = document.createElement("option");
-        opt.value = b.name;
-        opt.textContent = b.name;
-        select.appendChild(opt);
-    });
-}
-
-// إرسال الزيارة
-async function submitVisit() {
-    if (!selectedMembership) return alert("اختر السيارة أولاً");
-    if (addedServices.length === 0) return alert("أضف خدمة واحدة على الأقل");
-
-    const branch = document.getElementById("branch").value;
-    const payment_status = document.getElementById("payment_status").value;
-    const parking_slot = document.getElementById("parking_slot").value;
-    const payment_method = document.getElementById("payment_method").value;
-
-    for (const s of addedServices) {
-        await apiPost({
-            action: "addVisit",
-            membership: selectedMembership,
-            service_type: "",
-            service_detail: s.name,
-            price: s.price,
-            points: s.points,
-            employee: "",
-            branch,
-            payment_status,
-            payment_method,
-            parking_slot
-        });
+    .box {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
-    alert("تم تسجيل الزيارة بنجاح");
-    location.reload();
-}
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
 
-// تشغيل الصفحة
-loadServices();
-loadBranches();
+    select, input {
+        width: 100%;
+        padding: 12px;
+        margin-top: 5px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background: #000;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        margin-top: 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .car-item {
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+
+    .car-item.selected {
+        border-color: #000;
+        background: #eee;
+    }
+
+    .service-card {
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 10px;
+        background: #fafafa;
+    }
+
+    .remove-btn {
+        background: #c00;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 5px;
+    }
+</style>
+
+<script src="api.js?v=5"></script>
+<script src="add-visit.js?v=5"></script>
+</head>
+
+<body>
+
+<h2>تسجيل زيارة للعميل</h2>
+
+<div class="box">
+    <label>رقم الجوال</label>
+    <input type="text" id="phone" placeholder="05xxxxxxxx" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+
+    <button onclick="searchCustomer()">بحث</button>
+</div>
+
+<div id="carsBox" class="box" style="display:none;">
+    <h3>اختر السيارة</h3>
+    <div id="carsList"></div>
+</div>
+
+<div id="visitBox" class="box" style="display:none;">
+    <h3>تفاصيل الزيارة</h3>
+
+    <label>نوع الخدمة</label>
+    <select id="service_type" onchange="filterServiceDetails()"></select>
+
+    <label>تفاصيل الخدمة</label>
+    <select id="service_detail" onchange="updatePrice()"></select>
+
+    <label>السعر</label>
+    <input type="number" id="price" onchange="updatePoints()">
+
+    <label>النقاط</label>
+    <input type="number" id="points" readonly>
+
+    <button onclick="addService()">إضافة خدمة +</button>
+
+    <div id="servicesList"></div>
+
+    <h3>الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+
+    <label>حالة الدفع</label>
+    <select id="payment_status">
+        <option value="مدفوع">مدفوع</option>
+        <option value="غير مدفوع">غير مدفوع</option>
+    </select>
+
+    <label>طريقة الدفع</label>
+    <select id="payment_method">
+        <option value="كاش">كاش</option>
+        <option value="شبكة">شبكة</option>
+    </select>
+
+    <label>رقم الموقف</label>
+    <input type="number" id="parking_slot" min="1" max="50" placeholder="مثال: 3">
+
+    <label>الفرع</label>
+    <select id="branch"></select>
+
+    <button onclick="submitVisit()">تسجيل الزيارة</button>
+</div>
+
+</body>
+</html>
