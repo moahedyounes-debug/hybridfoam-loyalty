@@ -18,12 +18,11 @@
 <body data-theme="dark">
 
 <div class="layout">
+
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-logo">
-        <img src="logo.png" alt="Logo">
-      </div>
+      <div class="brand-logo"><img src="logo.png" alt="Logo"></div>
       <div class="brand-text">لوحة المشرف</div>
     </div>
 
@@ -50,16 +49,15 @@
 
   <!-- Main -->
   <main class="main">
+
     <div class="topbar">
       <div class="topbar-left">
         <div class="topbar-title">لوحة المشرف</div>
         <div class="topbar-sub">إدارة العملاء، الزيارات، الحجوزات والتقارير حسب الفرع</div>
       </div>
+
       <div class="topbar-right">
-        <div class="branch-pill">
-          الفرع الحالي:
-          <span id="currentBranch">—</span>
-        </div>
+        <div class="branch-pill">الفرع الحالي: <span id="currentBranch">—</span></div>
         <select id="branchSelect" class="branch-select"></select>
         <button id="themeToggle" class="theme-toggle">🌙 / ☀</button>
       </div>
@@ -70,46 +68,33 @@
       <!-- Dashboard -->
       <section id="dashboard" class="section active">
         <div class="card">
-          <div class="card-header">
-            <h2>نظرة عامة على الفرع</h2>
-          </div>
+          <div class="card-header"><h2>نظرة عامة على الفرع</h2></div>
 
           <div class="grid-2">
             <div class="dash-card">
               <div class="dash-card-title">إجمالي المبالغ</div>
               <div class="dash-card-value"><span id="mAmount">0</span> ريال</div>
-              <div class="status-text">إجمالي المبالغ لجميع الزيارات في الفرع المحدد</div>
             </div>
 
             <div class="dash-card">
               <div class="dash-card-title">متوسط الإنفاق لكل عميل</div>
               <div class="dash-card-value"><span id="mAvgSpend">0</span> ريال</div>
-              <div class="status-text">إجمالي المبالغ ÷ عدد العملاء</div>
             </div>
           </div>
 
           <div class="dashboard-grid">
             <div class="dash-card">
               <div class="dash-card-title">إحصائيات سريعة</div>
-              <div class="bar-row">
-                <div class="bar-label">العملاء</div>
-                <div class="bar-track"><div class="bar-fill" id="barCustomers"></div></div>
-              </div>
-              <div class="bar-row">
-                <div class="bar-label">الزيارات</div>
-                <div class="bar-track"><div class="bar-fill" id="barVisits"></div></div>
-              </div>
-              <div class="bar-row">
-                <div class="bar-label">المبالغ</div>
-                <div class="bar-track"><div class="bar-fill" id="barAmount"></div></div>
-              </div>
+              <div class="bar-row"><div class="bar-label">العملاء</div><div class="bar-track"><div class="bar-fill" id="barCustomers"></div></div></div>
+              <div class="bar-row"><div class="bar-label">الزيارات</div><div class="bar-track"><div class="bar-fill" id="barVisits"></div></div></div>
+              <div class="bar-row"><div class="bar-label">المبالغ</div><div class="bar-track"><div class="bar-fill" id="barAmount"></div></div></div>
             </div>
 
             <div class="dash-card">
               <div class="dash-card-title">مؤشرات عامة</div>
               <p class="status-text">
                 👥 العملاء: <span id="sCustomers">0</span><br>
-                🚗 السيارات (تقريبًا): <span id="sCars">0</span><br>
+                🚗 السيارات: <span id="sCars">0</span><br>
                 🧾 الزيارات: <span id="sVisits">0</span><br>
                 💰 المبالغ: <span id="sAmount">0</span> ريال
               </p>
@@ -117,92 +102,32 @@
           </div>
 
           <div class="charts-grid">
-            <div class="dash-card">
-              <div class="dash-card-title">الزيارات حسب اليوم</div>
-              <canvas id="visitsPerDayChart" height="140"></canvas>
-            </div>
-            <div class="dash-card">
-              <div class="dash-card-title">أكثر الخدمات استخدامًا</div>
-              <canvas id="topServicesChart" height="140"></canvas>
-            </div>
+            <div class="dash-card"><div class="dash-card-title">الزيارات حسب اليوم</div><canvas id="visitsPerDayChart"></canvas></div>
+            <div class="dash-card"><div class="dash-card-title">أكثر الخدمات</div><canvas id="topServicesChart"></canvas></div>
           </div>
-        </div>
-      </section>
-
-      <!-- Customers -->
-      <section id="customers" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>بحث عن عميل</h2>
-          </div>
-          <label>رقم الجوال أو رقم العضوية</label>
-          <input id="searchPhone" placeholder="05xxxxxxxx أو 2026xxxx" />
-          <button id="searchBtn">بحث</button>
-          <div id="searchResult" class="list" style="margin-top:10px;"></div>
-        </div>
-      </section>
-
-      <!-- Visits -->
-      <section id="visits" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>زيارات الفرع</h2>
-          </div>
-          <div class="grid-2">
-            <div>
-              <label>من تاريخ</label>
-              <input id="visitsFrom" class="datePicker" placeholder="YYYY-MM-DD" />
-            </div>
-            <div>
-              <label>إلى تاريخ</label>
-              <input id="visitsTo" class="datePicker" placeholder="YYYY-MM-DD" />
-            </div>
-          </div>
-          <button id="visitsBtn">عرض الزيارات</button>
-          <div id="visitsList" class="list" style="margin-top:10px;"></div>
-        </div>
-      </section>
-
-      <!-- Cars -->
-      <section id="cars" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>سيارات العميل</h2>
-          </div>
-          <label>رقم الجوال</label>
-          <input id="carsPhone" placeholder="05xxxxxxxx" />
-          <button id="carsBtn">عرض السيارات</button>
-          <div id="carsList" class="list" style="margin-top:10px;"></div>
         </div>
       </section>
 
       <!-- Add Visit -->
       <section id="addVisit" class="section">
         <div class="card">
-          <div class="card-header">
-            <h2>إضافة زيارة للفرع الحالي</h2>
-          </div>
+          <div class="card-header"><h2>إضافة زيارة</h2></div>
 
           <div class="card inner-card">
-            <div class="card-header">
-              <h3>بحث عن العميل</h3>
-            </div>
-            <label>رقم الجوال أو رقم العضوية</label>
+            <div class="card-header"><h3>بحث عن العميل</h3></div>
+            <label>رقم الجوال أو العضوية</label>
             <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx" />
             <button id="visitSearchBtn">بحث</button>
           </div>
 
           <div id="visitCarsBox" class="card inner-card" style="display:none;">
-            <div class="card-header">
-              <h3>اختر السيارة</h3>
-            </div>
+            <div class="card-header"><h3>اختر السيارة</h3></div>
             <div id="visitCarsList" class="list"></div>
           </div>
 
           <div id="visitForm" class="card inner-card" style="display:none;">
-            <div class="card-header">
-              <h3>تفاصيل الزيارة</h3>
-            </div>
+            <div class="card-header"><h3>تفاصيل الزيارة</h3></div>
+
             <p id="visitSelectedInfo" class="status-text"></p>
 
             <label>الخدمة</label>
@@ -214,65 +139,15 @@
             <label>النقاط</label>
             <input type="number" id="vPoints" readonly />
 
+            <button id="addServiceBtn" class="btn-secondary">إضافة خدمة +</button>
+
+            <div id="servicesList" class="list" style="margin-top:10px;"></div>
+
+            <h3 style="margin-top:15px;">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+
             <button id="addVisitBtn">تسجيل الزيارة</button>
             <p id="addVisitStatus" class="status-text"></p>
           </div>
-        </div>
-      </section>
-
-      <!-- Bookings -->
-      <section id="bookings" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>الحجوزات</h2>
-          </div>
-          <label>اختر التاريخ (اختياري)</label>
-          <input id="bookingsDate" class="datePicker" placeholder="YYYY-MM-DD" />
-          <div id="bookingsList" class="list" style="margin-top:10px;">جاري التحميل...</div>
-        </div>
-      </section>
-
-      <!-- Reports -->
-      <section id="reports" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>التقارير المالية حسب الفرع</h2>
-          </div>
-          <div class="grid-2">
-            <div>
-              <label>من تاريخ</label>
-              <input id="reportsFrom" class="datePicker" placeholder="YYYY-MM-DD" />
-            </div>
-            <div>
-              <label>إلى تاريخ</label>
-              <input id="reportsTo" class="datePicker" placeholder="YYYY-MM-DD" />
-            </div>
-          </div>
-          <button id="reportsBtn">عرض التقرير</button>
-          <div id="reportsList" class="list" style="margin-top:10px;"></div>
-        </div>
-      </section>
-
-      <!-- Export -->
-      <section id="export" class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2>تصدير Excel (يومي / شهري)</h2>
-          </div>
-          <div class="grid-2">
-            <div>
-              <label>من تاريخ</label>
-              <input id="exportFrom" class="datePicker" placeholder="YYYY-MM-DD" />
-            </div>
-            <div>
-              <label>إلى تاريخ</label>
-              <input id="exportTo" class="datePicker" placeholder="YYYY-MM-DD" />
-            </div>
-          </div>
-          <button id="exportBtn">تصدير Excel</button>
-          <p class="status-text">
-            سيتم تصدير تقرير يحتوي على: اسم العميل، رقم الجوال، نوع السيارة، نوع الخدمة، المبلغ، العمولة، رقم العضوية، التاريخ، الموظف، الفرع.
-          </p>
         </div>
       </section>
 
