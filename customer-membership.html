@@ -5,8 +5,18 @@
     <title>بطاقة العضوية</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
     <script src="api.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
     <style>
         body {
@@ -17,52 +27,89 @@
             text-align: center;
         }
 
-        .header {
+        .page-header {
             background: #007bff;
             color: white;
-            padding: 18px;
-            font-size: 22px;
+            padding: 16px;
+            font-size: 20px;
+        }
+
+        .card-wrapper {
+            margin: 25px auto;
+            max-width: 380px;
         }
 
         .card {
-            background: white;
-            margin: 20px;
-            padding: 20px;
-            border-radius: 14px;
-            box-shadow: 0 0 6px #ccc;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            background: #fff;
             text-align: right;
         }
 
-        .item {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+        .card-header {
+            padding: 16px 18px;
+            color: #fff;
+            position: relative;
         }
 
-        .item:last-child {
-            border-bottom: none;
+        .brand {
+            font-size: 18px;
+            font-weight: bold;
         }
 
-        #barcode {
-            margin: 20px auto;
-            display: block;
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 4px;
         }
 
-        button {
+        .vip-crown {
+            position: absolute;
+            top: -12px;
+            right: 12px;
+            font-size: 26px;
+            display: none;
+        }
+
+        .card-body {
+            padding: 16px 18px 20px;
+            background: #fff;
+        }
+
+        .row {
+            margin-bottom: 6px;
+            font-size: 15px;
+        }
+
+        .row strong {
+            display: inline-block;
+            min-width: 90px;
+        }
+
+        #qrcode {
+            margin: 15px auto;
+            width: 140px;
+            height: 140px;
+        }
+
+        .footer-row {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .btn-main {
             width: 90%;
             max-width: 350px;
             padding: 14px;
-            margin-top: 15px;
+            margin: 18px auto 0;
             background: #28a745;
             color: white;
             border: none;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 17px;
             cursor: pointer;
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
         }
 
         .back {
@@ -70,12 +117,12 @@
             width: 90%;
             max-width: 350px;
             padding: 14px;
-            margin: 20px auto;
+            margin: 14px auto 24px;
             background: #6c757d;
             color: white;
             text-align: center;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 17px;
             text-decoration: none;
         }
 
@@ -84,33 +131,71 @@
             font-size: 18px;
             color: #555;
         }
+
+        /* ألوان حسب مستوى العضوية */
+        .level-gold   { background: #d4af37; }
+        .level-silver { background: #9e9e9e; }
+        .level-bronze { background: #cd7f32; }
+        .level-basic  { background: #007bff; }
     </style>
 </head>
 
 <body>
 
-    <div class="header">بطاقة العضوية</div>
+    <div class="page-header">بطاقة العضوية</div>
 
     <div id="loading" class="loading">جاري تحميل البطاقة...</div>
 
     <div id="content" style="display:none;">
 
-        <div class="card">
-            <div class="item"><strong>الاسم:</strong> <span id="name"></span></div>
-            <div class="item"><strong>رقم الجوال:</strong> <span id="phone"></span></div>
-            <div class="item"><strong>المستوى:</strong> <span id="level"></span></div>
-            <div class="item"><strong>إجمالي النقاط:</strong> <span id="points"></span></div>
-            <div class="item"><strong>آخر زيارة:</strong> <span id="lastVisit"></span></div>
+        <div class="card-wrapper">
+            <div id="card" class="card">
+
+                <div id="cardHeader" class="card-header level-basic">
+                    <div class="vip-crown" id="vipCrown">👑</div>
+                    <div class="brand">رغوة الهجين</div>
+                    <div class="subtitle">بطاقة الولاء</div>
+                </div>
+
+                <div class="card-body">
+                    <div class="row"><strong>الاسم:</strong> <span id="name"></span></div>
+                    <div class="row"><strong>رقم العضوية:</strong> <span id="membership"></span></div>
+                    <div class="row"><strong>المستوى:</strong> <span id="level"></span></div>
+                    <div class="row"><strong>النقاط:</strong> <span id="points"></span></div>
+
+                    <div id="qrcode"></div>
+
+                    <div class="footer-row"><strong>الاشتراك:</strong> <span id="subscription"></span></div>
+                    <div class="footer-row"><strong>آخر زيارة:</strong> <span id="lastVisit"></span></div>
+                </div>
+            </div>
         </div>
-
-        <svg id="barcode"></svg>
-
-        <button id="addBtn" onclick="addToPhone()">إضافة كبطاقة في الجوال</button>
 
         <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
     </div>
 
     <script>
+        function applyLevelStyle(levelText) {
+            const header = document.getElementById("cardHeader");
+            const crown = document.getElementById("vipCrown");
+
+            header.classList.remove("level-gold","level-silver","level-bronze","level-basic");
+            crown.style.display = "none";
+
+            const level = (levelText || "").trim();
+
+            if (level.includes("ذهبي") || level.includes("VIP")) {
+                header.classList.add("level-gold");
+                crown.style.display = "block";
+            } else if (level.includes("فضي")) {
+                header.classList.add("level-silver");
+            } else if (level.includes("برونزي")) {
+                header.classList.add("level-bronze");
+            } else {
+                header.classList.add("level-basic");
+            }
+        }
+
         async function loadMembership() {
             const phone = localStorage.getItem("customer_phone");
 
@@ -132,33 +217,23 @@
             const c = res.customer;
 
             document.getElementById("name").innerText = c.name;
-            document.getElementById("phone").innerText = c.phone;
-            document.getElementById("level").innerText = c.level;
-            document.getElementById("points").innerText = c.points;
+            document.getElementById("membership").innerText = c.membership || "-";
+            document.getElementById("level").innerText = c.level || "-";
+            document.getElementById("points").innerText = c.points ?? 0;
+            document.getElementById("subscription").innerText = c.subscription || "بدون اشتراك";
             document.getElementById("lastVisit").innerText = res.last_visit ? res.last_visit.date : "—";
 
-            JsBarcode("#barcode", c.phone, {
-                format: "CODE128",
-                lineColor: "#000",
-                width: 2,
-                height: 80,
-                displayValue: true
+            applyLevelStyle(c.level || "");
+
+            // QR CODE
+            new QRCode(document.getElementById("qrcode"), {
+                text: c.phone,
+                width: 140,
+                height: 140
             });
 
             document.getElementById("loading").style.display = "none";
             document.getElementById("content").style.display = "block";
-        }
-
-        function addToPhone() {
-            const btn = document.getElementById("addBtn");
-            btn.disabled = true;
-            btn.innerText = "جاري الإضافة...";
-
-            setTimeout(() => {
-                alert("تمت إضافة البطاقة للشاشة الرئيسية");
-                btn.innerText = "إضافة كبطاقة في الجوال";
-                btn.disabled = false;
-            }, 1200);
         }
 
         window.onload = () => {
