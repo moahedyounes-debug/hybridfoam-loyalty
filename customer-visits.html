@@ -1,46 +1,132 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>سجل الزيارات</title>
-<script src="api.js"></script>
+    <meta charset="UTF-8">
+    <title>زياراتي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
-.card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 0 10px #ddd; }
-</style>
+    <script src="api.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 18px;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        .section {
+            background: white;
+            margin: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 5px #ccc;
+        }
+
+        .item {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            line-height: 1.7;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 25px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .back {
+            display: block;
+            width: 90%;
+            margin: 20px auto;
+            padding: 14px;
+            background: #6c757d;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 18px;
+            text-decoration: none;
+        }
+    </style>
 </head>
 
 <body>
 
-<h2>سجل الزيارات</h2>
+    <div class="header">زياراتي</div>
 
-<div id="visits"></div>
+    <div id="loading" class="loading">جاري تحميل الزيارات...</div>
 
-<script>
-const phone = localStorage.getItem("phone");
+    <div id="content" style="display:none;">
+        <div class="section">
+            <div id="visitsList"></div>
+        </div>
 
-async function loadVisits() {
-    const res = await apiGet({ action: "getVisitsByPhone", phone });
+        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
+    </div>
 
-    let html = "";
+    <script>
+        async function loadVisits() {
+            const phone = localStorage.getItem("customer_phone");
 
-    res.visits.forEach(v => {
-        html += `
-            <div class="card">
-                <p>الخدمة: ${v.service_detail}</p>
-                <p>السعر: ${v.price}</p>
-                <p>التاريخ: ${v.check_in}</p>
-                <p>التقييم: ${v.rating || "—"}</p>
-            </div>
-        `;
-    });
+            if (!phone) {
+                window.location.href = "customer-login.html";
+                return;
+            }
 
-    document.getElementById("visits").innerHTML = html;
-}
+            const res = await apiGet({
+                action: "getVisitsByPhone",
+                phone
+            });
 
-loadVisits();
-</script>
+            if (!res.success) {
+                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل الزيارات";
+                return;
+            }
+
+            // إظهار المحتوى
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("content").style.display = "block";
+
+            const list = document.getElementById("visitsList");
+            list.innerHTML = "";
+
+            if (res.visits.length === 0) {
+                list.innerHTML = "<div class='item'>لا توجد زيارات</div>";
+                return;
+            }
+
+            res.visits.forEach(v => {
+                list.innerHTML += `
+                    <div class="item">
+                        <strong>${v.service_detail}</strong><br>
+                        السعر: ${v.price}<br>
+                        الفرع: ${v.branch}<br>
+                        الدخول: ${v.check_in}<br>
+                        الخروج: ${v.check_out || "—"}<br>
+                        رقم عضوية السيارة: ${v.membership}
+                    </div>
+                `;
+            });
+        }
+
+        // تحميل سريع
+        window.onload = () => {
+            setTimeout(loadVisits, 120);
+        };
+    </script>
 
 </body>
 </html>
