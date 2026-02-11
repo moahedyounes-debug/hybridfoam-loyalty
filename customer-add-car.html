@@ -1,211 +1,153 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>إضافة سيارة</title>
-<script src="api.js"></script>
+    <meta charset="UTF-8">
+    <title>إضافة سيارة جديدة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body {
-    font-family: sans-serif;
-    background: #f5f5f5;
-    padding: 20px;
-}
-.card {
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    width: 380px;
-    margin: auto;
-    box-shadow: 0 0 10px #ddd;
-}
-input, select, button {
-    width: 95%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-}
-button {
-    background: #28a745;
-    color: white;
-    cursor: pointer;
-}
-button:hover {
-    background: #1e7e34;
-}
-.list-box {
-    max-height: 180px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    display: none;
-}
-.list-item {
-    padding: 10px;
-    cursor: pointer;
-}
-.list-item:hover {
-    background: #f0f0f0;
-}
-.error {
-    color: red;
-    margin-top: 10px;
-}
-</style>
+    <script src="api.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 18px;
+            font-size: 22px;
+        }
+
+        .container {
+            margin-top: 25px;
+            padding: 20px;
+        }
+
+        input, select {
+            width: 85%;
+            max-width: 320px;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            width: 85%;
+            max-width: 320px;
+            padding: 14px;
+            margin-top: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .back {
+            width: 85%;
+            max-width: 320px;
+            padding: 14px;
+            margin: 15px auto;
+            background: #6c757d;
+            color: white;
+            border-radius: 8px;
+            font-size: 18px;
+            text-decoration: none;
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="card">
-    <h2>إضافة سيارة جديدة</h2>
+    <div class="header">إضافة سيارة جديدة</div>
 
-    <!-- بحث السيارة -->
-    <input type="text" id="carSearch" placeholder="ابحث عن نوع السيارة...">
-    <div id="carList" class="list-box"></div>
+    <div class="container">
 
-    <!-- إذا اختار "أخرى" -->
-    <input type="text" id="carOther" placeholder="اكتب نوع السيارة" style="display:none;">
+        <input type="text" id="car" placeholder="نوع السيارة (مثال: Camry)">
+        
+        <select id="size">
+            <option value="">اختر حجم السيارة</option>
+            <option value="Small">Small</option>
+            <option value="Medium">Medium</option>
+            <option value="Large">Large</option>
+            <option value="SUV">SUV</option>
+        </select>
 
-    <!-- الحجم تلقائي -->
-    <input type="text" id="size" placeholder="الحجم" readonly>
+        <input type="text" id="letters" placeholder="حروف اللوحة (مثال: ABC)">
+        <input type="text" id="numbers" placeholder="أرقام اللوحة (مثال: 1234)">
 
-    <!-- اللوحة -->
-    <input type="text" id="numbers" placeholder="أرقام اللوحة (1234)">
-    <input type="text" id="letters" placeholder="حروف اللوحة (أ ب ج)">
+        <button id="addBtn" onclick="addCar()">إضافة السيارة</button>
 
-    <button onclick="addCar()">إضافة السيارة</button>
+        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
+    </div>
 
-    <div id="error" class="error"></div>
-</div>
+    <script>
+        async function addCar() {
+            const btn = document.getElementById("addBtn");
 
-<script>
-// قاعدة بيانات السيارات + الحجم التلقائي
-const carDB = {
-    // صغير
-    "تويوتا يارس": "صغير",
-    "تويوتا كورولا": "صغير",
-    "هيونداي إلنترا": "صغير",
-    "هوندا سيفيك": "صغير",
-    "كيا سيراتو": "صغير",
+            const phone   = localStorage.getItem("customer_phone");
+            const car     = document.getElementById("car").value.trim();
+            const size    = document.getElementById("size").value.trim();
+            const letters = document.getElementById("letters").value.trim();
+            const numbers = document.getElementById("numbers").value.trim();
 
-    // سيدان
-    "تويوتا كامري": "سيدان",
-    "تويوتا أفالون": "سيدان",
-    "هيونداي سوناتا": "سيدان",
-    "هوندا أكورد": "سيدان",
-    "كيا K5": "سيدان",
-    "فورد تورس": "سيدان",
+            if (!phone) {
+                alert("الرجاء تسجيل الدخول أولاً");
+                window.location.href = "customer-login.html";
+                return;
+            }
 
-    // SUV صغير
-    "كيا سبورتاج": "SUV صغير",
-    "هيونداي توسان": "SUV صغير",
-    "هوندا CR-V": "SUV صغير",
-    "تويوتا راف فور": "SUV صغير",
+            if (!car || !size || !letters || !numbers) {
+                alert("الرجاء تعبئة جميع الحقول");
+                return;
+            }
 
-    // SUV كبير
-    "GMC يوكن": "SUV كبير",
-    "شفروليه تاهو": "SUV كبير",
-    "شفروليه سوبربان": "SUV كبير",
-    "تويوتا لاندكروزر": "SUV كبير",
-    "تويوتا برادو": "SUV كبير",
-    "نيسان باترول": "SUV كبير",
+            // 🔒 قفل الزر + تغيير النص
+            btn.disabled = true;
+            btn.innerText = "جاري الإضافة...";
 
-    // فاخر
-    "مرسيدس S-Class": "فاخر",
-    "BMW الفئة السابعة": "فاخر",
-    "لكزس LS": "فاخر",
-    "أودي A8": "فاخر",
+            const res = await apiPost({
+                action: "addCar",
+                phone,
+                car,
+                size,
+                letters,
+                numbers
+            });
 
-    // بيك أب
-    "تويوتا هايلكس": "بيك-أب",
-    "فورد F150": "بيك-أب",
-    "رام 1500": "بيك-أب",
-    "نيسان نافارا": "بيك-أب",
+            if (!res.success) {
+                btn.disabled = false;
+                btn.innerText = "إضافة السيارة";
+                alert("حدث خطأ أثناء إضافة السيارة");
+                return;
+            }
 
-    // فان
-    "تويوتا هايس": "فان",
-    "نيسان أورفان": "فان",
-    "شفروليه إكسبريس": "فان",
+            alert("تم إضافة السيارة بنجاح");
 
-    // أخرى
-    "أخرى": "other"
-};
-
-const carSearch = document.getElementById("carSearch");
-const carList = document.getElementById("carList");
-const carOther = document.getElementById("carOther");
-const sizeInput = document.getElementById("size");
-
-// عرض القائمة أثناء الكتابة
-carSearch.addEventListener("input", () => {
-    const text = carSearch.value.trim();
-    carList.innerHTML = "";
-    carList.style.display = "block";
-
-    Object.keys(carDB).forEach(car => {
-        if (car.includes(text) || text === "") {
-            const item = document.createElement("div");
-            item.className = "list-item";
-            item.textContent = car;
-            item.onclick = () => selectCar(car);
-            carList.appendChild(item);
+            // رجوع سريع للوحة العميل
+            window.location.href = "customer-dashboard.html";
         }
-    });
-});
 
-// اختيار السيارة
-function selectCar(car) {
-    carSearch.value = car;
-    carList.style.display = "none";
-
-    if (car === "أخرى") {
-        carOther.style.display = "block";
-        sizeInput.value = "";
-    } else {
-        carOther.style.display = "none";
-        sizeInput.value = carDB[car];
-    }
-}
-
-// إضافة السيارة
-async function addCar() {
-    const phone = localStorage.getItem("phone");
-
-    let car = carSearch.value.trim();
-    if (car === "أخرى") {
-        car = carOther.value.trim();
-    }
-
-    const size = sizeInput.value.trim();
-    const numbers = document.getElementById("numbers").value.trim();
-    const letters = document.getElementById("letters").value.trim();
-    const error = document.getElementById("error");
-
-    if (!car || !size || !numbers || !letters) {
-        error.textContent = "الرجاء تعبئة جميع الحقول";
-        return;
-    }
-
-    const res = await apiPost({
-        action: "addCar",
-        phone,
-        car,
-        size,
-        letters,
-        numbers
-    });
-
-    if (!res.success) {
-        error.textContent = "حدث خطأ أثناء الإضافة";
-        return;
-    }
-
-    window.location.href = "customer-cars.html";
-}
-</script>
+        // تحميل سريع
+        window.onload = () => {
+            setTimeout(() => {}, 100);
+        };
+    </script>
 
 </body>
 </html>
