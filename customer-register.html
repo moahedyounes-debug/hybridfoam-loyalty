@@ -16,14 +16,16 @@
             text-align: center;
         }
 
-        .container {
-            margin-top: 60px;
-            padding: 20px;
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 18px;
+            font-size: 22px;
         }
 
-        h2 {
-            color: #333;
-            margin-bottom: 25px;
+        .container {
+            margin-top: 40px;
+            padding: 20px;
         }
 
         input {
@@ -49,10 +51,22 @@
             cursor: pointer;
         }
 
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .back {
-            margin-top: 20px;
             display: block;
-            color: #007bff;
+            width: 85%;
+            max-width: 320px;
+            padding: 14px;
+            margin: 20px auto;
+            background: #6c757d;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 18px;
             text-decoration: none;
         }
     </style>
@@ -60,19 +74,21 @@
 
 <body>
 
+    <div class="header">فتح حساب جديد</div>
+
     <div class="container">
-        <h2>فتح حساب جديد</h2>
 
         <input type="text" id="name" placeholder="الاسم الكامل">
         <input type="tel" id="phone" placeholder="رقم الجوال (05xxxxxxxx)">
 
-        <button onclick="registerCustomer()">تسجيل</button>
+        <button id="registerBtn" onclick="registerCustomer()">تسجيل</button>
 
-        <a href="customer-home.html" class="back">رجوع</a>
+        <a href="customer-home.html" class="back">رجوع للصفحة الرئيسية</a>
     </div>
 
     <script>
         async function registerCustomer() {
+            const btn = document.getElementById("registerBtn");
             const name  = document.getElementById("name").value.trim();
             const phone = document.getElementById("phone").value.trim();
 
@@ -86,6 +102,10 @@
                 return;
             }
 
+            // 🔒 قفل الزر + تغيير النص
+            btn.disabled = true;
+            btn.innerText = "جاري التسجيل...";
+
             const res = await apiPost({
                 action: "registerCustomer",
                 name,
@@ -93,16 +113,22 @@
             });
 
             if (!res.success) {
+                btn.disabled = false;
+                btn.innerText = "تسجيل";
                 alert("حدث خطأ أثناء التسجيل");
                 return;
             }
 
-            // حفظ الجوال في localStorage
+            // حفظ الجوال
             localStorage.setItem("customer_phone", phone);
 
             // تحويل للوحة العميل
             window.location.href = "customer-dashboard.html";
         }
+
+        window.onload = () => {
+            setTimeout(() => {}, 100);
+        };
     </script>
 
 </body>
