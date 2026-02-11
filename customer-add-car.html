@@ -2,17 +2,16 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إضافة سيارة جديدة</title>
+    <title>إضافة سيارة</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <!-- manifest (PWA) -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- Service Worker -->
     <script>
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("service-worker.js");
         }
+    </script>
 
     <script src="api.js"></script>
 
@@ -28,7 +27,7 @@
         .header {
             background: #007bff;
             color: white;
-            padding: 18px;
+            padding: 20px;
             font-size: 22px;
         }
 
@@ -37,28 +36,27 @@
             padding: 20px;
         }
 
-        input, select {
+        select, input {
             width: 85%;
-            max-width: 320px;
+            max-width: 350px;
             padding: 12px;
             margin: 10px 0;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid #ccc;
             font-size: 16px;
         }
 
         button {
             width: 85%;
-            max-width: 320px;
+            max-width: 350px;
             padding: 14px;
-            margin-top: 20px;
+            margin-top: 15px;
             background: #28a745;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 18px;
             cursor: pointer;
-            transition: 0.2s;
         }
 
         button:disabled {
@@ -67,66 +65,107 @@
         }
 
         .back {
+            display: block;
             width: 85%;
-            max-width: 320px;
+            max-width: 350px;
             padding: 14px;
-            margin: 15px auto;
+            margin: 20px auto;
             background: #6c757d;
             color: white;
-            border-radius: 8px;
+            text-align: center;
+            border-radius: 10px;
             font-size: 18px;
             text-decoration: none;
-            display: block;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">إضافة سيارة جديدة</div>
+    <div class="header">إضافة سيارة</div>
 
     <div class="container">
 
-        <input type="text" id="car" placeholder="نوع السيارة (مثال: Camry)">
-        
-        <select id="size">
-            <option value="">اختر حجم السيارة</option>
-            <option value="Small">Small</option>
-            <option value="Medium">Medium</option>
-            <option value="Large">Large</option>
-            <option value="SUV">SUV</option>
+        <!-- نوع السيارة -->
+        <select id="carType" onchange="updateSize()">
+            <option value="">اختر نوع السيارة</option>
+            <option value="كامري">كامري</option>
+            <option value="كورولا">كورولا</option>
+            <option value="سوناتا">سوناتا</option>
+            <option value="النترا">النترا</option>
+            <option value="لاندكروزر">لاندكروزر</option>
+            <option value="جي اكس آر">جي اكس آر</option>
+            <option value="باترول">باترول</option>
+            <option value="اكسبديشن">اكسبديشن</option>
+            <option value="هايلكس">هايلكس</option>
+            <option value="ديماكس">ديماكس</option>
         </select>
 
-        <input type="text" id="letters" placeholder="حروف اللوحة (مثال: ABC)">
-        <input type="text" id="numbers" placeholder="أرقام اللوحة (مثال: 1234)">
+        <!-- الحجم تلقائي -->
+        <input type="text" id="size" placeholder="الحجم" readonly>
 
-        <button id="addBtn" onclick="addCar()">إضافة السيارة</button>
+        <!-- رقم اللوحة (أرقام) -->
+        <input type="text" id="plateNumbers" placeholder="أرقام اللوحة">
 
-        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
+        <!-- حروف اللوحة -->
+        <select id="plateLetters">
+            <option value="">اختر الحروف</option>
+            <option value="أ ب ج">أ ب ج</option>
+            <option value="د ر س">د ر س</option>
+            <option value="و ن هـ">و ن هـ</option>
+            <option value="ط ق ل">ط ق ل</option>
+            <option value="ع م ك">ع م ك</option>
+        </select>
+
+        <!-- رقم الهيكل -->
+        <input type="text" id="vin" placeholder="رقم الهيكل (اختياري)">
+
+        <!-- رقم العضوية -->
+        <input type="text" id="membership" placeholder="رقم العضوية (اختياري)">
+
+        <button id="saveBtn" onclick="saveCar()">إضافة السيارة</button>
+
+        <a href="customer-cars.html" class="back">رجوع</a>
+
     </div>
 
     <script>
-        async function addCar() {
-            const btn = document.getElementById("addBtn");
+        function updateSize() {
+            const car = document.getElementById("carType").value;
+            const sizeInput = document.getElementById("size");
 
-            const phone   = localStorage.getItem("customer_phone");
-            const car     = document.getElementById("car").value.trim();
-            const size    = document.getElementById("size").value.trim();
-            const letters = document.getElementById("letters").value.trim();
-            const numbers = document.getElementById("numbers").value.trim();
+            const sizes = {
+                "كامري": "سيدان",
+                "كورولا": "سيدان",
+                "سوناتا": "سيدان",
+                "النترا": "سيدان",
+                "لاندكروزر": "SUV",
+                "جي اكس آر": "SUV",
+                "باترول": "SUV",
+                "اكسبديشن": "SUV",
+                "هايلكس": "بيك أب",
+                "ديماكس": "بيك أب"
+            };
 
-            if (!phone) {
-                alert("الرجاء تسجيل الدخول أولاً");
-                window.location.href = "customer-login.html";
+            sizeInput.value = sizes[car] || "";
+        }
+
+        async function saveCar() {
+            const btn = document.getElementById("saveBtn");
+
+            const car = document.getElementById("carType").value;
+            const size = document.getElementById("size").value;
+            const plateNumbers = document.getElementById("plateNumbers").value.trim();
+            const plateLetters = document.getElementById("plateLetters").value;
+            const vin = document.getElementById("vin").value.trim();
+            const membership = document.getElementById("membership").value.trim();
+            const phone = localStorage.getItem("customer_phone");
+
+            if (!car || !size || !plateNumbers || !plateLetters) {
+                alert("الرجاء تعبئة جميع الحقول المطلوبة");
                 return;
             }
 
-            if (!car || !size || !letters || !numbers) {
-                alert("الرجاء تعبئة جميع الحقول");
-                return;
-            }
-
-            // 🔒 قفل الزر + تغيير النص
             btn.disabled = true;
             btn.innerText = "جاري الإضافة...";
 
@@ -135,27 +174,22 @@
                 phone,
                 car,
                 size,
-                letters,
-                numbers
+                plate_numbers: plateNumbers,
+                plate_letters: plateLetters,
+                vin,
+                membership
             });
 
             if (!res.success) {
                 btn.disabled = false;
                 btn.innerText = "إضافة السيارة";
-                alert("حدث خطأ أثناء إضافة السيارة");
+                alert("حدث خطأ أثناء الإضافة");
                 return;
             }
 
-            alert("تم إضافة السيارة بنجاح");
-
-            // رجوع سريع للوحة العميل
-            window.location.href = "customer-dashboard.html";
+            alert("تمت إضافة السيارة بنجاح");
+            window.location.href = "customer-cars.html";
         }
-
-        // تحميل سريع
-        window.onload = () => {
-            setTimeout(() => {}, 100);
-        };
     </script>
 
 </body>
