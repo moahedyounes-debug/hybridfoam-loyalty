@@ -5,6 +5,16 @@
     <title>لوحة العميل</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
     <script src="api.js"></script>
 
     <style>
@@ -73,6 +83,7 @@
         .orange { background: #fd7e14; }
         .purple { background: #6f42c1; }
         .brown { background: #8b5e3c; }
+        .red { background: #dc3545; }
 
         .section {
             background: white;
@@ -158,6 +169,11 @@
             <div class="icon-btn" onclick="goBookings()">
                 <div class="icon-circle purple"></div>
                 حجوزاتي
+            </div>
+
+            <div class="icon-btn" onclick="goNotifications()">
+                <div class="icon-circle red"></div>
+                الإشعارات
             </div>
 
             <div class="icon-btn" onclick="goAddCar()">
@@ -272,6 +288,7 @@
         function goCars() { window.location.href = "customer-cars.html"; }
         function goVisits() { window.location.href = "customer-visits.html"; }
         function goBookings() { window.location.href = "customer-bookings.html"; }
+        function goNotifications() { window.location.href = "customer-notifications.html"; }
         function goAddCar() { window.location.href = "customer-add-car.html"; }
 
         function logout() {
