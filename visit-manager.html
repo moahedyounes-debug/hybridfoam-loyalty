@@ -57,6 +57,11 @@
       border: none;
       cursor: pointer;
       font-size: 14px;
+      transition: 0.15s;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
     .btn-primary {
       background: #000;
@@ -164,7 +169,7 @@
   </style>
 
   <script src="api.js?v=6"></script>
-  <script src="visit-manager.js?v=1"></script>
+  <script src="visit-manager.js?v=2"></script>
 </head>
 <body>
 
@@ -178,7 +183,7 @@
         <h3>بحث عن العميل</h3>
         <label>رقم الجوال</label>
         <input type="text" id="phone" placeholder="05XXXXXXXX" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-        <button class="btn-primary" onclick="vm_searchCustomer()">بحث عن السيارات</button>
+        <button id="btnSearch" class="btn-primary" onclick="vm_searchCustomer()">بحث عن السيارات</button>
       </div>
 
       <div id="carsBox" class="box" style="display:none;">
@@ -211,7 +216,7 @@
           </div>
         </div>
 
-        <button class="btn-secondary" style="margin-top:10px;" onclick="vm_addService()">إضافة خدمة +</button>
+        <button id="btnAddService" class="btn-secondary" style="margin-top:10px;" onclick="vm_addService()">إضافة خدمة +</button>
 
         <div id="servicesList" style="margin-top:10px;"></div>
 
@@ -257,7 +262,7 @@
           </div>
         </div>
 
-        <button class="btn-primary" onclick="vm_submitVisit()">تسجيل الزيارة</button>
+        <button id="btnSubmitVisit" class="btn-primary" onclick="vm_submitVisit()">تسجيل الزيارة</button>
       </div>
     </div>
 
@@ -266,7 +271,7 @@
       <div class="box">
         <h3>السيارات داخل المغسلة (غير مدفوعة)</h3>
         <div class="active-list" id="activeVisitsList"></div>
-        <button class="btn-secondary" style="width:100%; margin-top:10px;" onclick="vm_loadActiveVisits()">تحديث القائمة</button>
+        <button id="btnRefreshActive" class="btn-secondary" style="width:100%; margin-top:10px;" onclick="vm_loadActiveVisits()">تحديث القائمة</button>
       </div>
     </div>
 
