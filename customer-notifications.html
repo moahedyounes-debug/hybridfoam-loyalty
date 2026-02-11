@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>الإشعارات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="api.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 18px;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        .section {
+            background: white;
+            margin: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 5px #ccc;
+        }
+
+        .item {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            line-height: 1.7;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .time {
+            font-size: 13px;
+            color: #777;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 25px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .back {
+            display: block;
+            width: 90%;
+            margin: 20px auto;
+            padding: 14px;
+            background: #6c757d;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 18px;
+            text-decoration: none;
+        }
+
+        .mark-btn {
+            background: #28a745;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 15px;
+        }
+
+        .mark-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">الإشعارات</div>
+
+    <div id="loading" class="loading">جاري تحميل الإشعارات...</div>
+
+    <div id="content" style="display:none;">
+        <div class="section">
+            <div id="notificationsList"></div>
+        </div>
+
+        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
+    </div>
+
+    <script>
+        async function loadNotifications() {
+            const phone = localStorage.getItem("customer_phone");
+
+            if (!phone) {
+                window.location.href = "customer-login.html";
+                return;
+            }
+
+            const res = await apiGet({
+                action: "getNotifications",
+                phone
+            });
+
+            if (!res.success) {
+                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل الإشعارات";
+                return;
+            }
+
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("content").style.display = "block";
+
+            const list = document.getElementById("notificationsList");
+            list.innerHTML = "";
+
+            if (res.notifications.length === 0) {
+                list.innerHTML = "<div class='item'>لا توجد إشعارات</div>";
+                return;
+            }
+
+            res.notifications.forEach(n => {
+                list.innerHTML += `
+                    <div class="item">
+                        <strong>${n.title}</strong><br>
+                        ${n.message}<br>
+                        <span class="time">${n.time}</span><br>
+                        ${n.read == 0 ? `
+                            <button class="mark-btn" onclick="markRead(${n.id}, this)">تحديد كمقروء</button>
+                        ` : ""}
+                    </div>
+                `;
+            });
+        }
+
+        async function markRead(id, btn) {
+            btn.disabled = true;
+            btn.innerText = "جاري التحديث...";
+
+            const res = await apiPost({
+                action: "markNotificationRead",
+                id
+            });
+
+            if (!res.success) {
+                btn.disabled = false;
+                btn.innerText = "تحديد كمقروء";
+                alert("حدث خطأ أثناء التحديث");
+                return;
+            }
+
+            alert("تم تحديد الإشعار كمقروء");
+            window.location.reload();
+        }
+
+        window.onload = () => {
+            setTimeout(loadNotifications, 120);
+        };
+    </script>
+
+</body>
+</html>
