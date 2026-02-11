@@ -16,22 +16,58 @@
     <script src="api.js"></script>
 
     <style>
+        :root {
+            --bg: #f2f4f7;
+            --card-bg: #ffffff;
+            --text: #222;
+            --subtext: #555;
+            --primary: #007bff;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        /* THEME C (Dark Premium) */
+        .theme-dark {
+            --bg: #0d0d0d;
+            --card-bg: #1a1a1a;
+            --text: #f5f5f5;
+            --subtext: #bbb;
+            --primary: #d4af37;
+            --shadow: rgba(255,255,255,0.08);
+        }
+
         body {
             font-family: 'Tahoma', sans-serif;
-            background: #f2f4f7;
+            background: var(--bg);
             margin: 0;
             padding: 0;
+            color: var(--text);
+            transition: 0.25s ease-in-out;
         }
 
         .header {
-            background: linear-gradient(135deg, #007bff, #005fcc);
+            background: var(--primary);
             color: white;
             padding: 25px;
             text-align: center;
             font-size: 24px;
             border-bottom-left-radius: 20px;
             border-bottom-right-radius: 20px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 3px 8px var(--shadow);
+            position: relative;
+        }
+
+        /* زر تغيير المظهر */
+        .theme-toggle {
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            background: rgba(255,255,255,0.25);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
         }
 
         .hello {
@@ -44,12 +80,13 @@
         .level-card {
             margin: 20px auto;
             width: 90%;
-            background: white;
+            background: var(--card-bg);
             border-radius: 16px;
             padding: 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px var(--shadow);
             position: relative;
             text-align: center;
+            transition: 0.25s;
         }
 
         .level-title {
@@ -65,12 +102,6 @@
             right: 12px;
             display: none;
         }
-
-        /* ألوان المستويات */
-        .gold   { background: #d4af37; color: white; }
-        .silver { background: #9e9e9e; color: white; }
-        .bronze { background: #cd7f32; color: white; }
-        .basic  { background: #007bff; color: white; }
 
         /* شارت التقدم */
         .progress-container {
@@ -105,9 +136,9 @@
         .icon-btn {
             width: 90px;
             height: 90px;
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 2px 6px var(--shadow);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -115,6 +146,7 @@
             font-size: 14px;
             cursor: pointer;
             transition: 0.2s;
+            color: var(--text);
         }
 
         .icon-btn:hover {
@@ -124,7 +156,7 @@
         .icon-circle {
             width: 38px;
             height: 38px;
-            border-radius: 50%;
+            border-radius: 12px;
             margin-bottom: 6px;
         }
 
@@ -137,24 +169,26 @@
         .red { background: #dc3545; }
 
         .section {
-            background: white;
+            background: var(--card-bg);
             margin: 15px;
             padding: 18px;
             border-radius: 14px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 6px var(--shadow);
+            transition: 0.25s;
         }
 
         .title {
             font-size: 18px;
             margin-bottom: 12px;
-            color: #333;
             font-weight: bold;
+            color: var(--text);
         }
 
         .item {
             padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #ddd;
             line-height: 1.7;
+            color: var(--subtext);
         }
 
         .item:last-child {
@@ -174,20 +208,11 @@
             text-decoration: none;
         }
 
-        .notif-badge {
-            background: red;
-            color: white;
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 50%;
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            display: none;
-        }
-
-        .icon-wrapper {
-            position: relative;
+        .loading {
+            text-align: center;
+            padding: 30px;
+            font-size: 18px;
+            color: var(--subtext);
         }
     </style>
 </head>
@@ -195,6 +220,7 @@
 <body>
 
     <div class="header">
+        <div class="theme-toggle" onclick="toggleTheme()">تغيير المظهر</div>
         <div id="helloText">هلا 👋</div>
         <div class="hello" id="helloName"></div>
     </div>
@@ -204,14 +230,14 @@
     <div id="content" style="display:none;">
 
         <!-- بطاقة المستوى -->
-        <div id="levelCard" class="level-card basic">
+        <div id="levelCard" class="level-card">
             <div id="vipCrown" class="vip-crown">👑</div>
             <div id="levelTitle" class="level-title">المستوى: —</div>
 
             <div class="progress-container">
                 <svg width="130" height="130">
-                    <circle cx="65" cy="65" r="55" stroke="#eee" stroke-width="12" fill="none"></circle>
-                    <circle id="progressCircle" cx="65" cy="65" r="55" stroke="#fff" stroke-width="12" fill="none"
+                    <circle cx="65" cy="65" r="55" stroke="#ddd" stroke-width="12" fill="none"></circle>
+                    <circle id="progressCircle" cx="65" cy="65" r="55" stroke="var(--primary)" stroke-width="12" fill="none"
                         stroke-linecap="round" stroke-dasharray="345" stroke-dashoffset="345"></circle>
                 </svg>
                 <div id="progressText" class="progress-text">0%</div>
@@ -249,10 +275,7 @@
             </div>
 
             <div class="icon-btn" onclick="goNotifications()">
-                <div class="icon-wrapper">
-                    <div class="icon-circle red"></div>
-                    <span id="notifBadge" class="notif-badge"></span>
-                </div>
+                <div class="icon-circle red"></div>
                 الإشعارات
             </div>
 
@@ -292,6 +315,19 @@
     </div>
 
     <script>
+        /* Theme Toggle */
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.classList.toggle("theme-dark");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem("theme");
+            if (saved === "dark") document.body.classList.add("theme-dark");
+        }
+
+        /* Progress Animation */
         function animateProgress(percent) {
             const circle = document.getElementById("progressCircle");
             const text = document.getElementById("progressText");
@@ -303,34 +339,30 @@
             text.innerText = percent + "%";
         }
 
+        /* Level System */
         function applyLevel(level, points, nextLevelPoints) {
             const card = document.getElementById("levelCard");
             const crown = document.getElementById("vipCrown");
             const title = document.getElementById("levelTitle");
             const info = document.getElementById("pointsInfo");
 
-            card.classList.remove("gold","silver","bronze","basic");
-            crown.style.display = "none";
+            points = Number(points) || 0;
+            nextLevelPoints = Number(nextLevelPoints) || 1;
 
-            if (level.includes("ذهبي")) {
-                card.classList.add("gold");
-                crown.style.display = "block";
-            } else if (level.includes("فضي")) {
-                card.classList.add("silver");
-            } else if (level.includes("برونزي")) {
-                card.classList.add("bronze");
-            } else {
-                card.classList.add("basic");
-            }
+            let percent = Math.round((points / nextLevelPoints) * 100);
+            if (isNaN(percent) || percent < 0) percent = 0;
+            if (percent > 100) percent = 100;
 
-            title.innerText = "المستوى: " + level;
+            crown.style.display = level.includes("ذهبي") ? "block" : "none";
 
-            const percent = Math.min(100, Math.round((points / nextLevelPoints) * 100));
+            title.innerText = "المستوى: " + (level || "Basic");
+
             animateProgress(percent);
 
             info.innerHTML = `النقاط: ${points} / ${nextLevelPoints}`;
         }
 
+        /* Load Dashboard */
         async function loadDashboard() {
             const phone = localStorage.getItem("customer_phone");
 
@@ -339,13 +371,15 @@
                 return;
             }
 
+            setTimeout(() => {
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("content").style.display = "block";
+            }, 80);
+
             const res = await apiGet({
                 action: "getCustomerDashboard",
                 phone
             });
-
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("content").style.display = "block";
 
             const c = res.customer;
 
@@ -356,8 +390,8 @@
             document.getElementById("customerInfo").innerHTML = `
                 <div class="item">الاسم: ${c.name}</div>
                 <div class="item">رقم الجوال: ${c.phone}</div>
-                <div class="item">النقاط: ${c.points}</div>
-                <div class="item">عدد الزيارات: ${c.visit_count}</div>
+                <div class="item">النقاط: ${c.points || 0}</div>
+                <div class="item">عدد الزيارات: ${c.visit_count || 0}</div>
             `;
 
             let carsHTML = "";
@@ -396,14 +430,9 @@
                 `;
             });
             document.getElementById("bookingsList").innerHTML = bookingsHTML || "لا توجد حجوزات";
-
-            if (res.unread_notifications > 0) {
-                const badge = document.getElementById("notifBadge");
-                badge.innerText = res.unread_notifications;
-                badge.style.display = "inline-block";
-            }
         }
 
+        /* Navigation */
         function goBooking() { window.location.href = "customer-booking.html"; }
         function goMembership() { window.location.href = "customer-membership.html"; }
         function goCars() { window.location.href = "customer-cars.html"; }
@@ -418,7 +447,8 @@
         }
 
         window.onload = () => {
-            setTimeout(loadDashboard, 120);
+            loadTheme();
+            loadDashboard();
         };
     </script>
 
