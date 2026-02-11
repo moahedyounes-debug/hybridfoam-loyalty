@@ -2,8 +2,18 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تسجيل دخول العميل</title>
+    <title>تسجيل الدخول</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
 
     <script src="api.js"></script>
 
@@ -19,8 +29,8 @@
         .header {
             background: #007bff;
             color: white;
-            padding: 18px;
-            font-size: 22px;
+            padding: 25px;
+            font-size: 24px;
         }
 
         .container {
@@ -42,7 +52,7 @@
             width: 85%;
             max-width: 320px;
             padding: 14px;
-            margin-top: 20px;
+            margin-top: 10px;
             background: #28a745;
             color: white;
             border: none;
@@ -56,7 +66,7 @@
             cursor: not-allowed;
         }
 
-        .back {
+        .register {
             display: block;
             width: 85%;
             max-width: 320px;
@@ -65,7 +75,7 @@
             background: #6c757d;
             color: white;
             text-align: center;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 18px;
             text-decoration: none;
         }
@@ -74,15 +84,15 @@
 
 <body>
 
-    <div class="header">تسجيل دخول</div>
+    <div class="header">تسجيل الدخول</div>
 
     <div class="container">
 
-        <input type="tel" id="phone" placeholder="رقم الجوال (05xxxxxxxx)">
+        <input type="text" id="phone" placeholder="رقم الجوال">
 
-        <button id="loginBtn" onclick="login()">تسجيل دخول</button>
+        <button id="loginBtn" onclick="login()">دخول</button>
 
-        <a href="customer-home.html" class="back">رجوع للصفحة الرئيسية</a>
+        <a href="customer-register.html" class="register">إنشاء حساب جديد</a>
 
     </div>
 
@@ -91,44 +101,30 @@
             const btn = document.getElementById("loginBtn");
             const phone = document.getElementById("phone").value.trim();
 
-            if (!phone.startsWith("05") || phone.length !== 10) {
-                alert("رقم الجوال غير صحيح");
+            if (!phone) {
+                alert("الرجاء إدخال رقم الجوال");
                 return;
             }
 
-            // 🔒 قفل الزر + تغيير النص
             btn.disabled = true;
-            btn.innerText = "جاري التحقق...";
+            btn.innerText = "جاري الدخول...";
 
-            const res = await apiGet({
-                action: "checkCustomer",
+            const res = await apiPost({
+                action: "loginCustomer",
                 phone
             });
 
             if (!res.success) {
                 btn.disabled = false;
-                btn.innerText = "تسجيل دخول";
-                alert("حدث خطأ أثناء التحقق");
+                btn.innerText = "دخول";
+                alert("رقم الجوال غير مسجل");
                 return;
             }
 
-            if (res.status === "exists") {
-                localStorage.setItem("customer_phone", phone);
-                window.location.href = "customer-dashboard.html";
-                return;
-            }
+            localStorage.setItem("customer_phone", phone);
 
-            if (res.status === "new") {
-                btn.disabled = false;
-                btn.innerText = "تسجيل دخول";
-                alert("لا يوجد حساب مرتبط بهذا الرقم. الرجاء إنشاء حساب جديد.");
-                return;
-            }
+            window.location.href = "customer-dashboard.html";
         }
-
-        window.onload = () => {
-            setTimeout(() => {}, 100);
-        };
     </script>
 
 </body>
