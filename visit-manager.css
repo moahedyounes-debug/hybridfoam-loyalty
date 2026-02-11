@@ -1,0 +1,213 @@
+/* ================================
+   Visit Manager — النسخة الذهبية
+   تصميم نظيف + متجاوب + سريع
+================================ */
+
+/* الصفحة */
+body {
+    font-family: "Tajawal", sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+}
+
+/* العنوان */
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+/* التخطيط */
+.layout {
+    max-width: 1100px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 20px;
+}
+
+/* الصناديق */
+.box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-bottom: 15px;
+}
+
+.box h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+/* النصوص */
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* الحقول */
+input,
+select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+    background: #fff;
+}
+
+/* الأزرار */
+button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.15s;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: #000;
+    color: #fff;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+/* قائمة السيارات */
+.car-item {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-top: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    background: #fff;
+    transition: 0.15s;
+}
+
+.car-item:hover {
+    background: #f3f4f6;
+}
+
+.car-item.selected {
+    border-color: #000;
+    background: #f3f4f6;
+}
+
+/* الخدمات */
+.service-card {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fafafa;
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.service-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.remove-btn {
+    background: #b91c1c;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* الوسوم */
+.tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    background: #e5e7eb;
+    margin-left: 4px;
+}
+
+.tag-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.tag-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.tag-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* قائمة الزيارات */
+.active-list {
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.visit-item {
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #fff;
+    font-size: 13px;
+}
+
+.visit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.visit-actions {
+    margin-top: 6px;
+    text-align: left;
+}
+
+.small {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* صفوف */
+.row {
+    display: flex;
+    gap: 10px;
+}
+
+.row > div {
+    flex: 1;
+}
+
+/* الجوال */
+@media (max-width: 900px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
