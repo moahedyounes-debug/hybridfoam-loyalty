@@ -2,8 +2,20 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>العميل | الصفحة الرئيسية</title>
+    <title>الصفحة الرئيسية</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+    <script src="api.js"></script>
 
     <style>
         body {
@@ -14,63 +26,63 @@
             text-align: center;
         }
 
-        .container {
-            margin-top: 80px;
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 25px;
+            font-size: 24px;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 40px;
+        .container {
+            margin-top: 40px;
+            padding: 20px;
         }
 
         .btn {
             display: block;
-            width: 80%;
-            max-width: 300px;
+            width: 85%;
+            max-width: 320px;
+            padding: 14px;
             margin: 15px auto;
-            padding: 15px;
-            font-size: 18px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .login-btn {
             background: #007bff;
             color: white;
+            border-radius: 10px;
+            font-size: 18px;
+            text-decoration: none;
         }
 
-        .register-btn {
-            background: #28a745;
-            color: white;
+        .btn-secondary {
+            background: #6c757d;
         }
 
-        img.logo {
-            width: 120px;
-            margin-bottom: 20px;
+        .loading {
+            margin-top: 30px;
+            font-size: 18px;
+            color: #555;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
-        <img src="logo.png" class="logo">
+    <div class="header">مرحباً بك</div>
 
-        <h1>مرحباً بك في نظام العميل</h1>
+    <div id="loading" class="loading">جاري التحميل...</div>
 
-        <button class="btn login-btn" onclick="goLogin()">تسجيل دخول</button>
-        <button class="btn register-btn" onclick="goRegister()">فتح حساب جديد</button>
+    <div id="content" style="display:none;" class="container">
+
+        <a href="customer-login.html" class="btn">تسجيل الدخول</a>
+        <a href="customer-register.html" class="btn btn-secondary">إنشاء حساب جديد</a>
+
     </div>
 
     <script>
-        function goLogin() {
-            window.location.href = "customer-login.html";
-        }
-
-        function goRegister() {
-            window.location.href = "customer-register.html";
-        }
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("content").style.display = "block";
+            }, 120);
+        };
     </script>
 
 </body>
