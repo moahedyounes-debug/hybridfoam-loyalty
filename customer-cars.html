@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>سياراتي</title>
+<script src="api.js"></script>
+
+<style>
+body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+.card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 0 10px #ddd; }
+a.btn { display: block; padding: 12px; background: #28a745; color: white; text-align: center; border-radius: 8px; text-decoration: none; }
+</style>
+</head>
+
+<body>
+
+<h2>سياراتي</h2>
+
+<div id="cars"></div>
+
+<a class="btn" href="customer-add-car.html">إضافة سيارة</a>
+
+<script>
+const phone = localStorage.getItem("phone");
+
+async function loadCars() {
+    const res = await apiGet({ action: "getCarsByPhone", phone });
+
+    let html = "";
+
+    res.cars.forEach(car => {
+        html += `
+            <div class="card">
+                <p>${car.car}</p>
+                <p>${car.plate_letters} - ${car.plate_numbers}</p>
+                <p>الحجم: ${car.size}</p>
+            </div>
+        `;
+    });
+
+    document.getElementById("cars").innerHTML = html;
+}
+
+loadCars();
+</script>
+
+</body>
+</html>
