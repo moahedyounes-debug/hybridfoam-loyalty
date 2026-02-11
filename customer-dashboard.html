@@ -5,10 +5,8 @@
     <title>لوحة العميل</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- manifest (PWA) -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- Service Worker -->
     <script>
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("service-worker.js");
@@ -42,7 +40,60 @@
             opacity: 0.9;
         }
 
-        /* أيقونات دائرية */
+        /* بطاقة المستوى */
+        .level-card {
+            margin: 20px auto;
+            width: 90%;
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            text-align: center;
+        }
+
+        .level-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .vip-crown {
+            font-size: 28px;
+            position: absolute;
+            top: -12px;
+            right: 12px;
+            display: none;
+        }
+
+        /* ألوان المستويات */
+        .gold   { background: #d4af37; color: white; }
+        .silver { background: #9e9e9e; color: white; }
+        .bronze { background: #cd7f32; color: white; }
+        .basic  { background: #007bff; color: white; }
+
+        /* شارت التقدم */
+        .progress-container {
+            margin: 15px auto;
+            width: 130px;
+            height: 130px;
+            position: relative;
+        }
+
+        .progress-container svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* أيقونات */
         .icon-grid {
             display: flex;
             flex-wrap: wrap;
@@ -110,13 +161,6 @@
             border-bottom: none;
         }
 
-        .loading {
-            text-align: center;
-            padding: 30px;
-            font-size: 18px;
-            color: #555;
-        }
-
         .logout {
             display: block;
             width: 90%;
@@ -128,6 +172,22 @@
             border-radius: 10px;
             font-size: 18px;
             text-decoration: none;
+        }
+
+        .notif-badge {
+            background: red;
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            display: none;
+        }
+
+        .icon-wrapper {
+            position: relative;
         }
     </style>
 </head>
@@ -143,7 +203,24 @@
 
     <div id="content" style="display:none;">
 
-        <!-- أيقونات دائرية -->
+        <!-- بطاقة المستوى -->
+        <div id="levelCard" class="level-card basic">
+            <div id="vipCrown" class="vip-crown">👑</div>
+            <div id="levelTitle" class="level-title">المستوى: —</div>
+
+            <div class="progress-container">
+                <svg width="130" height="130">
+                    <circle cx="65" cy="65" r="55" stroke="#eee" stroke-width="12" fill="none"></circle>
+                    <circle id="progressCircle" cx="65" cy="65" r="55" stroke="#fff" stroke-width="12" fill="none"
+                        stroke-linecap="round" stroke-dasharray="345" stroke-dashoffset="345"></circle>
+                </svg>
+                <div id="progressText" class="progress-text">0%</div>
+            </div>
+
+            <div id="pointsInfo" style="font-size:15px; margin-top:5px;"></div>
+        </div>
+
+        <!-- أيقونات -->
         <div class="icon-grid">
 
             <div class="icon-btn" onclick="goBooking()">
@@ -172,7 +249,10 @@
             </div>
 
             <div class="icon-btn" onclick="goNotifications()">
-                <div class="icon-circle red"></div>
+                <div class="icon-wrapper">
+                    <div class="icon-circle red"></div>
+                    <span id="notifBadge" class="notif-badge"></span>
+                </div>
                 الإشعارات
             </div>
 
@@ -212,6 +292,45 @@
     </div>
 
     <script>
+        function animateProgress(percent) {
+            const circle = document.getElementById("progressCircle");
+            const text = document.getElementById("progressText");
+
+            const max = 345;
+            const offset = max - (max * percent / 100);
+
+            circle.style.strokeDashoffset = offset;
+            text.innerText = percent + "%";
+        }
+
+        function applyLevel(level, points, nextLevelPoints) {
+            const card = document.getElementById("levelCard");
+            const crown = document.getElementById("vipCrown");
+            const title = document.getElementById("levelTitle");
+            const info = document.getElementById("pointsInfo");
+
+            card.classList.remove("gold","silver","bronze","basic");
+            crown.style.display = "none";
+
+            if (level.includes("ذهبي")) {
+                card.classList.add("gold");
+                crown.style.display = "block";
+            } else if (level.includes("فضي")) {
+                card.classList.add("silver");
+            } else if (level.includes("برونزي")) {
+                card.classList.add("bronze");
+            } else {
+                card.classList.add("basic");
+            }
+
+            title.innerText = "المستوى: " + level;
+
+            const percent = Math.min(100, Math.round((points / nextLevelPoints) * 100));
+            animateProgress(percent);
+
+            info.innerHTML = `النقاط: ${points} / ${nextLevelPoints}`;
+        }
+
         async function loadDashboard() {
             const phone = localStorage.getItem("customer_phone");
 
@@ -225,21 +344,18 @@
                 phone
             });
 
-            if (!res.success) {
-                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل البيانات";
-                return;
-            }
-
             document.getElementById("loading").style.display = "none";
             document.getElementById("content").style.display = "block";
 
-            document.getElementById("helloName").innerText = res.customer.name;
-
             const c = res.customer;
+
+            document.getElementById("helloName").innerText = c.name;
+
+            applyLevel(c.level, c.points, c.next_level_points);
+
             document.getElementById("customerInfo").innerHTML = `
                 <div class="item">الاسم: ${c.name}</div>
                 <div class="item">رقم الجوال: ${c.phone}</div>
-                <div class="item">المستوى: ${c.level}</div>
                 <div class="item">النقاط: ${c.points}</div>
                 <div class="item">عدد الزيارات: ${c.visit_count}</div>
             `;
@@ -249,8 +365,7 @@
                 carsHTML += `
                     <div class="item">
                         <strong>${car.car}</strong> — ${car.size}<br>
-                        لوحة: ${car.plate_letters} ${car.plate_numbers}<br>
-                        رقم العضوية: ${car.membership}
+                        لوحة: ${car.plate_letters} ${car.plate_numbers}
                     </div>
                 `;
             });
@@ -281,6 +396,12 @@
                 `;
             });
             document.getElementById("bookingsList").innerHTML = bookingsHTML || "لا توجد حجوزات";
+
+            if (res.unread_notifications > 0) {
+                const badge = document.getElementById("notifBadge");
+                badge.innerText = res.unread_notifications;
+                badge.style.display = "inline-block";
+            }
         }
 
         function goBooking() { window.location.href = "customer-booking.html"; }
