@@ -2,95 +2,37 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة العميل</title>
+    <title>حجوزاتي</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script src="api.js"></script>
 
     <style>
         body {
-            font-family: 'Tahoma', sans-serif;
-            background: #f2f4f7;
+            font-family: sans-serif;
+            background: #f5f5f5;
             margin: 0;
             padding: 0;
         }
 
         .header {
-            background: linear-gradient(135deg, #007bff, #005fcc);
+            background: #007bff;
             color: white;
-            padding: 25px;
+            padding: 18px;
             text-align: center;
-            font-size: 24px;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            font-size: 22px;
         }
-
-        .hello {
-            font-size: 20px;
-            margin-top: 10px;
-            opacity: 0.9;
-        }
-
-        /* أيقونات دائرية */
-        .icon-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 15px 10px;
-            gap: 15px;
-        }
-
-        .icon-btn {
-            width: 90px;
-            height: 90px;
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 14px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .icon-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .icon-circle {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            margin-bottom: 6px;
-        }
-
-        .blue { background: #007bff; }
-        .green { background: #28a745; }
-        .yellow { background: #ffc107; }
-        .orange { background: #fd7e14; }
-        .purple { background: #6f42c1; }
-        .brown { background: #8b5e3c; }
 
         .section {
             background: white;
             margin: 15px;
-            padding: 18px;
-            border-radius: 14px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-
-        .title {
-            font-size: 18px;
-            margin-bottom: 12px;
-            color: #333;
-            font-weight: bold;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 5px #ccc;
         }
 
         .item {
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #eee;
             line-height: 1.7;
         }
@@ -101,102 +43,58 @@
 
         .loading {
             text-align: center;
-            padding: 30px;
+            padding: 25px;
             font-size: 18px;
             color: #555;
         }
 
-        .logout {
+        .back {
             display: block;
             width: 90%;
             margin: 20px auto;
             padding: 14px;
-            background: #dc3545;
+            background: #6c757d;
             color: white;
             text-align: center;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 18px;
             text-decoration: none;
+        }
+
+        .cancel-btn {
+            background: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 15px;
+        }
+
+        .cancel-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
-        <div id="helloText">هلا 👋</div>
-        <div class="hello" id="helloName"></div>
-    </div>
+    <div class="header">حجوزاتي</div>
 
-    <div id="loading" class="loading">جاري تحميل بياناتك...</div>
+    <div id="loading" class="loading">جاري تحميل الحجوزات...</div>
 
     <div id="content" style="display:none;">
-
-        <!-- أيقونات دائرية -->
-        <div class="icon-grid">
-
-            <div class="icon-btn" onclick="goBooking()">
-                <div class="icon-circle blue"></div>
-                الحجز
-            </div>
-
-            <div class="icon-btn" onclick="goMembership()">
-                <div class="icon-circle green"></div>
-                العضوية
-            </div>
-
-            <div class="icon-btn" onclick="goCars()">
-                <div class="icon-circle yellow"></div>
-                سياراتي
-            </div>
-
-            <div class="icon-btn" onclick="goVisits()">
-                <div class="icon-circle orange"></div>
-                زياراتي
-            </div>
-
-            <div class="icon-btn" onclick="goBookings()">
-                <div class="icon-circle purple"></div>
-                حجوزاتي
-            </div>
-
-            <div class="icon-btn" onclick="goAddCar()">
-                <div class="icon-circle brown"></div>
-                إضافة سيارة
-            </div>
-
-        </div>
-
-        <!-- بيانات العميل -->
         <div class="section">
-            <div class="title">بيانات العميل</div>
-            <div id="customerInfo"></div>
-        </div>
-
-        <!-- سيارات -->
-        <div class="section">
-            <div class="title">سياراتي</div>
-            <div id="carsList"></div>
-        </div>
-
-        <!-- آخر زيارة -->
-        <div class="section">
-            <div class="title">آخر زيارة</div>
-            <div id="lastVisit"></div>
-        </div>
-
-        <!-- حجوزات -->
-        <div class="section">
-            <div class="title">حجوزاتي</div>
             <div id="bookingsList"></div>
         </div>
 
-        <a href="#" onclick="logout()" class="logout">تسجيل خروج</a>
-
+        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
     </div>
 
     <script>
-        async function loadDashboard() {
+        async function loadBookings() {
             const phone = localStorage.getItem("customer_phone");
 
             if (!phone) {
@@ -205,82 +103,63 @@
             }
 
             const res = await apiGet({
-                action: "getCustomerDashboard",
+                action: "getBookingsByPhone",
                 phone
             });
 
             if (!res.success) {
-                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل البيانات";
+                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل الحجوزات";
                 return;
             }
 
             document.getElementById("loading").style.display = "none";
             document.getElementById("content").style.display = "block";
 
-            document.getElementById("helloName").innerText = res.customer.name;
+            const list = document.getElementById("bookingsList");
+            list.innerHTML = "";
 
-            const c = res.customer;
-            document.getElementById("customerInfo").innerHTML = `
-                <div class="item">الاسم: ${c.name}</div>
-                <div class="item">رقم الجوال: ${c.phone}</div>
-                <div class="item">المستوى: ${c.level}</div>
-                <div class="item">النقاط: ${c.points}</div>
-                <div class="item">عدد الزيارات: ${c.visit_count}</div>
-            `;
-
-            let carsHTML = "";
-            res.cars.forEach(car => {
-                carsHTML += `
-                    <div class="item">
-                        <strong>${car.car}</strong> — ${car.size}<br>
-                        لوحة: ${car.plate_letters} ${car.plate_numbers}<br>
-                        رقم العضوية: ${car.membership}
-                    </div>
-                `;
-            });
-            document.getElementById("carsList").innerHTML = carsHTML || "لا توجد سيارات";
-
-            if (res.last_visit) {
-                const v = res.last_visit;
-                document.getElementById("lastVisit").innerHTML = `
-                    <div class="item">الخدمة: ${v.service_detail}</div>
-                    <div class="item">السعر: ${v.price}</div>
-                    <div class="item">الفرع: ${v.branch}</div>
-                    <div class="item">الدخول: ${v.check_in}</div>
-                    <div class="item">الخروج: ${v.check_out || "—"}</div>
-                `;
-            } else {
-                document.getElementById("lastVisit").innerHTML = "لا توجد زيارات";
+            if (res.bookings.length === 0) {
+                list.innerHTML = "<div class='item'>لا توجد حجوزات</div>";
+                return;
             }
 
-            let bookingsHTML = "";
             res.bookings.forEach(b => {
-                bookingsHTML += `
+                list.innerHTML += `
                     <div class="item">
                         <strong>${b.service}</strong><br>
                         التاريخ: ${b.date}<br>
                         الوقت: ${b.time}<br>
-                        الحالة: ${b.status}
+                        الحالة: ${b.status}<br>
+                        ${b.status === "قيد الانتظار" ? `
+                            <button class="cancel-btn" onclick="cancelBooking(${b.id}, this)">إلغاء الحجز</button>
+                        ` : ""}
                     </div>
                 `;
             });
-            document.getElementById("bookingsList").innerHTML = bookingsHTML || "لا توجد حجوزات";
         }
 
-        function goBooking() { window.location.href = "customer-booking.html"; }
-        function goMembership() { window.location.href = "customer-membership.html"; }
-        function goCars() { window.location.href = "customer-cars.html"; }
-        function goVisits() { window.location.href = "customer-visits.html"; }
-        function goBookings() { window.location.href = "customer-bookings.html"; }
-        function goAddCar() { window.location.href = "customer-add-car.html"; }
+        async function cancelBooking(id, btn) {
+            btn.disabled = true;
+            btn.innerText = "جاري الإلغاء...";
 
-        function logout() {
-            localStorage.removeItem("customer_phone");
-            window.location.href = "customer-login.html";
+            const res = await apiPost({
+                action: "cancelBooking",
+                id
+            });
+
+            if (!res.success) {
+                btn.disabled = false;
+                btn.innerText = "إلغاء الحجز";
+                alert("حدث خطأ أثناء الإلغاء");
+                return;
+            }
+
+            alert("تم إلغاء الحجز");
+            window.location.reload();
         }
 
         window.onload = () => {
-            setTimeout(loadDashboard, 120);
+            setTimeout(loadBookings, 120);
         };
     </script>
 
