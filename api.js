@@ -3,7 +3,7 @@
     جميع الصفحات تعتمد عليه  
 */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyS-dpeZ-S3z1pWfwlWqPSi5IPSOoiYpfzqbfQgj4S6Z8BU0bUaDFrInCUsTuvnm_jrmQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyskcefoaMlwDCZ86Wv9qosnMJbXy8Co6CdikUX3nO-szGp129H_vW-heOyaGabS18leA/exec";
 
 /*  
     🔵 GET REQUEST  
