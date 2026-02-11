@@ -4,6 +4,27 @@ let vm_selectedMembership = null;
 let vm_commissions = [];
 let vm_addedServices = [];
 let vm_branches = [];
+let vm_loading = {
+  search: false,
+  submit: false,
+  refresh: false,
+  closeVisit: false
+};
+
+// =====================================================
+// Helpers لتحديث حالة الأزرار
+// =====================================================
+function vm_setButtonLoading(id, isLoading, textNormal, textLoading) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  if (isLoading) {
+    btn.disabled = true;
+    btn.textContent = textLoading;
+  } else {
+    btn.disabled = false;
+    btn.textContent = textNormal;
+  }
+}
 
 // =====================================================
 // تحميل الخدمات
@@ -72,13 +93,21 @@ function vm_updatePoints() {
 // البحث عن سيارات العميل
 // =====================================================
 async function vm_searchCustomer() {
+  if (vm_loading.search) return;
   const phone = document.getElementById("phone").value.trim();
   if (!phone) {
     alert("أدخل رقم الجوال");
     return;
   }
 
+  vm_loading.search = true;
+  vm_setButtonLoading("btnSearch", true, "بحث عن السيارات", "جاري البحث...");
+
   const res = await apiGet({ action: "getCarsByPhone", phone });
+
+  vm_loading.search = false;
+  vm_setButtonLoading("btnSearch", false, "بحث عن السيارات", "جاري البحث...");
+
   if (!res.success || !res.cars || res.cars.length === 0) {
     alert("لا يوجد سيارات لهذا العميل");
     return;
@@ -183,6 +212,8 @@ async function vm_loadBranches() {
 // إرسال الزيارة (تسجيل زيارة جديدة)
 // =====================================================
 async function vm_submitVisit() {
+  if (vm_loading.submit) return;
+
   if (!vm_selectedMembership) {
     alert("اختر السيارة أولاً");
     return;
@@ -205,7 +236,9 @@ async function vm_submitVisit() {
     alert("اختر حالة الدفع");
     return;
   }
-  // طريقة الدفع ممكن تكون فاضية لو كان الدفع عند الخروج، ما نجبرها الآن
+
+  vm_loading.submit = true;
+  vm_setButtonLoading("btnSubmitVisit", true, "تسجيل الزيارة", "جاري التسجيل...");
 
   for (const s of vm_addedServices) {
     await apiPost({
@@ -222,6 +255,9 @@ async function vm_submitVisit() {
       parking_slot
     });
   }
+
+  vm_loading.submit = false;
+  vm_setButtonLoading("btnSubmitVisit", false, "تسجيل الزيارة", "جاري التسجيل...");
 
   alert("تم تسجيل الزيارة بنجاح");
   vm_resetForm();
@@ -250,9 +286,17 @@ function vm_resetForm() {
 // تحميل الزيارات النشطة (غير مدفوعة)
 // =====================================================
 async function vm_loadActiveVisits() {
+  if (vm_loading.refresh) return;
+
+  vm_loading.refresh = true;
+  vm_setButtonLoading("btnRefreshActive", true, "تحديث القائمة", "جاري التحديث...");
+
   const res = await apiGet({ action: "getActiveVisits" });
   const list = document.getElementById("activeVisitsList");
   list.innerHTML = "";
+
+  vm_loading.refresh = false;
+  vm_setButtonLoading("btnRefreshActive", false, "تحديث القائمة", "جاري التحديث...");
 
   if (!res.success || !res.visits || res.visits.length === 0) {
     list.innerHTML = `<div class="small">لا توجد سيارات غير مدفوعة حالياً.</div>`;
@@ -295,6 +339,8 @@ async function vm_loadActiveVisits() {
 // نافذة بسيطة لتسجيل الدفع/الخروج
 // =====================================================
 function vm_openCloseVisitDialog(row, membership, service) {
+  if (vm_loading.closeVisit) return;
+
   const payment_status = prompt(`حالة الدفع للعضوية ${membership} (مدفوع / غير مدفوع):`, "مدفوع");
   if (!payment_status) return;
 
@@ -307,12 +353,18 @@ function vm_openCloseVisitDialog(row, membership, service) {
 // استدعاء API لإغلاق الزيارة
 // =====================================================
 async function vm_closeVisit(row, payment_status, payment_method) {
+  if (vm_loading.closeVisit) return;
+
+  vm_loading.closeVisit = true;
+
   const res = await apiPost({
     action: "closeVisit",
     row,
     payment_status,
     payment_method
   });
+
+  vm_loading.closeVisit = false;
 
   if (!res.success) {
     alert("حدث خطأ أثناء تحديث حالة الدفع");
