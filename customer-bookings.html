@@ -5,6 +5,16 @@
     <title>حجوزاتي</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
     <script src="api.js"></script>
 
     <style>
