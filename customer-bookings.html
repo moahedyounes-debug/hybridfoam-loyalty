@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>الحجوزات</title>
+<script src="api.js"></script>
+
+<style>
+body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+.card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 0 10px #ddd; }
+a.btn { display: block; padding: 12px; background: #007bff; color: white; text-align: center; border-radius: 8px; text-decoration: none; }
+</style>
+</head>
+
+<body>
+
+<h2>الحجوزات</h2>
+
+<div id="bookings"></div>
+
+<a class="btn" href="customer-booking-new.html">حجز موعد جديد</a>
+
+<script>
+const phone = localStorage.getItem("phone");
+
+async function loadBookings() {
+    const res = await apiGet({ action: "getBookingsByPhone", phone });
+
+    let html = "";
+
+    res.bookings.forEach(b => {
+        html += `
+            <div class="card">
+                <p>${b.date} - ${b.time}</p>
+                <p>الخدمة: ${b.service}</p>
+                <p>الحالة: ${b.status}</p>
+            </div>
+        `;
+    });
+
+    document.getElementById("bookings").innerHTML = html;
+}
+
+loadBookings();
+</script>
+
+</body>
+</html>
