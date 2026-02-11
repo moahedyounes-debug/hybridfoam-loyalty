@@ -2,58 +2,108 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إنشاء عضوية</title>
+    <title>تسجيل عميل جديد</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <script src="api.js"></script>
 
     <style>
-        body { font-family: sans-serif; background: #f5f5f5; padding: 40px; text-align: center; }
-        .card { background: white; padding: 25px; border-radius: 12px; width: 350px; margin: auto; box-shadow: 0 0 10px #ddd; }
-        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
-        button { width: 95%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
-        button:hover { background: #1e7e34; }
-        .error { color: red; margin-top: 10px; }
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 60px;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 85%;
+            max-width: 320px;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            width: 85%;
+            max-width: 320px;
+            padding: 14px;
+            margin-top: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .back {
+            margin-top: 20px;
+            display: block;
+            color: #007bff;
+            text-decoration: none;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="card">
-        <h2>إنشاء عضوية جديدة</h2>
+    <div class="container">
+        <h2>فتح حساب جديد</h2>
 
         <input type="text" id="name" placeholder="الاسم الكامل">
-        <input type="text" id="city" placeholder="المدينة">
-        <button onclick="register()">إنشاء عضوية</button>
+        <input type="tel" id="phone" placeholder="رقم الجوال (05xxxxxxxx)">
 
-        <div id="error" class="error"></div>
+        <button onclick="registerCustomer()">تسجيل</button>
+
+        <a href="customer-home.html" class="back">رجوع</a>
     </div>
 
-<script>
-async function register() {
-    const name = document.getElementById("name").value.trim();
-    const city = document.getElementById("city").value.trim();
-    const phone = localStorage.getItem("phone");
-    const error = document.getElementById("error");
+    <script>
+        async function registerCustomer() {
+            const name  = document.getElementById("name").value.trim();
+            const phone = document.getElementById("phone").value.trim();
 
-    if (!name || !city) {
-        error.textContent = "الرجاء تعبئة جميع الحقول";
-        return;
-    }
+            if (!name || !phone) {
+                alert("الرجاء إدخال الاسم ورقم الجوال");
+                return;
+            }
 
-    const res = await apiPost({
-        action: "createCustomer",
-        name,
-        city,
-        phone
-    });
+            if (!phone.startsWith("05") || phone.length !== 10) {
+                alert("رقم الجوال غير صحيح");
+                return;
+            }
 
-    if (!res.success) {
-        error.textContent = "حدث خطأ أثناء إنشاء العضوية";
-        return;
-    }
+            const res = await apiPost({
+                action: "registerCustomer",
+                name,
+                phone
+            });
 
-    window.location.href = "customer-dashboard.html";
-}
-</script>
+            if (!res.success) {
+                alert("حدث خطأ أثناء التسجيل");
+                return;
+            }
+
+            // حفظ الجوال في localStorage
+            localStorage.setItem("customer_phone", phone);
+
+            // تحويل للوحة العميل
+            window.location.href = "customer-dashboard.html";
+        }
+    </script>
 
 </body>
 </html>
