@@ -5,10 +5,8 @@
     <title>الإشعارات</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- manifest (PWA) -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- Service Worker -->
     <script>
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("service-worker.js");
@@ -51,11 +49,10 @@
             border-bottom: none;
         }
 
-        .title {
-            font-size: 18px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #333;
+        .unread {
+            background: #e9f7ff;
+            border-radius: 8px;
+            padding: 10px;
         }
 
         .time {
@@ -98,12 +95,6 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
-
-        .unread {
-            background: #e9f7ff;
-            border-radius: 8px;
-            padding: 10px;
-        }
     </style>
 </head>
 
@@ -115,7 +106,6 @@
 
     <div id="content" style="display:none;">
         <div class="section">
-            <div class="title">جميع الإشعارات</div>
             <div id="notificationsList"></div>
         </div>
 
@@ -131,24 +121,38 @@
                 return;
             }
 
-            const res = await apiGet({
-                action: "getNotifications",
-                phone
-            });
+            // تحميل سريع (دبل)
+            setTimeout(() => {
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("content").style.display = "block";
+            }, 80);
 
-            if (!res.success) {
-                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل الإشعارات";
+            let res;
+
+            try {
+                res = await apiGet({
+                    action: "getNotifications",
+                    phone
+                });
+            } catch (e) {
+                document.getElementById("notificationsList").innerHTML = `
+                    <div class="item">لا توجد إشعارات حالياً</div>
+                `;
                 return;
             }
 
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("content").style.display = "block";
+            if (!res || !res.success) {
+                document.getElementById("notificationsList").innerHTML = `
+                    <div class="item">لا توجد إشعارات حالياً</div>
+                `;
+                return;
+            }
 
             const list = document.getElementById("notificationsList");
             list.innerHTML = "";
 
             if (res.notifications.length === 0) {
-                list.innerHTML = "<div class='item'>لا توجد إشعارات</div>";
+                list.innerHTML = "<div class='item'>لا توجد إشعارات حالياً</div>";
                 return;
             }
 
@@ -158,8 +162,11 @@
                         <strong>${n.title}</strong><br>
                         ${n.message}<br>
                         <span class="time">${n.time}</span><br>
+
                         ${n.read == 0 ? `
-                            <button class="mark-btn" onclick="markRead(${n.id}, this)">تحديد كمقروء</button>
+                            <button class="mark-btn" onclick="markRead(${n.id}, this)">
+                                جاري التحميل...
+                            </button>
                         ` : ""}
                     </div>
                 `;
@@ -178,16 +185,18 @@
             if (!res.success) {
                 btn.disabled = false;
                 btn.innerText = "تحديد كمقروء";
-                alert("حدث خطأ أثناء التحديث");
+                alert("تعذر تحديث الإشعار");
                 return;
             }
 
-            alert("تم تحديد الإشعار كمقروء");
-            window.location.reload();
+            btn.innerText = "تم ✔";
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
         }
 
         window.onload = () => {
-            setTimeout(loadNotifications, 120);
+            loadNotifications();
         };
     </script>
 
