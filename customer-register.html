@@ -2,8 +2,18 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تسجيل عميل جديد</title>
+    <title>إنشاء حساب جديد</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
 
     <script src="api.js"></script>
 
@@ -19,8 +29,8 @@
         .header {
             background: #007bff;
             color: white;
-            padding: 18px;
-            font-size: 22px;
+            padding: 25px;
+            font-size: 24px;
         }
 
         .container {
@@ -42,7 +52,7 @@
             width: 85%;
             max-width: 320px;
             padding: 14px;
-            margin-top: 20px;
+            margin-top: 10px;
             background: #28a745;
             color: white;
             border: none;
@@ -56,7 +66,7 @@
             cursor: not-allowed;
         }
 
-        .back {
+        .login {
             display: block;
             width: 85%;
             max-width: 320px;
@@ -65,7 +75,7 @@
             background: #6c757d;
             color: white;
             text-align: center;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 18px;
             text-decoration: none;
         }
@@ -74,35 +84,31 @@
 
 <body>
 
-    <div class="header">فتح حساب جديد</div>
+    <div class="header">إنشاء حساب جديد</div>
 
     <div class="container">
 
         <input type="text" id="name" placeholder="الاسم الكامل">
-        <input type="tel" id="phone" placeholder="رقم الجوال (05xxxxxxxx)">
+        <input type="text" id="phone" placeholder="رقم الجوال">
 
-        <button id="registerBtn" onclick="registerCustomer()">تسجيل</button>
+        <button id="registerBtn" onclick="register()">تسجيل</button>
 
-        <a href="customer-home.html" class="back">رجوع للصفحة الرئيسية</a>
+        <a href="customer-login.html" class="login">تسجيل الدخول</a>
+
     </div>
 
     <script>
-        async function registerCustomer() {
+        async function register() {
             const btn = document.getElementById("registerBtn");
-            const name  = document.getElementById("name").value.trim();
+
+            const name = document.getElementById("name").value.trim();
             const phone = document.getElementById("phone").value.trim();
 
             if (!name || !phone) {
-                alert("الرجاء إدخال الاسم ورقم الجوال");
+                alert("الرجاء تعبئة جميع الحقول");
                 return;
             }
 
-            if (!phone.startsWith("05") || phone.length !== 10) {
-                alert("رقم الجوال غير صحيح");
-                return;
-            }
-
-            // 🔒 قفل الزر + تغيير النص
             btn.disabled = true;
             btn.innerText = "جاري التسجيل...";
 
@@ -115,20 +121,15 @@
             if (!res.success) {
                 btn.disabled = false;
                 btn.innerText = "تسجيل";
-                alert("حدث خطأ أثناء التسجيل");
+                alert("حدث خطأ أثناء التسجيل أو الرقم مسجل مسبقاً");
                 return;
             }
 
-            // حفظ الجوال
             localStorage.setItem("customer_phone", phone);
 
-            // تحويل للوحة العميل
+            alert("تم إنشاء الحساب بنجاح");
             window.location.href = "customer-dashboard.html";
         }
-
-        window.onload = () => {
-            setTimeout(() => {}, 100);
-        };
     </script>
 
 </body>
