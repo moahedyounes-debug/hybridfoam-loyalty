@@ -5,6 +5,16 @@
     <title>زياراتي</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
     <script src="api.js"></script>
 
     <style>
@@ -39,6 +49,24 @@
 
         .item:last-child {
             border-bottom: none;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .done {
+            background: #28a745;
+            color: white;
+        }
+
+        .pending {
+            background: #ffc107;
+            color: #333;
         }
 
         .loading {
@@ -96,7 +124,6 @@
                 return;
             }
 
-            // إظهار المحتوى
             document.getElementById("loading").style.display = "none";
             document.getElementById("content").style.display = "block";
 
@@ -116,13 +143,14 @@
                         الفرع: ${v.branch}<br>
                         الدخول: ${v.check_in}<br>
                         الخروج: ${v.check_out || "—"}<br>
-                        رقم عضوية السيارة: ${v.membership}
+                        <span class="status ${v.check_out ? 'done' : 'pending'}">
+                            ${v.check_out ? "مكتملة" : "جارية"}
+                        </span>
                     </div>
                 `;
             });
         }
 
-        // تحميل سريع
         window.onload = () => {
             setTimeout(loadVisits, 120);
         };
