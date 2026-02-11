@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>API Tester</title>
+<style>
+    body { font-family: Tahoma; background:#f5f5f5; padding:20px; }
+    h2 { color:#333; }
+    input, select {
+        padding:10px; width:100%; margin:5px 0 15px;
+        border:1px solid #ccc; border-radius:5px;
+    }
+    button {
+        padding:10px 20px; background:#007bff; color:white;
+        border:none; border-radius:5px; cursor:pointer;
+    }
+    button:hover { background:#0056b3; }
+    #result {
+        background:white; padding:15px; border-radius:5px;
+        margin-top:20px; white-space:pre-wrap; direction:ltr;
+    }
+</style>
+</head>
+<body>
+
+<h2>🚀 اختبار API</h2>
+
+<label>اختر العملية (action)</label>
+<select id="action">
+    <option value="checkCustomer">checkCustomer</option>
+    <option value="getByPhone">getByPhone</option>
+    <option value="getCarsByPhone">getCarsByPhone</option>
+    <option value="getVisitsByPhone">getVisitsByPhone</option>
+    <option value="getCustomerDashboard">getCustomerDashboard</option>
+    <option value="getAllCustomers">getAllCustomers</option>
+    <option value="getAllCars">getAllCars</option>
+    <option value="getAllBookings">getAllBookings</option>
+</select>
+
+<label>رقم الجوال (إن وجد)</label>
+<input id="phone" placeholder="05xxxxxxxx">
+
+<button onclick="send()">تنفيذ الطلب</button>
+
+<div id="result"></div>
+
+<script>
+function send() {
+    const action = document.getElementById("action").value;
+    const phone = document.getElementById("phone").value;
+
+    let url = "https://script.google.com/macros/s/AKfycbzjLA6l41clWIuVorh_Um5bHrQ6cJAk011UKLe598W-uIIgpZ7JefwJaQNSF2LVCTF11w/exec";
+
+    url += "?action=" + action;
+
+    if (phone) url += "&phone=" + phone;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("result").textContent =
+                JSON.stringify(data, null, 2);
+        })
+        .catch(err => {
+            document.getElementById("result").textContent = "Error: " + err;
+        });
+}
+</script>
+
+</body>
+</html>
