@@ -1,160 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <title>لوحة المشرف</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <link rel="stylesheet" href="supervisor.css" />
-
-  <!-- Flatpickr + Chart.js + XLSX -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-  <script src="api.js"></script>
-</head>
-<body data-theme="dark">
-
-<div class="layout">
-
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-logo"><img src="logo.png" alt="Logo"></div>
-      <div class="brand-text">لوحة المشرف</div>
-    </div>
-
-    <div class="nav-section-title">الرئيسية</div>
-    <div class="nav">
-      <button class="nav-btn active" data-target="dashboard"><span>Dashboard</span></button>
-    </div>
-
-    <div class="nav-section-title">العملاء</div>
-    <div class="nav">
-      <button class="nav-btn" data-target="customers"><span>بحث عميل</span></button>
-      <button class="nav-btn" data-target="visits"><span>زيارات الفرع</span></button>
-      <button class="nav-btn" data-target="cars"><span>سيارات العميل</span></button>
-      <button class="nav-btn" data-target="addVisit"><span>إضافة زيارة</span></button>
-    </div>
-
-    <div class="nav-section-title">الحجوزات والتقارير</div>
-    <div class="nav">
-      <button class="nav-btn" data-target="bookings"><span>الحجوزات</span></button>
-      <button class="nav-btn" data-target="reports"><span>التقارير المالية</span></button>
-      <button class="nav-btn" data-target="export"><span>تصدير Excel</span></button>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <main class="main">
-
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-title">لوحة المشرف</div>
-        <div class="topbar-sub">إدارة العملاء، الزيارات، الحجوزات والتقارير حسب الفرع</div>
-      </div>
-
-      <div class="topbar-right">
-        <div class="branch-pill">الفرع الحالي: <span id="currentBranch">—</span></div>
-        <select id="branchSelect" class="branch-select"></select>
-        <button id="themeToggle" class="theme-toggle">🌙 / ☀</button>
-      </div>
-    </div>
-
-    <div class="content">
-
-      <!-- Dashboard -->
-      <section id="dashboard" class="section active">
-        <div class="card">
-          <div class="card-header"><h2>نظرة عامة على الفرع</h2></div>
-
-          <div class="grid-2">
-            <div class="dash-card">
-              <div class="dash-card-title">إجمالي المبالغ</div>
-              <div class="dash-card-value"><span id="mAmount">0</span> ريال</div>
-            </div>
-
-            <div class="dash-card">
-              <div class="dash-card-title">متوسط الإنفاق لكل عميل</div>
-              <div class="dash-card-value"><span id="mAvgSpend">0</span> ريال</div>
-            </div>
-          </div>
-
-          <div class="dashboard-grid">
-            <div class="dash-card">
-              <div class="dash-card-title">إحصائيات سريعة</div>
-              <div class="bar-row"><div class="bar-label">العملاء</div><div class="bar-track"><div class="bar-fill" id="barCustomers"></div></div></div>
-              <div class="bar-row"><div class="bar-label">الزيارات</div><div class="bar-track"><div class="bar-fill" id="barVisits"></div></div></div>
-              <div class="bar-row"><div class="bar-label">المبالغ</div><div class="bar-track"><div class="bar-fill" id="barAmount"></div></div></div>
-            </div>
-
-            <div class="dash-card">
-              <div class="dash-card-title">مؤشرات عامة</div>
-              <p class="status-text">
-                👥 العملاء: <span id="sCustomers">0</span><br>
-                🚗 السيارات: <span id="sCars">0</span><br>
-                🧾 الزيارات: <span id="sVisits">0</span><br>
-                💰 المبالغ: <span id="sAmount">0</span> ريال
-              </p>
-            </div>
-          </div>
-
-          <div class="charts-grid">
-            <div class="dash-card"><div class="dash-card-title">الزيارات حسب اليوم</div><canvas id="visitsPerDayChart"></canvas></div>
-            <div class="dash-card"><div class="dash-card-title">أكثر الخدمات</div><canvas id="topServicesChart"></canvas></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Add Visit -->
-      <section id="addVisit" class="section">
-        <div class="card">
-          <div class="card-header"><h2>إضافة زيارة</h2></div>
-
-          <div class="card inner-card">
-            <div class="card-header"><h3>بحث عن العميل</h3></div>
-            <label>رقم الجوال أو العضوية</label>
-            <input id="visitSearch" placeholder="05xxxxxxxx أو 2026xxxx" />
-            <button id="visitSearchBtn">بحث</button>
-          </div>
-
-          <div id="visitCarsBox" class="card inner-card" style="display:none;">
-            <div class="card-header"><h3>اختر السيارة</h3></div>
-            <div id="visitCarsList" class="list"></div>
-          </div>
-
-          <div id="visitForm" class="card inner-card" style="display:none;">
-            <div class="card-header"><h3>تفاصيل الزيارة</h3></div>
-
-            <p id="visitSelectedInfo" class="status-text"></p>
-
-            <label>الخدمة</label>
-            <select id="vService"></select>
-
-            <label>السعر</label>
-            <input type="number" id="vPrice" />
-
-            <label>النقاط</label>
-            <input type="number" id="vPoints" readonly />
-
-            <button id="addServiceBtn" class="btn-secondary">إضافة خدمة +</button>
-
-            <div id="servicesList" class="list" style="margin-top:10px;"></div>
-
-            <h3 style="margin-top:15px;">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
-
-            <button id="addVisitBtn">تسجيل الزيارة</button>
-            <p id="addVisitStatus" class="status-text"></p>
-          </div>
-        </div>
-      </section>
-
-    </div>
-  </main>
-</div>
-
-<script src="supervisor.js"></script>
-</body>
-</html>
