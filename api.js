@@ -13,7 +13,14 @@ async function apiGet(params = {}) {
     const url = API_URL + "?" + new URLSearchParams(params).toString();
 
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Cache-Control": "no-cache",
+                "Pragma": "no-cache"
+            }
+        });
+
         return await res.json();
     } catch (e) {
         return { success: false, error: "network_error" };
@@ -26,6 +33,7 @@ async function apiGet(params = {}) {
 */
 async function apiPost(params = {}) {
     const form = new FormData();
+
     for (const key in params) {
         form.append(key, params[key]);
     }
