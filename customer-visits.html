@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>سجل الزيارات</title>
+<script src="api.js"></script>
+
+<style>
+body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+.card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 0 10px #ddd; }
+</style>
+</head>
+
+<body>
+
+<h2>سجل الزيارات</h2>
+
+<div id="visits"></div>
+
+<script>
+const phone = localStorage.getItem("phone");
+
+async function loadVisits() {
+    const res = await apiGet({ action: "getVisitsByPhone", phone });
+
+    let html = "";
+
+    res.visits.forEach(v => {
+        html += `
+            <div class="card">
+                <p>الخدمة: ${v.service_detail}</p>
+                <p>السعر: ${v.price}</p>
+                <p>التاريخ: ${v.check_in}</p>
+                <p>التقييم: ${v.rating || "—"}</p>
+            </div>
+        `;
+    });
+
+    document.getElementById("visits").innerHTML = html;
+}
+
+loadVisits();
+</script>
+
+</body>
+</html>
