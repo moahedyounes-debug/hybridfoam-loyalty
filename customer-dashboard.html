@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة العميل</title>
+    <script src="api.js"></script>
+
+    <style>
+        body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 0 10px #ddd; }
+        h3 { margin-top: 0; }
+    </style>
+</head>
+
+<body>
+
+<h2>مرحبًا بك</h2>
+
+<div id="membershipCard" class="card"></div>
+<div id="lastVisit" class="card"></div>
+<div id="cars" class="card"></div>
+<div id="bookings" class="card"></div>
+
+<script>
+const phone = localStorage.getItem("phone");
+if (!phone) window.location.href = "customer-login.html";
+
+async function loadDashboard() {
+    const res = await apiGet({ action: "getCustomerDashboard", phone });
+
+    if (!res.success) return;
+
+    const c = res.customer;
+
+    document.getElementById("membershipCard").innerHTML = `
+        <h3>بطاقة العضوية</h3>
+        <p>الاسم: ${c.name}</p>
+        <p>العضوية: ${c.membership}</p>
+        <p>المستوى: ${c.level}</p>
+        <p>النقاط: ${c.points}</p>
+        <p>الغسلات المجانية: ${c.free_wash}</p>
+    `;
+
+    if (res.last_visit) {
+        const v = res.last_visit;
+        document.getElementById("lastVisit").innerHTML = `
+            <h3>آخر زيارة</h3>
+            <p>الخدمة: ${v.service_detail}</p>
+            <p>السعر: ${v.price} ريال</p>
+            <p>الحالة: ${v.payment_status}</p>
+            <p>وقت الدخول: ${v.check_in}</p>
+            <p>وقت الخروج: ${v.check_out || "لم تكتمل بعد"}</p>
+        `;
+    }
+
+    let carsHTML = "<h3>سياراتي</h3>";
+    res.cars.forEach(car => {
+        carsHTML += `<p>${car.car} - ${car.plate_letters} ${car.plate_numbers}</p>`;
+    });
+    document.getElementById("cars").innerHTML = carsHTML;
+
+    let bookingsHTML = "<h3>الحجوزات</h3>";
+    res.bookings.forEach(b => {
+        bookingsHTML += `<p>${b.date} - ${b.time} (${b.status})</p>`;
+    });
+    document.getElementById("bookings").innerHTML = bookingsHTML;
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>
