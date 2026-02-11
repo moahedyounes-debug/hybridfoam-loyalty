@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>حجز موعد</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="api.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 18px;
+            font-size: 22px;
+        }
+
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+        }
+
+        select, input {
+            width: 85%;
+            max-width: 320px;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            width: 85%;
+            max-width: 320px;
+            padding: 14px;
+            margin-top: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .back {
+            display: block;
+            width: 85%;
+            max-width: 320px;
+            padding: 14px;
+            margin: 20px auto;
+            background: #6c757d;
+            color: white;
+            text-align: center;
+            border-radius: 10px;
+            font-size: 18px;
+            text-decoration: none;
+        }
+
+        .loading {
+            margin-top: 30px;
+            font-size: 18px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">حجز موعد</div>
+
+    <div id="loading" class="loading">جاري تحميل البيانات...</div>
+
+    <div id="content" style="display:none;" class="container">
+
+        <select id="car">
+            <option value="">اختر السيارة</option>
+        </select>
+
+        <select id="service">
+            <option value="">اختر الخدمة</option>
+            <option value="غسيل خارجي">غسيل خارجي</option>
+            <option value="غسيل داخلي">غسيل داخلي</option>
+            <option value="غسيل متكامل">غسيل متكامل</option>
+        </select>
+
+        <input type="date" id="date">
+        <input type="time" id="time">
+
+        <button id="bookBtn" onclick="submitBooking()">تأكيد الحجز</button>
+
+        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
+    </div>
+
+    <script>
+        async function loadBooking() {
+            const phone = localStorage.getItem("customer_phone");
+
+            if (!phone) {
+                window.location.href = "customer-login.html";
+                return;
+            }
+
+            const res = await apiGet({
+                action: "getCarsByPhone",
+                phone
+            });
+
+            if (!res.success) {
+                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل السيارات";
+                return;
+            }
+
+            const carSelect = document.getElementById("car");
+
+            res.cars.forEach(car => {
+                carSelect.innerHTML += `
+                    <option value="${car.membership}">
+                        ${car.car} - ${car.plate_letters} ${car.plate_numbers}
+                    </option>
+                `;
+            });
+
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("content").style.display = "block";
+        }
+
+        async function submitBooking() {
+            const btn = document.getElementById("bookBtn");
+
+            const membership = document.getElementById("car").value;
+            const service = document.getElementById("service").value;
+            const date = document.getElementById("date").value;
+            const time = document.getElementById("time").value;
+
+            if (!membership || !service || !date || !time) {
+                alert("الرجاء تعبئة جميع الحقول");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "جاري الإرسال...";
+
+            const res = await apiPost({
+                action: "addBooking",
+                membership,
+                service,
+                date,
+                time
+            });
+
+            if (!res.success) {
+                btn.disabled = false;
+                btn.innerText = "تأكيد الحجز";
+                alert("حدث خطأ أثناء إرسال الحجز");
+                return;
+            }
+
+            alert("تم إرسال الحجز بنجاح");
+            window.location.href = "customer-dashboard.html";
+        }
+
+        window.onload = () => {
+            setTimeout(loadBooking, 120);
+        };
+    </script>
+
+</body>
+</html>
