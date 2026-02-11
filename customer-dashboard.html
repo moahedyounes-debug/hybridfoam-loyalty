@@ -32,6 +32,48 @@
             opacity: 0.9;
         }
 
+        /* أيقونات دائرية */
+        .icon-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 15px 10px;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .icon-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            margin-bottom: 6px;
+        }
+
+        .blue { background: #007bff; }
+        .green { background: #28a745; }
+        .yellow { background: #ffc107; }
+        .orange { background: #fd7e14; }
+        .purple { background: #6f42c1; }
+        .brown { background: #8b5e3c; }
+
         .section {
             background: white;
             margin: 15px;
@@ -64,28 +106,17 @@
             color: #555;
         }
 
-        .btn {
+        .logout {
             display: block;
             width: 90%;
-            margin: 15px auto;
+            margin: 20px auto;
             padding: 14px;
-            background: #28a745;
+            background: #dc3545;
             color: white;
-            border: none;
+            text-align: center;
             border-radius: 10px;
             font-size: 18px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .logout {
-            background: #dc3545 !important;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -101,28 +132,66 @@
 
     <div id="content" style="display:none;">
 
+        <!-- أيقونات دائرية -->
+        <div class="icon-grid">
+
+            <div class="icon-btn" onclick="goBooking()">
+                <div class="icon-circle blue"></div>
+                الحجز
+            </div>
+
+            <div class="icon-btn" onclick="goMembership()">
+                <div class="icon-circle green"></div>
+                العضوية
+            </div>
+
+            <div class="icon-btn" onclick="goCars()">
+                <div class="icon-circle yellow"></div>
+                سياراتي
+            </div>
+
+            <div class="icon-btn" onclick="goVisits()">
+                <div class="icon-circle orange"></div>
+                زياراتي
+            </div>
+
+            <div class="icon-btn" onclick="goBookings()">
+                <div class="icon-circle purple"></div>
+                حجوزاتي
+            </div>
+
+            <div class="icon-btn" onclick="goAddCar()">
+                <div class="icon-circle brown"></div>
+                إضافة سيارة
+            </div>
+
+        </div>
+
+        <!-- بيانات العميل -->
         <div class="section">
             <div class="title">بيانات العميل</div>
             <div id="customerInfo"></div>
         </div>
 
+        <!-- سيارات -->
         <div class="section">
             <div class="title">سياراتي</div>
             <div id="carsList"></div>
         </div>
 
+        <!-- آخر زيارة -->
         <div class="section">
             <div class="title">آخر زيارة</div>
             <div id="lastVisit"></div>
         </div>
 
+        <!-- حجوزات -->
         <div class="section">
             <div class="title">حجوزاتي</div>
             <div id="bookingsList"></div>
         </div>
 
-        <button class="btn" onclick="goAddCar()">إضافة سيارة جديدة</button>
-        <button class="btn logout" onclick="logout()">تسجيل خروج</button>
+        <a href="#" onclick="logout()" class="logout">تسجيل خروج</a>
 
     </div>
 
@@ -145,16 +214,11 @@
                 return;
             }
 
-            // إظهار المحتوى
             document.getElementById("loading").style.display = "none";
             document.getElementById("content").style.display = "block";
 
-            // هلا + اسم العميل
             document.getElementById("helloName").innerText = res.customer.name;
 
-            // ============================
-            // بيانات العميل
-            // ============================
             const c = res.customer;
             document.getElementById("customerInfo").innerHTML = `
                 <div class="item">الاسم: ${c.name}</div>
@@ -164,9 +228,6 @@
                 <div class="item">عدد الزيارات: ${c.visit_count}</div>
             `;
 
-            // ============================
-            // سيارات العميل
-            // ============================
             let carsHTML = "";
             res.cars.forEach(car => {
                 carsHTML += `
@@ -179,9 +240,6 @@
             });
             document.getElementById("carsList").innerHTML = carsHTML || "لا توجد سيارات";
 
-            // ============================
-            // آخر زيارة
-            // ============================
             if (res.last_visit) {
                 const v = res.last_visit;
                 document.getElementById("lastVisit").innerHTML = `
@@ -195,9 +253,6 @@
                 document.getElementById("lastVisit").innerHTML = "لا توجد زيارات";
             }
 
-            // ============================
-            // الحجوزات
-            // ============================
             let bookingsHTML = "";
             res.bookings.forEach(b => {
                 bookingsHTML += `
@@ -212,16 +267,18 @@
             document.getElementById("bookingsList").innerHTML = bookingsHTML || "لا توجد حجوزات";
         }
 
-        function goAddCar() {
-            window.location.href = "customer-add-car.html";
-        }
+        function goBooking() { window.location.href = "customer-booking.html"; }
+        function goMembership() { window.location.href = "customer-membership.html"; }
+        function goCars() { window.location.href = "customer-cars.html"; }
+        function goVisits() { window.location.href = "customer-visits.html"; }
+        function goBookings() { window.location.href = "customer-bookings.html"; }
+        function goAddCar() { window.location.href = "customer-add-car.html"; }
 
         function logout() {
             localStorage.removeItem("customer_phone");
             window.location.href = "customer-login.html";
         }
 
-        // تحميل سريع
         window.onload = () => {
             setTimeout(loadDashboard, 120);
         };
