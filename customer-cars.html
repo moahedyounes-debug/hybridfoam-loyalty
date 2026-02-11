@@ -1,48 +1,130 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>سياراتي</title>
-<script src="api.js"></script>
+    <meta charset="UTF-8">
+    <title>سياراتي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
-.card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 0 10px #ddd; }
-a.btn { display: block; padding: 12px; background: #28a745; color: white; text-align: center; border-radius: 8px; text-decoration: none; }
-</style>
+    <script src="api.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 18px;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        .section {
+            background: white;
+            margin: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 5px #ccc;
+        }
+
+        .item {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            line-height: 1.6;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .back {
+            display: block;
+            width: 90%;
+            margin: 20px auto;
+            padding: 14px;
+            background: #6c757d;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 18px;
+            text-decoration: none;
+        }
+    </style>
 </head>
 
 <body>
 
-<h2>سياراتي</h2>
+    <div class="header">سياراتي</div>
 
-<div id="cars"></div>
+    <div id="loading" class="loading">جاري تحميل السيارات...</div>
 
-<a class="btn" href="customer-add-car.html">إضافة سيارة</a>
+    <div id="content" style="display:none;">
+        <div class="section">
+            <div id="carsList"></div>
+        </div>
 
-<script>
-const phone = localStorage.getItem("phone");
+        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
+    </div>
 
-async function loadCars() {
-    const res = await apiGet({ action: "getCarsByPhone", phone });
+    <script>
+        async function loadCars() {
+            const phone = localStorage.getItem("customer_phone");
 
-    let html = "";
+            if (!phone) {
+                window.location.href = "customer-login.html";
+                return;
+            }
 
-    res.cars.forEach(car => {
-        html += `
-            <div class="card">
-                <p>${car.car}</p>
-                <p>${car.plate_letters} - ${car.plate_numbers}</p>
-                <p>الحجم: ${car.size}</p>
-            </div>
-        `;
-    });
+            const res = await apiGet({
+                action: "getCarsByPhone",
+                phone
+            });
 
-    document.getElementById("cars").innerHTML = html;
-}
+            if (!res.success) {
+                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل السيارات";
+                return;
+            }
 
-loadCars();
-</script>
+            // إظهار المحتوى
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("content").style.display = "block";
+
+            const list = document.getElementById("carsList");
+            list.innerHTML = "";
+
+            if (res.cars.length === 0) {
+                list.innerHTML = "<div class='item'>لا توجد سيارات مسجلة</div>";
+                return;
+            }
+
+            res.cars.forEach(car => {
+                list.innerHTML += `
+                    <div class="item">
+                        <strong>${car.car}</strong> — ${car.size}<br>
+                        لوحة: ${car.plate_letters} ${car.plate_numbers}<br>
+                        المدينة: ${car.city || "—"}<br>
+                        رقم العضوية: ${car.membership}
+                    </div>
+                `;
+            });
+        }
+
+        // تحميل سريع
+        window.onload = () => {
+            setTimeout(loadCars, 120);
+        };
+    </script>
 
 </body>
 </html>
