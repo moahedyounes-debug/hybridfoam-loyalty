@@ -6,10 +6,17 @@
 <script src="api.js"></script>
 
 <style>
-body { font-family: sans-serif; background: #f5f5f5; padding: 40px; text-align: center; }
-.card { background: white; padding: 25px; border-radius: 12px; width: 350px; margin: auto; box-shadow: 0 0 10px #ddd; }
+body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 380px;
+    margin: auto;
+    box-shadow: 0 0 10px #ddd;
+}
 input, select, button {
-    width: 90%;
+    width: 95%;
     padding: 12px;
     margin: 10px 0;
     border-radius: 8px;
@@ -18,6 +25,21 @@ input, select, button {
 }
 button { background: #28a745; color: white; cursor: pointer; }
 button:hover { background: #1e7e34; }
+.list-box {
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    display: none;
+}
+.list-item {
+    padding: 10px;
+    cursor: pointer;
+}
+.list-item:hover {
+    background: #f0f0f0;
+}
 .error { color: red; margin-top: 10px; }
 </style>
 </head>
@@ -27,31 +49,19 @@ button:hover { background: #1e7e34; }
 <div class="card">
     <h2>إضافة سيارة جديدة</h2>
 
-    <select id="car">
-        <option value="">اختر نوع السيارة</option>
-        <option>تويوتا كامري</option>
-        <option>تويوتا كورولا</option>
-        <option>هيونداي سوناتا</option>
-        <option>هيونداي إلنترا</option>
-        <option>جيب لاندكروزر</option>
-        <option>جيب برادو</option>
-        <option>مرسيدس S-Class</option>
-        <option>BMW الفئة السابعة</option>
-        <option>كيا K5</option>
-        <option>كيا سبورتاج</option>
-    </select>
+    <!-- بحث السيارة -->
+    <input type="text" id="carSearch" placeholder="ابحث عن نوع السيارة...">
+    <div id="carList" class="list-box"></div>
 
-    <select id="size">
-        <option value="">اختر حجم السيارة</option>
-        <option>صغير</option>
-        <option>متوسط</option>
-        <option>كبير</option>
-        <option>SUV</option>
-        <option>فخم</option>
-    </select>
+    <!-- إذا اختار "أخرى" -->
+    <input type="text" id="carOther" placeholder="اكتب نوع السيارة" style="display:none;">
 
-    <input type="text" id="letters" placeholder="حروف اللوحة (مثال: أ ب ج)">
-    <input type="text" id="numbers" placeholder="أرقام اللوحة (مثال: 1234)">
+    <!-- الحجم تلقائي -->
+    <input type="text" id="size" placeholder="الحجم" readonly>
+
+    <!-- اللوحة -->
+    <input type="text" id="numbers" placeholder="أرقام اللوحة (1234)">
+    <input type="text" id="letters" placeholder="حروف اللوحة (أ ب ج)">
 
     <button onclick="addCar()">إضافة السيارة</button>
 
@@ -59,16 +69,78 @@ button:hover { background: #1e7e34; }
 </div>
 
 <script>
+// قاعدة بيانات السيارات
+const carDB = {
+    "تويوتا كامري": "متوسط",
+    "تويوتا كورولا": "صغير",
+    "هيونداي سوناتا": "متوسط",
+    "هيونداي إلنترا": "صغير",
+    "جيب لاندكروزر": "كبير",
+    "جيب برادو": "كبير",
+    "مرسيدس S-Class": "فخم",
+    "BMW الفئة السابعة": "فخم",
+    "كيا K5": "متوسط",
+    "كيا سبورتاج": "SUV",
+    "هوندا أكورد": "متوسط",
+    "هوندا سيفيك": "صغير",
+    "شفروليه تاهو": "كبير",
+    "GMC يوكن": "كبير",
+    "فورد إكسبلورر": "SUV",
+    "فورد تورس": "متوسط",
+    "أخرى": "other"
+};
+
+const carSearch = document.getElementById("carSearch");
+const carList = document.getElementById("carList");
+const carOther = document.getElementById("carOther");
+const sizeInput = document.getElementById("size");
+
+// عرض القائمة أثناء الكتابة
+carSearch.addEventListener("input", () => {
+    const text = carSearch.value.trim();
+    carList.innerHTML = "";
+    carList.style.display = "block";
+
+    Object.keys(carDB).forEach(car => {
+        if (car.includes(text) || text === "") {
+            const item = document.createElement("div");
+            item.className = "list-item";
+            item.textContent = car;
+            item.onclick = () => selectCar(car);
+            carList.appendChild(item);
+        }
+    });
+});
+
+// اختيار السيارة
+function selectCar(car) {
+    carSearch.value = car;
+    carList.style.display = "none";
+
+    if (car === "أخرى") {
+        carOther.style.display = "block";
+        sizeInput.value = "";
+    } else {
+        carOther.style.display = "none";
+        sizeInput.value = carDB[car];
+    }
+}
+
+// إضافة السيارة
 async function addCar() {
     const phone = localStorage.getItem("phone");
 
-    const car = document.getElementById("car").value.trim();
-    const size = document.getElementById("size").value.trim();
-    const letters = document.getElementById("letters").value.trim();
+    let car = carSearch.value.trim();
+    if (car === "أخرى") {
+        car = carOther.value.trim();
+    }
+
+    const size = sizeInput.value.trim();
     const numbers = document.getElementById("numbers").value.trim();
+    const letters = document.getElementById("letters").value.trim();
     const error = document.getElementById("error");
 
-    if (!car || !size || !letters || !numbers) {
+    if (!car || !size || !numbers || !letters) {
         error.textContent = "الرجاء تعبئة جميع الحقول";
         return;
     }
