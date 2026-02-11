@@ -9,37 +9,48 @@
 
     <style>
         body {
-            font-family: sans-serif;
-            background: #f5f5f5;
+            font-family: 'Tahoma', sans-serif;
+            background: #f2f4f7;
             margin: 0;
             padding: 0;
         }
 
         .header {
-            background: #007bff;
+            background: linear-gradient(135deg, #007bff, #005fcc);
             color: white;
-            padding: 18px;
+            padding: 25px;
             text-align: center;
-            font-size: 22px;
+            font-size: 24px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+
+        .hello {
+            font-size: 20px;
+            margin-top: 10px;
+            opacity: 0.9;
         }
 
         .section {
             background: white;
             margin: 15px;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 5px #ccc;
+            padding: 18px;
+            border-radius: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
 
         .title {
             font-size: 18px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             color: #333;
+            font-weight: bold;
         }
 
         .item {
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #eee;
+            line-height: 1.7;
         }
 
         .item:last-child {
@@ -48,7 +59,7 @@
 
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             font-size: 18px;
             color: #555;
         }
@@ -61,24 +72,32 @@
             background: #28a745;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 18px;
             text-align: center;
             cursor: pointer;
+            transition: 0.2s;
         }
 
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        .logout {
+            background: #dc3545 !important;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="header">لوحة العميل</div>
+    <div class="header">
+        <div id="helloText">هلا 👋</div>
+        <div class="hello" id="helloName"></div>
+    </div>
 
-    <div id="loading" class="loading">جاري تحميل البيانات...</div>
+    <div id="loading" class="loading">جاري تحميل بياناتك...</div>
 
     <div id="content" style="display:none;">
 
@@ -103,7 +122,7 @@
         </div>
 
         <button class="btn" onclick="goAddCar()">إضافة سيارة جديدة</button>
-        <button class="btn" onclick="logout()" style="background:#dc3545;">تسجيل خروج</button>
+        <button class="btn logout" onclick="logout()">تسجيل خروج</button>
 
     </div>
 
@@ -122,13 +141,16 @@
             });
 
             if (!res.success) {
-                document.getElementById("loading").innerText = "حدث خطأ في تحميل البيانات";
+                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل البيانات";
                 return;
             }
 
-            // إخفاء التحميل وإظهار المحتوى
+            // إظهار المحتوى
             document.getElementById("loading").style.display = "none";
             document.getElementById("content").style.display = "block";
+
+            // هلا + اسم العميل
+            document.getElementById("helloName").innerText = res.customer.name;
 
             // ============================
             // بيانات العميل
@@ -149,8 +171,9 @@
             res.cars.forEach(car => {
                 carsHTML += `
                     <div class="item">
-                        ${car.car} - ${car.size}<br>
-                        لوحة: ${car.plate_letters} ${car.plate_numbers}
+                        <strong>${car.car}</strong> — ${car.size}<br>
+                        لوحة: ${car.plate_letters} ${car.plate_numbers}<br>
+                        رقم العضوية: ${car.membership}
                     </div>
                 `;
             });
@@ -179,7 +202,9 @@
             res.bookings.forEach(b => {
                 bookingsHTML += `
                     <div class="item">
-                        ${b.service} — ${b.date} ${b.time}<br>
+                        <strong>${b.service}</strong><br>
+                        التاريخ: ${b.date}<br>
+                        الوقت: ${b.time}<br>
                         الحالة: ${b.status}
                     </div>
                 `;
@@ -198,7 +223,7 @@
 
         // تحميل سريع
         window.onload = () => {
-            setTimeout(loadDashboard, 150);
+            setTimeout(loadDashboard, 120);
         };
     </script>
 
