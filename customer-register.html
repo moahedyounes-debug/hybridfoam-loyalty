@@ -51,6 +51,11 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+        .hint {
+            font-size: 12px;
+            color: #777;
+            margin-top: 4px;
+        }
     </style>
 </head>
 
@@ -66,22 +71,27 @@
     <input id="phone" type="tel" placeholder="05xxxxxxxx" maxlength="10">
 
     <label>المدينة</label>
-    <input id="city" type="text" placeholder="مثال: الرياض">
+    <input id="city" type="text" value="مكة" readonly>
 
     <hr style="margin:20px 0;">
 
-    <label>نوع السيارة</label>
-    <select id="car" onchange="autoFillSize()">
-        <option value="">جاري التحميل...</option>
+    <label>براند السيارة</label>
+    <select id="brand" onchange="onBrandChange()">
+        <option value="">جاري تحميل البراندات...</option>
     </select>
 
-    <label>الحجم</label>
+    <label>موديل السيارة</label>
+    <select id="car" onchange="onCarChange()">
+        <option value="">اختر البراند أولاً</option>
+    </select>
+
+    <label>حجم السيارة</label>
     <input id="size" type="text" readonly placeholder="يتم تعبئته تلقائياً">
 
     <label>أرقام اللوحة</label>
     <input id="plate_numbers" type="text" placeholder="1234">
 
-        <label>حروف اللوحة</label>
+    <label>حروف اللوحة</label>
     <input id="plate_letters" type="text" placeholder="مثال: أ ب ج">
 
     <button id="submitBtn" onclick="register()">تسجيل</button>
@@ -90,38 +100,70 @@
 <script src="api.js"></script>
 
 <script>
-let CAR_TYPES = [];
+let CAR_TYPES = []; // شكل الصف: [brand, car, size]
 
-// تحميل أنواع السيارات من الشيت
+// تحميل بيانات Car-Type من الشيت
 window.onload = async function () {
+    const brandSelect = document.getElementById("brand");
     const carSelect = document.getElementById("car");
+
+    brandSelect.innerHTML = '<option value="">جاري تحميل البراندات...</option>';
+    carSelect.innerHTML = '<option value="">اختر البراند أولاً</option>';
 
     const res = await apiGet({
         action: "getAll",
         sheet: "Car-Type"
     });
 
-    carSelect.innerHTML = '<option value="">اختر نوع السيارة</option>';
-
-    if (res.success && res.rows.length > 0) {
-        CAR_TYPES = res.rows;
-
-        CAR_TYPES.forEach(row => {
-            const opt = document.createElement("option");
-            opt.value = row[0]; // car
-            opt.innerText = row[0];
-            carSelect.appendChild(opt);
-        });
+    if (!res.success || !res.rows || res.rows.length === 0) {
+        brandSelect.innerHTML = '<option value="">لا توجد بيانات سيارات</option>';
+        return;
     }
+
+    CAR_TYPES = res.rows; // نتوقع: [brand, car, size]
+
+    // استخراج البراندات بدون تكرار
+    const brands = [...new Set(CAR_TYPES.map(r => r[0]).filter(Boolean))];
+
+    brandSelect.innerHTML = '<option value="">اختر البراند</option>';
+    brands.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.innerText = b;
+        brandSelect.appendChild(opt);
+    });
 };
 
-// تعبئة الحجم تلقائياً
-function autoFillSize() {
-    const selected = document.getElementById("car").value;
+function onBrandChange() {
+    const brand = document.getElementById("brand").value;
+    const carSelect = document.getElementById("car");
     const sizeInput = document.getElementById("size");
 
-    const found = CAR_TYPES.find(r => r[0] === selected);
-    sizeInput.value = found ? found[1] : "";
+    sizeInput.value = "";
+    carSelect.innerHTML = '<option value="">اختر الموديل</option>';
+
+    if (!brand) {
+        carSelect.innerHTML = '<option value="">اختر البراند أولاً</option>';
+        return;
+    }
+
+    const models = CAR_TYPES.filter(r => r[0] === brand);
+
+    models.forEach(row => {
+        const opt = document.createElement("option");
+        opt.value = row[1]; // car
+        opt.innerText = row[1];
+        carSelect.appendChild(opt);
+    });
+}
+
+function onCarChange() {
+    const brand = document.getElementById("brand").value;
+    const car = document.getElementById("car").value;
+    const sizeInput = document.getElementById("size");
+
+    const found = CAR_TYPES.find(r => r[0] === brand && r[1] === car);
+    sizeInput.value = found ? (found[2] || "") : "";
 }
 
 async function register() {
@@ -132,12 +174,13 @@ async function register() {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
     const city = document.getElementById("city").value.trim();
+    const brand = document.getElementById("brand").value.trim();
     const car = document.getElementById("car").value.trim();
     const size = document.getElementById("size").value.trim();
-    const plate_letters = document.getElementById("plate_letters").value.trim();
     const plate_numbers = document.getElementById("plate_numbers").value.trim();
+    const plate_letters = document.getElementById("plate_letters").value.trim();
 
-    if (!name || !phone || !city || !car || !size || !plate_letters || !plate_numbers) {
+    if (!name || !phone || !city || !brand || !car || !size || !plate_numbers || !plate_letters) {
         alert("الرجاء تعبئة جميع الحقول");
         btn.disabled = false;
         btn.innerText = "تسجيل";
@@ -158,7 +201,7 @@ async function register() {
     });
 
     if (existingCustomer.success && existingCustomer.customer) {
-        alert("هذا العميل مسجل مسبقاً");
+        alert("يوجد حساب مسجل بهذا الرقم، يرجى استخدام صفحة الدخول.");
         btn.disabled = false;
         btn.innerText = "تسجيل";
         return;
@@ -167,7 +210,7 @@ async function register() {
     // توليد رقم عضوية
     const membership = Date.now().toString().slice(-6);
 
-    // تحقق هل السيارة موجودة مسبقاً
+    // تحقق هل السيارة موجودة مسبقاً لنفس الرقم
     const existingCars = await apiGet({
         action: "getCarsByPhone",
         phone
@@ -178,7 +221,7 @@ async function register() {
             c[4] === plate_letters && c[5] === plate_numbers
         );
         if (duplicate) {
-            alert("هذه السيارة مسجلة مسبقاً");
+            alert("هذه السيارة مسجلة مسبقاً على نفس الرقم.");
             btn.disabled = false;
             btn.innerText = "تسجيل";
             return;
@@ -190,20 +233,20 @@ async function register() {
         action: "addRow",
         sheet: "Customers",
         values: JSON.stringify([
-            name,
-            phone,
-            car,
-            size,
-            city,
-            plate_numbers,
-            plate_letters,
-            "",
-            membership,
-            "",
-            0,
-            0,
-            "Bronze",
-            0
+            name,           // name
+            phone,          // phone
+            car,            // car (موديل)
+            size,           // size
+            city,           // city
+            plate_numbers,  // plate_numbers
+            plate_letters,  // plate_letters
+            "",             // subscription
+            membership,     // membership
+            "",             // last_visit
+            0,              // visit_count
+            0,              // points
+            "Bronze",       // level
+            0               // free_wash
         ])
     });
 
@@ -212,14 +255,14 @@ async function register() {
         action: "addRow",
         sheet: "Cars",
         values: JSON.stringify([
-            membership,
-            phone,
-            car,
-            size,
-            plate_letters,
-            plate_numbers,
-            city,
-            new Date().toLocaleString("en-US")
+            membership,         // membership
+            phone,              // phone
+            car,                // car (موديل)
+            size,               // size
+            plate_letters,      // plate_letters
+            plate_numbers,      // plate_numbers
+            city,               // city
+            new Date().toLocaleString("en-US") // created_at
         ])
     });
 
