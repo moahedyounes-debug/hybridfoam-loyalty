@@ -9,48 +9,47 @@
         body {
             font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
-            padding: 20px;
+            padding: 25px;
         }
-
         .container {
             max-width: 450px;
             margin: auto;
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 0 10px #0001;
+            box-shadow: 0 4px 12px #0002;
         }
-
         h2 {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-
         label {
-            font-weight: bold;
-            margin-top: 12px;
+            font-size: 14px;
+            margin-top: 10px;
             display: block;
         }
-
         input, select {
             width: 100%;
             padding: 12px;
             margin-top: 6px;
-            border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 16px;
+            border: 1px solid #ccc;
+            font-size: 15px;
         }
-
         button {
             width: 100%;
             padding: 14px;
-            background: #007bff;
-            color: white;
+            margin-top: 18px;
             border: none;
             border-radius: 8px;
-            margin-top: 20px;
-            font-size: 18px;
+            background: #28a745;
+            color: white;
+            font-size: 17px;
             cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -60,189 +59,162 @@
 <div class="container">
     <h2>إضافة سيارة جديدة</h2>
 
-    <label>رقم الجوال</label>
-    <input id="phone" type="tel" placeholder="05xxxxxxxx">
-
-    <label>ماركة السيارة</label>
-    <select id="brand">
-        <option value="">اختر الماركة</option>
+    <label>براند السيارة</label>
+    <select id="brand" onchange="onBrandChange()">
+        <option value="">جاري تحميل البراندات...</option>
     </select>
 
-    <label>نوع السيارة</label>
-    <select id="model">
-        <option value="">اختر النوع</option>
+    <label>موديل السيارة</label>
+    <select id="car" onchange="onCarChange()">
+        <option value="">اختر البراند أولاً</option>
     </select>
 
-    <label>الحجم</label>
-    <input id="size" type="text" readonly placeholder="يتم تحديده تلقائيًا">
-
-    <label>المدينة</label>
-    <select id="city">
-        <option value="">اختر المدينة</option>
-    </select>
+    <label>حجم السيارة</label>
+    <input id="size" type="text" readonly placeholder="يتم تعبئته تلقائياً">
 
     <label>أرقام اللوحة</label>
     <input id="plate_numbers" type="text" placeholder="1234">
 
     <label>حروف اللوحة</label>
-    <input id="plate_letters" type="text" placeholder="مثال: أ ب ج">
+    <input id="plate_letters" type="text" placeholder="أ ب ج">
 
-    <button onclick="addCar()">إضافة السيارة</button>
+    <button id="submitBtn" onclick="addCar()">إضافة السيارة</button>
 </div>
 
 <script src="api.js"></script>
+
 <script>
-// سنخزن Car-Type هنا بعد الجلب
-let CAR_TYPES = [];
+let CAR_TYPES = []; // [brand, model, size]
+let CUSTOMER = null;
+let PHONE = "";
+let MEMBERSHIP = "";
 
-// جلب البيانات عند تحميل الصفحة
-window.onload = async function () {
-    await loadCarTypes();
-    await loadCities();
-};
+// تحميل بيانات العميل
+window.addEventListener("DOMContentLoaded", async () => {
+    const storedCustomer = localStorage.getItem("customer");
+    const storedPhone = localStorage.getItem("phone");
 
-/* جلب Car-Type من الشيت عبر Universal API */
+    if (!storedCustomer || !storedPhone) {
+        window.location.href = "customer-home.html";
+        return;
+    }
+
+    CUSTOMER = JSON.parse(storedCustomer);
+    PHONE = storedPhone;
+    MEMBERSHIP = CUSTOMER.membership;
+
+    loadCarTypes();
+});
+
+// تحميل Car-Type
 async function loadCarTypes() {
+    const brandSelect = document.getElementById("brand");
+
     const res = await apiGet({
         action: "getAll",
         sheet: "Car-Type"
     });
 
-    if (!res.success) {
-        alert("تعذر تحميل بيانات السيارات");
-        return;
+    brandSelect.innerHTML = '<option value="">اختر البراند</option>';
+
+    if (res.success && res.rows.length > 0) {
+        CAR_TYPES = res.rows;
+
+        const brands = [...new Set(CAR_TYPES.map(r => r[0]))];
+
+        brands.forEach(b => {
+            const opt = document.createElement("option");
+            opt.value = b;
+            opt.innerText = b;
+            brandSelect.appendChild(opt);
+        });
     }
-
-    // rows: [ [brand, model, size], ... ]
-    CAR_TYPES = res.rows || [];
-
-    const brandSelect = document.getElementById("brand");
-    const brands = [...new Set(CAR_TYPES.map(r => r[0]).filter(Boolean))];
-
-    brands.forEach(b => {
-        const opt = document.createElement("option");
-        opt.value = b;
-        opt.textContent = b;
-        brandSelect.appendChild(opt);
-    });
-
-    // عند تغيير الماركة → تعبئة الموديلات
-    brandSelect.addEventListener("change", onBrandChange);
-    document.getElementById("model").addEventListener("change", onModelChange);
 }
 
-/* عند اختيار ماركة */
 function onBrandChange() {
-    const brand = this.value;
-    const modelSelect = document.getElementById("model");
+    const brand = document.getElementById("brand").value;
+    const carSelect = document.getElementById("car");
     const sizeInput = document.getElementById("size");
 
-    modelSelect.innerHTML = `<option value="">اختر النوع</option>`;
     sizeInput.value = "";
+    carSelect.innerHTML = '<option value="">اختر الموديل</option>';
 
-    if (!brand) return;
+    const models = CAR_TYPES.filter(r => r[0] === brand);
 
-    const models = CAR_TYPES
-        .filter(r => r[0] === brand)
-        .map(r => r[1]);
-
-    [...new Set(models)].forEach(m => {
+    models.forEach(row => {
         const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = m;
-        modelSelect.appendChild(opt);
+        opt.value = row[1];
+        opt.innerText = row[1];
+        carSelect.appendChild(opt);
     });
 }
 
-/* عند اختيار الموديل → تحديد الحجم */
-function onModelChange() {
+function onCarChange() {
     const brand = document.getElementById("brand").value;
-    const model = this.value;
+    const car = document.getElementById("car").value;
     const sizeInput = document.getElementById("size");
 
-    if (!brand || !model) {
-        sizeInput.value = "";
-        return;
-    }
-
-    const match = CAR_TYPES.find(r => r[0] === brand && r[1] === model);
-    sizeInput.value = match ? match[2] : "";
+    const found = CAR_TYPES.find(r => r[0] === brand && r[1] === car);
+    sizeInput.value = found ? found[2] : "";
 }
 
-/* جلب المدن من شيت Branches */
-async function loadCities() {
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Branches"
-    });
-
-    if (!res.success) {
-        alert("تعذر تحميل المدن");
-        return;
-    }
-
-    // rows: [ [name, city, manager, ...], ... ]
-    const rows = res.rows || [];
-    const cities = [...new Set(rows.map(r => r[1]).filter(Boolean))];
-
-    const citySelect = document.getElementById("city");
-    cities.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c;
-        opt.textContent = c;
-        citySelect.appendChild(opt);
-    });
-}
-
-/* إضافة السيارة إلى شيت Cars عبر addRow */
 async function addCar() {
-    const phone = document.getElementById("phone").value.trim();
-    const brand = document.getElementById("brand").value;
-    const model = document.getElementById("model").value;
-    const size = document.getElementById("size").value;
-    const city = document.getElementById("city").value;
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.innerText = "جاري الإضافة...";
+
+    const brand = document.getElementById("brand").value.trim();
+    const car = document.getElementById("car").value.trim();
+    const size = document.getElementById("size").value.trim();
     const plate_numbers = document.getElementById("plate_numbers").value.trim();
     const plate_letters = document.getElementById("plate_letters").value.trim();
+    const city = "مكة";
 
-    if (!phone || !brand || !model || !size || !city || !plate_numbers || !plate_letters) {
+    if (!brand || !car || !size || !plate_numbers || !plate_letters) {
         alert("الرجاء تعبئة جميع الحقول");
+        btn.disabled = false;
+        btn.innerText = "إضافة السيارة";
         return;
     }
 
-    // توليد عضوية السيارة (مثل ما كان في السيرفر)
-    const carMembership = "M" + Math.floor(Date.now() / 1000);
-
-    // تخزين رقم الجوال كنص ="05xxxx"
-    const phoneText = '="' + phone + '"';
-
-    const now = new Date();
-
-    // ترتيب الأعمدة يجب أن يطابق شيت Cars:
-    // [car_membership, phone, brand, size, plate_letters, plate_numbers, city, created_at]
-    const row = [
-        carMembership,
-        phoneText,
-        brand,
-        size,
-        plate_letters,
-        plate_numbers,
-        city,
-        now
-    ];
-
-    const res = await apiPost({
-        action: "addRow",
-        sheet: "Cars",
-        values: JSON.stringify(row)
+    // تحقق من تكرار السيارة
+    const existingCars = await apiGet({
+        action: "getCarsByPhone",
+        phone: PHONE
     });
 
-    if (res.success) {
-        alert("تمت إضافة السيارة بنجاح");
-        // ممكن ترجع للداشبورد لو حاب:
-        // window.location.href = "customer-dashboard.html?phone=" + phone;
-    } else {
-        alert("حدث خطأ أثناء الإضافة");
+    if (existingCars.success && existingCars.cars) {
+        const duplicate = existingCars.cars.find(c =>
+            c[4] === plate_letters && c[5] === plate_numbers
+        );
+        if (duplicate) {
+            alert("هذه السيارة مسجلة مسبقاً على نفس الرقم.");
+            btn.disabled = false;
+            btn.innerText = "إضافة السيارة";
+            return;
+        }
     }
+
+    // إضافة السيارة
+    await apiPost({
+        action: "addRow",
+        sheet: "Cars",
+        values: JSON.stringify([
+            MEMBERSHIP,
+            PHONE,
+            car,
+            size,
+            plate_letters,
+            plate_numbers,
+            city,
+            new Date().toLocaleString("en-US")
+        ])
+    });
+
+    alert("تم إضافة السيارة بنجاح");
+
+    // الانتقال لصفحة سيارات العميل
+    window.location.href = "customer-cars.html";
 }
 </script>
 
