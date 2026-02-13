@@ -5,6 +5,16 @@
     <title>تسجيل عميل جديد</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
     <style>
         body {
             font-family: "Tajawal", sans-serif;
@@ -98,9 +108,6 @@
 <script src="api.js"></script>
 
 <script>
-/* ============================
-   تحميل البراندات عند فتح الصفحة
-   ============================ */
 window.onload = async function () {
     const res = await apiGet({ action: "getCarBrands" });
 
@@ -118,9 +125,6 @@ window.onload = async function () {
     });
 };
 
-/* ============================
-   عند اختيار البراند → تحميل الموديلات
-   ============================ */
 document.getElementById("brand").addEventListener("change", async function () {
     const brand = this.value;
     const modelSelect = document.getElementById("model");
@@ -143,9 +147,6 @@ document.getElementById("brand").addEventListener("change", async function () {
     });
 });
 
-/* ============================
-   عند اختيار الموديل → تحديد الحجم تلقائيًا
-   ============================ */
 document.getElementById("model").addEventListener("change", async function () {
     const brand = document.getElementById("brand").value;
     const model = this.value;
@@ -161,9 +162,6 @@ document.getElementById("model").addEventListener("change", async function () {
     document.getElementById("size").value = res.size || "";
 });
 
-/* ============================
-   تسجيل العميل + تسجيل السيارة
-   ============================ */
 async function registerCustomer() {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
@@ -179,7 +177,6 @@ async function registerCustomer() {
         return;
     }
 
-    // 1) تسجيل العميل
     const customer = await apiPost({
         action: "addCustomer",
         name,
@@ -191,7 +188,6 @@ async function registerCustomer() {
         return;
     }
 
-    // 2) تسجيل السيارة
     const car = await apiPost({
         action: "addCar",
         phone,
