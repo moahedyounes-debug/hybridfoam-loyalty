@@ -4,7 +4,7 @@
 */
 console.log("API JS VERSION:", Date.now());
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwcsxE4qiIJuNNvD3XIPGWBRJhG8hQr2TA9LGaM4Y2hBV1E0ZQELMLSp1k_cByfmFSKHw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxl9KqogxgM4ZWizxCD4wl_F3AY4PYZzYItH1a3IsJVvpK0qH7iNEpRc0VH6EVaxwIpQA/exec";
 
 /* 🔥 تعطيل كاش Service Worker لهذا الملف */
 if (navigator.serviceWorker && navigator.serviceWorker.controller) {
@@ -16,7 +16,6 @@ if (navigator.serviceWorker && navigator.serviceWorker.controller) {
 */
 async function apiGet(params = {}) {
 
-    // نحول GET إلى POST داخليًا لتجاوز CORS
     params.action = params.action || "getAll";
     params.t = Date.now();
 
@@ -27,7 +26,7 @@ async function apiGet(params = {}) {
 
     try {
         const res = await fetch(API_URL, {
-            method: "POST",   // ← هنا السر
+            method: "POST",
             cache: "no-store",
             body: form
         });
