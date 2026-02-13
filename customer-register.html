@@ -229,26 +229,26 @@ async function register() {
     }
 
     // إضافة العميل
-    await apiPost({
-        action: "addRow",
-        sheet: "Customers",
-        values: JSON.stringify([
-            name,
-            phone,
-            car,
-            size,
-            city,
-            plate_numbers,
-            plate_letters,
-            "",
-            membership,
-            "",
-            0,
-            0,
-            "Bronze",
-            0
-        ])
-    });
+await apiPost({
+    action: "addRow",
+    sheet: "Customers",
+    values: JSON.stringify([
+        name,
+        "'" + phone,      // 👈 هنا
+        car,
+        size,
+        city,
+        plate_numbers,
+        plate_letters,
+        "",
+        membership,
+        "",
+        0,
+        0,
+        "Bronze",
+        0
+    ])
+});
 
     // إضافة السيارة
     await apiPost({
