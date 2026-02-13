@@ -51,11 +51,6 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
-        .hint {
-            font-size: 12px;
-            color: #777;
-            margin-top: 4px;
-        }
     </style>
 </head>
 
@@ -92,7 +87,7 @@
     <input id="plate_numbers" type="text" placeholder="1234">
 
     <label>حروف اللوحة</label>
-    <input id="plate_letters" type="text" placeholder="مثال: أ ب ج">
+    <input id="plate_letters" type="text" placeholder="أ ب ج">
 
     <button id="submitBtn" onclick="register()">تسجيل</button>
 </div>
@@ -100,38 +95,31 @@
 <script src="api.js"></script>
 
 <script>
-let CAR_TYPES = []; // شكل الصف: [brand, car, size]
+let CAR_TYPES = []; // [brand, model, size]
 
-// تحميل بيانات Car-Type من الشيت
+// تحميل Car-Type
 window.onload = async function () {
     const brandSelect = document.getElementById("brand");
-    const carSelect = document.getElementById("car");
-
-    brandSelect.innerHTML = '<option value="">جاري تحميل البراندات...</option>';
-    carSelect.innerHTML = '<option value="">اختر البراند أولاً</option>';
 
     const res = await apiGet({
         action: "getAll",
         sheet: "Car-Type"
     });
 
-    if (!res.success || !res.rows || res.rows.length === 0) {
-        brandSelect.innerHTML = '<option value="">لا توجد بيانات سيارات</option>';
-        return;
-    }
-
-    CAR_TYPES = res.rows; // نتوقع: [brand, car, size]
-
-    // استخراج البراندات بدون تكرار
-    const brands = [...new Set(CAR_TYPES.map(r => r[0]).filter(Boolean))];
-
     brandSelect.innerHTML = '<option value="">اختر البراند</option>';
-    brands.forEach(b => {
-        const opt = document.createElement("option");
-        opt.value = b;
-        opt.innerText = b;
-        brandSelect.appendChild(opt);
-    });
+
+    if (res.success && res.rows.length > 0) {
+        CAR_TYPES = res.rows;
+
+        const brands = [...new Set(CAR_TYPES.map(r => r[0]))];
+
+        brands.forEach(b => {
+            const opt = document.createElement("option");
+            opt.value = b;
+            opt.innerText = b;
+            brandSelect.appendChild(opt);
+        });
+    }
 };
 
 function onBrandChange() {
@@ -142,16 +130,11 @@ function onBrandChange() {
     sizeInput.value = "";
     carSelect.innerHTML = '<option value="">اختر الموديل</option>';
 
-    if (!brand) {
-        carSelect.innerHTML = '<option value="">اختر البراند أولاً</option>';
-        return;
-    }
-
     const models = CAR_TYPES.filter(r => r[0] === brand);
 
     models.forEach(row => {
         const opt = document.createElement("option");
-        opt.value = row[1]; // car
+        opt.value = row[1];
         opt.innerText = row[1];
         carSelect.appendChild(opt);
     });
@@ -163,7 +146,24 @@ function onCarChange() {
     const sizeInput = document.getElementById("size");
 
     const found = CAR_TYPES.find(r => r[0] === brand && r[1] === car);
-    sizeInput.value = found ? (found[2] || "") : "";
+    sizeInput.value = found ? found[2] : "";
+}
+
+// توليد رقم عضوية يبدأ من 20260001
+async function generateMembership() {
+    const res = await apiGet({
+        action: "getAll",
+        sheet: "Customers"
+    });
+
+    if (!res.success || !res.rows || res.rows.length === 0) {
+        return 20260001;
+    }
+
+    const lastRow = res.rows[res.rows.length - 1];
+    const lastMembership = Number(lastRow[8]);
+
+    return isNaN(lastMembership) ? 20260001 : lastMembership + 1;
 }
 
 async function register() {
@@ -180,7 +180,7 @@ async function register() {
     const plate_numbers = document.getElementById("plate_numbers").value.trim();
     const plate_letters = document.getElementById("plate_letters").value.trim();
 
-    if (!name || !phone || !city || !brand || !car || !size || !plate_numbers || !plate_letters) {
+    if (!name || !phone || !brand || !car || !size || !plate_numbers || !plate_letters) {
         alert("الرجاء تعبئة جميع الحقول");
         btn.disabled = false;
         btn.innerText = "تسجيل";
@@ -201,16 +201,16 @@ async function register() {
     });
 
     if (existingCustomer.success && existingCustomer.customer) {
-        alert("يوجد حساب مسجل بهذا الرقم، يرجى استخدام صفحة الدخول.");
+        alert("يوجد حساب مسجل بهذا الرقم. الرجاء استخدام صفحة الدخول.");
         btn.disabled = false;
         btn.innerText = "تسجيل";
         return;
     }
 
-    // توليد رقم عضوية
-    const membership = Date.now().toString().slice(-6);
+    // توليد العضوية
+    const membership = await generateMembership();
 
-    // تحقق هل السيارة موجودة مسبقاً لنفس الرقم
+    // تحقق من السيارة
     const existingCars = await apiGet({
         action: "getCarsByPhone",
         phone
@@ -228,41 +228,41 @@ async function register() {
         }
     }
 
-    // إضافة العميل إلى Customers
+    // إضافة العميل
     await apiPost({
         action: "addRow",
         sheet: "Customers",
         values: JSON.stringify([
-            name,           // name
-            phone,          // phone
-            car,            // car (موديل)
-            size,           // size
-            city,           // city
-            plate_numbers,  // plate_numbers
-            plate_letters,  // plate_letters
-            "",             // subscription
-            membership,     // membership
-            "",             // last_visit
-            0,              // visit_count
-            0,              // points
-            "Bronze",       // level
-            0               // free_wash
+            name,
+            phone,
+            car,
+            size,
+            city,
+            plate_numbers,
+            plate_letters,
+            "",
+            membership,
+            "",
+            0,
+            0,
+            "Bronze",
+            0
         ])
     });
 
-    // إضافة السيارة إلى Cars
+    // إضافة السيارة
     await apiPost({
         action: "addRow",
         sheet: "Cars",
         values: JSON.stringify([
-            membership,         // membership
-            phone,              // phone
-            car,                // car (موديل)
-            size,               // size
-            plate_letters,      // plate_letters
-            plate_numbers,      // plate_numbers
-            city,               // city
-            new Date().toLocaleString("en-US") // created_at
+            membership,
+            phone,
+            car,
+            size,
+            plate_letters,
+            plate_numbers,
+            city,
+            new Date().toLocaleString("en-US")
         ])
     });
 
