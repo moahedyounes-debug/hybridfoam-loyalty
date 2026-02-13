@@ -66,17 +66,20 @@
 <script src="api.js"></script>
 
 <script>
-let PHONE = "";
-
 /* عند تحميل الصفحة */
 window.onload = async function () {
-    const url = new URL(window.location.href);
-    PHONE = url.searchParams.get("phone");
 
-    if (!PHONE) {
-        document.body.innerHTML = "<h2>رقم الجوال غير موجود</h2>";
+    // جلب بيانات العميل من localStorage
+    const customerData = localStorage.getItem("customer");
+    const phone = localStorage.getItem("phone");
+
+    if (!customerData || !phone) {
+        window.location.href = "customer-home.html";
         return;
     }
+
+    window.CUSTOMER = JSON.parse(customerData);
+    window.PHONE = phone;
 
     await loadDashboard();
 };
@@ -93,35 +96,23 @@ async function loadDashboard() {
         return;
     }
 
-    renderCustomer(customers.rows);
+    renderCustomer();
     renderCars(cars.rows);
     renderLastVisit(visits.rows);
     renderBookings(bookings.rows);
 }
 
 /* عرض بيانات العميل */
-function renderCustomer(rows) {
+function renderCustomer() {
+    const c = window.CUSTOMER;
     const div = document.getElementById("customer-info");
-
-    const row = rows.find(r => String(r[1]).replace(/["'=]/g, "") === PHONE);
-
-    if (!row) {
-        div.innerHTML = "<h3>العميل غير موجود</h3>";
-        return;
-    }
-
-    const name = row[0];
-    const membership = row[8];
-    const points = row[11];
-    const freeWash = row[13];
 
     div.innerHTML = `
         <h3>بيانات العميل</h3>
-        <div class="item"><span class="label">الاسم:</span> ${name}</div>
-        <div class="item"><span class="label">رقم الجوال:</span> ${PHONE}</div>
-        <div class="item"><span class="label">العضوية:</span> ${membership}</div>
-        <div class="item"><span class="label">النقاط:</span> ${points}</div>
-        <div class="item"><span class="label">غسيل مجاني:</span> ${freeWash > 0 ? "متوفر" : "لا يوجد"}</div>
+        <div class="item"><span class="label">الاسم:</span> ${c.name}</div>
+        <div class="item"><span class="label">رقم الجوال:</span> ${c.phone}</div>
+        <div class="item"><span class="label">المدينة:</span> ${c.city || "-"}</div>
+        <div class="item"><span class="label">العضوية:</span> ${c.membership || "-"}</div>
     `;
 }
 
@@ -130,18 +121,24 @@ function renderCars(rows) {
     const div = document.getElementById("cars");
     div.innerHTML = "<h3>سيارات العميل</h3>";
 
-    rows.forEach(r => {
-        const storedPhone = String(r[1]).replace(/["'=]/g, "");
-        if (storedPhone === PHONE) {
-            div.innerHTML += `
-                <div class="car-box">
-                    <div><span class="label">السيارة:</span> ${r[2]}</div>
-                    <div><span class="label">الحجم:</span> ${r[3]}</div>
-                    <div><span class="label">اللوحة:</span> ${r[5]} - ${r[4]}</div>
-                    <div><span class="label">المدينة:</span> ${r[6]}</div>
-                </div>
-            `;
-        }
+    const phone = window.PHONE;
+
+    const userCars = rows.filter(r => String(r[1]) === phone);
+
+    if (userCars.length === 0) {
+        div.innerHTML += "<div>لا توجد سيارات مسجلة</div>";
+        return;
+    }
+
+    userCars.forEach(r => {
+        div.innerHTML += `
+            <div class="car-box">
+                <div><span class="label">السيارة:</span> ${r[2]}</div>
+                <div><span class="label">الحجم:</span> ${r[3]}</div>
+                <div><span class="label">اللوحة:</span> ${r[5]} - ${r[4]}</div>
+                <div><span class="label">المدينة:</span> ${r[6]}</div>
+            </div>
+        `;
     });
 }
 
@@ -150,9 +147,10 @@ function renderLastVisit(rows) {
     const div = document.getElementById("last-visit");
     div.innerHTML = "<h3>آخر زيارة</h3>";
 
-    // نبحث عن آخر زيارة حسب التاريخ
+    const membership = window.CUSTOMER.membership;
+
     const visits = rows
-        .filter(r => String(r[0]) === getMembership())
+        .filter(r => String(r[0]) === membership)
         .sort((a, b) => new Date(b[8]) - new Date(a[8]));
 
     if (visits.length === 0) {
@@ -174,30 +172,29 @@ function renderLastVisit(rows) {
     `;
 }
 
-/* جلب عضوية العميل */
-function getMembership() {
-    const customers = document.getElementById("customer-info").innerHTML;
-    const match = customers.match(/العضوية:<\/span>\s*(\d+)/);
-    return match ? match[1] : "";
-}
-
 /* عرض حجوزات العميل */
 function renderBookings(rows) {
     const div = document.getElementById("bookings");
     div.innerHTML = "<h3>الحجوزات</h3>";
 
-    rows.forEach(r => {
-        const storedPhone = String(r[0]).replace(/["'=]/g, "");
-        if (storedPhone === PHONE) {
-            div.innerHTML += `
-                <div class="booking-box">
-                    <div><span class="label">الخدمة:</span> ${r[2]}</div>
-                    <div><span class="label">التاريخ:</span> ${r[3]}</div>
-                    <div><span class="label">الوقت:</span> ${r[4]}</div>
-                    <div><span class="label">الحالة:</span> ${r[5]}</div>
-                </div>
-            `;
-        }
+    const phone = window.PHONE;
+
+    const userBookings = rows.filter(r => String(r[0]) === phone);
+
+    if (userBookings.length === 0) {
+        div.innerHTML += "<div>لا توجد حجوزات</div>";
+        return;
+    }
+
+    userBookings.forEach(r => {
+        div.innerHTML += `
+            <div class="booking-box">
+                <div><span class="label">الخدمة:</span> ${r[2]}</div>
+                <div><span class="label">التاريخ:</span> ${r[3]}</div>
+                <div><span class="label">الوقت:</span> ${r[4]}</div>
+                <div><span class="label">الحالة:</span> ${r[5]}</div>
+            </div>
+        `;
     });
 }
 </script>
