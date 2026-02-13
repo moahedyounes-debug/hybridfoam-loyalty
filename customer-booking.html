@@ -2,54 +2,69 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>حجز موعد</title>
+    <title>حجز موعد جديد</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
         body {
             font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
-            padding: 20px;
+            padding: 25px;
         }
-
         .container {
-            max-width: 450px;
+            max-width: 480px;
             margin: auto;
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 0 10px #0001;
+            box-shadow: 0 4px 12px #0002;
         }
-
         h2 {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-
         label {
-            font-weight: bold;
-            margin-top: 12px;
+            font-size: 14px;
+            margin-top: 10px;
             display: block;
         }
-
         input, select {
             width: 100%;
             padding: 12px;
             margin-top: 6px;
-            border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 16px;
+            border: 1px solid #ccc;
+            font-size: 15px;
         }
-
         button {
             width: 100%;
             padding: 14px;
-            background: #007bff;
-            color: white;
+            margin-top: 18px;
             border: none;
             border-radius: 8px;
-            margin-top: 20px;
-            font-size: 18px;
+            background: #007bff;
+            color: white;
+            font-size: 17px;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .service-item {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .remove-btn {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
             cursor: pointer;
         }
     </style>
@@ -58,28 +73,32 @@
 <body>
 
 <div class="container">
-    <h2>حجز موعد</h2>
+    <h2>حجز موعد جديد</h2>
 
-    <label>رقم الجوال</label>
-    <input id="phone" type="tel" placeholder="05xxxxxxxx">
-
-    <label>السيارة</label>
-    <select id="car">
-        <option value="">اختر السيارة</option>
+    <label>اختر السيارة</label>
+    <select id="carSelect">
+        <option value="">جاري تحميل السيارات...</option>
     </select>
 
-    <label>الخدمة</label>
-    <select id="service">
-        <option value="">اختر الخدمة</option>
+    <label>الخدمة (Category)</label>
+    <select id="categorySelect" onchange="loadServiceTypes()">
+        <option value="">جاري التحميل...</option>
+    </select>
+
+    <label>نوع الخدمة (Service Type)</label>
+    <select id="serviceSelect" onchange="updatePrice()">
+        <option value="">اختر الخدمة أولاً</option>
     </select>
 
     <label>السعر</label>
-    <input id="price" type="text" readonly placeholder="سيظهر تلقائيًا">
+    <input id="price" type="text" readonly placeholder="—">
 
-    <label>الفرع</label>
-    <select id="branch">
-        <option value="">اختر الفرع</option>
-    </select>
+    <button onclick="addService()">إضافة الخدمة</button>
+
+    <h3>الخدمات المختارة</h3>
+    <div id="selectedServices"></div>
+
+    <h3>المجموع النهائي: <span id="totalPrice">0</span> ريال</h3>
 
     <label>التاريخ</label>
     <input id="date" type="date">
@@ -87,163 +106,206 @@
     <label>الوقت</label>
     <input id="time" type="time">
 
-    <button onclick="addBooking()">تأكيد الحجز</button>
+    <button id="submitBtn" onclick="book()">حجز الموعد</button>
 </div>
 
 <script src="api.js"></script>
 
 <script>
-let COMMISSIONS = [];
+let CUSTOMER = null;
+let PHONE = "";
+let MEMBERSHIP = "";
 let CARS = [];
-let BRANCHES = [];
+let SERVICES = []; // كل الخدمات من الشيت
+let SELECTED = []; // الخدمات المختارة
 
-/* تحميل البيانات عند فتح الصفحة */
-window.onload = async function () {
-    await loadCommissions();
-    await loadBranches();
-};
+// تحميل بيانات العميل
+window.addEventListener("DOMContentLoaded", async () => {
+    const storedCustomer = localStorage.getItem("customer");
+    const storedPhone = localStorage.getItem("phone");
 
-/* جلب الخدمات من شيت Commissions */
-async function loadCommissions() {
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Commissions"
-    });
-
-    if (!res.success) {
-        alert("تعذر تحميل الخدمات");
+    if (!storedCustomer || !storedPhone) {
+        window.location.href = "customer-home.html";
         return;
     }
 
-    COMMISSIONS = res.rows || [];
+    CUSTOMER = JSON.parse(storedCustomer);
+    PHONE = storedPhone;
+    MEMBERSHIP = CUSTOMER.membership;
 
-    const serviceSelect = document.getElementById("service");
-
-    COMMISSIONS.forEach(row => {
-        const name = row[0];   // A = اسم الخدمة
-        const price = row[2];  // C = السعر
-
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = `${name} - ${price} ريال`;
-        opt.dataset.price = price;
-        serviceSelect.appendChild(opt);
-    });
-
-    serviceSelect.addEventListener("change", onServiceChange);
-}
-
-/* عند اختيار الخدمة → عرض السعر */
-function onServiceChange() {
-    const price = this.selectedOptions[0].dataset.price;
-    document.getElementById("price").value = price;
-}
-
-/* جلب الفروع */
-async function loadBranches() {
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Branches"
-    });
-
-    if (!res.success) {
-        alert("تعذر تحميل الفروع");
-        return;
-    }
-
-    BRANCHES = res.rows || [];
-
-    const branchSelect = document.getElementById("branch");
-
-    BRANCHES.forEach(row => {
-        const name = row[0]; // اسم الفرع
-        const city = row[1];
-
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = `${name} - ${city}`;
-        branchSelect.appendChild(opt);
-    });
-}
-
-/* عند إدخال رقم الجوال → تحميل سيارات العميل */
-document.getElementById("phone").addEventListener("change", async function () {
-    const phone = this.value.trim();
-    if (!phone) return;
-
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Cars"
-    });
-
-    if (!res.success) {
-        alert("تعذر تحميل السيارات");
-        return;
-    }
-
-    CARS = res.rows || [];
-
-    const carSelect = document.getElementById("car");
-    carSelect.innerHTML = `<option value="">اختر السيارة</option>`;
-
-    CARS.forEach(row => {
-        const storedPhone = String(row[1]).replace(/["'=]/g, "");
-        if (storedPhone === phone) {
-            const membership = row[0];
-            const brand = row[2];
-            const size = row[3];
-            const plate = row[5];
-
-            const opt = document.createElement("option");
-            opt.value = membership;
-            opt.textContent = `${brand} - ${plate} (${size})`;
-            carSelect.appendChild(opt);
-        }
-    });
+    await loadCars();
+    await loadCategories();
 });
 
-/* إضافة الحجز */
-async function addBooking() {
-    const phone = document.getElementById("phone").value.trim();
-    const carMembership = document.getElementById("car").value;
-    const service = document.getElementById("service").value;
+// تحميل سيارات العميل
+async function loadCars() {
+    const carSelect = document.getElementById("carSelect");
+
+    const res = await apiGet({
+        action: "getCarsByPhone",
+        phone: PHONE
+    });
+
+    carSelect.innerHTML = '<option value="">اختر السيارة</option>';
+
+    if (res.success && res.cars.length > 0) {
+        CARS = res.cars;
+
+        CARS.forEach(c => {
+            const model = c[2];
+            const size = c[3];
+            const letters = c[4];
+            const numbers = c[5];
+
+            const opt = document.createElement("option");
+            opt.value = model;
+            opt.innerText = `${model} • ${size} • ${numbers} ${letters}`;
+            carSelect.appendChild(opt);
+        });
+    }
+}
+
+// تحميل الخدمات من الشيت
+async function loadCategories() {
+    const categorySelect = document.getElementById("categorySelect");
+
+    const res = await apiGet({
+        action: "getAll",
+        sheet: "Services"
+    });
+
+    categorySelect.innerHTML = '<option value="">اختر الخدمة</option>';
+
+    if (res.success && res.rows.length > 0) {
+        SERVICES = res.rows;
+
+        const categories = [...new Set(SERVICES.map(r => r[0]))];
+
+        categories.forEach(cat => {
+            const opt = document.createElement("option");
+            opt.value = cat;
+            opt.innerText = cat;
+            categorySelect.appendChild(opt);
+        });
+    }
+}
+
+// تحميل نوع الخدمة حسب الـ Category
+function loadServiceTypes() {
+    const category = document.getElementById("categorySelect").value;
+    const serviceSelect = document.getElementById("serviceSelect");
+    const priceInput = document.getElementById("price");
+
+    priceInput.value = "";
+    serviceSelect.innerHTML = '<option value="">اختر نوع الخدمة</option>';
+
+    const filtered = SERVICES.filter(s => s[0] === category);
+
+    filtered.forEach(row => {
+        const opt = document.createElement("option");
+        opt.value = row[1];
+        opt.innerText = row[1];
+        opt.setAttribute("data-price", row[2]);
+        serviceSelect.appendChild(opt);
+    });
+}
+
+// تحديث السعر تلقائيًا
+function updatePrice() {
+    const serviceSelect = document.getElementById("serviceSelect");
+    const priceInput = document.getElementById("price");
+
+    const selected = serviceSelect.options[serviceSelect.selectedIndex];
+    const price = selected.getAttribute("data-price");
+
+    priceInput.value = price || "";
+}
+
+// إضافة خدمة
+function addService() {
+    const category = document.getElementById("categorySelect").value;
+    const service = document.getElementById("serviceSelect").value;
     const price = document.getElementById("price").value;
-    const branch = document.getElementById("branch").value;
+
+    if (!category || !service || !price) {
+        alert("اختر الخدمة أولاً");
+        return;
+    }
+
+    SELECTED.push({ category, service, price });
+
+    renderSelectedServices();
+    updateTotal();
+}
+
+// عرض الخدمات المختارة
+function renderSelectedServices() {
+    const container = document.getElementById("selectedServices");
+    container.innerHTML = "";
+
+    SELECTED.forEach((s, index) => {
+        const div = document.createElement("div");
+        div.className = "service-item";
+        div.innerHTML = `
+            <span>${s.category} - ${s.service} (${s.price} ريال)</span>
+            <button class="remove-btn" onclick="removeService(${index})">حذف</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// حذف خدمة
+function removeService(index) {
+    SELECTED.splice(index, 1);
+    renderSelectedServices();
+    updateTotal();
+}
+
+// تحديث المجموع
+function updateTotal() {
+    const total = SELECTED.reduce((sum, s) => sum + Number(s.price), 0);
+    document.getElementById("totalPrice").innerText = total;
+}
+
+// حجز الموعد
+async function book() {
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.innerText = "جاري الحجز...";
+
+    const car = document.getElementById("carSelect").value;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
 
-    if (!phone || !carMembership || !service || !price || !branch || !date || !time) {
+    if (!car || !date || !time || SELECTED.length === 0) {
         alert("الرجاء تعبئة جميع الحقول");
+        btn.disabled = false;
+        btn.innerText = "حجز الموعد";
         return;
     }
 
-    const phoneText = '="' + phone + '"';
-    const now = new Date();
+    const servicesString = SELECTED.map(s => `${s.category} - ${s.service}`).join(" | ");
+    const totalPrice = SELECTED.reduce((sum, s) => sum + Number(s.price), 0);
 
-    // ترتيب الأعمدة في شيت Bookings:
-    // phone, membership, service, date, time, status, created_at
-    const row = [
-        phoneText,
-        carMembership,
-        service,
-        date,
-        time,
-        "Pending",
-        now
-    ];
-
-    const res = await apiPost({
+    await apiPost({
         action: "addRow",
         sheet: "Bookings",
-        values: JSON.stringify(row)
+        values: JSON.stringify([
+            MEMBERSHIP,
+            PHONE,
+            servicesString,
+            date,
+            time,
+            "قيد الانتظار",
+            car,
+            totalPrice,
+            new Date().toLocaleString("en-US")
+        ])
     });
 
-    if (res.success) {
-        alert("تم الحجز بنجاح");
-        window.location.href = "customer-dashboard.html?phone=" + phone;
-    } else {
-        alert("حدث خطأ أثناء الحجز");
-    }
+    alert("تم حجز الموعد بنجاح");
+
+    window.location.href = "customer-bookings.html";
 }
 </script>
 
