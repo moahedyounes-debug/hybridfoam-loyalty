@@ -45,10 +45,6 @@
             background: #25D366;
             color: white;
         }
-        .admin-btn {
-            background: #444;
-            color: white;
-        }
     </style>
 </head>
 
@@ -63,8 +59,6 @@
     <button id="continueBtn" class="main-btn" onclick="start()">متابعة</button>
 
     <button class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
-
-    <button class="admin-btn" onclick="contactAdmin()">التواصل مع الإدارة</button>
 </div>
 
 <script src="api.js"></script>
@@ -79,11 +73,9 @@ async function start() {
         return;
     }
 
-    // تعطيل الزر + تغيير النص
     btn.disabled = true;
     btn.innerText = "جاري التحقق...";
 
-    // جلب جميع العملاء
     const res = await apiGet({ action: "getAll", sheet: "Customers" });
 
     if (!res.success) {
@@ -94,8 +86,6 @@ async function start() {
     }
 
     const customers = res.rows;
-
-    // البحث عن العميل
     const customer = customers.find(c => c[1] === phone);
 
     localStorage.setItem("phone", phone);
@@ -106,19 +96,28 @@ async function start() {
         return;
     }
 
-    // عميل موجود
-    localStorage.setItem("customer", JSON.stringify(customer));
+    // عميل موجود — نخزن بياناته
+    const customerObj = {
+        id: customer[0],
+        phone: customer[1],
+        name: customer[2],
+        membership: customer[3] || "",
+        city: customer[4] || ""
+    };
 
-    // نروح مباشرة للوحة العميل
+    localStorage.setItem("customer", JSON.stringify(customerObj));
+
+    // نروح للوحة العميل
     window.location.href = "customer-dashboard.html";
 }
 
 function contactWhatsApp() {
-    window.location.href = "https://wa.me/966582007063";
-}
+    const phone = document.getElementById("phone").value.trim();
 
-function contactAdmin() {
-    window.location.href = "tel:0582007063";
+    let msg = "مرحباً، أحتاج مساعدة من خدمة العملاء.%0A";
+    if (phone) msg += "%0Aرقم الجوال: " + phone;
+
+    window.location.href = "https://wa.me/966582007063?text=" + msg;
 }
 </script>
 
