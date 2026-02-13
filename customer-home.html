@@ -49,10 +49,6 @@
             background: #444;
             color: white;
         }
-        .login-btn {
-            background: #ff9800;
-            color: white;
-        }
     </style>
 </head>
 
@@ -64,9 +60,7 @@
 
     <input id="phone" type="tel" placeholder="05xxxxxxxx" maxlength="10">
 
-    <button class="main-btn" onclick="start()">متابعة</button>
-
-    <button class="login-btn" onclick="goLogin()">تسجيل الدخول</button>
+    <button id="continueBtn" class="main-btn" onclick="start()">متابعة</button>
 
     <button class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
 
@@ -77,6 +71,7 @@
 
 <script>
 async function start() {
+    const btn = document.getElementById("continueBtn");
     const phone = document.getElementById("phone").value.trim();
 
     if (phone.length !== 10 || !phone.startsWith("05")) {
@@ -84,11 +79,17 @@ async function start() {
         return;
     }
 
+    // تعطيل الزر + تغيير النص
+    btn.disabled = true;
+    btn.innerText = "جاري التحقق...";
+
     // جلب جميع العملاء
     const res = await apiGet({ action: "getAll", sheet: "Customers" });
 
     if (!res.success) {
         alert("خطأ في الاتصال بالنظام");
+        btn.disabled = false;
+        btn.innerText = "متابعة";
         return;
     }
 
@@ -97,31 +98,19 @@ async function start() {
     // البحث عن العميل
     const customer = customers.find(c => c[1] === phone);
 
+    localStorage.setItem("phone", phone);
+
     if (!customer) {
         // عميل جديد
-        localStorage.setItem("phone", phone);
         window.location.href = "customer-register.html";
         return;
     }
 
     // عميل موجود
     localStorage.setItem("customer", JSON.stringify(customer));
-    localStorage.setItem("phone", phone);
 
-    // نبحث عن سياراته
-    const carsRes = await apiGet({ action: "getAll", sheet: "Cars" });
-
-    const cars = carsRes.rows.filter(c => c[1] === phone);
-
-    if (cars.length === 0) {
-        window.location.href = "customer-add-car.html";
-    } else {
-        window.location.href = "customer-cars.html";
-    }
-}
-
-function goLogin() {
-    window.location.href = "customer-login.html";
+    // نروح مباشرة للوحة العميل
+    window.location.href = "customer-dashboard.html";
 }
 
 function contactWhatsApp() {
