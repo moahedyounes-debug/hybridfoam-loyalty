@@ -5,10 +5,8 @@
     <title>لوحة العميل</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- manifest (PWA) -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- Service Worker -->
     <script>
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("service-worker.js");
@@ -19,218 +17,166 @@
         body {
             font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Header */
-        .header {
-            background: white;
-            padding: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 0 10px #0001;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .header .name {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .notif {
-            position: relative;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .notif .dot {
-            width: 10px;
-            height: 10px;
-            background: red;
-            border-radius: 50%;
-            position: absolute;
-            top: 0;
-            right: 0;
-        }
-
-        /* Container */
-        .container {
             padding: 20px;
-            max-width: 480px;
+        }
+
+        .container {
+            max-width: 500px;
             margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
         }
 
         .card {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 10px #0001;
-        }
-
-        .progress-container {
-            margin-top: 15px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 14px;
-            background: #eee;
+            padding: 15px;
             border-radius: 10px;
-            overflow: hidden;
+            margin-bottom: 12px;
+            box-shadow: 0 0 8px #0001;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: #007bff;
-            width: 0%;
-            transition: 0.5s;
+        .row {
+            margin: 5px 0;
         }
 
-        /* Buttons */
+        .label {
+            font-weight: bold;
+        }
+
         .btn {
-            display: block;
             width: 100%;
             padding: 14px;
             background: #007bff;
             color: white;
-            text-align: center;
+            border: none;
             border-radius: 8px;
-            margin-top: 12px;
-            text-decoration: none;
+            margin-top: 10px;
             font-size: 18px;
+            cursor: pointer;
+            text-align: center;
+            display: block;
+            text-decoration: none;
         }
 
-        .btn-whatsapp {
-            background: #25D366;
+        .btn-secondary {
+            background: #28a745;
+        }
+
+        .btn-orange {
+            background: #ff9800;
         }
     </style>
 </head>
 
 <body>
 
-<!-- Header -->
-<div class="header">
-    <div class="name" id="headerName">مرحبًا</div>
-
-    <div class="notif" onclick="openNotifications()">
-        🔔
-        <div class="dot" id="notifDot" style="display:none;"></div>
-    </div>
-</div>
-
 <div class="container">
+    <h2>لوحة العميل</h2>
 
-    <!-- Customer Info -->
-    <div class="card">
-        <h3>معلومات العميل</h3>
-        <p><strong>رقم الجوال:</strong> <span id="customerPhone"></span></p>
-        <p><strong>رقم العضوية:</strong> <span id="customerMembership"></span></p>
-        <p><strong>النقاط الحالية:</strong> <span id="customerPoints"></span></p>
-        <p><strong>المستوى:</strong> <span id="customerLevel"></span></p>
-        <p><strong>آخر زيارة:</strong> <span id="lastVisit"></span></p>
+    <label>رقم الجوال</label>
+    <input id="phone" type="tel" placeholder="05xxxxxxxx" style="
+        width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px;
+    ">
 
-        <!-- Progress -->
-        <div class="progress-container">
-            <p id="progressText"></p>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-        </div>
-    </div>
+    <button onclick="loadDashboard()" class="btn">عرض البيانات</button>
 
-    <!-- Buttons -->
-    <a class="btn" id="visitsBtn">زياراتي</a>
-    <a class="btn" id="bookingsBtn">حجوزاتي</a>
-    <a class="btn" id="carsBtn">سياراتي</a>
-    <a class="btn" id="bookingBtn">حجز موعد</a>
-    <a class="btn btn-whatsapp" id="whatsappBtn">التواصل مع المغسلة</a>
-
+    <div id="content" style="margin-top:20px;"></div>
 </div>
 
 <script src="api.js"></script>
 
 <script>
-/* ============================
-   قراءة رقم الجوال من الرابط
-   ============================ */
-const urlParams = new URLSearchParams(window.location.search);
-const phone = urlParams.get("phone");
+async function loadDashboard() {
+    const phone = document.getElementById("phone").value.trim();
+    const content = document.getElementById("content");
+    content.innerHTML = "";
 
-if (!phone) {
-    alert("رقم الجوال غير موجود");
-}
+    if (!phone) {
+        alert("الرجاء إدخال رقم الجوال");
+        return;
+    }
 
-/* ============================
-   تحميل بيانات العميل
-   ============================ */
-window.onload = async function () {
     const res = await apiGet({
         action: "getCustomerDashboard",
         phone
     });
 
     if (!res.success) {
-        alert("لم يتم العثور على العميل");
+        content.innerHTML = "<p>العميل غير موجود.</p>";
         return;
     }
 
-    const customer = res.customer;
-    const lastVisit = res.last_visit;
+    const c = res.customer;
 
-    // Header
-    document.getElementById("headerName").textContent = "مرحبًا، " + customer.name;
+    /* بطاقة بيانات العميل */
+    let html = `
+        <div class="card">
+            <div class="row"><span class="label">الاسم:</span> ${c.name}</div>
+            <div class="row"><span class="label">الجوال:</span> ${c.phone}</div>
+            <div class="row"><span class="label">العضوية:</span> ${c.membership}</div>
+            <div class="row"><span class="label">النقاط:</span> ${c.points}</div>
+            <div class="row"><span class="label">المستوى:</span> ${c.level}</div>
+            <div class="row"><span class="label">غسلة مجانية:</span> ${c.free_wash ? "نعم" : "لا"}</div>
+        </div>
+    `;
 
-    // إشعارات (placeholder)
-    if (res.unread_notifications > 0) {
-        document.getElementById("notifDot").style.display = "block";
+    /* بطاقة آخر زيارة */
+    if (res.last_visit) {
+        const v = res.last_visit;
+        html += `
+            <div class="card">
+                <h3 style="margin-top:0;">آخر زيارة</h3>
+                <div class="row"><span class="label">الخدمة:</span> ${v.service_detail}</div>
+                <div class="row"><span class="label">السعر:</span> ${v.price}</div>
+                <div class="row"><span class="label">النقاط:</span> ${v.points}</div>
+                <div class="row"><span class="label">الفرع:</span> ${v.branch}</div>
+                <div class="row"><span class="label">الدخول:</span> ${new Date(v.check_in).toLocaleString("ar-SA")}</div>
+            </div>
+        `;
     }
 
-    // بيانات العميل
-    document.getElementById("customerPhone").textContent = customer.phone;
-    document.getElementById("customerMembership").textContent = customer.membership;
-    document.getElementById("customerPoints").textContent = customer.points;
-    document.getElementById("customerLevel").textContent = customer.level;
-    document.getElementById("lastVisit").textContent = lastVisit ? lastVisit.check_in : "لا يوجد";
+    /* بطاقة السيارات */
+    if (res.cars.length > 0) {
+        html += `<div class="card"><h3 style="margin-top:0;">سيارات العميل</h3>`;
+        res.cars.forEach(car => {
+            html += `
+                <div class="row"><span class="label">الماركة:</span> ${car.car}</div>
+                <div class="row"><span class="label">الحجم:</span> ${car.size}</div>
+                <div class="row"><span class="label">اللوحة:</span> ${car.plate_letters} - ${car.plate_numbers}</div>
+                <hr>
+            `;
+        });
+        html += `</div>`;
+    }
 
-    /* ============================
-       شارت التقدم للمستوى التالي
-       ============================ */
-    const current = customer.points;
-    const nextLevel = customer.next_level_points; // من الـ API
-    const percent = Math.min((current / nextLevel) * 100, 100);
+    /* بطاقة الحجوزات */
+    if (res.bookings.length > 0) {
+        html += `<div class="card"><h3 style="margin-top:0;">الحجوزات</h3>`;
+        res.bookings.forEach(b => {
+            html += `
+                <div class="row"><span class="label">الخدمة:</span> ${b.service}</div>
+                <div class="row"><span class="label">التاريخ:</span> ${b.date}</div>
+                <div class="row"><span class="label">الوقت:</span> ${b.time}</div>
+                <div class="row"><span class="label">الحالة:</span> ${b.status}</div>
+                <hr>
+            `;
+        });
+        html += `</div>`;
+    }
 
-    document.getElementById("progressFill").style.width = percent + "%";
-    document.getElementById("progressText").textContent =
-        `النقاط: ${current} / ${nextLevel} — المتبقي: ${nextLevel - current}`;
-    
-    /* ============================
-       أزرار التنقل
-       ============================ */
-    document.getElementById("visitsBtn").href = "customer-visits.html?phone=" + phone;
-    document.getElementById("bookingsBtn").href = "customer-bookings.html?phone=" + phone;
-    document.getElementById("carsBtn").href = "customer-cars.html?phone=" + phone;
-    document.getElementById("bookingBtn").href = "customer-booking.html?phone=" + phone;
+    /* أزرار التنقل */
+    html += `
+        <a href="customer-visits.html" class="btn btn-secondary">زياراتي</a>
+        <a href="customer-cars.html" class="btn btn-secondary">سياراتي</a>
+        <a href="customer-bookings.html" class="btn btn-secondary">حجوزاتي</a>
+        <a href="customer-booking.html" class="btn btn-orange">حجز موعد</a>
+        <a href="customer-notifications.html" class="btn">الإشعارات</a>
+    `;
 
-    /* ============================
-       زر الواتساب
-       ============================ */
-    const msg = `مرحبًا، أنا ${customer.name} - رقم العضوية: ${customer.membership}`;
-    const encoded = encodeURIComponent(msg);
-
-    document.getElementById("whatsappBtn").href =
-        "https://wa.me/966582007063?text=" + encoded;
-};
-
-/* ============================
-   فتح الإشعارات
-   ============================ */
-function openNotifications() {
-    alert("سيتم إضافة صفحة الإشعارات لاحقًا");
+    content.innerHTML = html;
 }
 </script>
 
