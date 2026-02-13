@@ -1,134 +1,196 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>إضافة سيارة</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="api.js"></script>
+    <meta charset="UTF-8">
+    <title>إضافة سيارة جديدة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body { font-family:sans-serif; background:#f5f5f5; text-align:center; margin:0; padding:0; }
-.header { background:#007bff; color:white; padding:20px; font-size:22px; }
-select, input {
-    width:85%; max-width:350px; padding:12px; margin:10px 0;
-    border-radius:10px; border:1px solid #ccc; font-size:16px;
-}
-button {
-    width:85%; max-width:350px; padding:14px; margin-top:15px;
-    background:#28a745; color:white; border:none; border-radius:10px;
-    font-size:18px; cursor:pointer;
-}
-button:disabled { opacity:0.6; }
-.back {
-    display:block; width:85%; max-width:350px; padding:14px;
-    margin:20px auto; background:#6c757d; color:white;
-    text-decoration:none; border-radius:10px;
-}
-.label { text-align:right; width:85%; max-width:350px; margin:0 auto; font-size:15px; color:#444; }
-</style>
+    <style>
+        body {
+            font-family: "Tajawal", sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px #0001;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 12px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: #999;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="header">إضافة سيارة</div>
+<div class="container">
+    <h2>إضافة سيارة جديدة</h2>
 
-<div class="label">رقم العضوية</div>
-<input id="membership" readonly>
+    <label>رقم الجوال</label>
+    <input id="phone" type="tel" placeholder="05xxxxxxxx">
 
-<div class="label">نوع السيارة</div>
-<select id="car">
-    <option value="">اختر نوع السيارة</option>
+    <label>ماركة السيارة</label>
+    <select id="brand">
+        <option value="">اختر الماركة</option>
+    </select>
 
-    <!-- سيارات سيدان -->
-    <option value="تويوتا كامري">تويوتا كامري</option>
-    <option value="تويوتا كورولا">تويوتا كورولا</option>
-    <option value="هيونداي سوناتا">هيونداي سوناتا</option>
-    <option value="هيونداي النترا">هيونداي النترا</option>
-    <option value="نيسان التيما">نيسان التيما</option>
-    <option value="كيا K5">كيا K5</option>
+    <label>نوع السيارة</label>
+    <select id="model">
+        <option value="">اختر النوع</option>
+    </select>
 
-    <!-- سيارات SUV -->
-    <option value="تويوتا لاندكروزر">تويوتا لاندكروزر</option>
-    <option value="تويوتا برادو">تويوتا برادو</option>
-    <option value="نيسان باترول">نيسان باترول</option>
-    <option value="فورد اكسبديشن">فورد اكسبديشن</option>
-    <option value="جي ام سي يوكن">جي ام سي يوكن</option>
-    <option value="شيفروليه تاهو">شيفروليه تاهو</option>
+    <label>الحجم</label>
+    <input id="size" type="text" readonly placeholder="يتم تحديده تلقائيًا">
 
-    <!-- بيك أب -->
-    <option value="تويوتا هايلكس">تويوتا هايلكس</option>
-    <option value="نيسان نافارا">نيسان نافارا</option>
-    <option value="ديماكس">ديماكس</option>
-</select>
+    <label>المدينة</label>
+    <input id="city" type="text" placeholder="مثال: الرياض">
 
-<div class="label">أرقام اللوحة</div>
-<input id="plateNumbers" placeholder="مثال: 1234">
+    <label>حروف اللوحة</label>
+    <input id="plate_letters" type="text" placeholder="مثال: أ ب ج">
 
-<div class="label">حروف اللوحة</div>
-<input id="plateLetters" placeholder="مثال: أ ب ج">
+    <label>أرقام اللوحة</label>
+    <input id="plate_numbers" type="text" placeholder="1234">
 
-<button id="saveBtn" onclick="saveCar()">إضافة السيارة</button>
-
-<a href="customer-dashboard.html" class="back">رجوع</a>
+    <button onclick="addCar()">إضافة السيارة</button>
+</div>
 
 <script>
-function normalizePhone(phone) {
-    phone = String(phone).trim();
-    if (!phone.startsWith("0")) phone = "0" + phone;
-    return phone;
-}
+const API = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 
-/* تحميل رقم العضوية من الـ API */
-async function loadMembership() {
-    const phone = normalizePhone(localStorage.getItem("customer_phone"));
+/* ============================
+   تحميل البراندات عند فتح الصفحة
+   ============================ */
+window.onload = function () {
+    fetch(API + "?action=getCarBrands")
+        .then(res => res.json())
+        .then(data => {
+            const brandSelect = document.getElementById("brand");
+            data.brands.forEach(b => {
+                const opt = document.createElement("option");
+                opt.value = b;
+                opt.textContent = b;
+                brandSelect.appendChild(opt);
+            });
+        });
+};
 
-    const res = await apiGet({
-        action: "getMembership",
-        phone
-    });
+/* ============================
+   عند اختيار البراند → تحميل الموديلات
+   ============================ */
+document.getElementById("brand").addEventListener("change", function () {
+    const brand = this.value;
+    const modelSelect = document.getElementById("model");
+    modelSelect.innerHTML = "<option value=''>اختر النوع</option>";
 
-    if (res.success) {
-        document.getElementById("membership").value = res.membership;
-    } else {
-        document.getElementById("membership").value = "—";
-    }
-}
+    if (!brand) return;
 
-/* حفظ السيارة */
-async function saveCar() {
-    const btn = document.getElementById("saveBtn");
-    btn.disabled = true;
-    btn.innerText = "جاري الإضافة...";
+    fetch(API + "?action=getCarModels&brand=" + encodeURIComponent(brand))
+        .then(res => res.json())
+        .then(data => {
+            data.models.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m;
+                opt.textContent = m;
+                modelSelect.appendChild(opt);
+            });
+        });
+});
 
-    const phone = normalizePhone(localStorage.getItem("customer_phone"));
-    const car = document.getElementById("car").value;
-    const plate_numbers = document.getElementById("plateNumbers").value;
-    const plate_letters = document.getElementById("plateLetters").value;
-    const membership = document.getElementById("membership").value;
+/* ============================
+   عند اختيار الموديل → تحديد الحجم تلقائيًا
+   ============================ */
+document.getElementById("model").addEventListener("change", function () {
+    const brand = document.getElementById("brand").value;
+    const model = this.value;
 
-    const res = await apiPost({
-        action: "addCar",
-        phone,
-        car,
-        plate_numbers,
-        plate_letters,
-        membership
-    });
+    if (!brand || !model) return;
 
-    if (!res.success) {
-        btn.disabled = false;
-        btn.innerText = "إضافة السيارة";
-        alert("لم يتم الإضافة");
+    fetch(API + "?action=getCarSize&brand=" + encodeURIComponent(brand) + "&model=" + encodeURIComponent(model))
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("size").value = data.size || "";
+        });
+});
+
+/* ============================
+   إضافة السيارة
+   ============================ */
+function addCar() {
+    const phone = document.getElementById("phone").value.trim();
+    const brand = document.getElementById("brand").value.trim();
+    const model = document.getElementById("model").value.trim();
+    const size = document.getElementById("size").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const plate_letters = document.getElementById("plate_letters").value.trim();
+    const plate_numbers = document.getElementById("plate_numbers").value.trim();
+
+    if (!phone || !brand || !model || !size || !city || !plate_letters || !plate_numbers) {
+        alert("الرجاء تعبئة جميع الحقول");
         return;
     }
 
-    btn.innerText = "تم ✔";
-    setTimeout(() => window.location.href = "customer-cars.html", 300);
-}
+    fetch(API, {
+        method: "POST",
+        body: new URLSearchParams({
+            action: "addCar",
+            phone,
+            brand,
+            model,
+            size,
+            city,
+            plate_letters,
+            plate_numbers
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert("حدث خطأ أثناء إضافة السيارة");
+            return;
+        }
 
-window.onload = () => {
-    loadMembership();
-};
+        alert("تمت إضافة السيارة بنجاح");
+        window.location.href = "customer-dashboard.html?phone=" + phone;
+    });
+}
 </script>
 
 </body>
