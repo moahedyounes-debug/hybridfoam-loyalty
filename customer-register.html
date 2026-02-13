@@ -234,7 +234,7 @@ await apiPost({
     sheet: "Customers",
     values: JSON.stringify([
         name,
-        "'" + phone,      // 👈 هنا
+        "=\"" + phone + "\"",   // 👈 هنا
         car,
         size,
         city,
