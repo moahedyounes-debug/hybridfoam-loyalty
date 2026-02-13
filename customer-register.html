@@ -256,7 +256,7 @@ await apiPost({
         sheet: "Cars",
         values: JSON.stringify([
             membership,
-            phone,
+            "=\"" + phone + "\"",   // 👈 هنا
             car,
             size,
             plate_letters,
