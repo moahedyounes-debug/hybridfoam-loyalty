@@ -5,13 +5,17 @@
 
 const API_URL = "https://script.google.com/macros/s/AKfycbznQtjojuZpFnsqWdz0-8wNlho75FbOigJoQn47OnW26gLOzaWJZ3QgP67t7eKII8_6DA/exec";
 
+/* 🔥 تعطيل كاش Service Worker لهذا الملف */
+if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: "SKIP_CACHE", file: "api.js" });
+}
+
 /*
     🔵 GET REQUEST
-    apiGet({ action: "getCarBrands" })
 */
 async function apiGet(params = {}) {
 
-    // 🔥 يمنع الكاش من GitHub Pages والمتصفح
+    // 🔥 يمنع الكاش من GitHub Pages + Service Worker + المتصفح
     params._ = Date.now();
 
     const url = API_URL + "?" + new URLSearchParams(params).toString();
@@ -19,9 +23,11 @@ async function apiGet(params = {}) {
     try {
         const res = await fetch(url, {
             method: "GET",
+            cache: "no-store",   // 🔥 يمنع SW من تخزينه
             headers: {
-                "Cache-Control": "no-cache",
-                "Pragma": "no-cache"
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
             }
         });
 
@@ -33,11 +39,9 @@ async function apiGet(params = {}) {
 
 /*
     🟡 POST REQUEST
-    apiPost({ action: "addCustomer", name: "..." })
 */
 async function apiPost(params = {}) {
 
-    // 🔥 يمنع الكاش في POST أيضًا
     params._ = Date.now();
 
     const form = new FormData();
@@ -48,6 +52,7 @@ async function apiPost(params = {}) {
     try {
         const res = await fetch(API_URL, {
             method: "POST",
+            cache: "no-store",   // 🔥 يمنع SW من تخزينه
             body: form
         });
 
