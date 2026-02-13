@@ -9,7 +9,7 @@
         body {
             font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
-            padding: 20px;
+            padding: 25px;
         }
         .container {
             max-width: 450px;
@@ -17,298 +17,223 @@
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 0 10px #0001;
+            box-shadow: 0 4px 12px #0002;
         }
         h2 {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         label {
-            font-weight: bold;
-            margin-top: 12px;
+            font-size: 14px;
+            margin-top: 10px;
             display: block;
         }
         input, select {
             width: 100%;
             padding: 12px;
             margin-top: 6px;
-            border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 16px;
+            border: 1px solid #ccc;
+            font-size: 15px;
         }
         button {
             width: 100%;
             padding: 14px;
-            background: #007bff;
-            color: white;
+            margin-top: 18px;
             border: none;
             border-radius: 8px;
-            margin-top: 20px;
-            font-size: 18px;
+            background: #007bff;
+            color: white;
+            font-size: 17px;
             cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 </head>
+
 <body>
 
 <div class="container">
     <h2>تسجيل عميل جديد</h2>
 
-    <label>اسم العميل</label>
-    <input id="name" type="text" placeholder="مثال: معاهد يونس">
+    <label>الاسم</label>
+    <input id="name" type="text" placeholder="الاسم الكامل">
 
     <label>رقم الجوال</label>
-    <input id="phone" type="tel" placeholder="05xxxxxxxx">
+    <input id="phone" type="tel" placeholder="05xxxxxxxx" maxlength="10">
 
-    <label>ماركة السيارة</label>
-    <select id="brand">
-        <option value="">اختر الماركة</option>
-    </select>
+    <label>المدينة</label>
+    <input id="city" type="text" placeholder="مثال: الرياض">
+
+    <hr style="margin:20px 0;">
 
     <label>نوع السيارة</label>
-    <select id="model">
-        <option value="">اختر النوع</option>
+    <select id="car" onchange="autoFillSize()">
+        <option value="">جاري التحميل...</option>
     </select>
 
     <label>الحجم</label>
-    <input id="size" type="text" readonly placeholder="يتم تحديده تلقائيًا">
-
-    <label>المدينة</label>
-    <select id="city">
-        <option value="">اختر المدينة</option>
-        <option value="Makkah">مكة</option>
-    </select>
+    <input id="size" type="text" readonly placeholder="يتم تعبئته تلقائياً">
 
     <label>أرقام اللوحة</label>
     <input id="plate_numbers" type="text" placeholder="1234">
 
-    <label>حروف اللوحة</label>
-    <input id="plate_letters" type="text" placeholder="أ ب ج">
+        <label>حروف اللوحة</label>
+    <input id="plate_letters" type="text" placeholder="مثال: أ ب ج">
 
-    <button onclick="registerCustomer()">تسجيل</button>
+    <button id="submitBtn" onclick="register()">تسجيل</button>
 </div>
 
 <script src="api.js"></script>
 
 <script>
-// ===============================
-// جدول الموديلات والأحجام
-// ===============================
-const CAR_DATA = [
-    { brand: "Toyota", model: "Camry", size: "Sedan" },
-    { brand: "Toyota", model: "Corolla", size: "Sedan" },
-    { brand: "Toyota", model: "Yaris", size: "Sedan" },
-    { brand: "Toyota", model: "Land Cruiser", size: "SUV" },
-    { brand: "Toyota", model: "Prado", size: "SUV" },
-    { brand: "Toyota", model: "Hilux", size: "Pickup" },
-    { brand: "Toyota", model: "RAV4", size: "SUV" },
-    { brand: "Toyota", model: "Fortuner", size: "SUV" },
-    { brand: "Toyota", model: "Avalon", size: "Sedan" },
-    { brand: "Toyota", model: "Highlander", size: "SUV" },
-    { brand: "Toyota", model: "Sequoia", size: "SUV" },
-    { brand: "Toyota", model: "Tundra", size: "Pickup" },
+let CAR_TYPES = [];
 
-    { brand: "Lexus", model: "ES", size: "Sedan" },
-    { brand: "Lexus", model: "LS", size: "Sedan" },
-    { brand: "Lexus", model: "IS", size: "Sedan" },
-    { brand: "Lexus", model: "LX", size: "SUV" },
-    { brand: "Lexus", model: "RX", size: "SUV" },
-    { brand: "Lexus", model: "GX", size: "SUV" },
-    { brand: "Lexus", model: "UX", size: "SUV" },
-    { brand: "Lexus", model: "NX", size: "SUV" },
+// تحميل أنواع السيارات من الشيت
+window.onload = async function () {
+    const carSelect = document.getElementById("car");
 
-    { brand: "Nissan", model: "Altima", size: "Sedan" },
-    { brand: "Nissan", model: "Maxima", size: "Sedan" },
-    { brand: "Nissan", model: "Sentra", size: "Sedan" },
-    { brand: "Nissan", model: "Patrol", size: "SUV" },
-    { brand: "Nissan", model: "X-Trail", size: "SUV" },
-    { brand: "Nissan", model: "Kicks", size: "SUV" },
-    { brand: "Nissan", model: "Navara", size: "Pickup" },
-
-    { brand: "Hyundai", model: "Sonata", size: "Sedan" },
-    { brand: "Hyundai", model: "Elantra", size: "Sedan" },
-    { brand: "Hyundai", model: "Accent", size: "Sedan" },
-    { brand: "Hyundai", model: "Tucson", size: "SUV" },
-    { brand: "Hyundai", model: "Santa Fe", size: "SUV" },
-    { brand: "Hyundai", model: "Creta", size: "SUV" },
-    { brand: "Hyundai", model: "Staria", size: "Van" },
-
-    { brand: "Kia", model: "Optima", size: "Sedan" },
-    { brand: "Kia", model: "Cerato", size: "Sedan" },
-    { brand: "Kia", model: "Rio", size: "Sedan" },
-    { brand: "Kia", model: "Sportage", size: "SUV" },
-    { brand: "Kia", model: "Sorento", size: "SUV" },
-    { brand: "Kia", model: "Seltos", size: "SUV" },
-    { brand: "Kia", model: "K5", size: "Sedan" },
-
-    { brand: "Changan", model: "CS95", size: "SUV" },
-    { brand: "Changan", model: "CS75", size: "SUV" },
-    { brand: "Changan", model: "CS35", size: "SUV" },
-    { brand: "Changan", model: "UNI-K", size: "SUV" },
-    { brand: "Changan", model: "UNI-T", size: "SUV" },
-    { brand: "Changan", model: "Alsvin", size: "Sedan" },
-
-    { brand: "MG", model: "ZS", size: "SUV" },
-    { brand: "MG", model: "HS", size: "SUV" },
-    { brand: "MG", model: "5", size: "Sedan" },
-    { brand: "MG", model: "6", size: "Sedan" },
-    { brand: "MG", model: "GT", size: "Sedan" },
-
-    { brand: "Geely", model: "Coolray", size: "SUV" },
-    { brand: "Geely", model: "Okavango", size: "SUV" },
-    { brand: "Geely", model: "Azkarra", size: "SUV" },
-    { brand: "Geely", model: "Emgrand", size: "Sedan" },
-
-    { brand: "Ford", model: "Explorer", size: "SUV" },
-    { brand: "Ford", model: "Expedition", size: "SUV" },
-    { brand: "Ford", model: "F-150", size: "Pickup" },
-    { brand: "Ford", model: "Mustang", size: "Coupe" },
-    { brand: "Ford", model: "Escape", size: "SUV" },
-
-    { brand: "Chevrolet", model: "Tahoe", size: "SUV" },
-    { brand: "Chevrolet", model: "Suburban", size: "SUV" },
-    { brand: "Chevrolet", model: "Silverado", size: "Pickup" },
-    { brand: "Chevrolet", model: "Malibu", size: "Sedan" },
-    { brand: "Chevrolet", model: "Traverse", size: "SUV" },
-
-    { brand: "GMC", model: "Yukon", size: "SUV" },
-    { brand: "GMC", model: "Acadia", size: "SUV" },
-    { brand: "GMC", model: "Sierra", size: "Pickup" },
-    { brand: "GMC", model: "Terrain", size: "SUV" },
-
-    { brand: "Mercedes", model: "C-Class", size: "Sedan" },
-    { brand: "Mercedes", model: "E-Class", size: "Sedan" },
-    { brand: "Mercedes", model: "S-Class", size: "Sedan" },
-    { brand: "Mercedes", model: "G-Class", size: "SUV" },
-    { brand: "Mercedes", model: "GLC", size: "SUV" },
-    { brand: "Mercedes", model: "GLE", size: "SUV" },
-
-    { brand: "BMW", model: "3 Series", size: "Sedan" },
-    { brand: "BMW", model: "5 Series", size: "Sedan" },
-    { brand: "BMW", model: "7 Series", size: "Sedan" },
-    { brand: "BMW", model: "X3", size: "SUV" },
-    { brand: "BMW", model: "X5", size: "SUV" },
-    { brand: "BMW", model: "X7", size: "SUV" },
-
-    { brand: "Audi", model: "A3", size: "Sedan" },
-    { brand: "Audi", model: "A4", size: "Sedan" },
-    { brand: "Audi", model: "A6", size: "Sedan" },
-    { brand: "Audi", model: "Q3", size: "SUV" },
-    { brand: "Audi", model: "Q5", size: "SUV" },
-    { brand: "Audi", model: "Q7", size: "SUV" }
-];
-
-// ===============================
-// تعبئة الماركات
-// ===============================
-const brandSelect = document.getElementById("brand");
-const modelSelect = document.getElementById("model");
-const sizeInput   = document.getElementById("size");
-
-const brands = [...new Set(CAR_DATA.map(c => c.brand))];
-brands.forEach(b => {
-    const opt = document.createElement("option");
-    opt.value = b;
-    opt.textContent = b;
-    brandSelect.appendChild(opt);
-});
-
-// ===============================
-// عند اختيار ماركة → نعرض الموديلات
-// ===============================
-brandSelect.addEventListener("change", function () {
-    const brand = this.value;
-    modelSelect.innerHTML = `<option value="">اختر النوع</option>`;
-    sizeInput.value = "";
-
-    const models = CAR_DATA.filter(c => c.brand === brand);
-
-    models.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m.model;
-        opt.textContent = m.model;
-        modelSelect.appendChild(opt);
+    const res = await apiGet({
+        action: "getAll",
+        sheet: "Car-Type"
     });
-});
 
-// ===============================
-// عند اختيار موديل → نحدد الحجم
-// ===============================
-modelSelect.addEventListener("change", function () {
-    const brand = brandSelect.value;
-    const model = this.value;
+    carSelect.innerHTML = '<option value="">اختر نوع السيارة</option>';
 
-    const car = CAR_DATA.find(c => c.brand === brand && c.model === model);
-    sizeInput.value = car ? car.size : "";
-});
+    if (res.success && res.rows.length > 0) {
+        CAR_TYPES = res.rows;
 
-// ===============================
-// تسجيل العميل + السيارة (باستخدام api.js)
-// ===============================
-let isSubmitting = false;
+        CAR_TYPES.forEach(row => {
+            const opt = document.createElement("option");
+            opt.value = row[0]; // car
+            opt.innerText = row[0];
+            carSelect.appendChild(opt);
+        });
+    }
+};
 
-async function registerCustomer() {
-    if (isSubmitting) return; // 🔥 يمنع أي تكرار نهائيًا
-    isSubmitting = true;
+// تعبئة الحجم تلقائياً
+function autoFillSize() {
+    const selected = document.getElementById("car").value;
+    const sizeInput = document.getElementById("size");
 
-    const btn = document.querySelector("button");
+    const found = CAR_TYPES.find(r => r[0] === selected);
+    sizeInput.value = found ? found[1] : "";
+}
+
+async function register() {
+    const btn = document.getElementById("submitBtn");
     btn.disabled = true;
-    btn.textContent = "جاري التسجيل...";
+    btn.innerText = "جاري التسجيل...";
 
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
-    const brand = brandSelect.value;
-    const model = modelSelect.value;
-    const size = sizeInput.value;
-    const city = document.getElementById("city").value;
-    const plate_numbers = document.getElementById("plate_numbers").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const car = document.getElementById("car").value.trim();
+    const size = document.getElementById("size").value.trim();
     const plate_letters = document.getElementById("plate_letters").value.trim();
+    const plate_numbers = document.getElementById("plate_numbers").value.trim();
 
-    if (!name || !phone || !brand || !model || !size || !city || !plate_numbers || !plate_letters) {
+    if (!name || !phone || !city || !car || !size || !plate_letters || !plate_numbers) {
         alert("الرجاء تعبئة جميع الحقول");
         btn.disabled = false;
-        btn.textContent = "تسجيل";
-        isSubmitting = false;
+        btn.innerText = "تسجيل";
         return;
     }
 
-    const res1 = await apiPost({
-        action: "addCustomer",
-        name,
+    if (phone.length !== 10 || !phone.startsWith("05")) {
+        alert("رقم الجوال غير صحيح");
+        btn.disabled = false;
+        btn.innerText = "تسجيل";
+        return;
+    }
+
+    // تحقق هل العميل موجود
+    const existingCustomer = await apiGet({
+        action: "getCustomerByPhone",
         phone
     });
 
-    if (!res1.success) {
-        alert("خطأ أثناء إضافة العميل");
+    if (existingCustomer.success && existingCustomer.customer) {
+        alert("هذا العميل مسجل مسبقاً");
         btn.disabled = false;
-        btn.textContent = "تسجيل";
-        isSubmitting = false;
+        btn.innerText = "تسجيل";
         return;
     }
 
-    const membership = res1.membership;
+    // توليد رقم عضوية
+    const membership = Date.now().toString().slice(-6);
 
-    const res2 = await apiPost({
-        action: "addCar",
-        phone,
-        brand,
-        model,
-        size,
-        plate_numbers,
-        plate_letters,
-        city
+    // تحقق هل السيارة موجودة مسبقاً
+    const existingCars = await apiGet({
+        action: "getCarsByPhone",
+        phone
     });
 
-    if (!res2.success) {
-        alert("تم إضافة العميل ولكن حدث خطأ أثناء إضافة السيارة");
-        btn.disabled = false;
-        btn.textContent = "تسجيل";
-        isSubmitting = false;
-        return;
+    if (existingCars.success && existingCars.cars) {
+        const duplicate = existingCars.cars.find(c =>
+            c[4] === plate_letters && c[5] === plate_numbers
+        );
+        if (duplicate) {
+            alert("هذه السيارة مسجلة مسبقاً");
+            btn.disabled = false;
+            btn.innerText = "تسجيل";
+            return;
+        }
     }
 
-    alert("تم تسجيل العميل والسيارة بنجاح\nرقم العضوية: " + membership);
-    location.reload();
+    // إضافة العميل إلى Customers
+    await apiPost({
+        action: "addRow",
+        sheet: "Customers",
+        values: JSON.stringify([
+            name,
+            phone,
+            car,
+            size,
+            city,
+            plate_numbers,
+            plate_letters,
+            "",
+            membership,
+            "",
+            0,
+            0,
+            "Bronze",
+            0
+        ])
+    });
+
+    // إضافة السيارة إلى Cars
+    await apiPost({
+        action: "addRow",
+        sheet: "Cars",
+        values: JSON.stringify([
+            membership,
+            phone,
+            car,
+            size,
+            plate_letters,
+            plate_numbers,
+            city,
+            new Date().toLocaleString("en-US")
+        ])
+    });
+
+    // حفظ بيانات العميل
+    localStorage.setItem("customer", JSON.stringify({
+        name,
+        phone,
+        city,
+        membership
+    }));
+    localStorage.setItem("phone", phone);
+
+    // الانتقال للوحة العميل
+    window.location.href = "customer-dashboard.html";
 }
 </script>
 
