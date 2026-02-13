@@ -245,10 +245,13 @@ modelSelect.addEventListener("change", function () {
 // ===============================
 // تسجيل العميل + السيارة (باستخدام api.js)
 // ===============================
-async function registerCustomer() {
-    const btn = document.querySelector("button");
+let isSubmitting = false;
 
-    // تعطيل الزر
+async function registerCustomer() {
+    if (isSubmitting) return; // 🔥 يمنع أي تكرار نهائيًا
+    isSubmitting = true;
+
+    const btn = document.querySelector("button");
     btn.disabled = true;
     btn.textContent = "جاري التسجيل...";
 
@@ -265,10 +268,10 @@ async function registerCustomer() {
         alert("الرجاء تعبئة جميع الحقول");
         btn.disabled = false;
         btn.textContent = "تسجيل";
+        isSubmitting = false;
         return;
     }
 
-    // 1) إضافة العميل
     const res1 = await apiPost({
         action: "addCustomer",
         name,
@@ -279,12 +282,12 @@ async function registerCustomer() {
         alert("خطأ أثناء إضافة العميل");
         btn.disabled = false;
         btn.textContent = "تسجيل";
+        isSubmitting = false;
         return;
     }
 
     const membership = res1.membership;
 
-    // 2) إضافة السيارة
     const res2 = await apiPost({
         action: "addCar",
         phone,
@@ -300,6 +303,7 @@ async function registerCustomer() {
         alert("تم إضافة العميل ولكن حدث خطأ أثناء إضافة السيارة");
         btn.disabled = false;
         btn.textContent = "تسجيل";
+        isSubmitting = false;
         return;
     }
 
