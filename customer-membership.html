@@ -5,256 +5,158 @@
     <title>بطاقة العضوية</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="manifest" href="manifest.json">
-
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    </script>
-
-    <script src="api.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-
     <style>
         body {
-            font-family: sans-serif;
+            font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
-            margin: 0;
-            padding: 0;
+            padding: 20px;
             text-align: center;
-        }
-
-        .page-header {
-            background: #007bff;
-            color: white;
-            padding: 16px;
-            font-size: 20px;
-        }
-
-        .card-wrapper {
-            margin: 25px auto;
-            max-width: 380px;
         }
 
         .card {
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
-            background: #fff;
+            width: 350px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 0 20px #0004;
             text-align: right;
-        }
-
-        .card-header {
-            padding: 16px 18px;
-            color: #fff;
             position: relative;
         }
 
-        .brand {
-            font-size: 18px;
+        .title {
+            font-size: 22px;
             font-weight: bold;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-top: 4px;
-        }
-
-        .vip-crown {
-            position: absolute;
-            top: -12px;
-            right: 12px;
-            font-size: 26px;
-            display: none;
-        }
-
-        .card-body {
-            padding: 16px 18px 20px;
+            margin-bottom: 15px;
         }
 
         .row {
-            margin-bottom: 6px;
-            font-size: 15px;
+            margin: 6px 0;
+            font-size: 17px;
         }
 
-        .row strong {
-            display: inline-block;
-            min-width: 90px;
+        .qr {
+            width: 140px;
+            height: 140px;
+            margin: 20px auto;
+            display: block;
         }
 
-        #qrcode {
-            margin: 15px auto;
-            width: 120px;
-            height: 120px;
-        }
-
-        .footer-row {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .btn-main {
-            width: 90%;
-            max-width: 350px;
+        input {
+            width: 100%;
             padding: 14px;
-            margin: 18px auto 0;
-            background: #28a745;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #007bff;
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 17px;
-            cursor: pointer;
-        }
-
-        .back {
-            display: block;
-            width: 90%;
-            max-width: 350px;
-            padding: 14px;
-            margin: 14px auto 24px;
-            background: #6c757d;
-            color: white;
-            text-align: center;
-            border-radius: 10px;
-            font-size: 17px;
-            text-decoration: none;
-        }
-
-        .loading {
-            margin-top: 30px;
+            border-radius: 8px;
             font-size: 18px;
-            color: #555;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
 
-        /* ألوان المستويات */
-        .level-gold   { background: #d4af37; }
-        .level-silver { background: #9e9e9e; }
-        .level-bronze { background: #cd7f32; }
-        .level-basic  { background: #007bff; }
+        .add-btn {
+            background: #00bcd4;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="page-header">بطاقة العضوية</div>
+<h2>بطاقة العضوية</h2>
 
-    <div id="loading" class="loading">جاري تحميل البطاقة...</div>
+<input id="phone" type="tel" placeholder="05xxxxxxxx">
+<button onclick="loadCard()">عرض البطاقة</button>
 
-    <div id="content" style="display:none;">
+<div id="cardContainer"></div>
 
-        <div class="card-wrapper">
-            <div id="card" class="card">
+<script src="api.js"></script>
 
-                <div id="cardHeader" class="card-header level-basic">
-                    <div class="vip-crown" id="vipCrown">👑</div>
-                    <div class="brand">رغوة الهجين</div>
-                    <div class="subtitle">بطاقة الولاء</div>
-                </div>
+<script>
+/* دالة توليد تدرّج لوني حسب النقاط */
+function generateGradient(points) {
+    // نقاط قليلة → برونزي
+    // نقاط متوسطة → فضي
+    // نقاط عالية → ذهبي
+    // نقاط ضخمة → VIP أسود × ذهبي
 
-                <div class="card-body">
-                    <div class="row"><strong>الاسم:</strong> <span id="name"></span></div>
-                    <div class="row"><strong>رقم العضوية:</strong> <span id="membership"></span></div>
-                    <div class="row"><strong>المستوى:</strong> <span id="level"></span></div>
-                    <div class="row"><strong>النقاط:</strong> <span id="points"></span></div>
+    if (points >= 2000) {
+        return "linear-gradient(135deg, #000000, #d4af37)";
+    }
+    if (points >= 1000) {
+        return "linear-gradient(135deg, #e5e4e2, #b0b0b0)";
+    }
+    if (points >= 500) {
+        return "linear-gradient(135deg, #d4af37, #b8860b)";
+    }
+    if (points >= 200) {
+        return "linear-gradient(135deg, #c0c0c0, #8f8f8f)";
+    }
+    return "linear-gradient(135deg, #cd7f32, #8a5a2e)";
+}
 
-                    <div id="qrcode"></div>
+/* تحميل البطاقة */
+async function loadCard() {
+    const phone = document.getElementById("phone").value.trim();
+    const container = document.getElementById("cardContainer");
+    container.innerHTML = "";
 
-                    <div class="footer-row"><strong>الاشتراك:</strong> <span id="subscription"></span></div>
-                    <div class="footer-row"><strong>آخر زيارة:</strong> <span id="lastVisit"></span></div>
-                </div>
-            </div>
+    if (!phone) {
+        alert("الرجاء إدخال رقم الجوال");
+        return;
+    }
+
+    const res = await apiGet({
+        action: "getCustomerDashboard",
+        phone
+    });
+
+    if (!res.success) {
+        container.innerHTML = "<p>العميل غير موجود.</p>";
+        return;
+    }
+
+    const c = res.customer;
+
+    const gradient = generateGradient(c.points);
+
+    const qrURL =
+        "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
+        encodeURIComponent(c.membership);
+
+    const html = `
+        <div class="card" style="background:${gradient}">
+            <div class="title">بطاقة العضوية</div>
+
+            <div class="row"><strong>الاسم:</strong> ${c.name}</div>
+            <div class="row"><strong>رقم العضوية:</strong> ${c.membership}</div>
+            <div class="row"><strong>النقاط:</strong> ${c.points}</div>
+            <div class="row"><strong>المستوى:</strong> ${c.level}</div>
+            <div class="row"><strong>غسلة مجانية:</strong> ${c.free_wash ? "نعم" : "لا"}</div>
+            <div class="row"><strong>آخر زيارة:</strong> ${c.last_visit || "—"}</div>
+
+            <img class="qr" src="${qrURL}" alt="QR Code">
+
+            <button class="add-btn" onclick="addToHome()">أضف البطاقة للشاشة الرئيسية</button>
         </div>
+    `;
 
-        <button id="installBtn" class="btn-main" style="display:none;">إضافة البطاقة للجوال</button>
+    container.innerHTML = html;
+}
 
-        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
-    </div>
-
-    <script>
-        let deferredPrompt;
-
-        window.addEventListener("beforeinstallprompt", (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById("installBtn").style.display = "block";
-        });
-
-        document.getElementById("installBtn").onclick = async () => {
-            const btn = document.getElementById("installBtn");
-            btn.disabled = true;
-            btn.innerText = "جاري الإضافة...";
-            deferredPrompt.prompt();
-            await deferredPrompt.userChoice;
-            btn.innerText = "تمت الإضافة";
-        };
-
-        function applyLevelStyle(levelText) {
-            const header = document.getElementById("cardHeader");
-            const crown = document.getElementById("vipCrown");
-
-            header.classList.remove("level-gold","level-silver","level-bronze","level-basic");
-            crown.style.display = "none";
-
-            const level = (levelText || "").trim();
-
-            if (level.includes("ذهبي") || level.includes("VIP")) {
-                header.classList.add("level-gold");
-                crown.style.display = "block";
-            } else if (level.includes("فضي")) {
-                header.classList.add("level-silver");
-            } else if (level.includes("برونزي")) {
-                header.classList.add("level-bronze");
-            } else {
-                header.classList.add("level-basic");
-            }
-        }
-
-        async function loadMembership() {
-            const phone = localStorage.getItem("customer_phone");
-
-            if (!phone) {
-                window.location.href = "customer-login.html";
-                return;
-            }
-
-            const res = await apiGet({
-                action: "getCustomerDashboard",
-                phone
-            });
-
-            if (!res.success) {
-                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل البطاقة";
-                return;
-            }
-
-            const c = res.customer;
-
-            document.getElementById("name").innerText = c.name;
-            document.getElementById("membership").innerText = c.membership || "-";
-            document.getElementById("level").innerText = c.level || "-";
-            document.getElementById("points").innerText = c.points ?? 0;
-            document.getElementById("subscription").innerText = c.subscription || "بدون اشتراك";
-            document.getElementById("lastVisit").innerText = res.last_visit ? res.last_visit.date : "—";
-
-            applyLevelStyle(c.level || "");
-
-            new QRCode(document.getElementById("qrcode"), {
-                text: c.phone,
-                width: 120,
-                height: 120
-            });
-
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("content").style.display = "block";
-        }
-
-        window.onload = () => {
-            setTimeout(loadMembership, 120);
-        };
-    </script>
+/* زر إضافة للشاشة الرئيسية */
+function addToHome() {
+    alert("سيتم دعم الإضافة للشاشة الرئيسية في نسخة PWA النهائية.");
+}
+</script>
 
 </body>
 </html>
