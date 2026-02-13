@@ -3,7 +3,7 @@
     جميع الصفحات تعتمد عليه
 */
 console.log("API JS VERSION:", Date.now());
-const API_URL = "https://script.google.com/macros/s/AKfycbxPAh4Cds5-ZDNOgiz3QtUuSi0mPJ3oaAKT_xVZegw7f_WDNIFB-11_Dk54WSqe1tT_xA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyymZAFVvGv4DzLDP4250s4OVbY_tNRmKjIE-qz3AQ5KM2GS8_nNU_Sj15Djfxn9Cyj/exec";
 
 /* 🔥 تعطيل كاش Service Worker لهذا الملف */
 if (navigator.serviceWorker && navigator.serviceWorker.controller) {
