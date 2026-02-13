@@ -1,145 +1,176 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>حجز موعد</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="api.js"></script>
+    <meta charset="UTF-8">
+    <title>حجز موعد</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body { font-family:sans-serif; background:#f5f5f5; text-align:center; margin:0; padding:0; }
-.header { background:#007bff; color:white; padding:20px; font-size:22px; }
-select, input {
-    width:85%; max-width:350px; padding:12px; margin:10px 0;
-    border-radius:10px; border:1px solid #ccc; font-size:16px;
-}
-button {
-    width:85%; max-width:350px; padding:14px; margin-top:15px;
-    background:#28a745; color:white; border:none; border-radius:10px;
-    font-size:18px; cursor:pointer;
-}
-button:disabled { opacity:0.6; }
-.back {
-    display:block; width:85%; max-width:350px; padding:14px;
-    margin:20px auto; background:#6c757d; color:white;
-    text-decoration:none; border-radius:10px;
-}
-.loading { padding:20px; font-size:18px; color:#555; }
-</style>
+    <style>
+        body {
+            font-family: "Tajawal", sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px #0001;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 12px;
+            display: block;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="header">حجز موعد</div>
+<div class="container">
+    <h2>حجز موعد</h2>
 
-<div id="loading" class="loading">جاري تحميل الخدمات...</div>
-
-<div id="content" style="display:none;">
-
-    <!-- اختيار الفئة -->
-    <select id="category" onchange="loadServices()">
-        <option value="">اختر الفئة</option>
+    <label>اختر السيارة</label>
+    <select id="carSelect">
+        <option value="">جاري التحميل...</option>
     </select>
 
-    <!-- اختيار الخدمة -->
-    <select id="service">
-        <option value="">اختر الخدمة</option>
+    <label>اختر الخدمة</label>
+    <select id="serviceSelect">
+        <option value="">جاري التحميل...</option>
     </select>
 
+    <label>التاريخ</label>
     <input id="date" type="date">
+
+    <label>الوقت</label>
     <input id="time" type="time">
 
-    <button id="bookBtn" onclick="book()">احجز الآن</button>
-
-    <a href="customer-dashboard.html" class="back">رجوع</a>
+    <button onclick="submitBooking()">تأكيد الحجز</button>
 </div>
 
+<script src="api.js"></script>
+
 <script>
-/* إصلاح الرقم */
-function normalizePhone(phone) {
-    phone = String(phone).trim();
-    if (!phone.startsWith("0")) phone = "0" + phone;
-    return phone;
+/* ============================
+   قراءة رقم الجوال من الرابط
+   ============================ */
+const urlParams = new URLSearchParams(window.location.search);
+const phone = urlParams.get("phone");
+
+if (!phone) {
+    alert("رقم الجوال غير موجود");
 }
 
-/* تحميل الفئات من شيت commission */
-async function loadCategories() {
-    const res = await apiGet({ action: "getCommissionCategories" });
-
-    const cat = document.getElementById("category");
-
-    if (!res.success || res.categories.length === 0) {
-        cat.innerHTML = "<option value=''>لا توجد فئات</option>";
-        return;
-    }
-
-    res.categories.forEach(c => {
-        cat.innerHTML += `<option value="${c}">${c}</option>`;
-    });
-
-    document.getElementById("loading").style.display = "none";
-    document.getElementById("content").style.display = "block";
-}
-
-/* تحميل الخدمات حسب الفئة */
-async function loadServices() {
-    const category = document.getElementById("category").value;
-    const service = document.getElementById("service");
-
-    service.innerHTML = "<option value=''>جاري التحميل...</option>";
-
+/* ============================
+   تحميل سيارات العميل
+   ============================ */
+async function loadCars() {
     const res = await apiGet({
-        action: "getCommissionServices",
-        category
+        action: "getCarsByPhone",
+        phone
     });
 
-    service.innerHTML = "<option value=''>اختر الخدمة</option>";
+    const select = document.getElementById("carSelect");
+    select.innerHTML = "<option value=''>اختر السيارة</option>";
 
-    if (!res.success || res.services.length === 0) {
-        service.innerHTML = "<option value=''>لا توجد خدمات</option>";
-        return;
-    }
+    if (!res.success) return;
 
-    res.services.forEach(s => {
-        service.innerHTML += `<option value="${s}">${s}</option>`;
+    res.cars.forEach(car => {
+        const opt = document.createElement("option");
+        opt.value = car.membership;
+        opt.textContent = `${car.car} - ${car.plate_letters} ${car.plate_numbers}`;
+        select.appendChild(opt);
     });
 }
 
-/* تنفيذ الحجز */
-async function book() {
-    const btn = document.getElementById("bookBtn");
-    btn.disabled = true;
-    btn.innerText = "جاري الحجز...";
+/* ============================
+   تحميل الخدمات
+   ============================ */
+async function loadServices() {
+    const res = await apiGet({ action: "getCommissions" });
 
-    const phone = normalizePhone(localStorage.getItem("customer_phone"));
-    const category = document.getElementById("category").value;
-    const service = document.getElementById("service").value;
+    const select = document.getElementById("serviceSelect");
+    select.innerHTML = "<option value=''>اختر الخدمة</option>";
+
+    if (!res.success) return;
+
+    res.commissions.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.service_type;
+        opt.textContent = `${s.service_type} - ${s.price} ريال`;
+        select.appendChild(opt);
+    });
+}
+
+/* ============================
+   تنفيذ الحجز
+   ============================ */
+async function submitBooking() {
+    const membership = document.getElementById("carSelect").value;
+    const service = document.getElementById("serviceSelect").value;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
 
+    if (!membership || !service || !date || !time) {
+        alert("الرجاء تعبئة جميع الحقول");
+        return;
+    }
+
     const res = await apiPost({
-        action: "book",
+        action: "addBooking",
         phone,
-        category,
+        membership,
         service,
         date,
         time
     });
 
     if (!res.success) {
-        btn.disabled = false;
-        btn.innerText = "احجز الآن";
-        alert("لم يتم الحجز");
+        alert("حدث خطأ أثناء الحجز");
         return;
     }
 
-    btn.innerText = "تم ✔";
-    setTimeout(() => window.location.href = "customer-bookings.html", 300);
+    alert("تم الحجز بنجاح");
+    window.location.href = "customer-dashboard.html?phone=" + phone;
 }
 
-/* تشغيل الصفحة */
-window.onload = () => {
-    loadCategories();
+/* ============================
+   تحميل البيانات عند فتح الصفحة
+   ============================ */
+window.onload = function () {
+    loadCars();
+    loadServices();
 };
 </script>
 
