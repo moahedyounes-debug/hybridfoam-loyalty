@@ -195,20 +195,20 @@ async function addCar() {
     }
 
     // إضافة السيارة
-    await apiPost({
-        action: "addRow",
-        sheet: "Cars",
-        values: JSON.stringify([
-            MEMBERSHIP,
-            "'" + PHONE,
-            car,
-            size,
-            plate_letters,
-            plate_numbers,
-            city,
-            new Date().toLocaleString("en-US")
-        ])
-    });
+await apiPost({
+    action: "addRow",
+    sheet: "Cars",
+    values: JSON.stringify([
+        MEMBERSHIP,
+        "=\"" + PHONE + "\"",   // 👈 هنا الحل
+        car,
+        size,
+        plate_letters,
+        plate_numbers,
+        city,
+        new Date().toLocaleString("en-US")
+    ])
+});
 
     alert("تم إضافة السيارة بنجاح");
 
