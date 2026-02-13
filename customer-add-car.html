@@ -5,14 +5,6 @@
     <title>إضافة سيارة جديدة</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="manifest" href="manifest.json">
-
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    </script>
-
     <style>
         body {
             font-family: "Tajawal", sans-serif;
@@ -101,22 +93,54 @@
 <script src="api.js"></script>
 
 <script>
+/* قاعدة بيانات الموديلات + الحجم */
+const CAR_DATA = {
+    "Toyota": [
+        { model: "Camry", size: "Sedan" },
+        { model: "Corolla", size: "Sedan" },
+        { model: "Yaris", size: "Sedan" },
+        { model: "Land Cruiser", size: "SUV" },
+        { model: "Prado", size: "SUV" },
+        { model: "Hilux", size: "Pickup" },
+        { model: "RAV4", size: "SUV" },
+        { model: "Fortuner", size: "SUV" },
+        { model: "Avalon", size: "Sedan" },
+        { model: "Highlander", size: "SUV" },
+        { model: "Sequoia", size: "SUV" },
+        { model: "Tundra", size: "Pickup" }
+    ],
+    "Lexus": [
+        { model: "ES", size: "Sedan" },
+        { model: "LS", size: "Sedan" },
+        { model: "IS", size: "Sedan" },
+        { model: "LX", size: "SUV" },
+        { model: "RX", size: "SUV" },
+        { model: "GX", size: "SUV" },
+        { model: "UX", size: "SUV" },
+        { model: "NX", size: "SUV" }
+    ],
+    "Nissan": [
+        { model: "Altima", size: "Sedan" },
+        { model: "Maxima", size: "Sedan" },
+        { model: "Sentra", size: "Sedan" },
+        { model: "Patrol", size: "SUV" },
+        { model: "X-Trail", size: "SUV" },
+        { model: "Kicks", size: "SUV" }
+    ]
+};
+
 window.onload = async function () {
 
-    /* تحميل الماركات */
-    const brandsRes = await apiGet({ action: "getCarBrands" });
+    /* تحميل الماركات من CAR_DATA */
+    const brandSelect = document.getElementById("brand");
+    Object.keys(CAR_DATA).forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.textContent = b;
+        brandSelect.appendChild(opt);
+    });
 
-    if (brandsRes.success) {
-        const brandSelect = document.getElementById("brand");
-        brandsRes.brands.forEach(b => {
-            const opt = document.createElement("option");
-            opt.value = b;
-            opt.textContent = b;
-            brandSelect.appendChild(opt);
-        });
-    }
-
-    /* تحميل المدن */
+    /* تحميل المدن من API */
     const cityRes = await apiGet({ action: "getBranches" });
 
     if (cityRes.success) {
@@ -132,43 +156,34 @@ window.onload = async function () {
     }
 
     /* عند اختيار ماركة → تحميل الموديلات */
-    document.getElementById("brand").addEventListener("change", async function () {
+    document.getElementById("brand").addEventListener("change", function () {
         const brand = this.value;
         const modelSelect = document.getElementById("model");
+        const sizeInput = document.getElementById("size");
+
         modelSelect.innerHTML = `<option value="">اختر النوع</option>`;
+        sizeInput.value = "";
 
-        if (!brand) return;
+        if (!brand || !CAR_DATA[brand]) return;
 
-        const modelsRes = await apiGet({
-            action: "getCarModels",
-            brand
+        CAR_DATA[brand].forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item.model;
+            opt.textContent = item.model;
+            modelSelect.appendChild(opt);
         });
-
-        if (modelsRes.success) {
-            modelsRes.models.forEach(m => {
-                const opt = document.createElement("option");
-                opt.value = m;
-                opt.textContent = m;
-                modelSelect.appendChild(opt);
-            });
-        }
     });
 
     /* عند اختيار الموديل → تحديد الحجم */
-    document.getElementById("model").addEventListener("change", async function () {
+    document.getElementById("model").addEventListener("change", function () {
         const brand = document.getElementById("brand").value;
         const model = this.value;
 
         if (!brand || !model) return;
 
-        const sizeRes = await apiGet({
-            action: "getCarSize",
-            brand,
-            model
-        });
-
-        if (sizeRes.success) {
-            document.getElementById("size").value = sizeRes.size;
+        const item = CAR_DATA[brand].find(c => c.model === model);
+        if (item) {
+            document.getElementById("size").value = item.size;
         }
     });
 };
@@ -201,7 +216,7 @@ async function addCar() {
 
     if (res.success) {
         alert("تمت إضافة السيارة بنجاح");
-        location.reload();
+        window.location.href = "customer-dashboard.html?phone=" + phone;
     } else {
         alert("حدث خطأ أثناء الإضافة");
     }
