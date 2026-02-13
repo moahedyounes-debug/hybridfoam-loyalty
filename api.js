@@ -7,7 +7,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxWNaBEJrAC8dVJfepS25_L
 
 /*  
     🔵 GET REQUEST  
-    apiGet({ action: "getAll" })
+    apiGet({ action: "getCarBrands" })
 */
 async function apiGet(params = {}) {
     const url = API_URL + "?" + new URLSearchParams(params).toString();
@@ -29,7 +29,7 @@ async function apiGet(params = {}) {
 
 /*  
     🟡 POST REQUEST  
-    apiPost({ action: "registerCustomer", name: "..." })
+    apiPost({ action: "addCustomer", name: "..." })
 */
 async function apiPost(params = {}) {
     const form = new FormData();
