@@ -291,15 +291,15 @@ async function book() {
         action: "addRow",
         sheet: "Bookings",
         values: JSON.stringify([
-            MEMBERSHIP,
-            PHONE,
-            servicesString,
-            date,
-            time,
-            "قيد الانتظار",
-            car,
-            totalPrice,
-            new Date().toLocaleString("en-US")
+            MEMBERSHIP,                     // عضوية العميل
+            "=\"" + PHONE + "\"",           // رقم الجوال كنص مع صفر
+            servicesString,                 // الخدمات
+            date,                           // التاريخ
+            time,                           // الوقت
+            "قيد الانتظار",                 // الحالة
+            car,                            // السيارة
+            totalPrice,                     // السعر
+            new Date().toISOString()        // وقت الإنشاء
         ])
     });
 
@@ -307,6 +307,7 @@ async function book() {
 
     window.location.href = "customer-bookings.html";
 }
+
 </script>
 
 </body>
