@@ -84,23 +84,22 @@
 <script src="api.js"></script>
 
 <script>
-let CAR_TYPES = []; // [brand, model, size]
+let CAR_TYPES = [];
 let CUSTOMER = null;
 let PHONE = "";
 let MEMBERSHIP = "";
 
-// تحميل بيانات العميل
+// تحميل بيانات العميل تلقائيًا
 window.addEventListener("DOMContentLoaded", async () => {
     const storedCustomer = localStorage.getItem("customer");
-    const storedPhone = localStorage.getItem("phone");
 
-    if (!storedCustomer || !storedPhone) {
+    if (!storedCustomer) {
         window.location.href = "customer-home.html";
         return;
     }
 
     CUSTOMER = JSON.parse(storedCustomer);
-    PHONE = storedPhone;
+    PHONE = CUSTOMER.phone;
     MEMBERSHIP = CUSTOMER.membership;
 
     loadCarTypes();
@@ -188,7 +187,7 @@ async function addCar() {
             c[4] === plate_letters && c[5] === plate_numbers
         );
         if (duplicate) {
-            alert("هذه السيارة مسجلة مسبقاً على نفس الرقم.");
+            alert("هذه السيارة مسجلة مسبقاً على نفس الحساب.");
             btn.disabled = false;
             btn.innerText = "إضافة السيارة";
             return;
@@ -201,7 +200,7 @@ async function addCar() {
         sheet: "Cars",
         values: JSON.stringify([
             MEMBERSHIP,
-            PHONE,
+            "'" + PHONE,
             car,
             size,
             plate_letters,
@@ -213,7 +212,6 @@ async function addCar() {
 
     alert("تم إضافة السيارة بنجاح");
 
-    // الانتقال لصفحة سيارات العميل
     window.location.href = "customer-cars.html";
 }
 </script>
