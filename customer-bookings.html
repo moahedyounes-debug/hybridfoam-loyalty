@@ -5,57 +5,63 @@
     <title>حجوزاتي</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="manifest" href="manifest.json">
-
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    </script>
-
     <style>
         body {
             font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
             padding: 20px;
         }
-
         .container {
             max-width: 500px;
             margin: auto;
         }
-
         h2 {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-
         .booking {
             background: white;
             padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            box-shadow: 0 0 8px #0001;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px #0002;
+            margin-bottom: 15px;
         }
-
         .row {
-            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
         }
-
         .label {
-            font-weight: bold;
+            color: #777;
         }
-
+        .value {
+            font-weight: 600;
+        }
         .status {
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 14px;
-            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: white;
         }
-
-        .Pending { background: #ffc107; color: #000; }
-        .Completed { background: #28a745; color: white; }
-        .Cancelled { background: #dc3545; color: white; }
+        .pending { background: #ff9800; }
+        .done { background: #4caf50; }
+        .cancelled { background: #f44336; }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            background: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .empty {
+            text-align: center;
+            margin-top: 40px;
+            color: #777;
+        }
     </style>
 </head>
 
@@ -64,64 +70,104 @@
 <div class="container">
     <h2>حجوزاتي</h2>
 
-    <label>رقم الجوال</label>
-    <input id="phone" type="tel" placeholder="05xxxxxxxx" style="
-        width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px;
-    ">
+    <div id="list"></div>
 
-    <button onclick="loadBookings()" style="
-        width:100%; padding:14px; background:#007bff; color:white;
-        border:none; border-radius:8px; font-size:18px; cursor:pointer;
-    ">عرض الحجوزات</button>
-
-    <div id="list" style="margin-top:20px;"></div>
+    <button class="btn" onclick="goBack()">العودة للوحة العميل</button>
 </div>
 
 <script src="api.js"></script>
 
 <script>
-async function loadBookings() {
-    const phone = document.getElementById("phone").value.trim();
-    const list = document.getElementById("list");
-    list.innerHTML = "";
+let PHONE = "";
 
-    if (!phone) {
-        alert("الرجاء إدخال رقم الجوال");
+// تحميل بيانات العميل
+window.addEventListener("DOMContentLoaded", async () => {
+    const storedPhone = localStorage.getItem("phone");
+
+    if (!storedPhone) {
+        window.location.href = "customer-home.html";
         return;
     }
+
+    PHONE = storedPhone;
+
+    loadBookings();
+});
+
+// تحميل الحجوزات
+async function loadBookings() {
+    const list = document.getElementById("list");
 
     const res = await apiGet({
         action: "getBookingsByPhone",
-        phone
+        phone: PHONE
     });
 
-    if (!res.success) {
-        list.innerHTML = "<p>لا توجد بيانات.</p>";
+    if (!res.success || !res.bookings || res.bookings.length === 0) {
+        list.innerHTML = `<div class="empty">لا توجد حجوزات حتى الآن</div>`;
         return;
     }
 
-    if (res.bookings.length === 0) {
-        list.innerHTML = "<p>لا توجد حجوزات.</p>";
-        return;
-    }
+    // ترتيب من الأحدث للأقدم
+    const sorted = res.bookings.sort((a, b) => new Date(b[3]) - new Date(a[3]));
 
-    res.bookings.forEach(b => {
+    sorted.forEach(b => {
+        const membership = b[0];
+        const phone = b[1];
+        const services = b[2];
+        const date = b[3];
+        const time = b[4];
+        const status = b[5];
+        const car = b[6];
+        const total = b[7];
+
         const div = document.createElement("div");
         div.className = "booking";
 
         div.innerHTML = `
-            <div class="row"><span class="label">الخدمة:</span> ${b.service}</div>
-            <div class="row"><span class="label">التاريخ:</span> ${b.date}</div>
-            <div class="row"><span class="label">الوقت:</span> ${b.time}</div>
-            <div class="row"><span class="label">المستوى:</span> ${b.level}</div>
+            <div class="row">
+                <span class="label">السيارة:</span>
+                <span class="value">${car}</span>
+            </div>
+
+            <div class="row">
+                <span class="label">الخدمات:</span>
+                <span class="value">${services}</span>
+            </div>
+
+            <div class="row">
+                <span class="label">السعر:</span>
+                <span class="value">${total} ريال</span>
+            </div>
+
+            <div class="row">
+                <span class="label">التاريخ:</span>
+                <span class="value">${date}</span>
+            </div>
+
+            <div class="row">
+                <span class="label">الوقت:</span>
+                <span class="value">${time}</span>
+            </div>
+
             <div class="row">
                 <span class="label">الحالة:</span>
-                <span class="status ${b.status}">${b.status}</span>
+                <span class="status ${statusClass(status)}">${status}</span>
             </div>
         `;
 
         list.appendChild(div);
     });
+}
+
+function statusClass(status) {
+    if (status.includes("انتظار")) return "pending";
+    if (status.includes("ملغي")) return "cancelled";
+    return "done";
+}
+
+function goBack() {
+    window.location.href = "customer-dashboard.html";
 }
 </script>
 
