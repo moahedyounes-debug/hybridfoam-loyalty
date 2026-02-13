@@ -5,14 +5,61 @@
     <title>لوحة العميل</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- manifest (PWA) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Service Worker -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
     <style>
         body {
             font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
         }
 
+        /* Header */
+        .header {
+            background: white;
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 10px #0001;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header .name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .notif {
+            position: relative;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .notif .dot {
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        /* Container */
         .container {
+            padding: 20px;
             max-width: 480px;
             margin: auto;
         }
@@ -25,17 +72,26 @@
             box-shadow: 0 0 10px #0001;
         }
 
-        h2, h3 {
-            margin: 0 0 15px 0;
+        .progress-container {
+            margin-top: 15px;
         }
 
-        .car-box {
-            padding: 12px;
-            border: 1px solid #ddd;
+        .progress-bar {
+            width: 100%;
+            height: 14px;
+            background: #eee;
             border-radius: 10px;
-            margin-bottom: 10px;
+            overflow: hidden;
         }
 
+        .progress-fill {
+            height: 100%;
+            background: #007bff;
+            width: 0%;
+            transition: 0.5s;
+        }
+
+        /* Buttons */
         .btn {
             display: block;
             width: 100%;
@@ -44,39 +100,55 @@
             color: white;
             text-align: center;
             border-radius: 8px;
-            margin-top: 15px;
+            margin-top: 12px;
             text-decoration: none;
             font-size: 18px;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
         }
     </style>
 </head>
 
 <body>
 
+<!-- Header -->
+<div class="header">
+    <div class="name" id="headerName">مرحبًا</div>
+
+    <div class="notif" onclick="openNotifications()">
+        🔔
+        <div class="dot" id="notifDot" style="display:none;"></div>
+    </div>
+</div>
+
 <div class="container">
 
+    <!-- Customer Info -->
     <div class="card">
-        <h2 id="customerName">...</h2>
+        <h3>معلومات العميل</h3>
         <p><strong>رقم الجوال:</strong> <span id="customerPhone"></span></p>
-        <p><strong>العضوية:</strong> <span id="customerMembership"></span></p>
-        <p><strong>النقاط:</strong> <span id="customerPoints"></span></p>
+        <p><strong>رقم العضوية:</strong> <span id="customerMembership"></span></p>
+        <p><strong>النقاط الحالية:</strong> <span id="customerPoints"></span></p>
         <p><strong>المستوى:</strong> <span id="customerLevel"></span></p>
         <p><strong>آخر زيارة:</strong> <span id="lastVisit"></span></p>
+
+        <!-- Progress -->
+        <div class="progress-container">
+            <p id="progressText"></p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="card">
-        <h3>سيارات العميل</h3>
-        <div id="carsList"></div>
-
-        <a class="btn" href="customer-add-car.html">إضافة سيارة جديدة</a>
-    </div>
-
-    <div class="card">
-        <h3>الحجوزات</h3>
-        <div id="bookingsList"></div>
-
-        <a class="btn" id="bookingBtn">حجز موعد</a>
-    </div>
+    <!-- Buttons -->
+    <a class="btn" id="visitsBtn">زياراتي</a>
+    <a class="btn" id="bookingsBtn">حجوزاتي</a>
+    <a class="btn" id="carsBtn">سياراتي</a>
+    <a class="btn" id="bookingBtn">حجز موعد</a>
+    <a class="btn btn-whatsapp" id="whatsappBtn">التواصل مع المغسلة</a>
 
 </div>
 
@@ -108,54 +180,58 @@ window.onload = async function () {
     }
 
     const customer = res.customer;
-    const cars = res.cars;
     const lastVisit = res.last_visit;
-    const bookings = res.bookings;
+
+    // Header
+    document.getElementById("headerName").textContent = "مرحبًا، " + customer.name;
+
+    // إشعارات (placeholder)
+    if (res.unread_notifications > 0) {
+        document.getElementById("notifDot").style.display = "block";
+    }
 
     // بيانات العميل
-    document.getElementById("customerName").textContent = customer.name;
     document.getElementById("customerPhone").textContent = customer.phone;
     document.getElementById("customerMembership").textContent = customer.membership;
     document.getElementById("customerPoints").textContent = customer.points;
     document.getElementById("customerLevel").textContent = customer.level;
     document.getElementById("lastVisit").textContent = lastVisit ? lastVisit.check_in : "لا يوجد";
 
-    // سيارات العميل
-    const carsList = document.getElementById("carsList");
-    carsList.innerHTML = "";
+    /* ============================
+       شارت التقدم للمستوى التالي
+       ============================ */
+    const current = customer.points;
+    const nextLevel = customer.next_level_points; // من الـ API
+    const percent = Math.min((current / nextLevel) * 100, 100);
 
-    cars.forEach(car => {
-        const box = document.createElement("div");
-        box.className = "car-box";
-        box.innerHTML = `
-            <strong>${car.car}</strong><br>
-            الحجم: ${car.size}<br>
-            اللوحة: ${car.plate_letters} - ${car.plate_numbers}<br>
-            المدينة: ${car.city}<br>
-            العضوية: ${car.membership}
-        `;
-        carsList.appendChild(box);
-    });
-
-    // الحجوزات
-    const bookingsList = document.getElementById("bookingsList");
-    bookingsList.innerHTML = "";
-
-    bookings.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "car-box";
-        div.innerHTML = `
-            <strong>${b.service}</strong><br>
-            التاريخ: ${b.date}<br>
-            الوقت: ${b.time}<br>
-            الحالة: ${b.status}
-        `;
-        bookingsList.appendChild(div);
-    });
-
-    // زر الحجز
+    document.getElementById("progressFill").style.width = percent + "%";
+    document.getElementById("progressText").textContent =
+        `النقاط: ${current} / ${nextLevel} — المتبقي: ${nextLevel - current}`;
+    
+    /* ============================
+       أزرار التنقل
+       ============================ */
+    document.getElementById("visitsBtn").href = "customer-visits.html?phone=" + phone;
+    document.getElementById("bookingsBtn").href = "customer-bookings.html?phone=" + phone;
+    document.getElementById("carsBtn").href = "customer-cars.html?phone=" + phone;
     document.getElementById("bookingBtn").href = "customer-booking.html?phone=" + phone;
+
+    /* ============================
+       زر الواتساب
+       ============================ */
+    const msg = `مرحبًا، أنا ${customer.name} - رقم العضوية: ${customer.membership}`;
+    const encoded = encodeURIComponent(msg);
+
+    document.getElementById("whatsappBtn").href =
+        "https://wa.me/966582007063?text=" + encoded;
 };
+
+/* ============================
+   فتح الإشعارات
+   ============================ */
+function openNotifications() {
+    alert("سيتم إضافة صفحة الإشعارات لاحقًا");
+}
 </script>
 
 </body>
