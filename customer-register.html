@@ -56,10 +56,6 @@
         button:disabled {
             background: #999;
         }
-
-        .hidden {
-            display: none;
-        }
     </style>
 </head>
 
@@ -99,68 +95,76 @@
     <button onclick="registerCustomer()">تسجيل</button>
 </div>
 
-<script>
-const API = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+<script src="api.js"></script>
 
+<script>
 /* ============================
    تحميل البراندات عند فتح الصفحة
    ============================ */
-window.onload = function () {
-    fetch(API + "?action=getCarBrands")
-        .then(res => res.json())
-        .then(data => {
-            const brandSelect = document.getElementById("brand");
-            data.brands.forEach(b => {
-                const opt = document.createElement("option");
-                opt.value = b;
-                opt.textContent = b;
-                brandSelect.appendChild(opt);
-            });
-        });
+window.onload = async function () {
+    const res = await apiGet({ action: "getCarBrands" });
+
+    if (!res.success) {
+        alert("خطأ في تحميل الماركات");
+        return;
+    }
+
+    const brandSelect = document.getElementById("brand");
+    res.brands.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.textContent = b;
+        brandSelect.appendChild(opt);
+    });
 };
 
 /* ============================
    عند اختيار البراند → تحميل الموديلات
    ============================ */
-document.getElementById("brand").addEventListener("change", function () {
+document.getElementById("brand").addEventListener("change", async function () {
     const brand = this.value;
     const modelSelect = document.getElementById("model");
     modelSelect.innerHTML = "<option value=''>اختر النوع</option>";
 
     if (!brand) return;
 
-    fetch(API + "?action=getCarModels&brand=" + encodeURIComponent(brand))
-        .then(res => res.json())
-        .then(data => {
-            data.models.forEach(m => {
-                const opt = document.createElement("option");
-                opt.value = m;
-                opt.textContent = m;
-                modelSelect.appendChild(opt);
-            });
-        });
+    const res = await apiGet({
+        action: "getCarModels",
+        brand
+    });
+
+    if (!res.success) return;
+
+    res.models.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        modelSelect.appendChild(opt);
+    });
 });
 
 /* ============================
    عند اختيار الموديل → تحديد الحجم تلقائيًا
    ============================ */
-document.getElementById("model").addEventListener("change", function () {
+document.getElementById("model").addEventListener("change", async function () {
     const brand = document.getElementById("brand").value;
     const model = this.value;
 
     if (!brand || !model) return;
 
-    fetch(API + "?action=getCarSize&brand=" + encodeURIComponent(brand) + "&model=" + encodeURIComponent(model))
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("size").value = data.size || "";
-        });
+    const res = await apiGet({
+        action: "getCarSize",
+        brand,
+        model
+    });
+
+    document.getElementById("size").value = res.size || "";
 });
 
 /* ============================
    تسجيل العميل + تسجيل السيارة
    ============================ */
-function registerCustomer() {
+async function registerCustomer() {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
     const brand = document.getElementById("brand").value.trim();
@@ -176,46 +180,36 @@ function registerCustomer() {
     }
 
     // 1) تسجيل العميل
-    fetch(API, {
-        method: "POST",
-        body: new URLSearchParams({
-            action: "addCustomer",
-            name,
-            phone
-        })
-    })
-    .then(res => res.json())
-    .then(customer => {
-        if (!customer.success) {
-            alert("خطأ في تسجيل العميل");
-            return;
-        }
-
-        // 2) تسجيل السيارة
-        fetch(API, {
-            method: "POST",
-            body: new URLSearchParams({
-                action: "addCar",
-                phone,
-                brand,
-                model,
-                size,
-                city,
-                plate_letters,
-                plate_numbers
-            })
-        })
-        .then(res => res.json())
-        .then(car => {
-            if (!car.success) {
-                alert("تم تسجيل العميل ولكن حدث خطأ في تسجيل السيارة");
-                return;
-            }
-
-            alert("تم تسجيل العميل والسيارة بنجاح");
-            window.location.href = "customer-dashboard.html?phone=" + phone;
-        });
+    const customer = await apiPost({
+        action: "addCustomer",
+        name,
+        phone
     });
+
+    if (!customer.success) {
+        alert("خطأ في تسجيل العميل");
+        return;
+    }
+
+    // 2) تسجيل السيارة
+    const car = await apiPost({
+        action: "addCar",
+        phone,
+        brand,
+        model,
+        size,
+        city,
+        plate_letters,
+        plate_numbers
+    });
+
+    if (!car.success) {
+        alert("تم تسجيل العميل ولكن حدث خطأ في تسجيل السيارة");
+        return;
+    }
+
+    alert("تم تسجيل العميل والسيارة بنجاح");
+    window.location.href = "customer-dashboard.html?phone=" + phone;
 }
 </script>
 
