@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>API Test</title>
+    <title>API Universal Test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
@@ -13,7 +13,7 @@
         }
         textarea {
             width: 100%;
-            height: 180px;
+            height: 200px;
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #ccc;
@@ -39,34 +39,93 @@
 
 <body>
 
-<h2>اختبار API</h2>
+<h2>اختبار الـ API الجديد</h2>
 
-<button onclick="test('getCarBrands')">getCarBrands</button>
-<button onclick="test('getCarModels', { brand: 'Toyota' })">getCarModels</button>
-<button onclick="test('getCarSize', { brand: 'Toyota', model: 'Camry' })">getCarSize</button>
+<button onclick="testGet('Car-Type')">GET Car-Type</button>
+<button onclick="testGet('Branches')">GET Branches</button>
+<button onclick="testGet('Cars')">GET Cars</button>
+<button onclick="testGet('Customers')">GET Customers</button>
 
-<button onclick="test('getBranches')">getBranches</button>
-
-<button onclick="test('checkCustomer', { phone: '0555555555' })">checkCustomer</button>
-<button onclick="test('getByPhone', { phone: '0555555555' })">getByPhone</button>
-
-<button onclick="test('getCarsByPhone', { phone: '0555555555' })">getCarsByPhone</button>
-
-<button onclick="test('getBookingsByPhone', { phone: '0555555555' })">getBookingsByPhone</button>
-
-<button onclick="test('getCustomerDashboard', { phone: '0555555555' })">getCustomerDashboard</button>
+<button onclick="testAdd()">POST addRow → Cars</button>
+<button onclick="testUpdate()">POST updateRow → Cars</button>
+<button onclick="testDelete()">POST deleteRow → Cars</button>
 
 <textarea id="output" placeholder="النتيجة تظهر هنا..."></textarea>
 
 <script src="api.js"></script>
 
 <script>
-async function test(action, params = {}) {
-    params.action = action;
 
-    const res = await apiGet(params);
-    document.getElementById("output").value = JSON.stringify(res, null, 2);
+// ========== GET TEST ==========
+async function testGet(sheet) {
+    const res = await apiGet({
+        action: "getAll",
+        sheet: sheet
+    });
+
+    document.getElementById("output").value =
+        "GET " + sheet + ":\n\n" + JSON.stringify(res, null, 2);
 }
+
+// ========== ADD TEST ==========
+async function testAdd() {
+    const row = [
+        "TEST-" + Date.now(),   // car_membership
+        '="0500000000"',        // phone
+        "Toyota",               // brand
+        "Sedan",                // size
+        "أ ب ج",                // plate_letters
+        "1234",                 // plate_numbers
+        "Riyadh",               // city
+        new Date()              // created_at
+    ];
+
+    const res = await apiPost({
+        action: "addRow",
+        sheet: "Cars",
+        values: JSON.stringify(row)
+    });
+
+    document.getElementById("output").value =
+        "ADD ROW:\n\n" + JSON.stringify(res, null, 2);
+}
+
+// ========== UPDATE TEST ==========
+async function testUpdate() {
+    const row = [
+        "UPDATED",
+        '="0599999999"',
+        "Lexus",
+        "SUV",
+        "د ر س",
+        "9999",
+        "Jeddah",
+        new Date()
+    ];
+
+    const res = await apiPost({
+        action: "updateRow",
+        sheet: "Cars",
+        row: 2, // عدل الصف الثاني كمثال
+        values: JSON.stringify(row)
+    });
+
+    document.getElementById("output").value =
+        "UPDATE ROW:\n\n" + JSON.stringify(res, null, 2);
+}
+
+// ========== DELETE TEST ==========
+async function testDelete() {
+    const res = await apiPost({
+        action: "deleteRow",
+        sheet: "Cars",
+        row: 2 // حذف الصف الثاني كمثال
+    });
+
+    document.getElementById("output").value =
+        "DELETE ROW:\n\n" + JSON.stringify(res, null, 2);
+}
+
 </script>
 
 </body>
