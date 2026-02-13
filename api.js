@@ -1,15 +1,19 @@
-/*  
-    ملف API الرسمي للنظام الجديد  
-    جميع الصفحات تعتمد عليه  
+/*
+    ملف API الرسمي للنظام الجديد
+    جميع الصفحات تعتمد عليه
 */
 
 const API_URL = "https://script.google.com/macros/s/AKfycbznQtjojuZpFnsqWdz0-8wNlho75FbOigJoQn47OnW26gLOzaWJZ3QgP67t7eKII8_6DA/exec";
 
-/*  
-    🔵 GET REQUEST  
+/*
+    🔵 GET REQUEST
     apiGet({ action: "getCarBrands" })
 */
 async function apiGet(params = {}) {
+
+    // 🔥 يمنع الكاش من GitHub Pages والمتصفح
+    params._ = Date.now();
+
     const url = API_URL + "?" + new URLSearchParams(params).toString();
 
     try {
@@ -27,13 +31,16 @@ async function apiGet(params = {}) {
     }
 }
 
-/*  
-    🟡 POST REQUEST  
+/*
+    🟡 POST REQUEST
     apiPost({ action: "addCustomer", name: "..." })
 */
 async function apiPost(params = {}) {
-    const form = new FormData();
 
+    // 🔥 يمنع الكاش في POST أيضًا
+    params._ = Date.now();
+
+    const form = new FormData();
     for (const key in params) {
         form.append(key, params[key]);
     }
