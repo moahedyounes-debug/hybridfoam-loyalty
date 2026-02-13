@@ -11,8 +11,8 @@ if (navigator.serviceWorker && navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({ type: "SKIP_CACHE", file: "api.js" });
 }
 
-/*  
-    🔵 GET REQUEST (تحويل GET إلى POST داخليًا)
+/*
+    🔵 GET REQUEST (تحويل GET إلى POST داخليًا لتجاوز CORS)
 */
 async function apiGet(params = {}) {
 
@@ -37,11 +37,12 @@ async function apiGet(params = {}) {
         return { success: false, error: "network_error" };
     }
 }
+
+/*
     🟡 POST REQUEST
 */
 async function apiPost(params = {}) {
 
-    // نفس الشي هنا — تغيير "_" إلى "t"
     params.t = Date.now();
 
     const form = new FormData();
