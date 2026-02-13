@@ -91,104 +91,110 @@
 </div>
 
 <script src="api.js"></script>
-
 <script>
-/* قاعدة بيانات الموديلات + الحجم */
-const CAR_DATA = {
-    "Toyota": [
-        { model: "Camry", size: "Sedan" },
-        { model: "Corolla", size: "Sedan" },
-        { model: "Yaris", size: "Sedan" },
-        { model: "Land Cruiser", size: "SUV" },
-        { model: "Prado", size: "SUV" },
-        { model: "Hilux", size: "Pickup" },
-        { model: "RAV4", size: "SUV" },
-        { model: "Fortuner", size: "SUV" },
-        { model: "Avalon", size: "Sedan" },
-        { model: "Highlander", size: "SUV" },
-        { model: "Sequoia", size: "SUV" },
-        { model: "Tundra", size: "Pickup" }
-    ],
-    "Lexus": [
-        { model: "ES", size: "Sedan" },
-        { model: "LS", size: "Sedan" },
-        { model: "IS", size: "Sedan" },
-        { model: "LX", size: "SUV" },
-        { model: "RX", size: "SUV" },
-        { model: "GX", size: "SUV" },
-        { model: "UX", size: "SUV" },
-        { model: "NX", size: "SUV" }
-    ],
-    "Nissan": [
-        { model: "Altima", size: "Sedan" },
-        { model: "Maxima", size: "Sedan" },
-        { model: "Sentra", size: "Sedan" },
-        { model: "Patrol", size: "SUV" },
-        { model: "X-Trail", size: "SUV" },
-        { model: "Kicks", size: "SUV" }
-    ]
+// سنخزن Car-Type هنا بعد الجلب
+let CAR_TYPES = [];
+
+// جلب البيانات عند تحميل الصفحة
+window.onload = async function () {
+    await loadCarTypes();
+    await loadCities();
 };
 
-window.onload = async function () {
+/* جلب Car-Type من الشيت عبر Universal API */
+async function loadCarTypes() {
+    const res = await apiGet({
+        action: "getAll",
+        sheet: "Car-Type"
+    });
 
-    /* تحميل الماركات من CAR_DATA */
+    if (!res.success) {
+        alert("تعذر تحميل بيانات السيارات");
+        return;
+    }
+
+    // rows: [ [brand, model, size], ... ]
+    CAR_TYPES = res.rows || [];
+
     const brandSelect = document.getElementById("brand");
-    Object.keys(CAR_DATA).forEach(b => {
+    const brands = [...new Set(CAR_TYPES.map(r => r[0]).filter(Boolean))];
+
+    brands.forEach(b => {
         const opt = document.createElement("option");
         opt.value = b;
         opt.textContent = b;
         brandSelect.appendChild(opt);
     });
 
-    /* تحميل المدن من API */
-    const cityRes = await apiGet({ action: "getBranches" });
+    // عند تغيير الماركة → تعبئة الموديلات
+    brandSelect.addEventListener("change", onBrandChange);
+    document.getElementById("model").addEventListener("change", onModelChange);
+}
 
-    if (cityRes.success) {
-        const citySelect = document.getElementById("city");
-        const cities = [...new Set(cityRes.branches.map(b => b.city))];
+/* عند اختيار ماركة */
+function onBrandChange() {
+    const brand = this.value;
+    const modelSelect = document.getElementById("model");
+    const sizeInput = document.getElementById("size");
 
-        cities.forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c;
-            opt.textContent = c;
-            citySelect.appendChild(opt);
-        });
+    modelSelect.innerHTML = `<option value="">اختر النوع</option>`;
+    sizeInput.value = "";
+
+    if (!brand) return;
+
+    const models = CAR_TYPES
+        .filter(r => r[0] === brand)
+        .map(r => r[1]);
+
+    [...new Set(models)].forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        modelSelect.appendChild(opt);
+    });
+}
+
+/* عند اختيار الموديل → تحديد الحجم */
+function onModelChange() {
+    const brand = document.getElementById("brand").value;
+    const model = this.value;
+    const sizeInput = document.getElementById("size");
+
+    if (!brand || !model) {
+        sizeInput.value = "";
+        return;
     }
 
-    /* عند اختيار ماركة → تحميل الموديلات */
-    document.getElementById("brand").addEventListener("change", function () {
-        const brand = this.value;
-        const modelSelect = document.getElementById("model");
-        const sizeInput = document.getElementById("size");
+    const match = CAR_TYPES.find(r => r[0] === brand && r[1] === model);
+    sizeInput.value = match ? match[2] : "";
+}
 
-        modelSelect.innerHTML = `<option value="">اختر النوع</option>`;
-        sizeInput.value = "";
-
-        if (!brand || !CAR_DATA[brand]) return;
-
-        CAR_DATA[brand].forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item.model;
-            opt.textContent = item.model;
-            modelSelect.appendChild(opt);
-        });
+/* جلب المدن من شيت Branches */
+async function loadCities() {
+    const res = await apiGet({
+        action: "getAll",
+        sheet: "Branches"
     });
 
-    /* عند اختيار الموديل → تحديد الحجم */
-    document.getElementById("model").addEventListener("change", function () {
-        const brand = document.getElementById("brand").value;
-        const model = this.value;
+    if (!res.success) {
+        alert("تعذر تحميل المدن");
+        return;
+    }
 
-        if (!brand || !model) return;
+    // rows: [ [name, city, manager, ...], ... ]
+    const rows = res.rows || [];
+    const cities = [...new Set(rows.map(r => r[1]).filter(Boolean))];
 
-        const item = CAR_DATA[brand].find(c => c.model === model);
-        if (item) {
-            document.getElementById("size").value = item.size;
-        }
+    const citySelect = document.getElementById("city");
+    cities.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        citySelect.appendChild(opt);
     });
-};
+}
 
-/* إضافة السيارة */
+/* إضافة السيارة إلى شيت Cars عبر addRow */
 async function addCar() {
     const phone = document.getElementById("phone").value.trim();
     const brand = document.getElementById("brand").value;
@@ -203,20 +209,37 @@ async function addCar() {
         return;
     }
 
-    const res = await apiPost({
-        action: "addCar",
-        phone,
+    // توليد عضوية السيارة (مثل ما كان في السيرفر)
+    const carMembership = "M" + Math.floor(Date.now() / 1000);
+
+    // تخزين رقم الجوال كنص ="05xxxx"
+    const phoneText = '="' + phone + '"';
+
+    const now = new Date();
+
+    // ترتيب الأعمدة يجب أن يطابق شيت Cars:
+    // [car_membership, phone, brand, size, plate_letters, plate_numbers, city, created_at]
+    const row = [
+        carMembership,
+        phoneText,
         brand,
-        model,
         size,
-        city,
+        plate_letters,
         plate_numbers,
-        plate_letters
+        city,
+        now
+    ];
+
+    const res = await apiPost({
+        action: "addRow",
+        sheet: "Cars",
+        values: JSON.stringify(row)
     });
 
     if (res.success) {
         alert("تمت إضافة السيارة بنجاح");
-        window.location.href = "customer-dashboard.html?phone=" + phone;
+        // ممكن ترجع للداشبورد لو حاب:
+        // window.location.href = "customer-dashboard.html?phone=" + phone;
     } else {
         alert("حدث خطأ أثناء الإضافة");
     }
