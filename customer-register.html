@@ -94,13 +94,15 @@
     <input id="size" type="text" readonly placeholder="يتم تحديده تلقائيًا">
 
     <label>المدينة</label>
-    <input id="city" type="text" placeholder="مثال: الرياض">
-
-    <label>حروف اللوحة</label>
-    <input id="plate_letters" type="text" placeholder="مثال: أ ب ج">
+    <select id="city">
+        <option value="">اختر المدينة</option>
+    </select>
 
     <label>أرقام اللوحة</label>
     <input id="plate_numbers" type="text" placeholder="1234">
+
+    <label>حروف اللوحة</label>
+    <input id="plate_letters" type="text" placeholder="مثال: أ ب ج">
 
     <button onclick="registerCustomer()">تسجيل</button>
 </div>
@@ -109,103 +111,123 @@
 
 <script>
 window.onload = async function () {
-    const res = await apiGet({ action: "getCarBrands" });
 
-    if (!res.success) {
+    /* ============================
+       تحميل الماركات
+    ============================ */
+    const brandsRes = await apiGet({ action: "getCarBrands" });
+
+    if (!brandsRes.success) {
         alert("خطأ في تحميل الماركات");
         return;
     }
 
     const brandSelect = document.getElementById("brand");
-    res.brands.forEach(b => {
+    brandsRes.brands.forEach(b => {
         const opt = document.createElement("option");
         opt.value = b;
         opt.textContent = b;
         brandSelect.appendChild(opt);
     });
+
+    /* ============================
+       تحميل المدن من getBranches
+    ============================ */
+    const cityRes = await apiGet({ action: "getBranches" });
+
+    if (cityRes.success) {
+        const citySelect = document.getElementById("city");
+        const cities = [...new Set(cityRes.branches.map(b => b.city))];
+
+        cities.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c;
+            opt.textContent = c;
+            citySelect.appendChild(opt);
+        });
+    }
+
+    /* ============================
+       عند اختيار ماركة → تحميل الموديلات
+    ============================ */
+    brandSelect.addEventListener("change", async function () {
+        const brand = this.value;
+        const modelSelect = document.getElementById("model");
+        modelSelect.innerHTML = `<option value="">اختر النوع</option>`;
+
+        if (!brand) return;
+
+        const modelsRes = await apiGet({
+            action: "getCarModels",
+            brand
+        });
+
+        if (modelsRes.success) {
+            modelsRes.models.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m;
+                opt.textContent = m;
+                modelSelect.appendChild(opt);
+            });
+        }
+    });
+
+    /* ============================
+       عند اختيار الموديل → تحديد الحجم
+    ============================ */
+    document.getElementById("model").addEventListener("change", async function () {
+        const brand = document.getElementById("brand").value;
+        const model = this.value;
+
+        if (!brand || !model) return;
+
+        const sizeRes = await apiGet({
+            action: "getCarSize",
+            brand,
+            model
+        });
+
+        if (sizeRes.success) {
+            document.getElementById("size").value = sizeRes.size;
+        }
+    });
 };
 
-document.getElementById("brand").addEventListener("change", async function () {
-    const brand = this.value;
-    const modelSelect = document.getElementById("model");
-    modelSelect.innerHTML = "<option value=''>اختر النوع</option>";
-
-    if (!brand) return;
-
-    const res = await apiGet({
-        action: "getCarModels",
-        brand
-    });
-
-    if (!res.success) return;
-
-    res.models.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = m;
-        modelSelect.appendChild(opt);
-    });
-});
-
-document.getElementById("model").addEventListener("change", async function () {
-    const brand = document.getElementById("brand").value;
-    const model = this.value;
-
-    if (!brand || !model) return;
-
-    const res = await apiGet({
-        action: "getCarSize",
-        brand,
-        model
-    });
-
-    document.getElementById("size").value = res.size || "";
-});
-
+/* ============================
+   تسجيل العميل
+============================ */
 async function registerCustomer() {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
-    const brand = document.getElementById("brand").value.trim();
-    const model = document.getElementById("model").value.trim();
-    const size = document.getElementById("size").value.trim();
-    const city = document.getElementById("city").value.trim();
-    const plate_letters = document.getElementById("plate_letters").value.trim();
+    const brand = document.getElementById("brand").value;
+    const model = document.getElementById("model").value;
+    const size = document.getElementById("size").value;
+    const city = document.getElementById("city").value;
     const plate_numbers = document.getElementById("plate_numbers").value.trim();
+    const plate_letters = document.getElementById("plate_letters").value.trim();
 
-    if (!name || !phone || !brand || !model || !size || !city || !plate_letters || !plate_numbers) {
+    if (!name || !phone || !brand || !model || !size || !city || !plate_numbers || !plate_letters) {
         alert("الرجاء تعبئة جميع الحقول");
         return;
     }
 
-    const customer = await apiPost({
-        action: "addCustomer",
-        name,
-        phone
-    });
-
-    if (!customer.success) {
-        alert("خطأ في تسجيل العميل");
-        return;
-    }
-
-    const car = await apiPost({
+    const res = await apiPost({
         action: "addCar",
         phone,
         brand,
         model,
         size,
         city,
-        plate_letters,
-        plate_numbers
+        plate_numbers,
+        plate_letters
     });
 
-    if (!car.success) {
-        alert("تم تسجيل العميل ولكن حدث خطأ في تسجيل السيارة");
-        return;
+    if (res.success) {
+        alert("تم تسجيل العميل بنجاح");
+        location.reload();
+    } else {
+        alert("حدث خطأ أثناء التسجيل");
     }
-
-    alert("تم تسجيل العميل والسيارة بنجاح");
-    window.location.href = "customer-dashboard.html?phone=" + phone;
 }
 </script>
 
