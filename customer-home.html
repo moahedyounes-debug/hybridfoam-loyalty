@@ -2,81 +2,136 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الصفحة الرئيسية للعميل</title>
+    <title>Hybrid Foam - تسجيل الدخول</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link rel="manifest" href="manifest.json">
-
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    </script>
 
     <style>
         body {
             font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
         }
-
-        .container {
-            max-width: 450px;
-            margin: auto;
+        .box {
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 0 10px #0001;
+            max-width: 400px;
+            margin: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
-        h2 {
-            margin-bottom: 25px;
-        }
-
-        .btn {
-            display: block;
+        input {
             width: 100%;
             padding: 14px;
-            margin: 10px 0;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            cursor: pointer;
+        }
+        .main-btn {
             background: #007bff;
             color: white;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 18px;
         }
-
-        .btn-green {
-            background: #28a745;
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
         }
-
-        .btn-orange {
+        .admin-btn {
+            background: #444;
+            color: white;
+        }
+        .login-btn {
             background: #ff9800;
-        }
-
-        .btn-dark {
-            background: #333;
+            color: white;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>مرحبا بك في Hybrid Foam</h2>
+<div class="box">
+    <h2>مرحباً بك في Hybrid Foam</h2>
+    <p>فضلاً أدخل رقم جوالك للمتابعة</p>
 
-    <a href="customer-login.html" class="btn">تسجيل الدخول</a>
-    <a href="customer-register.html" class="btn btn-green">تسجيل عميل جديد</a>
-    <a href="customer-dashboard.html" class="btn btn-orange">لوحة العميل</a>
+    <input id="phone" type="tel" placeholder="05xxxxxxxx" maxlength="10">
 
-    <hr style="margin:25px 0;">
+    <button class="main-btn" onclick="start()">متابعة</button>
 
-    <a href="customer-booking.html" class="btn btn-dark">حجز موعد</a>
-    <a href="customer-bookings.html" class="btn">حجوزاتي</a>
-    <a href="customer-cars.html" class="btn">سياراتي</a>
-    <a href="customer-visits.html" class="btn">زياراتي</a>
-    <a href="customer-notifications.html" class="btn">الإشعارات</a>
+    <button class="login-btn" onclick="goLogin()">تسجيل الدخول</button>
+
+    <button class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
+
+    <button class="admin-btn" onclick="contactAdmin()">التواصل مع الإدارة</button>
 </div>
+
+<script src="api.js"></script>
+
+<script>
+async function start() {
+    const phone = document.getElementById("phone").value.trim();
+
+    if (phone.length !== 10 || !phone.startsWith("05")) {
+        alert("الرجاء إدخال رقم جوال صحيح");
+        return;
+    }
+
+    // جلب جميع العملاء
+    const res = await apiGet({ action: "getAll", sheet: "Customers" });
+
+    if (!res.success) {
+        alert("خطأ في الاتصال بالنظام");
+        return;
+    }
+
+    const customers = res.rows;
+
+    // البحث عن العميل
+    const customer = customers.find(c => c[1] === phone);
+
+    if (!customer) {
+        // عميل جديد
+        localStorage.setItem("phone", phone);
+        window.location.href = "customer-register.html";
+        return;
+    }
+
+    // عميل موجود
+    localStorage.setItem("customer", JSON.stringify(customer));
+    localStorage.setItem("phone", phone);
+
+    // نبحث عن سياراته
+    const carsRes = await apiGet({ action: "getAll", sheet: "Cars" });
+
+    const cars = carsRes.rows.filter(c => c[1] === phone);
+
+    if (cars.length === 0) {
+        window.location.href = "customer-add-car.html";
+    } else {
+        window.location.href = "customer-cars.html";
+    }
+}
+
+function goLogin() {
+    window.location.href = "customer-login.html";
+}
+
+function contactWhatsApp() {
+    window.location.href = "https://wa.me/966582007063";
+}
+
+function contactAdmin() {
+    window.location.href = "tel:0582007063";
+}
+</script>
 
 </body>
 </html>
