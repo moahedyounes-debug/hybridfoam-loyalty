@@ -5,156 +5,134 @@
     <title>زياراتي</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- manifest (PWA) -->
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Service Worker -->
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    </script>
-
-    <script src="api.js"></script>
-
     <style>
         body {
-            font-family: sans-serif;
+            font-family: "Tajawal", sans-serif;
             background: #f5f5f5;
-            margin: 0;
-            padding: 0;
+            padding: 20px;
         }
 
-        .header {
-            background: #007bff;
-            color: white;
-            padding: 18px;
+        .container {
+            max-width: 500px;
+            margin: auto;
+        }
+
+        h2 {
             text-align: center;
-            font-size: 22px;
+            margin-bottom: 25px;
         }
 
-        .section {
+        .visit {
             background: white;
-            margin: 15px;
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 0 5px #ccc;
+            margin-bottom: 12px;
+            box-shadow: 0 0 8px #0001;
         }
 
-        .item {
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
-            line-height: 1.7;
+        .row {
+            margin: 5px 0;
         }
 
-        .item:last-child {
-            border-bottom: none;
+        .label {
+            font-weight: bold;
         }
 
-        .status {
-            display: inline-block;
-            padding: 4px 10px;
+        .paid {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .unpaid {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 13px;
-            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 16px;
         }
 
-        .done {
-            background: #28a745;
-            color: white;
-        }
-
-        .pending {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 25px;
-            font-size: 18px;
-            color: #555;
-        }
-
-        .back {
-            display: block;
-            width: 90%;
-            margin: 20px auto;
+        button {
+            width: 100%;
             padding: 14px;
-            background: #6c757d;
+            background: #007bff;
             color: white;
-            text-align: center;
+            border: none;
             border-radius: 8px;
             font-size: 18px;
-            text-decoration: none;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">زياراتي</div>
+<div class="container">
+    <h2>زياراتي</h2>
 
-    <div id="loading" class="loading">جاري تحميل الزيارات...</div>
+    <input id="phone" type="tel" placeholder="05xxxxxxxx">
 
-    <div id="content" style="display:none;">
-        <div class="section">
-            <div id="visitsList"></div>
-        </div>
+    <button onclick="loadVisits()">عرض الزيارات</button>
 
-        <a href="customer-dashboard.html" class="back">رجوع للوحة العميل</a>
-    </div>
+    <div id="list"></div>
+</div>
 
-    <script>
-        async function loadVisits() {
-            const phone = localStorage.getItem("customer_phone");
+<script src="api.js"></script>
 
-            if (!phone) {
-                window.location.href = "customer-login.html";
-                return;
-            }
+<script>
+async function loadVisits() {
+    const phone = document.getElementById("phone").value.trim();
+    const list = document.getElementById("list");
+    list.innerHTML = "";
 
-            const res = await apiGet({
-                action: "getVisitsByPhone",
-                phone
-            });
+    if (!phone) {
+        alert("الرجاء إدخال رقم الجوال");
+        return;
+    }
 
-            if (!res.success) {
-                document.getElementById("loading").innerText = "حدث خطأ أثناء تحميل الزيارات";
-                return;
-            }
+    const res = await apiGet({
+        action: "getVisitsByPhone",
+        phone
+    });
 
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("content").style.display = "block";
+    if (!res.success) {
+        list.innerHTML = "<p>لا توجد بيانات.</p>";
+        return;
+    }
 
-            const list = document.getElementById("visitsList");
-            list.innerHTML = "";
+    if (res.visits.length === 0) {
+        list.innerHTML = "<p>لا توجد زيارات.</p>";
+        return;
+    }
 
-            if (res.visits.length === 0) {
-                list.innerHTML = "<div class='item'>لا توجد زيارات</div>";
-                return;
-            }
+    res.visits.forEach(v => {
+        const div = document.createElement("div");
+        div.className = "visit";
 
-            res.visits.forEach(v => {
-                list.innerHTML += `
-                    <div class="item">
-                        <strong>${v.service_detail}</strong><br>
-                        السعر: ${v.price}<br>
-                        الفرع: ${v.branch}<br>
-                        الدخول: ${v.check_in}<br>
-                        الخروج: ${v.check_out || "—"}<br>
-                        <span class="status ${v.check_out ? 'done' : 'pending'}">
-                            ${v.check_out ? "مكتملة" : "جارية"}
-                        </span>
-                    </div>
-                `;
-            });
-        }
+        const paymentClass = v.payment_status === "مدفوع" ? "paid" : "unpaid";
 
-        window.onload = () => {
-            setTimeout(loadVisits, 120);
-        };
-    </script>
+        div.innerHTML = `
+            <div class="row"><span class="label">الخدمة:</span> ${v.service_detail}</div>
+            <div class="row"><span class="label">السعر:</span> ${v.price} ريال</div>
+            <div class="row"><span class="label">النقاط:</span> ${v.points}</div>
+            <div class="row"><span class="label">الموظف:</span> ${v.employee_in}</div>
+            <div class="row"><span class="label">الفرع:</span> ${v.branch}</div>
+            <div class="row"><span class="label">الدخول:</span> ${new Date(v.check_in).toLocaleString("ar-SA")}</div>
+            <div class="row"><span class="label">الخروج:</span> ${v.check_out ? new Date(v.check_out).toLocaleString("ar-SA") : "—"}</div>
+            <div class="row"><span class="label">الدفع:</span> <span class="${paymentClass}">${v.payment_status}</span></div>
+            <div class="row"><span class="label">التقييم:</span> ${v.rating || "—"}</div>
+        `;
+
+        list.appendChild(div);
+    });
+}
+</script>
 
 </body>
 </html>
