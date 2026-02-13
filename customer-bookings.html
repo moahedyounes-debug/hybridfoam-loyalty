@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>حجز موعد</title>
+    <title>حجوزاتي</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
@@ -13,11 +13,15 @@
         }
 
         .container {
-            max-width: 450px;
+            max-width: 480px;
             margin: auto;
+        }
+
+        .card {
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
+            margin-bottom: 20px;
             box-shadow: 0 0 10px #0001;
         }
 
@@ -26,31 +30,24 @@
             margin-bottom: 25px;
         }
 
-        label {
-            font-weight: bold;
-            margin-top: 12px;
-            display: block;
-        }
-
-        select, input {
-            width: 100%;
+        .booking-box {
             padding: 12px;
-            margin-top: 6px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
         }
 
-        button {
+        .btn {
+            display: block;
             width: 100%;
             padding: 14px;
-            background: #28a745;
+            background: #007bff;
             color: white;
-            border: none;
+            text-align: center;
             border-radius: 8px;
-            margin-top: 20px;
+            margin-top: 15px;
+            text-decoration: none;
             font-size: 18px;
-            cursor: pointer;
         }
     </style>
 </head>
@@ -58,25 +55,13 @@
 <body>
 
 <div class="container">
-    <h2>حجز موعد</h2>
 
-    <label>اختر السيارة</label>
-    <select id="carSelect">
-        <option value="">جاري التحميل...</option>
-    </select>
+    <h2>حجوزاتي</h2>
 
-    <label>اختر الخدمة</label>
-    <select id="serviceSelect">
-        <option value="">جاري التحميل...</option>
-    </select>
+    <div id="bookingsList"></div>
 
-    <label>التاريخ</label>
-    <input id="date" type="date">
+    <a id="backBtn" class="btn">العودة للوحة التحكم</a>
 
-    <label>الوقت</label>
-    <input id="time" type="time">
-
-    <button onclick="submitBooking()">تأكيد الحجز</button>
 </div>
 
 <script src="api.js"></script>
@@ -93,84 +78,46 @@ if (!phone) {
 }
 
 /* ============================
-   تحميل سيارات العميل
+   تحميل حجوزات العميل
    ============================ */
-async function loadCars() {
+async function loadBookings() {
     const res = await apiGet({
-        action: "getCarsByPhone",
+        action: "getBookingsByPhone",
         phone
     });
 
-    const select = document.getElementById("carSelect");
-    select.innerHTML = "<option value=''>اختر السيارة</option>";
+    const list = document.getElementById("bookingsList");
+    list.innerHTML = "";
 
-    if (!res.success) return;
+    if (!res.success || res.bookings.length === 0) {
+        list.innerHTML = "<p>لا توجد حجوزات حالياً</p>";
+        return;
+    }
 
-    res.cars.forEach(car => {
-        const opt = document.createElement("option");
-        opt.value = car.membership;
-        opt.textContent = `${car.car} - ${car.plate_letters} ${car.plate_numbers}`;
-        select.appendChild(opt);
+    res.bookings.forEach(b => {
+        const div = document.createElement("div");
+        div.className = "booking-box";
+        div.innerHTML = `
+            <strong>${b.service}</strong><br>
+            التاريخ: ${b.date}<br>
+            الوقت: ${b.time}<br>
+            الحالة: ${b.status}<br>
+            المستوى: ${b.level}
+        `;
+        list.appendChild(div);
     });
 }
 
 /* ============================
-   تحميل الخدمات
+   زر العودة للداشبورد
    ============================ */
-async function loadServices() {
-    const res = await apiGet({ action: "getCommissions" });
-
-    const select = document.getElementById("serviceSelect");
-    select.innerHTML = "<option value=''>اختر الخدمة</option>";
-
-    if (!res.success) return;
-
-    res.commissions.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s.service_type;
-        opt.textContent = `${s.service_type} - ${s.price} ريال`;
-        select.appendChild(opt);
-    });
-}
-
-/* ============================
-   تنفيذ الحجز
-   ============================ */
-async function submitBooking() {
-    const membership = document.getElementById("carSelect").value;
-    const service = document.getElementById("serviceSelect").value;
-    const date = document.getElementById("date").value;
-    const time = document.getElementById("time").value;
-
-    if (!membership || !service || !date || !time) {
-        alert("الرجاء تعبئة جميع الحقول");
-        return;
-    }
-
-    const res = await apiPost({
-        action: "addBooking",
-        phone,
-        membership,
-        service,
-        date,
-        time
-    });
-
-    if (!res.success) {
-        alert("حدث خطأ أثناء الحجز");
-        return;
-    }
-
-    alert("تم الحجز بنجاح");
-    window.location.href = "customer-dashboard.html?phone=" + phone;
-}
+document.getElementById("backBtn").href = "customer-dashboard.html?phone=" + phone;
 
 /* ============================
    تحميل البيانات عند فتح الصفحة
    ============================ */
 window.onload = function () {
-    loadCars();
-    loadServices();
+    loadBookings();
 };
 </script>
 
