@@ -179,9 +179,9 @@ async function loadCategories() {
     if (res.success && res.rows.length > 0) {
         SERVICES = res.rows;
 
-        const categories = [...new Set(SERVICES.map(r => r[0]))];
+        const Category = [...new Set(SERVICES.map(r => r[0]))];
 
-        categories.forEach(cat => {
+        category.forEach(cat => {
             const opt = document.createElement("option");
             opt.value = cat;
             opt.innerText = cat;
@@ -191,7 +191,7 @@ async function loadCategories() {
 }
 
 // تحميل نوع الخدمة حسب الـ Category
-function loadServiceTypes() {
+function loadservice() {
     const category = document.getElementById("categorySelect").value;
     const serviceSelect = document.getElementById("serviceSelect");
     const priceInput = document.getElementById("price");
@@ -199,7 +199,7 @@ function loadServiceTypes() {
     priceInput.value = "";
     serviceSelect.innerHTML = '<option value="">اختر نوع الخدمة</option>';
 
-    const filtered = SERVICES.filter(s => s[0] === Category);
+    const filtered = service.filter(s => s[0] === Category);
 
     filtered.forEach(row => {
         const opt = document.createElement("option");
@@ -212,7 +212,7 @@ function loadServiceTypes() {
 
 // تحديث السعر تلقائيًا
 function updatePrice() {
-    const serviceSelect = document.getElementById("serviceSelect");
+    const serviceSelect = document.getElementById("service");
     const priceInput = document.getElementById("price");
 
     const selected = serviceSelect.options[serviceSelect.selectedIndex];
@@ -223,7 +223,7 @@ function updatePrice() {
 
 // إضافة خدمة
 function addService() {
-    const category = document.getElementById("categorySelect").value;
+    const Category = document.getElementById("categorySelect").value;
     const service = document.getElementById("serviceSelect").value;
     const price = document.getElementById("price").value;
 
@@ -247,7 +247,7 @@ function renderSelectedServices() {
         const div = document.createElement("div");
         div.className = "service-item";
         div.innerHTML = `
-            <span>${s.category} - ${s.service} (${s.price} ريال)</span>
+            <span>${s.Category} - ${s.service} (${s.price} ريال)</span>
             <button class="remove-btn" onclick="removeService(${index})">حذف</button>
         `;
         container.appendChild(div);
