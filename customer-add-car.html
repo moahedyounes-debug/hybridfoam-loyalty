@@ -47,14 +47,39 @@
             font-size: 17px;
             cursor: pointer;
         }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+
+        /* شاشة التحميل الاحترافية */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0005;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 
 <body>
+
+<div id="loader">
+    <div class="spinner"></div>
+</div>
 
 <div class="container">
     <h2>إضافة سيارة جديدة</h2>
@@ -78,7 +103,7 @@
     <label>حروف اللوحة</label>
     <input id="plate_letters" type="text" placeholder="أ ب ج">
 
-    <button id="submitBtn" onclick="addCar()">إضافة السيارة</button>
+    <button onclick="addCar()">إضافة السيارة</button>
 </div>
 
 <script src="api.js"></script>
@@ -89,6 +114,10 @@ let CAR_TYPES = [];
 let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
 let PHONE = CUSTOMER.phone;
 let CUSTOMER_MEMBERSHIP = CUSTOMER.membership;
+
+// شاشة التحميل
+function showLoader() { document.getElementById("loader").style.display = "flex"; }
+function hideLoader() { document.getElementById("loader").style.display = "none"; }
 
 // تحميل Car-Type
 window.onload = async function () {
@@ -142,20 +171,18 @@ function onCarChange() {
     sizeInput.value = found ? found[2] : "";
 }
 
-// توليد عضوية السيارة
+// توليد عضوية السيارة — سريع جدًا
 async function generateCarMembership() {
     const res = await apiGet({
-        action: "getAll",
-        sheet: "Cars"
+        action: "getCarsByPhone",
+        phone: PHONE
     });
 
-    if (!res.success || !res.rows) {
+    if (!res.success || !res.cars || res.cars.length === 0) {
         return CUSTOMER_MEMBERSHIP;
     }
 
-    const cars = res.rows.filter(r => r[0].startsWith(CUSTOMER_MEMBERSHIP));
-
-    if (cars.length === 0) return CUSTOMER_MEMBERSHIP;
+    const cars = res.cars;
 
     if (cars.length === 1 && cars[0][0] === CUSTOMER_MEMBERSHIP) {
         return CUSTOMER_MEMBERSHIP + "-1";
@@ -175,9 +202,7 @@ async function generateCarMembership() {
 
 // إضافة السيارة
 async function addCar() {
-    const btn = document.getElementById("submitBtn");
-    btn.disabled = true;
-    btn.innerText = "جاري الإضافة...";
+    showLoader();
 
     const brand = document.getElementById("brand").value.trim();
     const car = document.getElementById("car").value.trim();
@@ -187,9 +212,8 @@ async function addCar() {
     const city = "مكة";
 
     if (!brand || !car || !size || !plate_numbers || !plate_letters) {
+        hideLoader();
         alert("الرجاء تعبئة جميع الحقول");
-        btn.disabled = false;
-        btn.innerText = "إضافة السيارة";
         return;
     }
 
@@ -203,9 +227,8 @@ async function addCar() {
             c[4] === plate_letters && c[5] === plate_numbers
         );
         if (duplicate) {
+            hideLoader();
             alert("هذه السيارة مسجلة مسبقاً.");
-            btn.disabled = false;
-            btn.innerText = "إضافة السيارة";
             return;
         }
     }
@@ -227,6 +250,7 @@ async function addCar() {
         ])
     });
 
+    hideLoader();
     alert("تم إضافة السيارة بنجاح");
     window.location.href = "customer-cars.html";
 }
@@ -234,4 +258,3 @@ async function addCar() {
 
 </body>
 </html>
-
