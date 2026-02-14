@@ -1,111 +1,118 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>تسجيل الدخول</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>تسجيل دخول العميل</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="manifest" href="manifest.json">
-
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    </script>
-
-    <style>
-        body {
-            font-family: "Tajawal", sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .container {
-            max-width: 450px;
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 0 10px #0001;
-        }
-
-        h2 {
-            margin-bottom: 25px;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        .link {
-            margin-top: 20px;
-            display: block;
-            color: #007bff;
-            text-decoration: none;
-            font-size: 16px;
-        }
-    </style>
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#050608;
+      color:#f5f5f5;
+      padding:20px;
+      text-align:center;
+    }
+    h2{
+      margin-bottom:20px;
+    }
+    .box{
+      background:#111318;
+      padding:20px;
+      border-radius:16px;
+      max-width:380px;
+      margin:auto;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+    }
+    input{
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:none;
+      margin-bottom:12px;
+      background:#1a1c22;
+      color:white;
+      font-size:15px;
+      text-align:center;
+    }
+    .btn{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+      margin-top:10px;
+    }
+    .link{
+      margin-top:14px;
+      font-size:14px;
+      color:#4ade80;
+      cursor:pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>تسجيل الدخول</h2>
+<h2>تسجيل دخول العميل</h2>
 
-    <input id="phone" type="tel" placeholder="05xxxxxxxx">
+<div class="box">
+  <input type="text" id="phone" placeholder="05XXXXXXXX"
+         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-    <button onclick="login()">دخول</button>
+  <button class="btn" onclick="loginCustomer()">تسجيل الدخول</button>
 
-    <a href="customer-register.html" class="link">تسجيل عميل جديد</a>
+  <div class="link" onclick="window.location.href='customer-register.html'">
+    ليس لديك حساب؟ تسجيل عميل جديد
+  </div>
 </div>
 
 <script src="api.js"></script>
-
 <script>
-async function login() {
-    const phone = document.getElementById("phone").value.trim();
+async function loginCustomer(){
+  const phone = document.getElementById("phone").value.trim();
 
-    if (!phone) {
-        alert("الرجاء إدخال رقم الجوال");
-        return;
-    }
+  if(phone.length < 10){
+    alert("الرجاء إدخال رقم جوال صحيح");
+    return;
+  }
 
-    const res = await apiGet({
-        action: "checkCustomer",
-        phone
-    });
+  const res = await apiGetCustomerByPhone(phone);
 
-    if (!res.success) {
-        alert("خطأ في النظام");
-        return;
-    }
+  if(!res.success){
+    // العميل غير موجود → نرسله للتسجيل
+    localStorage.setItem("pendingPhone", phone);
+    window.location.href = "customer-register.html";
+    return;
+  }
 
-    // عميل جديد
-    if (res.status === "new") {
-        alert("العميل غير موجود، سيتم تحويلك للتسجيل");
-        window.location.href = "customer-register.html?phone=" + phone;
-        return;
-    }
+  // العميل موجود → نحفظ بياناته
+  const c = res.customer;
 
-    // عميل موجود
-    window.location.href = "customer-dashboard.html?phone=" + phone;
+  const CUSTOMER = {
+    name: c[0],
+    phone: c[1],
+    car: c[2],
+    size: c[3],
+    city: c[4],
+    plate_numbers: c[5],
+    plate_letters: c[6],
+    subscription: c[7],
+    membership: c[8],
+    last_visit: c[9],
+    visit_count: c[10],
+    points: c[11],
+    level: c[12],
+    free_wash: c[13]
+  };
+
+  localStorage.setItem("customer", JSON.stringify(CUSTOMER));
+
+  // تحويل للوحة العميل
+  window.location.href = "customer-dashboard.html";
 }
 </script>
 
