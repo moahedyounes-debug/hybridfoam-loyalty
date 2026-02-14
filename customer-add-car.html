@@ -85,28 +85,14 @@
 
 <script>
 let CAR_TYPES = [];
-let CUSTOMER = null;
-let PHONE = "";
-let MEMBERSHIP = "";
 
-// تحميل بيانات العميل تلقائيًا
-window.addEventListener("DOMContentLoaded", async () => {
-    const storedCustomer = localStorage.getItem("customer");
-
-    if (!storedCustomer) {
-        window.location.href = "customer-home.html";
-        return;
-    }
-
-    CUSTOMER = JSON.parse(storedCustomer);
-    PHONE = CUSTOMER.phone;
-    MEMBERSHIP = CUSTOMER.membership;
-
-    loadCarTypes();
-});
+// تحميل بيانات العميل
+let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
+let PHONE = CUSTOMER.phone;
+let CUSTOMER_MEMBERSHIP = CUSTOMER.membership;
 
 // تحميل Car-Type
-async function loadCarTypes() {
+window.onload = async function () {
     const brandSelect = document.getElementById("brand");
 
     const res = await apiGet({
@@ -128,8 +114,9 @@ async function loadCarTypes() {
             brandSelect.appendChild(opt);
         });
     }
-}
+};
 
+// عند اختيار البراند
 function onBrandChange() {
     const brand = document.getElementById("brand").value;
     const carSelect = document.getElementById("car");
@@ -148,6 +135,7 @@ function onBrandChange() {
     });
 }
 
+// عند اختيار الموديل
 function onCarChange() {
     const brand = document.getElementById("brand").value;
     const car = document.getElementById("car").value;
@@ -157,6 +145,36 @@ function onCarChange() {
     sizeInput.value = found ? found[2] : "";
 }
 
+// توليد عضوية السيارة
+async function generateCarMembership(customerMembership) {
+    const res = await apiGet({
+        action: "getAll",
+        sheet: "Cars"
+    });
+
+    if (!res.success || !res.rows) return customerMembership + "-1";
+
+    const cars = res.rows.filter(r => r[0].startsWith(customerMembership));
+
+    if (cars.length === 0) return customerMembership;
+
+    if (cars.length === 1 && cars[0][0] === customerMembership) {
+        return customerMembership + "-1";
+    }
+
+    let max = 0;
+    cars.forEach(c => {
+        const parts = c[0].split("-");
+        if (parts.length === 2) {
+            const num = Number(parts[1]);
+            if (num > max) max = num;
+        }
+    });
+
+    return customerMembership + "-" + (max + 1);
+}
+
+// إضافة السيارة
 async function addCar() {
     const btn = document.getElementById("submitBtn");
     btn.disabled = true;
@@ -187,31 +205,33 @@ async function addCar() {
             c[4] === plate_letters && c[5] === plate_numbers
         );
         if (duplicate) {
-            alert("هذه السيارة مسجلة مسبقاً على نفس الحساب.");
+            alert("هذه السيارة مسجلة مسبقاً.");
             btn.disabled = false;
             btn.innerText = "إضافة السيارة";
             return;
         }
     }
 
+    // توليد عضوية السيارة
+    const CAR_MEMBERSHIP = await generateCarMembership(CUSTOMER_MEMBERSHIP);
+
     // إضافة السيارة
-await apiPost({
-    action: "addRow",
-    sheet: "Cars",
-    values: JSON.stringify([
-        MEMBERSHIP,
-        "=\"" + PHONE + "\"",   // 👈 هنا الحل
-        car,
-        size,
-        plate_letters,
-        plate_numbers,
-        city,
-        new Date().toLocaleString("en-US")
-    ])
-});
+    await apiPost({
+        action: "addRow",
+        sheet: "Cars",
+        values: JSON.stringify([
+            CAR_MEMBERSHIP,
+            "=\"" + PHONE + "\"",
+            car,
+            size,
+            plate_letters,
+            plate_numbers,
+            city,
+            new Date().toLocaleString("en-US")
+        ])
+    });
 
     alert("تم إضافة السيارة بنجاح");
-
     window.location.href = "customer-cars.html";
 }
 </script>
