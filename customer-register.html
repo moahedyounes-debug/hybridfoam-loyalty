@@ -1,282 +1,181 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>تسجيل عميل جديد</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>تسجيل عميل جديد</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: "Tajawal", sans-serif;
-            background: #f5f5f5;
-            padding: 25px;
-        }
-        .container {
-            max-width: 450px;
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px #0002;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        label {
-            font-size: 14px;
-            margin-top: 10px;
-            display: block;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            margin-top: 6px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 15px;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 18px;
-            border: none;
-            border-radius: 8px;
-            background: #007bff;
-            color: white;
-            font-size: 17px;
-            cursor: pointer;
-        }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-    </style>
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#050608;
+      color:#f5f5f5;
+      padding:20px;
+    }
+    h2{
+      text-align:center;
+      margin-bottom:16px;
+    }
+    .box{
+      background:#111318;
+      padding:20px;
+      border-radius:16px;
+      max-width:420px;
+      margin:auto;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+    }
+    label{
+      font-size:13px;
+      color:#9ca3af;
+      display:block;
+      margin-bottom:4px;
+    }
+    input,select{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:none;
+      margin-bottom:10px;
+      background:#1a1c22;
+      color:white;
+      font-size:14px;
+    }
+    .btn{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+      margin-top:10px;
+    }
+    .link{
+      margin-top:14px;
+      font-size:14px;
+      color:#4ade80;
+      text-align:center;
+      cursor:pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>تسجيل عميل جديد</h2>
+<h2>تسجيل عميل جديد</h2>
 
-    <label>الاسم</label>
-    <input id="name" type="text" placeholder="الاسم الكامل">
+<div class="box">
+  <label>الاسم</label>
+  <input type="text" id="name" placeholder="الاسم الثلاثي">
 
-    <label>رقم الجوال</label>
-    <input id="phone" type="tel" placeholder="05xxxxxxxx" maxlength="10">
+  <label>رقم الجوال</label>
+  <input type="text" id="phone" placeholder="05XXXXXXXX"
+         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-    <label>المدينة</label>
-    <input id="city" type="text" value="مكة" readonly>
+  <label>المدينة</label>
+  <input type="text" id="city" placeholder="مثال: الرياض">
 
-    <hr style="margin:20px 0;">
+  <label>نوع السيارة</label>
+  <input type="text" id="car" placeholder="مثال: كامري">
 
-    <label>براند السيارة</label>
-    <select id="brand" onchange="onBrandChange()">
-        <option value="">جاري تحميل البراندات...</option>
-    </select>
+  <label>الحجم</label>
+  <select id="size">
+    <option value="">اختر الحجم</option>
+    <option value="صغير">صغير</option>
+    <option value="متوسط">متوسط</option>
+    <option value="كبير">كبير</option>
+  </select>
 
-    <label>موديل السيارة</label>
-    <select id="car" onchange="onCarChange()">
-        <option value="">اختر البراند أولاً</option>
-    </select>
+  <label>رقم اللوحة</label>
+  <input type="text" id="plate_numbers" placeholder="1234">
 
-    <label>حجم السيارة</label>
-    <input id="size" type="text" readonly placeholder="يتم تعبئته تلقائياً">
+  <label>حروف اللوحة</label>
+  <input type="text" id="plate_letters" placeholder="أ ب ج">
 
-    <label>أرقام اللوحة</label>
-    <input id="plate_numbers" type="text" placeholder="1234">
+  <button class="btn" onclick="registerCustomer()">تسجيل</button>
 
-    <label>حروف اللوحة</label>
-    <input id="plate_letters" type="text" placeholder="أ ب ج">
-
-    <button id="submitBtn" onclick="register()">تسجيل</button>
+  <div class="link" onclick="window.location.href='customer-login.html'">
+    لدي حساب بالفعل
+  </div>
 </div>
 
 <script src="api.js"></script>
-
 <script>
-let CAR_TYPES = []; // [brand, model, size]
+// تعبئة رقم الجوال لو جاي من login
+(function(){
+  const pending = localStorage.getItem("pendingPhone");
+  if(pending){
+    document.getElementById("phone").value = pending;
+  }
+})();
 
-// تحميل Car-Type
-window.onload = async function () {
-    const brandSelect = document.getElementById("brand");
+async function registerCustomer(){
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const city = document.getElementById("city").value.trim();
+  const car = document.getElementById("car").value.trim();
+  const size = document.getElementById("size").value;
+  const plate_numbers = document.getElementById("plate_numbers").value.trim();
+  const plate_letters = document.getElementById("plate_letters").value.trim();
 
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Car-Type"
-    });
+  if(!name || !phone || !city){
+    alert("الرجاء تعبئة الاسم ورقم الجوال والمدينة");
+    return;
+  }
 
-    brandSelect.innerHTML = '<option value="">اختر البراند</option>';
+  if(phone.length < 10){
+    alert("رقم الجوال غير صحيح");
+    return;
+  }
 
-    if (res.success && res.rows.length > 0) {
-        CAR_TYPES = res.rows;
+  // رقم العضوية = رقم الجوال (ممكن تغيره لاحقاً)
+  const membership = phone;
 
-        const brands = [...new Set(CAR_TYPES.map(r => r[0]))];
+  const res = await apiPost({
+    action: "addCustomer",
+    name,
+    phone,
+    car,
+    size,
+    city,
+    plate_numbers,
+    plate_letters,
+    subscription: "",
+    membership,
+    last_visit: "",
+    visit_count: 0,
+    points: 0,
+    level: "Hybrid Foam Loyalty",
+    free_wash: 0
+  });
 
-        brands.forEach(b => {
-            const opt = document.createElement("option");
-            opt.value = b;
-            opt.innerText = b;
-            brandSelect.appendChild(opt);
-        });
-    }
-};
+  if(!res.success){
+    alert("خطأ في التسجيل: " + res.error);
+    return;
+  }
 
-function onBrandChange() {
-    const brand = document.getElementById("brand").value;
-    const carSelect = document.getElementById("car");
-    const sizeInput = document.getElementById("size");
+  const CUSTOMER = {
+    name,
+    phone,
+    car,
+    size,
+    city,
+    plate_numbers,
+    plate_letters,
+    subscription: "",
+    membership,
+    last_visit: "",
+    visit_count: 0,
+    points: 0,
+    level: "Hybrid Foam Loyalty",
+    free_wash: 0
+  };
 
-    sizeInput.value = "";
-    carSelect.innerHTML = '<option value="">اختر الموديل</option>';
+  localStorage.removeItem("pendingPhone");
+  localStorage.setItem("customer", JSON.stringify(CUSTOMER));
 
-    const models = CAR_TYPES.filter(r => r[0] === brand);
-
-    models.forEach(row => {
-        const opt = document.createElement("option");
-        opt.value = row[1];
-        opt.innerText = row[1];
-        carSelect.appendChild(opt);
-    });
-}
-
-function onCarChange() {
-    const brand = document.getElementById("brand").value;
-    const car = document.getElementById("car").value;
-    const sizeInput = document.getElementById("size");
-
-    const found = CAR_TYPES.find(r => r[0] === brand && r[1] === car);
-    sizeInput.value = found ? found[2] : "";
-}
-
-// توليد رقم عضوية يبدأ من 20260001
-async function generateMembership() {
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Customers"
-    });
-
-    if (!res.success || !res.rows || res.rows.length === 0) {
-        return 20260001;
-    }
-
-    const lastRow = res.rows[res.rows.length - 1];
-    const lastMembership = Number(lastRow[8]);
-
-    return isNaN(lastMembership) ? 20260001 : lastMembership + 1;
-}
-
-async function register() {
-    const btn = document.getElementById("submitBtn");
-    btn.disabled = true;
-    btn.innerText = "جاري التسجيل...";
-
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const city = document.getElementById("city").value.trim();
-    const brand = document.getElementById("brand").value.trim();
-    const car = document.getElementById("car").value.trim();
-    const size = document.getElementById("size").value.trim();
-    const plate_numbers = document.getElementById("plate_numbers").value.trim();
-    const plate_letters = document.getElementById("plate_letters").value.trim();
-
-    if (!name || !phone || !brand || !car || !size || !plate_numbers || !plate_letters) {
-        alert("الرجاء تعبئة جميع الحقول");
-        btn.disabled = false;
-        btn.innerText = "تسجيل";
-        return;
-    }
-
-    if (phone.length !== 10 || !phone.startsWith("05")) {
-        alert("رقم الجوال غير صحيح");
-        btn.disabled = false;
-        btn.innerText = "تسجيل";
-        return;
-    }
-
-    // تحقق هل العميل موجود
-    const existingCustomer = await apiGet({
-        action: "getCustomerByPhone",
-        phone
-    });
-
-    if (existingCustomer.success && existingCustomer.customer) {
-        alert("يوجد حساب مسجل بهذا الرقم. الرجاء استخدام صفحة الدخول.");
-        btn.disabled = false;
-        btn.innerText = "تسجيل";
-        return;
-    }
-
-    // توليد العضوية
-    const membership = await generateMembership();
-
-    // تحقق من السيارة
-    const existingCars = await apiGet({
-        action: "getCarsByPhone",
-        phone
-    });
-
-    if (existingCars.success && existingCars.cars) {
-        const duplicate = existingCars.cars.find(c =>
-            c[4] === plate_letters && c[5] === plate_numbers
-        );
-        if (duplicate) {
-            alert("هذه السيارة مسجلة مسبقاً على نفس الرقم.");
-            btn.disabled = false;
-            btn.innerText = "تسجيل";
-            return;
-        }
-    }
-
-    // إضافة العميل
-await apiPost({
-    action: "addRow",
-    sheet: "Customers",
-    values: JSON.stringify([
-        name,
-        "=\"" + phone + "\"",   // 👈 هنا
-        car,
-        size,
-        city,
-        plate_numbers,
-        plate_letters,
-        "",
-        membership,
-        "",
-        0,
-        0,
-        "Bronze",
-        0
-    ])
-});
-
-    // إضافة السيارة
-    await apiPost({
-        action: "addRow",
-        sheet: "Cars",
-        values: JSON.stringify([
-            membership,
-            "=\"" + phone + "\"",   // 👈 هنا
-            car,
-            size,
-            plate_letters,
-            plate_numbers,
-            city,
-            new Date().toLocaleString("en-US")
-        ])
-    });
-
-    // حفظ بيانات العميل
-    localStorage.setItem("customer", JSON.stringify({
-        name,
-        phone,
-        city,
-        membership
-    }));
-    localStorage.setItem("phone", phone);
-
-    // الانتقال للوحة العميل
-    window.location.href = "customer-dashboard.html";
+  window.location.href = "customer-dashboard.html";
 }
 </script>
 
