@@ -1,72 +1,39 @@
-// ===============================
-// 1) البحث عن سيارات العميل
-// ===============================
+/* =====================================================
+   متغيرات عامة
+===================================================== */
+let vm_selectedMembership = "";
+let vm_services = [];
+let vm_commissions = [];
 
-async function vm_searchCustomer() {
-    const phone = document.getElementById("phone").value.trim();
-
-    if (phone.length < 10) {
-        alert("الرجاء إدخال رقم جوال صحيح");
-        return;
-    }
-
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Cars"
-    });
-
-    if (!res.success) {
-        alert("خطأ في قراءة بيانات السيارات");
-        return;
-    }
-
-    const cars = res.rows.filter(c => c[1] == phone);
-
-    const box = document.getElementById("carsBox");
-    const list = document.getElementById("carsList");
-
-    if (cars.length === 0) {
-        box.style.display = "block";
-        list.innerHTML = "<div>لا توجد سيارات لهذا العميل.</div>";
-        return;
-    }
-
-    box.style.display = "block";
-    list.innerHTML = cars.map(c => `
-        <div class="car-item">
-            <div>
-                <strong>${c[2]}</strong> (${c[3]})<br>
-                لوحة: ${c[5]} ${c[4]}
-            </div>
-            <button onclick="vm_selectCar('${c[0]}','${c[2]}','${c[4]}','${c[5]}')">
-                اختيار
-            </button>
-        </div>
-    `).join("");
+/* =====================================================
+   أدوات مساعدة
+===================================================== */
+function disableBtn(btn, text) {
+    btn.dataset.old = btn.innerText;
+    btn.innerText = text;
+    btn.disabled = true;
 }
 
-// ===============================
-// 2) اختيار السيارة
-// ===============================
-
-let SELECTED_CAR = null;
-
-function vm_selectCar(membership, carName, letters, numbers) {
-    SELECTED_CAR = { membership, carName, letters, numbers };
-
-    document.getElementById("visitBox").style.display = "block";
-
-    vm_loadServices();
+function enableBtn(btn) {
+    btn.innerText = btn.dataset.old;
+    btn.disabled = false;
 }
 
-// ===============================
-// 3) تحميل الخدمات
-// ===============================
+/* =====================================================
+   تحميل البيانات عند فتح الصفحة
+===================================================== */
+window.onload = async function () {
+    await vm_loadCommissions();
+    await vm_loadActiveVisits();
+};
 
-async function vm_loadServices() {
+/* =====================================================
+   1) تحميل الخدمات من شيت Commissions
+===================================================== */
+async function vm_loadCommissions() {
     const res = await apiGet({
         action: "getAll",
-        sheet: "Services"
+        sheet: "Commissions"
     });
 
     if (!res.success) {
@@ -74,164 +41,253 @@ async function vm_loadServices() {
         return;
     }
 
+    vm_commissions = res.rows;
+
     const serviceType = document.getElementById("service_type");
-    const serviceDetail = document.getElementById("service_detail");
+    serviceType.innerHTML = `<option value="">— اختر نوع الخدمة —</option>`;
 
-    const types = [...new Set(res.rows.map(r => r[0]))];
+    const types = [...new Set(vm_commissions.map(s => s[4]))]; // Category
 
-    serviceType.innerHTML = types.map(t => `<option value="${t}">${t}</option>`).join("");
-
-    vm_filterServiceDetails();
+    types.forEach(t => {
+        serviceType.innerHTML += `<option value="${t}">${t}</option>`;
+    });
 }
 
-// ===============================
-// 4) تصفية تفاصيل الخدمة حسب النوع
-// ===============================
+/* =====================================================
+   2) البحث عن العميل
+===================================================== */
+async function vm_searchCustomer() {
+    const phone = document.getElementById("phone").value.trim();
+    const btn = document.getElementById("btnSearch");
 
-async function vm_filterServiceDetails() {
-    const type = document.getElementById("service_type").value;
+    if (!phone) return alert("أدخل رقم الجوال");
+
+    disableBtn(btn, "جاري البحث...");
 
     const res = await apiGet({
-        action: "getAll",
-        sheet: "Services"
+        action: "getCarsByPhone",
+        phone
     });
 
-    const details = res.rows.filter(r => r[0] == type);
+    enableBtn(btn);
 
-    document.getElementById("service_detail").innerHTML =
-        details.map(d => `<option value="${d[1]}" data-price="${d[2]}">${d[1]}</option>`).join("");
+    const carsBox = document.getElementById("carsBox");
+    const carsList = document.getElementById("carsList");
 
-    vm_updatePrice();
+    carsList.innerHTML = "";
+    carsBox.style.display = "block";
+
+    if (!res.success || res.cars.length === 0) {
+        carsList.innerHTML = "<p>لا توجد سيارات لهذا العميل</p>";
+        return;
+    }
+
+    res.cars.forEach(car => {
+        const div = document.createElement("div");
+        div.className = "car-item";
+        div.innerHTML = `
+            <div>
+                <strong>${car[2]}</strong> (${car[3]})<br>
+                ${car[4]} - ${car[5]}
+            </div>
+            <button onclick="vm_selectCar('${car[0]}')">اختيار</button>
+        `;
+        carsList.appendChild(div);
+    });
 }
 
-// ===============================
-// 5) تحديث السعر والنقاط
-// ===============================
-
-function vm_updatePrice() {
-    const detail = document.getElementById("service_detail");
-    const price = detail.selectedOptions[0].dataset.price;
-
-    document.getElementById("price").value = price;
-    vm_updatePoints();
+/* =====================================================
+   3) اختيار السيارة
+===================================================== */
+function vm_selectCar(membership) {
+    vm_selectedMembership = membership;
+    document.getElementById("visitBox").style.display = "block";
 }
 
-function vm_updatePoints() {
-    const price = Number(document.getElementById("price").value);
-    document.getElementById("points").value = Math.floor(price / 10);
-}
-
-// ===============================
-// 6) إضافة الخدمة إلى القائمة
-// ===============================
-
-let SERVICES = [];
-
-function vm_addService() {
+/* =====================================================
+   4) فلترة تفاصيل الخدمة
+===================================================== */
+function vm_filterServiceDetails() {
     const type = document.getElementById("service_type").value;
+    const detail = document.getElementById("service_detail");
+
+    detail.innerHTML = `<option value="">— اختر الخدمة —</option>`;
+
+    vm_commissions
+        .filter(s => s[4] === type)
+        .forEach(s => {
+            detail.innerHTML += `<option value="${s[0]}">${s[0]}</option>`;
+        });
+}
+
+/* =====================================================
+   5) تحديث السعر والنقاط
+===================================================== */
+function vm_updatePrice() {
+    const detail = document.getElementById("service_detail").value;
+    const service = vm_commissions.find(s => s[0] === detail);
+    if (!service) return;
+
+    document.getElementById("price").value = service[2];
+    document.getElementById("points").value = service[1];
+}
+
+/* =====================================================
+   6) إضافة خدمة
+===================================================== */
+function vm_addService() {
     const detail = document.getElementById("service_detail").value;
     const price = Number(document.getElementById("price").value);
     const points = Number(document.getElementById("points").value);
 
-    SERVICES.push({ type, detail, price, points });
+    if (!detail || !price) return alert("اختر خدمة");
 
+    vm_services.push({ detail, price, points });
     vm_renderServices();
 }
 
+/* =====================================================
+   7) عرض الخدمات
+===================================================== */
 function vm_renderServices() {
     const list = document.getElementById("servicesList");
+    list.innerHTML = "";
 
-    list.innerHTML = SERVICES.map((s, i) => `
-        <div class="service-item">
-            <div>${s.type} - ${s.detail} (${s.price} ريال)</div>
+    let total = 0;
+
+    vm_services.forEach((s, i) => {
+        total += s.price;
+
+        const div = document.createElement("div");
+        div.className = "service-item";
+        div.innerHTML = `
+            ${s.detail} — ${s.price} ريال
             <button onclick="vm_removeService(${i})">حذف</button>
-        </div>
-    `).join("");
+        `;
+        list.appendChild(div);
+    });
 
-    const total = SERVICES.reduce((sum, s) => sum + s.price, 0);
     document.getElementById("totalPrice").innerText = total;
 }
 
-function vm_removeService(i) {
-    SERVICES.splice(i, 1);
+/* =====================================================
+   8) حذف خدمة
+===================================================== */
+function vm_removeService(index) {
+    vm_services.splice(index, 1);
     vm_renderServices();
 }
 
-// ===============================
-// 7) تسجيل الزيارة
-// ===============================
-
+/* =====================================================
+   9) تسجيل الزيارة
+===================================================== */
 async function vm_submitVisit() {
-    if (!SELECTED_CAR) {
-        alert("الرجاء اختيار سيارة");
-        return;
-    }
+    const btn = document.getElementById("btnSubmitVisit");
 
-    if (SERVICES.length === 0) {
-        alert("الرجاء إضافة خدمة واحدة على الأقل");
-        return;
-    }
+    if (!vm_selectedMembership) return alert("اختر السيارة");
+    if (vm_services.length === 0) return alert("أضف خدمة واحدة على الأقل");
 
     const payment_status = document.getElementById("payment_status").value;
     const payment_method = document.getElementById("payment_method").value;
     const parking_slot = document.getElementById("parking_slot").value;
     const branch = document.getElementById("branch").value;
 
+    if (!payment_status || !payment_method || !branch)
+        return alert("أكمل جميع الحقول");
+
+    disableBtn(btn, "جاري إضافة الزيارة...");
+
     const now = new Date().toISOString();
 
-    for (let s of SERVICES) {
-        await apiGet({
+    for (const s of vm_services) {
+        await apiPost({
             action: "addRow",
             sheet: "Visits",
-            row: [
-                SELECTED_CAR.membership,
-                s.detail,
-                s.price,
-                s.points,
-                "موظف دخول",
-                "",
-                branch,
-                "",
-                now,
-                "",
-                payment_status,
-                payment_method,
-                parking_slot,
-                "",
-                payment_method
-            ]
+            values: JSON.stringify([
+                vm_selectedMembership, // membership
+                s.detail,              // service_detail
+                s.price,               // price
+                s.points,              // points
+                "الموظف",             // employee_in
+                "",                    // employee_out
+                branch,                // branch
+                "",                    // commission
+                now,                   // check_in
+                "",                    // check_out
+                payment_status,        // payment_status
+                payment_method,        // payment_method
+                parking_slot,          // parking_slot
+                "",                    // rating
+                payment_method         // Payment Method (duplicate)
+            ])
         });
     }
 
-    alert("تم تسجيل الزيارة بنجاح");
+    enableBtn(btn);
+    alert("تم تسجيل الزيارة");
 
-    SERVICES = [];
+    vm_services = [];
     vm_renderServices();
     vm_loadActiveVisits();
 }
 
-// ===============================
-// 8) تحميل السيارات داخل المغسلة
-// ===============================
-
+/* =====================================================
+   10) تحميل الزيارات النشطة
+===================================================== */
 async function vm_loadActiveVisits() {
     const res = await apiGet({
         action: "getAll",
         sheet: "Visits"
     });
 
-    const active = res.rows.filter(v => v[10] != "مدفوع");
-
     const list = document.getElementById("activeVisitsList");
+    list.innerHTML = "";
 
-    list.innerHTML = active.map(v => `
-        <div class="active-item">
+    if (!res.success || res.rows.length === 0) {
+        list.innerHTML = "<p>لا توجد زيارات نشطة</p>";
+        return;
+    }
+
+    const active = res.rows.filter(v => v[10] !== "مدفوع");
+
+    active.forEach((v, i) => {
+        const div = document.createElement("div");
+        div.className = "active-item";
+
+        div.innerHTML = `
             <div>
-                <strong>عضوية السيارة:</strong> ${v[0]}<br>
-                <strong>الخدمة:</strong> ${v[1]}<br>
-                <strong>الدخول:</strong> ${v[8]}
+                <strong>${v[0]}</strong><br>
+                ${v[1]}<br>
+                السعر: ${v[2]} ريال
             </div>
-            <button onclick="alert('تسليم السيارة لاحقًا')">تسليم</button>
-        </div>
-    `).join("");
+            <button onclick="vm_closeVisit(${i + 2})">إغلاق</button>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+/* =====================================================
+   11) إغلاق الزيارة
+===================================================== */
+async function vm_closeVisit(row) {
+    const payment_status = prompt("حالة الدفع (مدفوع / غير مدفوع):");
+    const payment_method = prompt("طريقة الدفع (كاش / شبكة):");
+
+    if (!payment_status || !payment_method) return;
+
+    await apiPost({
+        action: "updateRow",
+        sheet: "Visits",
+        row,
+        values: JSON.stringify([
+            "", "", "", "", "", "", "", "", "", "",
+            payment_status,
+            payment_method,
+            "", "", payment_method
+        ])
+    });
+
+    alert("تم إغلاق الزيارة");
+    vm_loadActiveVisits();
 }
