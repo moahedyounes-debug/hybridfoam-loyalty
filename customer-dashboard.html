@@ -110,7 +110,7 @@
     <div class="row"><span class="label">المدينة</span><span class="value" id="city">—</span></div>
     <div class="row"><span class="label">النقاط المتاحة</span><span class="value" id="points">0</span></div>
     <div class="row"><span class="label">غسيل مجاني</span><span class="value" id="freeWash">لا يوجد</span></div>
-    <div class="row"><span class="label">المستوى</span><span class="value" id="level">Hybrid Foam Loyalty</span></div>
+    <div class="row"><span class="label">المستوى</span><span class="value" id="level">—</span></div>
     <div class="row"><span class="label">التقدم للمستوى التالي</span><span class="value" id="nextLevel">—</span></div>
 
     <div class="progress-box">
@@ -124,7 +124,7 @@
 
 <!-- سياراتك -->
 <div class="section">
-    <div class="title">سياراتك المسجلة 😩</div>
+    <div class="title">سياراتك المسجلة</div>
     <div class="sub">السيارات المرتبطة برقم جوالك.</div>
 
     <div id="carsBox" class="empty">لا توجد سيارات مسجلة حتى الآن.</div>
@@ -142,7 +142,7 @@
 
 <!-- آخر زيارة -->
 <div class="section">
-    <div class="title">آخر زيارة 🪙</div>
+    <div class="title">آخر زيارة</div>
     <div class="sub">تفاصيل آخر خدمة تمت على عضويتك</div>
 
     <div id="lastVisitBox" class="empty">لا توجد زيارات مسجلة حتى الآن.</div>
@@ -150,7 +150,7 @@
 
 <!-- الحجوزات -->
 <div class="section">
-    <div class="title">الحجوزات 🗓️</div>
+    <div class="title">الحجوزات</div>
     <div class="sub">مواعيدك الحالية والسابقة</div>
 
     <div id="bookingsBox" class="empty">لا توجد حجوزات مسجلة.</div>
@@ -176,23 +176,23 @@ window.onload = async function(){
     }
 
     loadCustomerInfo();
-    await loadCars();
-    await loadLastVisit();
+    const cars = await loadCars();
+    await loadLastVisit(cars);
     await loadBookings();
     loadLevelSystem();
 };
 
-// بيانات العميل من localStorage
+// بيانات العميل
 function loadCustomerInfo(){
-    document.getElementById("name").innerText = CUSTOMER.name || "—";
-    document.getElementById("phone").innerText = CUSTOMER.phone || "—";
-    document.getElementById("membership").innerText = CUSTOMER.membership || "—";
-    document.getElementById("city").innerText = CUSTOMER.city || "—";
-    document.getElementById("points").innerText = CUSTOMER.points || 0;
+    document.getElementById("name").innerText = CUSTOMER.name;
+    document.getElementById("phone").innerText = CUSTOMER.phone;
+    document.getElementById("membership").innerText = CUSTOMER.membership;
+    document.getElementById("city").innerText = CUSTOMER.city;
+    document.getElementById("points").innerText = CUSTOMER.points;
     document.getElementById("freeWash").innerText = CUSTOMER.freeWash > 0 ? "متوفر" : "لا يوجد";
 }
 
-// قراءة السيارات من الشيت الصحيح
+// قراءة السيارات
 async function loadCars(){
     const box = document.getElementById("carsBox");
 
@@ -201,18 +201,11 @@ async function loadCars(){
         sheet:"Cars"
     });
 
-    console.log("cars res:", res);
-
-    if(!res.success){
-        box.innerHTML = "خطأ في قراءة البيانات.";
-        return;
-    }
-
     const cars = res.rows.filter(r => r[1] == PHONE);
 
     if(cars.length === 0){
-        box.innerHTML = "لا توجد سيارات مسجلة حتى الآن.";
-        return;
+        box.innerHTML = "لا توجد سيارات مسجلة.";
+        return [];
     }
 
     box.classList.remove("empty");
@@ -221,28 +214,25 @@ async function loadCars(){
             ${c[2]} • ${c[3]} • ${c[5]} ${c[4]}
         </div>`
     ).join("");
+
+    return cars;
 }
 
 // قراءة آخر زيارة
-async function loadLastVisit(){
+async function loadLastVisit(cars){
     const box = document.getElementById("lastVisitBox");
+
+    const memberships = cars.map(c => c[0]);
 
     const res = await apiGet({
         action:"getAll",
         sheet:"Visits"
     });
 
-    console.log("visits res:", res);
-
-    if(!res.success){
-        box.innerHTML = "خطأ في قراءة البيانات.";
-        return;
-    }
-
-    const visits = res.rows.filter(r => r[1] == PHONE);
+    const visits = res.rows.filter(v => memberships.includes(v[0]));
 
     if(visits.length === 0){
-        box.innerHTML = "لا توجد زيارات مسجلة حتى الآن.";
+        box.innerHTML = "لا توجد زيارات.";
         return;
     }
 
@@ -251,11 +241,10 @@ async function loadLastVisit(){
     box.classList.remove("empty");
     box.innerHTML = `
         <div style="font-size:13px;">
-            السيارة: ${v[2]}<br>
-            الخدمة: ${v[3]}<br>
-            السعر: ${v[4]} ريال<br>
-            النقاط المكتسبة: ${v[5]}<br>
-            التاريخ: ${v[6]}
+            الخدمة: ${v[1]}<br>
+            السعر: ${v[2]} ريال<br>
+            النقاط المكتسبة: ${v[3]}<br>
+            التاريخ: ${v[8]}
         </div>
     `;
 }
@@ -269,17 +258,10 @@ async function loadBookings(){
         sheet:"Bookings"
     });
 
-    console.log("bookings res:", res);
-
-    if(!res.success){
-        box.innerHTML = "خطأ في قراءة البيانات.";
-        return;
-    }
-
     const bookings = res.rows.filter(r => r[1] == PHONE);
 
     if(bookings.length === 0){
-        box.innerHTML = "لا توجد حجوزات مسجلة.";
+        box.innerHTML = "لا توجد حجوزات.";
         return;
     }
 
@@ -317,5 +299,6 @@ function loadLevelSystem(){
     document.getElementById("progress").style.width = progress + "%";
 }
 </script>
+
 </body>
 </html>
