@@ -85,12 +85,14 @@
 let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
 let PHONE = CUSTOMER ? CUSTOMER.phone : null;
 
-window.onload = async function(){
+(function(){
   if(!CUSTOMER || !PHONE){
-    document.getElementById("carsBox").innerHTML = "لم يتم العثور على بيانات العميل.";
-    return;
+    window.location.href = "customer-login.html";
   }
+})();
 
+window.onload = async function(){
+  if(!CUSTOMER || !PHONE) return;
   loadCars();
 };
 
