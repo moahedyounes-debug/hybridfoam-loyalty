@@ -86,7 +86,6 @@
 <script>
 let CAR_TYPES = [];
 
-// تحميل بيانات العميل
 let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
 let PHONE = CUSTOMER.phone;
 let CUSTOMER_MEMBERSHIP = CUSTOMER.membership;
@@ -116,7 +115,6 @@ window.onload = async function () {
     }
 };
 
-// عند اختيار البراند
 function onBrandChange() {
     const brand = document.getElementById("brand").value;
     const carSelect = document.getElementById("car");
@@ -135,7 +133,6 @@ function onBrandChange() {
     });
 }
 
-// عند اختيار الموديل
 function onCarChange() {
     const brand = document.getElementById("brand").value;
     const car = document.getElementById("car").value;
@@ -146,20 +143,22 @@ function onCarChange() {
 }
 
 // توليد عضوية السيارة
-async function generateCarMembership(customerMembership) {
+async function generateCarMembership() {
     const res = await apiGet({
         action: "getAll",
         sheet: "Cars"
     });
 
-    if (!res.success || !res.rows) return customerMembership + "-1";
+    if (!res.success || !res.rows) {
+        return CUSTOMER_MEMBERSHIP;
+    }
 
-    const cars = res.rows.filter(r => r[0].startsWith(customerMembership));
+    const cars = res.rows.filter(r => r[0].startsWith(CUSTOMER_MEMBERSHIP));
 
-    if (cars.length === 0) return customerMembership;
+    if (cars.length === 0) return CUSTOMER_MEMBERSHIP;
 
-    if (cars.length === 1 && cars[0][0] === customerMembership) {
-        return customerMembership + "-1";
+    if (cars.length === 1 && cars[0][0] === CUSTOMER_MEMBERSHIP) {
+        return CUSTOMER_MEMBERSHIP + "-1";
     }
 
     let max = 0;
@@ -171,7 +170,7 @@ async function generateCarMembership(customerMembership) {
         }
     });
 
-    return customerMembership + "-" + (max + 1);
+    return CUSTOMER_MEMBERSHIP + "-" + (max + 1);
 }
 
 // إضافة السيارة
@@ -194,7 +193,6 @@ async function addCar() {
         return;
     }
 
-    // تحقق من تكرار السيارة
     const existingCars = await apiGet({
         action: "getCarsByPhone",
         phone: PHONE
@@ -212,10 +210,8 @@ async function addCar() {
         }
     }
 
-    // توليد عضوية السيارة
-    const CAR_MEMBERSHIP = await generateCarMembership(CUSTOMER_MEMBERSHIP);
+    const CAR_MEMBERSHIP = await generateCarMembership();
 
-    // إضافة السيارة
     await apiPost({
         action: "addRow",
         sheet: "Cars",
@@ -238,3 +234,4 @@ async function addCar() {
 
 </body>
 </html>
+
