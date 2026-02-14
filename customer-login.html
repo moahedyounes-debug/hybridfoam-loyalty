@@ -72,6 +72,14 @@
 
 <script src="api.js"></script>
 <script>
+// لو العميل مسجل من قبل نخليه يدخل مباشرة
+(function(){
+  const c = localStorage.getItem("customer");
+  if(c){
+    window.location.href = "customer-dashboard.html";
+  }
+})();
+
 async function loginCustomer(){
   const phone = document.getElementById("phone").value.trim();
 
