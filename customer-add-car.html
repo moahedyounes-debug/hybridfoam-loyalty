@@ -1,219 +1,136 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>إضافة سيارة جديدة</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>إضافة سيارة جديدة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: "Tajawal", sans-serif;
-            background: #f5f5f5;
-            padding: 25px;
-        }
-        .container {
-            max-width: 450px;
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px #0002;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        label {
-            font-size: 14px;
-            margin-top: 10px;
-            display: block;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            margin-top: 6px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 15px;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 18px;
-            border: none;
-            border-radius: 8px;
-            background: #28a745;
-            color: white;
-            font-size: 17px;
-            cursor: pointer;
-        }
-
-        /* شاشة التحميل */
-        #loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0005;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #fff;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#050608;
+      color:#f5f5f5;
+      padding:20px;
+    }
+    h2{
+      text-align:center;
+      margin-bottom:16px;
+    }
+    .box{
+      background:#111318;
+      padding:20px;
+      border-radius:16px;
+      max-width:420px;
+      margin:auto;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+    }
+    label{
+      font-size:13px;
+      color:#9ca3af;
+      display:block;
+      margin-bottom:4px;
+    }
+    input,select{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:none;
+      margin-bottom:10px;
+      background:#1a1c22;
+      color:white;
+      font-size:14px;
+    }
+    .btn{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+      margin-top:10px;
+    }
+    .btn-outline{
+      background:transparent;
+      border:1px solid #374151;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="loader">
-    <div class="spinner"></div>
-</div>
+<h2>إضافة سيارة جديدة</h2>
 
-<div class="container">
-    <h2>إضافة سيارة جديدة</h2>
+<div class="box">
+  <label>نوع السيارة</label>
+  <input type="text" id="car" placeholder="مثال: كامري">
 
-    <label>براند السيارة</label>
-    <select id="brand" onchange="onBrandChange()">
-        <option value="">جاري تحميل البراندات...</option>
-    </select>
+  <label>الحجم</label>
+  <select id="size">
+    <option value="">اختر الحجم</option>
+    <option value="صغير">صغير</option>
+    <option value="متوسط">متوسط</option>
+    <option value="كبير">كبير</option>
+  </select>
 
-    <label>موديل السيارة</label>
-    <select id="car" onchange="onCarChange()">
-        <option value="">اختر البراند أولاً</option>
-    </select>
+  <label>رقم اللوحة</label>
+  <input type="text" id="plate_numbers" placeholder="1234">
 
-    <label>حجم السيارة</label>
-    <input id="size" type="text" readonly placeholder="يتم تعبئته تلقائياً">
+  <label>حروف اللوحة</label>
+  <input type="text" id="plate_letters" placeholder="أ ب ج">
 
-    <label>أرقام اللوحة</label>
-    <input id="plate_numbers" type="text" placeholder="1234">
+  <label>المدينة</label>
+  <input type="text" id="city" placeholder="مثال: الرياض">
 
-    <label>حروف اللوحة</label>
-    <input id="plate_letters" type="text" placeholder="أ ب ج">
-
-    <button onclick="addCar()">إضافة السيارة</button>
+  <button class="btn" onclick="addCar()">حفظ السيارة</button>
+  <button class="btn btn-outline" onclick="window.location.href='customer-cars.html'">
+    العودة لقائمة السيارات
+  </button>
 </div>
 
 <script src="api.js"></script>
-
 <script>
-let CAR_TYPES = [];
+let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
+let PHONE = CUSTOMER ? CUSTOMER.phone : null;
 
-// بيانات العميل
-let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
-let PHONE = CUSTOMER.phone;
+(function(){
+  if(!CUSTOMER || !PHONE){
+    window.location.href = "customer-login.html";
+  }
+})();
 
-// شاشة التحميل
-function showLoader() { document.getElementById("loader").style.display = "flex"; }
-function hideLoader() { document.getElementById("loader").style.display = "none"; }
+async function addCar(){
+  const car = document.getElementById("car").value.trim();
+  const size = document.getElementById("size").value;
+  const plate_numbers = document.getElementById("plate_numbers").value.trim();
+  const plate_letters = document.getElementById("plate_letters").value.trim();
+  const city = document.getElementById("city").value.trim();
 
-// تحميل Car-Type
-window.onload = async function () {
-    const brandSelect = document.getElementById("brand");
+  if(!car || !size || !plate_numbers || !plate_letters || !city){
+    alert("الرجاء تعبئة جميع الحقول");
+    return;
+  }
 
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Car-Type"
-    });
+  const membership = CUSTOMER.membership || CUSTOMER.phone;
 
-    brandSelect.innerHTML = '<option value="">اختر البراند</option>';
+  const res = await apiAddCar({
+    membership,
+    phone: CUSTOMER.phone,
+    car,
+    size,
+    plate_letters,
+    plate_numbers,
+    city
+  });
 
-    if (res.success && res.rows.length > 0) {
-        CAR_TYPES = res.rows;
+  if(!res.success){
+    alert("خطأ في إضافة السيارة: " + res.error);
+    return;
+  }
 
-        const brands = [...new Set(CAR_TYPES.map(r => r[0]))];
-
-        brands.forEach(b => {
-            const opt = document.createElement("option");
-            opt.value = b;
-            opt.innerText = b;
-            brandSelect.appendChild(opt);
-        });
-    }
-};
-
-function onBrandChange() {
-    const brand = document.getElementById("brand").value;
-    const carSelect = document.getElementById("car");
-    const sizeInput = document.getElementById("size");
-
-    sizeInput.value = "";
-    carSelect.innerHTML = '<option value="">اختر الموديل</option>';
-
-    const models = CAR_TYPES.filter(r => r[0] === brand);
-
-    models.forEach(row => {
-        const opt = document.createElement("option");
-        opt.value = row[1];
-        opt.innerText = row[1];
-        carSelect.appendChild(opt);
-    });
-}
-
-function onCarChange() {
-    const brand = document.getElementById("brand").value;
-    const car = document.getElementById("car").value;
-    const sizeInput = document.getElementById("size");
-
-    const found = CAR_TYPES.find(r => r[0] === brand && r[1] === car);
-    sizeInput.value = found ? found[2] : "";
-}
-
-// توليد عضوية سيارة مستقلة
-function generateCarMembership() {
-    return "M" + Date.now();
-}
-
-// إضافة السيارة
-async function addCar() {
-    showLoader();
-
-    const brand = document.getElementById("brand").value.trim();
-    const car = document.getElementById("car").value.trim();
-    const size = document.getElementById("size").value.trim();
-    const plate_numbers = document.getElementById("plate_numbers").value.trim();
-    const plate_letters = document.getElementById("plate_letters").value.trim();
-    const city = "مكة";
-
-    if (!brand || !car || !size || !plate_numbers || !plate_letters) {
-        hideLoader();
-        alert("الرجاء تعبئة جميع الحقول");
-        return;
-    }
-
-    // توليد عضوية السيارة الجديدة
-    const CAR_MEMBERSHIP = generateCarMembership();
-
-    await apiPost({
-        action: "addRow",
-        sheet: "Cars",
-        values: JSON.stringify([
-            CAR_MEMBERSHIP,               // عضوية السيارة الجديدة
-            "=\"" + PHONE + "\"",         // رقم الجوال كنص
-            car,
-            size,
-            plate_letters,
-            plate_numbers,
-            city,
-            new Date().toLocaleString("en-US")
-        ])
-    });
-
-    hideLoader();
-    alert("تم إضافة السيارة بنجاح");
-    window.location.href = "customer-cars.html";
+  alert("تم إضافة السيارة بنجاح");
+  window.location.href = "customer-cars.html";
 }
 </script>
 
