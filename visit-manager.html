@@ -5,12 +5,9 @@
   <title>إدارة الزيارات</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- CSS -->
   <link rel="stylesheet" href="visit-manager.css">
-
-  <!-- API + JS -->
   <script src="api.js"></script>
-  <script src="visit-manager.js"></script>
+  <script src="visit-manager.js" defer></script>
 </head>
 
 <body>
@@ -30,9 +27,11 @@
         <input type="text" id="phone" placeholder="05XXXXXXXX"
                oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-        <button id="btnSearch" class="btn-primary" onclick="vm_searchCustomer()">
+        <button id="btnSearch" class="btn-primary">
           بحث عن السيارات
         </button>
+
+        <div id="customerInfo" style="margin-top:8px;font-size:13px;color:#ddd;display:none;"></div>
       </div>
 
       <!-- قائمة السيارات -->
@@ -48,19 +47,19 @@
         <div class="row">
           <div>
             <label>نوع الخدمة</label>
-            <select id="service_type" onchange="vm_filterServiceDetails()"></select>
+            <select id="service_type"></select>
           </div>
 
           <div>
             <label>تفاصيل الخدمة</label>
-            <select id="service_detail" onchange="vm_updatePrice()"></select>
+            <select id="service_detail"></select>
           </div>
         </div>
 
         <div class="row">
           <div>
             <label>السعر</label>
-            <input type="number" id="price" onchange="vm_updatePoints()">
+            <input type="number" id="price">
           </div>
 
           <div>
@@ -69,7 +68,7 @@
           </div>
         </div>
 
-        <button id="btnAddService" class="btn-secondary" onclick="vm_addService()">
+        <button id="btnAddService" class="btn-secondary">
           إضافة خدمة +
         </button>
 
@@ -119,7 +118,7 @@
           </div>
         </div>
 
-        <button id="btnSubmitVisit" class="btn-primary" onclick="vm_submitVisit()">
+        <button id="btnSubmitVisit" class="btn-primary">
           تسجيل الزيارة
         </button>
 
@@ -134,8 +133,7 @@
         <div class="active-list" id="activeVisitsList"></div>
 
         <button id="btnRefreshActive" class="btn-secondary"
-                style="width:100%; margin-top:10px;"
-                onclick="vm_loadActiveVisits()">
+                style="width:100%; margin-top:10px;">
           تحديث القائمة
         </button>
       </div>
