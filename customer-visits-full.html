@@ -1,86 +1,111 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>سجل الزيارات الكامل</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>سجل الزيارات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body{
-            font-family:"Tajawal",sans-serif;
-            background:#f5f5f5;
-            padding:20px;
-        }
-        .container{
-            max-width:500px;
-            margin:auto;
-        }
-        .visit{
-            background:white;
-            padding:15px;
-            border-radius:12px;
-            box-shadow:0 4px 12px #0002;
-            margin-bottom:15px;
-        }
-        .row{
-            display:flex;
-            justify-content:space-between;
-            margin-bottom:6px;
-        }
-        .label{
-            color:#777;
-        }
-        .value{
-            font-weight:600;
-        }
-        .empty{
-            text-align:center;
-            margin-top:40px;
-            color:#777;
-        }
-    </style>
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#050608;
+      color:#f5f5f5;
+      padding:16px;
+    }
+    h2{
+      text-align:center;
+      margin-bottom:12px;
+    }
+    .section{
+      background:#111318;
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+    }
+    .visit-card{
+      background:#1a1c22;
+      padding:10px;
+      border-radius:10px;
+      margin-bottom:8px;
+      font-size:13px;
+    }
+    .empty{
+      font-size:13px;
+      color:#6b7280;
+      text-align:center;
+      margin-top:20px;
+    }
+    .btn{
+      width:100%;
+      padding:10px 12px;
+      margin-top:8px;
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:white;
+      font-size:14px;
+      cursor:pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>سجل الزيارات الكامل</h2>
-    <div id="list"></div>
+<h2>سجل الزيارات</h2>
+
+<div class="section">
+  <div id="info" style="font-size:13px;color:#9ca3af;margin-bottom:8px;"></div>
+  <div id="visitsBox" class="empty">جاري التحميل...</div>
+
+  <button class="btn" onclick="window.location.href='customer-dashboard.html'">
+    العودة للوحة العميل
+  </button>
 </div>
 
 <script src="api.js"></script>
-
 <script>
-let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
-let PHONE = CUSTOMER.phone;
+let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
+let PHONE = CUSTOMER ? CUSTOMER.phone : null;
+
+(function(){
+  if(!CUSTOMER || !PHONE){
+    window.location.href = "customer-login.html";
+  }
+})();
 
 window.onload = async function(){
-    const list = document.getElementById("list");
+  const selectedMembership = localStorage.getItem("selectedMembership");
+  const membership = selectedMembership || CUSTOMER.membership || CUSTOMER.phone;
 
-    const res = await apiGet({
-        action:"getVisitsByPhone",
-        phone:PHONE
-    });
+  document.getElementById("info").innerText =
+    "رقم العضوية: " + (membership || "—");
 
-    if(!res.success || res.visits.length === 0){
-        list.innerHTML = '<div class="empty">لا توجد زيارات</div>';
-        return;
-    }
+  const box = document.getElementById("visitsBox");
 
-    res.visits.forEach(v=>{
-        const div = document.createElement("div");
-        div.className = "visit";
+  const res = await apiGetVisitsByMembership(membership);
+  if(!res.success || !res.visits || res.visits.length === 0){
+    box.innerHTML = "لا توجد زيارات مسجلة.";
+    return;
+  }
 
-        div.innerHTML = `
-            <div class="row"><span class="label">السيارة:</span><span class="value">${v[1]}</span></div>
-            <div class="row"><span class="label">الخدمة:</span><span class="value">${v[2]}</span></div>
-            <div class="row"><span class="label">السعر:</span><span class="value">${v[3]} ريال</span></div>
-            <div class="row"><span class="label">النقاط المكتسبة:</span><span class="value">${v[4]}</span></div>
-            <div class="row"><span class="label">التاريخ:</span><span class="value">${v[5]}</span></div>
-        `;
+  box.classList.remove("empty");
 
-        list.appendChild(div);
-    });
+  box.innerHTML = res.visits.map(v => {
+    const d = v.data;
+    return `
+      <div class="visit-card">
+        الخدمة: ${d[1]}<br>
+        السعر: ${d[2]} ريال<br>
+        النقاط: ${d[3]}<br>
+        الفرع: ${d[6]}<br>
+        حالة الدفع: ${d[10]}<br>
+        طريقة الدفع: ${d[11]}<br>
+        الدخول: ${d[8]}<br>
+        الخروج: ${d[9]}
+      </div>
+    `;
+  }).join("");
 };
 </script>
 
