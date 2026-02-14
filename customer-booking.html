@@ -171,7 +171,7 @@ async function loadCategories() {
 
     const res = await apiGet({
         action: "getAll",
-        sheet: "Services"
+        sheet: "Commissions"
     });
 
     categorySelect.innerHTML = '<option value="">اختر الخدمة</option>';
@@ -199,7 +199,7 @@ function loadServiceTypes() {
     priceInput.value = "";
     serviceSelect.innerHTML = '<option value="">اختر نوع الخدمة</option>';
 
-    const filtered = SERVICES.filter(s => s[0] === category);
+    const filtered = SERVICES.filter(s => s[0] === Category);
 
     filtered.forEach(row => {
         const opt = document.createElement("option");
@@ -227,12 +227,12 @@ function addService() {
     const service = document.getElementById("serviceSelect").value;
     const price = document.getElementById("price").value;
 
-    if (!category || !service || !price) {
+    if (!Category || !service || !price) {
         alert("اختر الخدمة أولاً");
         return;
     }
 
-    SELECTED.push({ category, service, price });
+    SELECTED.push({ Category, service, price });
 
     renderSelectedServices();
     updateTotal();
