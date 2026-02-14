@@ -4,7 +4,7 @@
 */
 console.log("API JS VERSION:", Date.now());
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxl9KqogxgM4ZWizxCD4wl_F3AY4PYZzYItH1a3IsJVvpK0qH7iNEpRc0VH6EVaxwIpQA/exec";
+const API_URL = "https://script.google.com/macros/library/d/13vsR_yHHbr41BzU4NsAMzHJvGiNDfeGCNorN8Bh1sUotg6vtDodAQ6nd/49";
 
 /* 🔥 تعطيل كاش Service Worker لهذا الملف */
 if (navigator.serviceWorker && navigator.serviceWorker.controller) {
