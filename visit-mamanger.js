@@ -204,21 +204,21 @@ async function vm_submitVisit() {
             action: "addRow",
             sheet: "Visits",
             values: JSON.stringify([
-                vm_selectedMembership, // membership
-                s.detail,              // service_detail
-                s.price,               // price
-                s.points,              // points
-                "الموظف",             // employee_in
-                "",                    // employee_out
-                branch,                // branch
-                "",                    // commission
-                now,                   // check_in
-                "",                    // check_out
-                payment_status,        // payment_status
-                payment_method,        // payment_method
-                parking_slot,          // parking_slot
-                "",                    // rating
-                payment_method         // Payment Method (duplicate)
+                vm_selectedMembership,
+                s.detail,
+                s.price,
+                s.points,
+                "الموظف",
+                "",
+                branch,
+                "",
+                now,
+                "",
+                payment_status,
+                payment_method,
+                parking_slot,
+                "",
+                payment_method
             ])
         });
     }
