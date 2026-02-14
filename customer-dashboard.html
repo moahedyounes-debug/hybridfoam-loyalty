@@ -90,6 +90,24 @@
             font-size:13px;
             color:#6b7280;
         }
+
+        /* بطاقات السيارات */
+        .car-card{
+            background:#1a1c22;
+            padding:12px;
+            border-radius:12px;
+            margin-bottom:10px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.4);
+        }
+        .car-title{
+            font-size:15px;
+            font-weight:600;
+            margin-bottom:4px;
+        }
+        .car-sub{
+            font-size:12px;
+            color:#9ca3af;
+        }
     </style>
 </head>
 
@@ -127,7 +145,7 @@
     <div class="title">سياراتك المسجلة</div>
     <div class="sub">السيارات المرتبطة برقم جوالك.</div>
 
-    <div id="carsBox" class="empty">لا توجد سيارات مسجلة حتى الآن.</div>
+    <div id="carsBox" class="empty">جاري التحميل...</div>
 
     <button class="btn btn-outline" onclick="window.location.href='customer-cars.html'">
         عرض كل السيارات
@@ -145,7 +163,7 @@
     <div class="title">آخر زيارة</div>
     <div class="sub">تفاصيل آخر خدمة تمت على عضويتك</div>
 
-    <div id="lastVisitBox" class="empty">لا توجد زيارات مسجلة حتى الآن.</div>
+    <div id="lastVisitBox" class="empty">جاري التحميل...</div>
 </div>
 
 <!-- الحجوزات -->
@@ -153,7 +171,7 @@
     <div class="title">الحجوزات</div>
     <div class="sub">مواعيدك الحالية والسابقة</div>
 
-    <div id="bookingsBox" class="empty">لا توجد حجوزات مسجلة.</div>
+    <div id="bookingsBox" class="empty">جاري التحميل...</div>
 
     <button class="btn btn-outline" onclick="window.location.href='customer-bookings.html'">
         عرض كل الحجوزات
@@ -209,11 +227,13 @@ async function loadCars(){
     }
 
     box.classList.remove("empty");
-    box.innerHTML = cars.map(c =>
-        `<div style="font-size:13px;margin-bottom:4px;">
-            ${c[2]} • ${c[3]} • ${c[5]} ${c[4]}
-        </div>`
-    ).join("");
+    box.innerHTML = cars.map(c => `
+        <div class="car-card">
+            <div class="car-title">${c[2]} • ${c[3]}</div>
+            <div class="car-sub">اللوحة: ${c[5]} ${c[4]}</div>
+            <div class="car-sub">العضوية: ${c[0]}</div>
+        </div>
+    `).join("");
 
     return cars;
 }
