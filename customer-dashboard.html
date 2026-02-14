@@ -182,94 +182,119 @@ window.onload = async function(){
     loadLevelSystem();
 };
 
+// بيانات العميل من localStorage
 function loadCustomerInfo(){
     document.getElementById("name").innerText = CUSTOMER.name || "—";
     document.getElementById("phone").innerText = CUSTOMER.phone || "—";
     document.getElementById("membership").innerText = CUSTOMER.membership || "—";
-    document.getElementById("city").innerText = CUSTOMER.city || "مكة";
+    document.getElementById("city").innerText = CUSTOMER.city || "—";
     document.getElementById("points").innerText = CUSTOMER.points || 0;
-    document.getElementById("freeWash").innerText = (CUSTOMER.freeWash && CUSTOMER.freeWash > 0) ? "متوفر" : "لا يوجد";
+    document.getElementById("freeWash").innerText = CUSTOMER.freeWash > 0 ? "متوفر" : "لا يوجد";
 }
 
+// قراءة السيارات من الشيت الصحيح
 async function loadCars(){
     const box = document.getElementById("carsBox");
 
     const res = await apiGet({
-        action:"getCarsByPhone",
-        phone:PHONE
+        action:"getAll",
+        sheet:"Cars"
     });
 
     console.log("cars res:", res);
 
-    if(!res.success || !res.cars || res.cars.length === 0){
+    if(!res.success){
+        box.innerHTML = "خطأ في قراءة البيانات.";
+        return;
+    }
+
+    const cars = res.rows.filter(r => r[1] == PHONE);
+
+    if(cars.length === 0){
         box.innerHTML = "لا توجد سيارات مسجلة حتى الآن.";
         return;
     }
 
     box.classList.remove("empty");
-    box.innerHTML = res.cars.map(c =>
+    box.innerHTML = cars.map(c =>
         `<div style="font-size:13px;margin-bottom:4px;">
             ${c[2]} • ${c[3]} • ${c[5]} ${c[4]}
         </div>`
     ).join("");
 }
 
+// قراءة آخر زيارة
 async function loadLastVisit(){
     const box = document.getElementById("lastVisitBox");
 
     const res = await apiGet({
-        action:"getVisitsByPhone",
-        phone:PHONE
+        action:"getAll",
+        sheet:"Visits"
     });
 
     console.log("visits res:", res);
 
-    if(!res.success || !res.visits || res.visits.length === 0){
+    if(!res.success){
+        box.innerHTML = "خطأ في قراءة البيانات.";
+        return;
+    }
+
+    const visits = res.rows.filter(r => r[1] == PHONE);
+
+    if(visits.length === 0){
         box.innerHTML = "لا توجد زيارات مسجلة حتى الآن.";
         return;
     }
 
-    const v = res.visits[res.visits.length - 1];
+    const v = visits[visits.length - 1];
 
     box.classList.remove("empty");
     box.innerHTML = `
         <div style="font-size:13px;">
-            السيارة: ${v[1]}<br>
-            الخدمة: ${v[2]}<br>
-            السعر: ${v[3]} ريال<br>
-            النقاط المكتسبة: ${v[4]}<br>
-            التاريخ: ${v[5]}
+            السيارة: ${v[2]}<br>
+            الخدمة: ${v[3]}<br>
+            السعر: ${v[4]} ريال<br>
+            النقاط المكتسبة: ${v[5]}<br>
+            التاريخ: ${v[6]}
         </div>
     `;
 }
 
+// قراءة الحجوزات
 async function loadBookings(){
     const box = document.getElementById("bookingsBox");
 
     const res = await apiGet({
-        action:"getBookingsByPhone",
-        phone:PHONE
+        action:"getAll",
+        sheet:"Bookings"
     });
 
     console.log("bookings res:", res);
 
-    if(!res.success || !res.bookings || res.bookings.length === 0){
+    if(!res.success){
+        box.innerHTML = "خطأ في قراءة البيانات.";
+        return;
+    }
+
+    const bookings = res.rows.filter(r => r[1] == PHONE);
+
+    if(bookings.length === 0){
         box.innerHTML = "لا توجد حجوزات مسجلة.";
         return;
     }
 
-    const count = res.bookings.length;
-    const last = res.bookings[count - 1];
+    const last = bookings[bookings.length - 1];
 
     box.classList.remove("empty");
     box.innerHTML = `
-        <div style="font-size:13px;margin-bottom:4px;">${count} حجز</div>
+        <div style="font-size:13px;margin-bottom:4px;">${bookings.length} حجز</div>
         <div style="font-size:13px;">
             آخر حجز: ${last[2]} • ${last[3]} ${last[4]}
         </div>
     `;
 }
 
+// نظام المستويات
 function loadLevelSystem(){
     let points = Number(CUSTOMER.points || 0);
 
@@ -292,6 +317,5 @@ function loadLevelSystem(){
     document.getElementById("progress").style.width = progress + "%";
 }
 </script>
-
 </body>
 </html>
