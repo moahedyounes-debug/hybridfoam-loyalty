@@ -112,32 +112,21 @@
 <script src="api.js"></script>
 
 <script>
-let CUSTOMER = null;
-let PHONE = "";
-let MEMBERSHIP = "";
-let CARS = [];
-let SERVICES = []; // كل الخدمات من الشيت
-let SELECTED = []; // الخدمات المختارة
-
+// ===============================
 // تحميل بيانات العميل
-window.addEventListener("DOMContentLoaded", async () => {
-    const storedCustomer = localStorage.getItem("customer");
-    const storedPhone = localStorage.getItem("phone");
+// ===============================
+let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
+let PHONE = CUSTOMER.phone;
+let MEMBERSHIP = CUSTOMER.membership;
 
-    if (!storedCustomer || !storedPhone) {
-        window.location.href = "customer-home.html";
-        return;
-    }
+let CARS = [];
+let COMMISSION = [];
+let SERVICES = [];
+let SELECTED = [];
 
-    CUSTOMER = JSON.parse(storedCustomer);
-    PHONE = storedPhone;
-    MEMBERSHIP = CUSTOMER.membership;
-
-    await loadCars();
-    await loadCategories();
-});
-
-// تحميل سيارات العميل
+// ===============================
+// تحميل السيارات من شيت Cars
+// ===============================
 async function loadCars() {
     const carSelect = document.getElementById("carSelect");
 
@@ -152,46 +141,64 @@ async function loadCars() {
         CARS = res.cars;
 
         CARS.forEach(c => {
+            const carMembership = c[0];
             const model = c[2];
             const size = c[3];
             const letters = c[4];
             const numbers = c[5];
 
             const opt = document.createElement("option");
-            opt.value = model;
+            opt.value = carMembership;
             opt.innerText = `${model} • ${size} • ${numbers} ${letters}`;
             carSelect.appendChild(opt);
         });
     }
 }
 
-// تحميل الخدمات من الشيت
+// ===============================
+// تحميل Category من شيت Commission (عمود E)
+// ===============================
 async function loadCategories() {
     const categorySelect = document.getElementById("categorySelect");
 
     const res = await apiGet({
         action: "getAll",
-        sheet: "Commissions"
+        sheet: "Commission"
     });
 
     categorySelect.innerHTML = '<option value="">اختر الخدمة</option>';
 
     if (res.success && res.rows.length > 0) {
-        SERVICES = res.rows;
+        COMMISSION = res.rows;
 
-        const Category = [...new Set(SERVICES.map(r => r[0]))];
-
-        category.forEach(cat => {
-            const opt = document.createElement("option");
-            opt.value = cat;
-            opt.innerText = cat;
-            categorySelect.appendChild(opt);
+        COMMISSION.forEach(r => {
+            const category = r[4]; // العمود E
+            if (category) {
+                const opt = document.createElement("option");
+                opt.value = category;
+                opt.innerText = category;
+                categorySelect.appendChild(opt);
+            }
         });
     }
 }
 
-// تحميل نوع الخدمة حسب الـ Category
-function loadservice() {
+// ===============================
+// تحميل Service من شيت Services (عمود A)
+// ===============================
+async function loadServices() {
+    const res = await apiGet({
+        action: "getAll",
+        sheet: "Services"
+    });
+
+    if (res.success && res.rows.length > 0) {
+        SERVICES = res.rows;
+    }
+}
+
+// عند اختيار Category → نعرض الخدمات التابعة لها
+function loadServiceTypes() {
     const category = document.getElementById("categorySelect").value;
     const serviceSelect = document.getElementById("serviceSelect");
     const priceInput = document.getElementById("price");
@@ -199,20 +206,20 @@ function loadservice() {
     priceInput.value = "";
     serviceSelect.innerHTML = '<option value="">اختر نوع الخدمة</option>';
 
-    const filtered = service.filter(s => s[0] === Category);
+    const filtered = SERVICES.filter(s => s[0] === category);
 
     filtered.forEach(row => {
         const opt = document.createElement("option");
-        opt.value = row[1];
+        opt.value = row[1]; // Service Type
         opt.innerText = row[1];
-        opt.setAttribute("data-price", row[2]);
+        opt.setAttribute("data-price", row[2]); // Price
         serviceSelect.appendChild(opt);
     });
 }
 
 // تحديث السعر تلقائيًا
 function updatePrice() {
-    const serviceSelect = document.getElementById("service");
+    const serviceSelect = document.getElementById("serviceSelect");
     const priceInput = document.getElementById("price");
 
     const selected = serviceSelect.options[serviceSelect.selectedIndex];
@@ -223,16 +230,16 @@ function updatePrice() {
 
 // إضافة خدمة
 function addService() {
-    const Category = document.getElementById("categorySelect").value;
+    const category = document.getElementById("categorySelect").value;
     const service = document.getElementById("serviceSelect").value;
     const price = document.getElementById("price").value;
 
-    if (!Category || !service || !price) {
+    if (!category || !service || !price) {
         alert("اختر الخدمة أولاً");
         return;
     }
 
-    SELECTED.push({ Category, service, price });
+    SELECTED.push({ category, service, price });
 
     renderSelectedServices();
     updateTotal();
@@ -247,7 +254,7 @@ function renderSelectedServices() {
         const div = document.createElement("div");
         div.className = "service-item";
         div.innerHTML = `
-            <span>${s.Category} - ${s.service} (${s.price} ريال)</span>
+            <span>${s.category} - ${s.service} (${s.price} ريال)</span>
             <button class="remove-btn" onclick="removeService(${index})">حذف</button>
         `;
         container.appendChild(div);
@@ -267,17 +274,19 @@ function updateTotal() {
     document.getElementById("totalPrice").innerText = total;
 }
 
+// ===============================
 // حجز الموعد
+// ===============================
 async function book() {
     const btn = document.getElementById("submitBtn");
     btn.disabled = true;
     btn.innerText = "جاري الحجز...";
 
-    const car = document.getElementById("carSelect").value;
+    const carMembership = document.getElementById("carSelect").value;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
 
-    if (!car || !date || !time || SELECTED.length === 0) {
+    if (!carMembership || !date || !time || SELECTED.length === 0) {
         alert("الرجاء تعبئة جميع الحقول");
         btn.disabled = false;
         btn.innerText = "حجز الموعد";
@@ -291,23 +300,29 @@ async function book() {
         action: "addRow",
         sheet: "Bookings",
         values: JSON.stringify([
-            MEMBERSHIP,                     // عضوية العميل
-            "=\"" + PHONE + "\"",           // رقم الجوال كنص مع صفر
-            servicesString,                 // الخدمات
-            date,                           // التاريخ
-            time,                           // الوقت
-            "قيد الانتظار",                 // الحالة
-            car,                            // السيارة
-            totalPrice,                     // السعر
-            new Date().toISOString()        // وقت الإنشاء
+            carMembership,                 // عضوية السيارة
+            "=\"" + PHONE + "\"",          // رقم الجوال كنص
+            servicesString,
+            date,
+            time,
+            "قيد الانتظار",
+            totalPrice,
+            new Date().toISOString()
         ])
     });
 
     alert("تم حجز الموعد بنجاح");
-
     window.location.href = "customer-bookings.html";
 }
 
+// ===============================
+// تحميل كل شيء عند فتح الصفحة
+// ===============================
+window.onload = async function () {
+    await loadCars();
+    await loadCategories();
+    await loadServices();
+};
 </script>
 
 </body>
