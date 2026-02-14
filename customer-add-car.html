@@ -48,7 +48,7 @@
             cursor: pointer;
         }
 
-        /* شاشة التحميل الاحترافية */
+        /* شاشة التحميل */
         #loader {
             position: fixed;
             top: 0;
@@ -171,23 +171,34 @@ function onCarChange() {
     sizeInput.value = found ? found[2] : "";
 }
 
-// توليد عضوية السيارة — سريع جدًا
+/* ============================================================
+   توليد عضوية السيارة — النسخة الصحيحة 100%
+   تعتمد على عضوية العميل وليس رقم الجوال
+   ============================================================ */
 async function generateCarMembership() {
     const res = await apiGet({
-        action: "getCarsByPhone",
-        phone: PHONE
+        action: "getAll",
+        sheet: "Cars"
     });
 
-    if (!res.success || !res.cars || res.cars.length === 0) {
+    if (!res.success || !res.rows) {
         return CUSTOMER_MEMBERSHIP;
     }
 
-    const cars = res.cars;
+    // السيارات التابعة للعميل فقط
+    const cars = res.rows.filter(r => r[0].startsWith(CUSTOMER_MEMBERSHIP));
 
+    // لا توجد سيارات → أول سيارة = عضوية العميل
+    if (cars.length === 0) {
+        return CUSTOMER_MEMBERSHIP;
+    }
+
+    // توجد سيارة واحدة فقط وهي الأساسية
     if (cars.length === 1 && cars[0][0] === CUSTOMER_MEMBERSHIP) {
         return CUSTOMER_MEMBERSHIP + "-1";
     }
 
+    // إيجاد آخر رقم
     let max = 0;
     cars.forEach(c => {
         const parts = c[0].split("-");
