@@ -1,66 +1,136 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>سياراتي</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>سياراتي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body{font-family:"Tajawal",sans-serif;background:#f5f5f5;padding:20px;}
-        .container{max-width:500px;margin:auto;}
-        .car{background:white;padding:15px;border-radius:12px;box-shadow:0 4px 12px #0002;margin-bottom:15px;}
-        .row{display:flex;justify-content:space-between;margin-bottom:6px;}
-        .label{color:#777;}
-        .value{font-weight:600;}
-        .btn{width:100%;padding:12px;margin-top:15px;border:none;border-radius:8px;background:#007bff;color:white;font-size:16px;cursor:pointer;}
-        .empty{text-align:center;margin-top:40px;color:#777;}
-    </style>
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#050608;
+      color:#f5f5f5;
+      padding:16px;
+    }
+    h2{
+      text-align:center;
+      margin-bottom:12px;
+    }
+    .section{
+      background:#111318;
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+    }
+    .car-card{
+      background:#1a1c22;
+      padding:14px;
+      border-radius:12px;
+      margin-bottom:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.4);
+    }
+    .car-title{
+      font-size:16px;
+      font-weight:700;
+      margin-bottom:4px;
+    }
+    .car-sub{
+      font-size:13px;
+      color:#9ca3af;
+      margin-bottom:4px;
+    }
+    .btn{
+      width:100%;
+      padding:10px 12px;
+      margin-top:8px;
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:white;
+      font-size:14px;
+      cursor:pointer;
+    }
+    .btn-outline{
+      background:transparent;
+      border:1px solid #374151;
+    }
+    .empty{
+      font-size:13px;
+      color:#6b7280;
+      text-align:center;
+      margin-top:20px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>سياراتي</h2>
-    <div id="list"></div>
+<h2>سياراتي</h2>
 
-    <button class="btn" onclick="window.location.href='customer-add-car.html'">
-        إضافة سيارة جديدة
-    </button>
+<div class="section">
+  <div id="carsBox" class="empty">جاري التحميل...</div>
+
+  <button class="btn" onclick="window.location.href='customer-add-car.html'">
+    إضافة سيارة جديدة
+  </button>
+
+  <button class="btn btn-outline" onclick="window.location.href='customer-dashboard.html'">
+    العودة للوحة العميل
+  </button>
 </div>
 
 <script src="api.js"></script>
-
 <script>
-let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
-let PHONE = CUSTOMER.phone;
+let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
+let PHONE = CUSTOMER ? CUSTOMER.phone : null;
 
 window.onload = async function(){
-    const list=document.getElementById("list");
+  if(!CUSTOMER || !PHONE){
+    document.getElementById("carsBox").innerHTML = "لم يتم العثور على بيانات العميل.";
+    return;
+  }
 
-    const res=await apiGet({
-        action:"getCarsByPhone",
-        phone:PHONE
-    });
-
-    if(!res.success || res.cars.length===0){
-        list.innerHTML='<div class="empty">لا توجد سيارات مسجلة</div>';
-        return;
-    }
-
-    res.cars.forEach(c=>{
-        const div=document.createElement("div");
-        div.className="car";
-
-        div.innerHTML=`
-            <div class="row"><span class="label">عضوية السيارة:</span><span class="value">${c[0]}</span></div>
-            <div class="row"><span class="label">السيارة:</span><span class="value">${c[2]} (${c[3]})</span></div>
-            <div class="row"><span class="label">اللوحة:</span><span class="value">${c[5]} ${c[4]}</span></div>
-            <div class="row"><span class="label">المدينة:</span><span class="value">${c[6]}</span></div>
-        `;
-
-        list.appendChild(div);
-    });
+  loadCars();
 };
+
+async function loadCars(){
+  const box = document.getElementById("carsBox");
+
+  const res = await apiGetCarsByPhone(PHONE);
+
+  if(!res.success){
+    box.innerHTML = "خطأ في قراءة البيانات.";
+    return;
+  }
+
+  const cars = res.cars.map(c => c.data);
+
+  if(cars.length === 0){
+    box.innerHTML = "لا توجد سيارات مسجلة.";
+    return;
+  }
+
+  box.classList.remove("empty");
+
+  box.innerHTML = cars.map(c => `
+    <div class="car-card">
+      <div class="car-title">${c[2]} (${c[3]})</div>
+      <div class="car-sub">اللوحة: ${c[5]} ${c[4]}</div>
+      <div class="car-sub">المدينة: ${c[6]}</div>
+      <div class="car-sub">العضوية: ${c[0]}</div>
+
+      <button class="btn btn-outline" onclick="openVisits('${c[0]}')">
+        عرض زيارات السيارة
+      </button>
+    </div>
+  `).join("");
+}
+
+function openVisits(membership){
+  localStorage.setItem("selectedMembership", membership);
+  window.location.href = "customer-visits-full.html";
+}
 </script>
 
 </body>
