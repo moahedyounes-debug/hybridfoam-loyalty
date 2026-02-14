@@ -111,9 +111,9 @@
 <script>
 let CAR_TYPES = [];
 
+// بيانات العميل
 let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
 let PHONE = CUSTOMER.phone;
-let CUSTOMER_MEMBERSHIP = CUSTOMER.membership;
 
 // شاشة التحميل
 function showLoader() { document.getElementById("loader").style.display = "flex"; }
@@ -171,44 +171,9 @@ function onCarChange() {
     sizeInput.value = found ? found[2] : "";
 }
 
-/* ============================================================
-   توليد عضوية السيارة — النسخة الصحيحة 100%
-   تعتمد على عضوية العميل وليس رقم الجوال
-   ============================================================ */
-async function generateCarMembership() {
-    const res = await apiGet({
-        action: "getAll",
-        sheet: "Cars"
-    });
-
-    if (!res.success || !res.rows) {
-        return CUSTOMER_MEMBERSHIP;
-    }
-
-    // السيارات التابعة للعميل فقط
-    const cars = res.rows.filter(r => r[0].startsWith(CUSTOMER_MEMBERSHIP));
-
-    // لا توجد سيارات → أول سيارة = عضوية العميل
-    if (cars.length === 0) {
-        return CUSTOMER_MEMBERSHIP;
-    }
-
-    // توجد سيارة واحدة فقط وهي الأساسية
-    if (cars.length === 1 && cars[0][0] === CUSTOMER_MEMBERSHIP) {
-        return CUSTOMER_MEMBERSHIP + "-1";
-    }
-
-    // إيجاد آخر رقم
-    let max = 0;
-    cars.forEach(c => {
-        const parts = c[0].split("-");
-        if (parts.length === 2) {
-            const num = Number(parts[1]);
-            if (num > max) max = num;
-        }
-    });
-
-    return CUSTOMER_MEMBERSHIP + "-" + (max + 1);
+// توليد عضوية سيارة مستقلة
+function generateCarMembership() {
+    return "M" + Date.now();
 }
 
 // إضافة السيارة
@@ -228,30 +193,15 @@ async function addCar() {
         return;
     }
 
-    const existingCars = await apiGet({
-        action: "getCarsByPhone",
-        phone: PHONE
-    });
-
-    if (existingCars.success && existingCars.cars) {
-        const duplicate = existingCars.cars.find(c =>
-            c[4] === plate_letters && c[5] === plate_numbers
-        );
-        if (duplicate) {
-            hideLoader();
-            alert("هذه السيارة مسجلة مسبقاً.");
-            return;
-        }
-    }
-
-    const CAR_MEMBERSHIP = await generateCarMembership();
+    // توليد عضوية السيارة الجديدة
+    const CAR_MEMBERSHIP = generateCarMembership();
 
     await apiPost({
         action: "addRow",
         sheet: "Cars",
         values: JSON.stringify([
-            CAR_MEMBERSHIP,
-            "=\"" + PHONE + "\"",
+            CAR_MEMBERSHIP,               // عضوية السيارة الجديدة
+            "=\"" + PHONE + "\"",         // رقم الجوال كنص
             car,
             size,
             plate_letters,
