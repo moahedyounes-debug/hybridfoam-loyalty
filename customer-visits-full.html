@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>سجل الزيارات الكامل</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body{
+            font-family:"Tajawal",sans-serif;
+            background:#f5f5f5;
+            padding:20px;
+        }
+        .container{
+            max-width:500px;
+            margin:auto;
+        }
+        .visit{
+            background:white;
+            padding:15px;
+            border-radius:12px;
+            box-shadow:0 4px 12px #0002;
+            margin-bottom:15px;
+        }
+        .row{
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:6px;
+        }
+        .label{
+            color:#777;
+        }
+        .value{
+            font-weight:600;
+        }
+        .empty{
+            text-align:center;
+            margin-top:40px;
+            color:#777;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>سجل الزيارات الكامل</h2>
+    <div id="list"></div>
+</div>
+
+<script src="api.js"></script>
+
+<script>
+let CUSTOMER = JSON.parse(localStorage.getItem("customer"));
+let PHONE = CUSTOMER.phone;
+
+window.onload = async function(){
+    const list = document.getElementById("list");
+
+    const res = await apiGet({
+        action:"getVisitsByPhone",
+        phone:PHONE
+    });
+
+    if(!res.success || res.visits.length === 0){
+        list.innerHTML = '<div class="empty">لا توجد زيارات</div>';
+        return;
+    }
+
+    res.visits.forEach(v=>{
+        const div = document.createElement("div");
+        div.className = "visit";
+
+        div.innerHTML = `
+            <div class="row"><span class="label">السيارة:</span><span class="value">${v[1]}</span></div>
+            <div class="row"><span class="label">الخدمة:</span><span class="value">${v[2]}</span></div>
+            <div class="row"><span class="label">السعر:</span><span class="value">${v[3]} ريال</span></div>
+            <div class="row"><span class="label">النقاط المكتسبة:</span><span class="value">${v[4]}</span></div>
+            <div class="row"><span class="label">التاريخ:</span><span class="value">${v[5]}</span></div>
+        `;
+
+        list.appendChild(div);
+    });
+};
+</script>
+
+</body>
+</html>
