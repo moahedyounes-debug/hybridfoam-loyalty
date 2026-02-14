@@ -1,161 +1,213 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>بطاقة العضوية</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>بطاقة العضوية</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: "Tajawal", sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-        }
+<style>
+body{
+    font-family:"Tajawal",sans-serif;
+    background:#000;
+    color:white;
+    padding:20px;
+    text-align:center;
+}
 
-        .card {
-            width: 350px;
-            margin: auto;
-            padding: 25px;
-            border-radius: 20px;
-            color: white;
-            box-shadow: 0 0 20px #0004;
-            text-align: right;
-            position: relative;
-        }
+h2{
+    margin-bottom:20px;
+    font-size:24px;
+    color:#f5f5f5;
+}
 
-        .title {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
+/* البطاقة */
+.card{
+    width:340px;
+    margin:auto;
+    border-radius:20px;
+    overflow:hidden;
+    background:#0d0d0d;
+    border:2px solid #d4af37;
+    box-shadow:0 0 25px rgba(212,175,55,0.4);
+    animation:fadeIn .4s ease;
+}
 
-        .row {
-            margin: 6px 0;
-            font-size: 17px;
-        }
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+}
 
-        .qr {
-            width: 140px;
-            height: 140px;
-            margin: 20px auto;
-            display: block;
-        }
+/* الجزء العلوي */
+.top{
+    padding:22px;
+    background:#000;
+    color:white;
+    text-align:center;
+    border-bottom:1px solid #d4af37;
+}
 
-        input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
+.logo{
+    width:70px;
+    height:70px;
+    object-fit:contain;
+    margin-bottom:8px;
+}
 
-        button {
-            width: 100%;
-            padding: 14px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
+.level-text{
+    font-size:22px;
+    font-weight:bold;
+    margin-top:6px;
+    color:#d4af37;
+}
 
-        .add-btn {
-            background: #00bcd4;
-        }
-    </style>
+.membership{
+    font-size:16px;
+    margin-top:6px;
+    color:#f5f5f5;
+}
+
+/* QR */
+.qr-box{
+    margin-top:12px;
+}
+.qr-box canvas{
+    width:110px !important;
+    height:110px !important;
+}
+
+/* الجزء السفلي */
+.bottom{
+    padding:18px;
+    text-align:right;
+    background:#0d0d0d;
+}
+
+.row{
+    margin-bottom:8px;
+    font-size:15px;
+    color:#e5e5e5;
+}
+
+.row b{
+    color:#d4af37;
+}
+
+/* زر الإضافة للشاشة */
+.add-btn{
+    margin-top:15px;
+    background:#d4af37;
+    color:black;
+    padding:12px;
+    border-radius:12px;
+    font-size:15px;
+    cursor:pointer;
+    width:100%;
+    text-align:center;
+    display:none;
+    font-weight:bold;
+}
+
+.btn-back{
+    margin-top:20px;
+    padding:12px;
+    background:#111;
+    border:1px solid #d4af37;
+    color:#d4af37;
+    border-radius:12px;
+    width:100%;
+    max-width:340px;
+    cursor:pointer;
+}
+</style>
+
+<script src="api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
 </head>
 
 <body>
 
 <h2>بطاقة العضوية</h2>
 
-<input id="phone" type="tel" placeholder="05xxxxxxxx">
-<button onclick="loadCard()">عرض البطاقة</button>
-
 <div id="cardContainer"></div>
 
-<script src="api.js"></script>
+<button class="btn-back" onclick="window.location.href='customer-dashboard.html'">
+العودة للوحة العميل
+</button>
 
 <script>
-/* دالة توليد تدرّج لوني حسب النقاط */
-function generateGradient(points) {
-    // نقاط قليلة → برونزي
-    // نقاط متوسطة → فضي
-    // نقاط عالية → ذهبي
-    // نقاط ضخمة → VIP أسود × ذهبي
+let deferredPrompt;
 
-    if (points >= 2000) {
-        return "linear-gradient(135deg, #000000, #d4af37)";
-    }
-    if (points >= 1000) {
-        return "linear-gradient(135deg, #e5e4e2, #b0b0b0)";
-    }
-    if (points >= 500) {
-        return "linear-gradient(135deg, #d4af37, #b8860b)";
-    }
-    if (points >= 200) {
-        return "linear-gradient(135deg, #c0c0c0, #8f8f8f)";
-    }
-    return "linear-gradient(135deg, #cd7f32, #8a5a2e)";
-}
+// إظهار زر الإضافة للشاشة
+window.addEventListener("beforeinstallprompt", (e)=>{
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById("addBtn");
+    if(btn) btn.style.display = "block";
+});
 
-/* تحميل البطاقة */
-async function loadCard() {
-    const phone = document.getElementById("phone").value.trim();
-    const container = document.getElementById("cardContainer");
-    container.innerHTML = "";
+// تحميل البطاقة
+async function loadCard(){
+    const CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
 
-    if (!phone) {
-        alert("الرجاء إدخال رقم الجوال");
+    if(!CUSTOMER){
+        alert("يرجى تسجيل الدخول أولاً");
+        location.href = "customer-login.html";
         return;
     }
 
-    const res = await apiGet({
-        action: "getCustomerDashboard",
-        phone
-    });
+    // تحديد اللون حسب المستوى
+    let color = "#d4af37"; // Gold default
+    let levelText = CUSTOMER.level || "Loyalty";
 
-    if (!res.success) {
-        container.innerHTML = "<p>العميل غير موجود.</p>";
-        return;
+    if(levelText.includes("VIP")){
+        levelText = "👑 VIP";
+        color = "#000"; // VIP أسود ملكي
     }
 
-    const c = res.customer;
+    // بناء البطاقة
+    document.getElementById("cardContainer").innerHTML = `
+    <div class="card">
+        <div class="top">
+            <img src="logo.png" class="logo">
+            <div class="level-text">${levelText}</div>
+            <div class="membership"><b>رقم العضوية:</b> ${CUSTOMER.membership}</div>
 
-    const gradient = generateGradient(c.points);
-
-    const qrURL =
-        "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
-        encodeURIComponent(c.membership);
-
-    const html = `
-        <div class="card" style="background:${gradient}">
-            <div class="title">بطاقة العضوية</div>
-
-            <div class="row"><strong>الاسم:</strong> ${c.name}</div>
-            <div class="row"><strong>رقم العضوية:</strong> ${c.membership}</div>
-            <div class="row"><strong>النقاط:</strong> ${c.points}</div>
-            <div class="row"><strong>المستوى:</strong> ${c.level}</div>
-            <div class="row"><strong>غسلة مجانية:</strong> ${c.free_wash ? "نعم" : "لا"}</div>
-            <div class="row"><strong>آخر زيارة:</strong> ${c.last_visit || "—"}</div>
-
-            <img class="qr" src="${qrURL}" alt="QR Code">
-
-            <button class="add-btn" onclick="addToHome()">أضف البطاقة للشاشة الرئيسية</button>
+            <div class="qr-box">
+                <canvas id="qr"></canvas>
+            </div>
         </div>
+
+        <div class="bottom">
+            <div class="row"><b>الاسم:</b> ${CUSTOMER.name}</div>
+            <div class="row"><b>النقاط:</b> ${CUSTOMER.points} نقطة</div>
+            <div class="row"><b>آخر زيارة:</b> ${CUSTOMER.last_visit || "—"}</div>
+
+            <div id="addBtn" class="add-btn" onclick="addToHome()">
+                📱 أضف للشاشة الرئيسية
+            </div>
+        </div>
+    </div>
     `;
 
-    container.innerHTML = html;
+    // QR
+    new QRious({
+        element: document.getElementById("qr"),
+        value: CUSTOMER.phone,
+        size: 110
+    });
 }
 
-/* زر إضافة للشاشة الرئيسية */
-function addToHome() {
-    alert("سيتم دعم الإضافة للشاشة الرئيسية في نسخة PWA النهائية.");
+function addToHome(){
+    if(deferredPrompt){
+        deferredPrompt.prompt();
+        deferredPrompt = null;
+    } else {
+        alert("لإضافة البطاقة للشاشة الرئيسية:\n\n📱 iPhone:\nاضغط مشاركة → Add to Home Screen\n\n🤖 Android:\nمن القائمة → Add to Home Screen");
+    }
 }
+
+loadCard();
 </script>
 
 </body>
