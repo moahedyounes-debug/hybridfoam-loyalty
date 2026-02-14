@@ -1,63 +1,107 @@
-/*
-    ملف API الرسمي للنظام الجديد
-    جميع الصفحات تعتمد عليه
-*/
-console.log("API JS VERSION:", Date.now());
+// api.js – موحد لكل المشروع
 
-const API_URL = "https://script.google.com/macros/library/d/13vsR_yHHbr41BzU4NsAMzHJvGiNDfeGCNorN8Bh1sUotg6vtDodAQ6nd/49";
+const API_URL = 'YOUR_WEB_APP_URL_HERE'; // حط رابط Web App تبع Apps Script
 
-/* 🔥 تعطيل كاش Service Worker لهذا الملف */
-if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({ type: "SKIP_CACHE", file: "api.js" });
+async function apiPost(params) {
+  const form = new URLSearchParams();
+  Object.keys(params).forEach(k => {
+    if (params[k] !== undefined && params[k] !== null) {
+      form.append(k, params[k]);
+    }
+  });
+
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: form
+  });
+
+  return res.json();
 }
 
-/*
-    🔵 GET REQUEST (تحويل GET إلى POST داخليًا لتجاوز CORS)
-*/
-async function apiGet(params = {}) {
-
-    params.action = params.action || "getAll";
-    params.t = Date.now();
-
-    const form = new FormData();
-    for (const key in params) {
-        form.append(key, params[key]);
-    }
-
-    try {
-        const res = await fetch(API_URL, {
-            method: "POST",
-            cache: "no-store",
-            body: form
-        });
-
-        return await res.json();
-    } catch (e) {
-        return { success: false, error: "network_error" };
-    }
+async function apiGetAll(sheet) {
+  return apiPost({ action: 'getAll', sheet });
 }
 
-/*
-    🟡 POST REQUEST
-*/
-async function apiPost(params = {}) {
+// اختصارات سريعة
 
-    params.t = Date.now();
+async function apiLoginSupervisor(username, password) {
+  return apiPost({
+    action: 'loginSupervisor',
+    username,
+    password
+  });
+}
 
-    const form = new FormData();
-    for (const key in params) {
-        form.append(key, params[key]);
-    }
+async function apiGetCustomerByPhone(phone) {
+  return apiPost({
+    action: 'getCustomerByPhone',
+    phone
+  });
+}
 
-    try {
-        const res = await fetch(API_URL, {
-            method: "POST",
-            cache: "no-store",
-            body: form
-        });
+async function apiGetCustomerByMembership(membership) {
+  return apiPost({
+    action: 'getCustomerByMembership',
+    membership
+  });
+}
 
-        return await res.json();
-    } catch (e) {
-        return { success: false, error: "network_error" };
-    }
+async function apiGetCarsByPhone(phone) {
+  return apiPost({
+    action: 'getCarsByPhone',
+    phone
+  });
+}
+
+async function apiGetCarByMembership(membership) {
+  return apiPost({
+    action: 'getCarByMembership',
+    membership
+  });
+}
+
+async function apiAddCar(data) {
+  return apiPost({
+    action: 'addCar',
+    ...data
+  });
+}
+
+async function apiGetVisitsByMembership(membership) {
+  return apiPost({
+    action: 'getVisitsByMembership',
+    membership
+  });
+}
+
+async function apiGetBookingsByPhone(phone) {
+  return apiPost({
+    action: 'getBookingsByPhone',
+    phone
+  });
+}
+
+async function apiAddVisit(data) {
+  return apiPost({
+    action: 'addVisit',
+    ...data
+  });
+}
+
+async function apiGetActiveVisits() {
+  return apiPost({
+    action: 'getActiveVisits'
+  });
+}
+
+async function apiGetServices() {
+  return apiPost({
+    action: 'getServices'
+  });
+}
+
+async function apiGetBranches() {
+  return apiPost({
+    action: 'getBranches'
+  });
 }
