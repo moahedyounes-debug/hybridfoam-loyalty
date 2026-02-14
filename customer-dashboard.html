@@ -214,20 +214,18 @@ function loadCustomerInfo(){
 async function loadCars(){
     const box = document.getElementById("carsBox");
 
-    const res = await apiGet({
-        action:"getAll",
-        sheet:"Cars"
+    const res = await apiPost({
+        action:"getCarsByPhone",
+        phone: PHONE
     });
 
-    const cars = res.rows.filter(r => r[1] == PHONE);
-
-    if(cars.length === 0){
+    if(!res.success || res.cars.length === 0){
         box.innerHTML = "لا توجد سيارات مسجلة.";
         return [];
     }
 
     box.classList.remove("empty");
-    box.innerHTML = cars.map(c => `
+    box.innerHTML = res.cars.map(c => `
         <div class="car-card">
             <div class="car-title">${c[2]} • ${c[3]}</div>
             <div class="car-sub">اللوحة: ${c[5]} ${c[4]}</div>
@@ -235,28 +233,37 @@ async function loadCars(){
         </div>
     `).join("");
 
-    return cars;
+    return res.cars;
 }
 
 // قراءة آخر زيارة
 async function loadLastVisit(cars){
     const box = document.getElementById("lastVisitBox");
 
-    const memberships = cars.map(c => c[0]);
-
-    const res = await apiGet({
-        action:"getAll",
-        sheet:"Visits"
-    });
-
-    const visits = res.rows.filter(v => memberships.includes(v[0]));
-
-    if(visits.length === 0){
+    if(cars.length === 0){
         box.innerHTML = "لا توجد زيارات.";
         return;
     }
 
-    const v = visits[visits.length - 1];
+    let allVisits = [];
+
+    for(const car of cars){
+        const res = await apiPost({
+            action:"getVisitsByMembership",
+            membership: car[0]
+        });
+
+        if(res.success && res.visits.length > 0){
+            allVisits = allVisits.concat(res.visits);
+        }
+    }
+
+    if(allVisits.length === 0){
+        box.innerHTML = "لا توجد زيارات.";
+        return;
+    }
+
+    const v = allVisits[allVisits.length - 1];
 
     box.classList.remove("empty");
     box.innerHTML = `
@@ -273,23 +280,21 @@ async function loadLastVisit(cars){
 async function loadBookings(){
     const box = document.getElementById("bookingsBox");
 
-    const res = await apiGet({
-        action:"getAll",
-        sheet:"Bookings"
+    const res = await apiPost({
+        action:"getBookingsByPhone",
+        phone: PHONE
     });
 
-    const bookings = res.rows.filter(r => r[1] == PHONE);
-
-    if(bookings.length === 0){
+    if(!res.success || res.bookings.length === 0){
         box.innerHTML = "لا توجد حجوزات.";
         return;
     }
 
-    const last = bookings[bookings.length - 1];
+    const last = res.bookings[res.bookings.length - 1];
 
     box.classList.remove("empty");
     box.innerHTML = `
-        <div style="font-size:13px;margin-bottom:4px;">${bookings.length} حجز</div>
+        <div style="font-size:13px;margin-bottom:4px;">${res.bookings.length} حجز</div>
         <div style="font-size:13px;">
             آخر حجز: ${last[2]} • ${last[3]} ${last[4]}
         </div>
