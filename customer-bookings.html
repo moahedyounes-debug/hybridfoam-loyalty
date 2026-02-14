@@ -1,174 +1,106 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>حجوزاتي</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>حجوزاتي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: "Tajawal", sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        .container {
-            max-width: 500px;
-            margin: auto;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .booking {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px #0002;
-            margin-bottom: 15px;
-        }
-        .row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-        }
-        .label {
-            color: #777;
-        }
-        .value {
-            font-weight: 600;
-        }
-        .status {
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: white;
-        }
-        .pending { background: #ff9800; }
-        .done { background: #4caf50; }
-        .cancelled { background: #f44336; }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            margin-top: 15px;
-            border: none;
-            border-radius: 8px;
-            background: #007bff;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .empty {
-            text-align: center;
-            margin-top: 40px;
-            color: #777;
-        }
-    </style>
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#050608;
+      color:#f5f5f5;
+      padding:16px;
+    }
+    h2{
+      text-align:center;
+      margin-bottom:12px;
+    }
+    .section{
+      background:#111318;
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+    }
+    .booking-card{
+      background:#1a1c22;
+      padding:10px;
+      border-radius:10px;
+      margin-bottom:8px;
+      font-size:13px;
+    }
+    .empty{
+      font-size:13px;
+      color:#6b7280;
+      text-align:center;
+      margin-top:20px;
+    }
+    .btn{
+      width:100%;
+      padding:10px 12px;
+      margin-top:8px;
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:white;
+      font-size:14px;
+      cursor:pointer;
+    }
+    .btn-outline{
+      background:transparent;
+      border:1px solid #374151;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>حجوزاتي</h2>
+<h2>حجوزاتي</h2>
 
-    <div id="list"></div>
+<div class="section">
+  <div id="bookingsBox" class="empty">جاري التحميل...</div>
 
-    <button class="btn" onclick="goBack()">العودة للوحة العميل</button>
+  <button class="btn" onclick="window.location.href='customer-booking.html'">
+    حجز موعد جديد
+  </button>
+  <button class="btn btn-outline" onclick="window.location.href='customer-dashboard.html'">
+    العودة للوحة العميل
+  </button>
 </div>
 
 <script src="api.js"></script>
-
 <script>
-let PHONE = "";
+let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
+let PHONE = CUSTOMER ? CUSTOMER.phone : null;
 
-// تحميل بيانات العميل
-window.addEventListener("DOMContentLoaded", async () => {
-    const storedPhone = localStorage.getItem("phone");
+(function(){
+  if(!CUSTOMER || !PHONE){
+    window.location.href = "customer-login.html";
+  }
+})();
 
-    if (!storedPhone) {
-        window.location.href = "customer-home.html";
-        return;
-    }
+window.onload = async function(){
+  const box = document.getElementById("bookingsBox");
 
-    PHONE = storedPhone;
+  const res = await apiGetBookingsByPhone(PHONE);
+  if(!res.success || !res.bookings || res.bookings.length === 0){
+    box.innerHTML = "لا توجد حجوزات.";
+    return;
+  }
 
-    loadBookings();
-});
+  const bookings = res.bookings.map(b => b.data);
 
-// تحميل الحجوزات
-async function loadBookings() {
-    const list = document.getElementById("list");
-
-    const res = await apiGet({
-        action: "getBookingsByPhone",
-        phone: PHONE
-    });
-
-    if (!res.success || !res.bookings || res.bookings.length === 0) {
-        list.innerHTML = `<div class="empty">لا توجد حجوزات حتى الآن</div>`;
-        return;
-    }
-
-    // ترتيب من الأحدث للأقدم
-    const sorted = res.bookings.sort((a, b) => new Date(b[3]) - new Date(a[3]));
-
-    sorted.forEach(b => {
-        const membership = b[0];
-        const phone = b[1];
-        const services = b[2];
-        const date = b[3];
-        const time = b[4];
-        const status = b[5];
-        const car = b[6];
-        const total = b[7];
-
-        const div = document.createElement("div");
-        div.className = "booking";
-
-        div.innerHTML = `
-            <div class="row">
-                <span class="label">السيارة:</span>
-                <span class="value">${car}</span>
-            </div>
-
-            <div class="row">
-                <span class="label">الخدمات:</span>
-                <span class="value">${services}</span>
-            </div>
-
-            <div class="row">
-                <span class="label">السعر:</span>
-                <span class="value">${total} ريال</span>
-            </div>
-
-            <div class="row">
-                <span class="label">التاريخ:</span>
-                <span class="value">${date}</span>
-            </div>
-
-            <div class="row">
-                <span class="label">الوقت:</span>
-                <span class="value">${time}</span>
-            </div>
-
-            <div class="row">
-                <span class="label">الحالة:</span>
-                <span class="status ${statusClass(status)}">${status}</span>
-            </div>
-        `;
-
-        list.appendChild(div);
-    });
-}
-
-function statusClass(status) {
-    if (status.includes("انتظار")) return "pending";
-    if (status.includes("ملغي")) return "cancelled";
-    return "done";
-}
-
-function goBack() {
-    window.location.href = "customer-dashboard.html";
-}
+  box.classList.remove("empty");
+  box.innerHTML = bookings.map(b => `
+    <div class="booking-card">
+      الخدمة: ${b[2]}<br>
+      التاريخ: ${b[3]}<br>
+      الوقت: ${b[4]}<br>
+      الحالة: ${b[5]}
+    </div>
+  `).join("");
+};
 </script>
 
 </body>
