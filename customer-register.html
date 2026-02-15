@@ -276,7 +276,7 @@ async function registerCustomer(){
     phone: '="' + phone + '"',
     car: brand + " " + model,
     size,
-    city: branch, // المدينة = الفرع (بما أنك لغيت city)
+    city: branch,
     plate_numbers,
     plate_letters,
     subscription: "",
@@ -284,7 +284,10 @@ async function registerCustomer(){
     last_visit: "",
     visit_count: 0,
     points: 0,
-    level: "Hybrid Foam Loyalty",
+
+    // 🔥 المستوى الصحيح
+    level: "Bronze",
+
     free_wash: 0
   });
 
@@ -308,7 +311,7 @@ async function registerCustomer(){
     t.getMinutes().toString().padStart(2,"0") +
     t.getSeconds().toString().padStart(2,"0");
 
-  // 3) تسجيل السيارة في شيت Cars
+  // 3) تسجيل السيارة
   await apiAddCar({
     membership: carMembership,
     phone: '="' + phone + '"',
@@ -326,7 +329,7 @@ async function registerCustomer(){
     city: branch,
     membership: customerMembership,
     points: 0,
-    level: "Hybrid Foam Loyalty"
+    level: "Bronze"
   };
 
   localStorage.removeItem("pendingPhone");
