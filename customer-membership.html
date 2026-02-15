@@ -106,19 +106,23 @@ if(!CUSTOMER){
   window.location.href = "customer-home.html";
 }
 
+// معالجة المستوى (case-insensitive)
+let level = (CUSTOMER.level || "").toLowerCase();
+
 // ألوان المستويات
-let color = "#cd7f32"; // Bronze
-if (CUSTOMER.level === "Silver") color = "#c0c0c0";
-if (CUSTOMER.level === "Gold") color = "#d4af37";
-if (CUSTOMER.level === "Platinum") color = "#e5e4e2";
-if (CUSTOMER.level === "VIP") color = "#000";
+let color = "#cd7f32"; // bronze
+if (level === "silver") color = "#c0c0c0";
+if (level === "gold") color = "#d4af37";
+if (level === "platinum") color = "#e5e4e2";
+if (level === "vip") color = "#000";
 
 // نص المستوى
-let levelText = CUSTOMER.level;
-if (CUSTOMER.level === "VIP") levelText = "👑 VIP";
+let levelText = CUSTOMER.level || "";
+if (level === "vip") levelText = "👑 VIP";
 
-// توليد QR تلقائي برقم الجوال
-let qrURL = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${CUSTOMER.phone}`;
+// QR دائمًا يظهر
+let qrValue = CUSTOMER.phone || CUSTOMER.membership || "NO_DATA";
+let qrURL = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${qrValue}`;
 
 document.getElementById("cardContainer").innerHTML = `
   <div class="card">
