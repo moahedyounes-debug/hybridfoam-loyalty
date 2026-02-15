@@ -16,9 +16,8 @@
 
   <div class="layout">
 
-    <!-- العمود الأيمن -->
+    <!-- العمود الأيمن: السيارات غير المدفوعة -->
     <div class="right-col">
-
       <div class="box">
         <h3>🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
         <div id="activeVisitsList"></div>
@@ -26,10 +25,9 @@
           تحديث القائمة
         </button>
       </div>
-
     </div>
 
-    <!-- العمود الأيسر -->
+    <!-- العمود الأيسر: البحث + التسجيل -->
     <div class="left-col">
 
       <!-- البحث -->
@@ -44,7 +42,7 @@
         <div id="customerInfo" style="margin-top:8px;font-size:13px;color:#555;display:none;"></div>
       </div>
 
-      <!-- السيارات -->
+      <!-- اختيار السيارة -->
       <div id="carsBox" class="box" style="display:none;">
         <h3>اختر السيارة</h3>
         <div id="carsList"></div>
@@ -54,6 +52,7 @@
       <div id="visitBox" class="box" style="display:none;">
         <h3>تسجيل زيارة جديدة</h3>
 
+        <!-- نوع الخدمة + تفاصيلها -->
         <div class="row">
           <div>
             <label>نوع الخدمة</label>
@@ -66,6 +65,7 @@
           </div>
         </div>
 
+        <!-- السعر + النقاط -->
         <div class="row">
           <div>
             <label>السعر</label>
@@ -78,12 +78,15 @@
           </div>
         </div>
 
+        <!-- إضافة خدمة -->
         <button id="btnAddService" class="btn-secondary">إضافة خدمة +</button>
 
+        <!-- قائمة الخدمات المختارة -->
         <div id="servicesList" style="margin-top:10px;"></div>
 
         <h3 style="margin-top:15px;">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
 
+        <!-- الخصم -->
         <div class="row">
           <div>
             <label>الخصم (ريال)</label>
@@ -91,36 +94,7 @@
           </div>
         </div>
 
-        <!-- اختيار الموظف -->
-        <div class="row">
-          <div>
-            <label>الموظف</label>
-            <select id="employee_in">
-              <option value="">— اختر الموظف —</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>حالة الدفع</label>
-            <select id="payment_status">
-              <option value="">— اختر حالة الدفع —</option>
-              <option value="مدفوع">مدفوع</option>
-              <option value="غير مدفوع">غير مدفوع</option>
-            </select>
-          </div>
-
-          <div>
-            <label>طريقة الدفع</label>
-            <select id="payment_method">
-              <option value="">— اختر طريقة الدفع —</option>
-              <option value="كاش">كاش</option>
-              <option value="شبكة">شبكة</option>
-            </select>
-          </div>
-        </div>
-
+        <!-- رقم الموقف -->
         <div class="row">
           <div>
             <label>رقم الموقف</label>
@@ -134,15 +108,50 @@
               <option value="6">6</option>
             </select>
           </div>
+        </div>
 
+        <!-- الموظف -->
+        <div class="row">
           <div>
-            <label>الفرع</label>
-            <select id="branch">
-              <option value="">— اختر الفرع —</option>
+            <label>الموظف</label>
+            <select id="employee_in">
+              <option value="">— اختر الموظف —</option>
             </select>
           </div>
         </div>
 
+        <!-- حالة الدفع -->
+        <div class="row">
+          <div>
+            <label>حالة الدفع</label>
+            <select id="payment_status">
+              <option value="">— اختر حالة الدفع —</option>
+              <option value="مدفوع">مدفوع</option>
+              <option value="غير مدفوع">غير مدفوع</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- الفرع + طريقة الدفع (تظهر فقط إذا مدفوع) -->
+        <div class="row">
+          <div>
+            <label>الفرع</label>
+            <select id="branch">
+              <option value="Makkah - مكة">Makkah - مكة</option>
+            </select>
+          </div>
+
+          <div id="payment_method_wrapper" style="display:none;">
+            <label>طريقة الدفع</label>
+            <select id="payment_method">
+              <option value="">— اختر طريقة الدفع —</option>
+              <option value="كاش">كاش</option>
+              <option value="شبكة">شبكة</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- زر تسجيل الزيارة -->
         <button id="btnSubmitVisit" class="btn-primary" disabled>
           تسجيل الزيارة
         </button>
