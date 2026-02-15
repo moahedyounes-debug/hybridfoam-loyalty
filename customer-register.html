@@ -11,25 +11,38 @@
       background:#050608;
       color:#f5f5f5;
       padding:20px;
+      animation:fadeIn .4s ease;
     }
+
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(10px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+
     h2{
       text-align:center;
       margin-bottom:16px;
+      font-size:22px;
+      font-weight:700;
     }
+
     .box{
       background:#111318;
       padding:20px;
-      border-radius:16px;
+      border-radius:18px;
       max-width:420px;
       margin:auto;
       box-shadow:0 8px 20px rgba(0,0,0,0.6);
+      animation:fadeIn .5s ease;
     }
+
     label{
       font-size:13px;
       color:#9ca3af;
       display:block;
       margin-bottom:4px;
     }
+
     input,select{
       width:100%;
       padding:10px;
@@ -40,6 +53,7 @@
       color:white;
       font-size:14px;
     }
+
     .btn{
       width:100%;
       padding:12px;
@@ -50,13 +64,28 @@
       font-size:16px;
       cursor:pointer;
       margin-top:10px;
+      transition:.3s;
     }
+
+    .btn:disabled{
+      opacity:.5;
+      cursor:not-allowed;
+    }
+
     .link{
       margin-top:14px;
       font-size:14px;
       color:#4ade80;
       text-align:center;
       cursor:pointer;
+    }
+
+    .success{
+      text-align:center;
+      color:#4ade80;
+      margin-top:10px;
+      font-size:14px;
+      display:none;
     }
   </style>
 </head>
@@ -73,6 +102,9 @@
   <label>رقم الجوال</label>
   <input type="text" id="phone" placeholder="05XXXXXXXX"
          oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+
+  <label>المدينة</label>
+  <input type="text" id="city" placeholder="مثال: الرياض">
 
   <label>الفرع</label>
   <select id="branch">
@@ -98,7 +130,9 @@
   <label>حروف اللوحة</label>
   <input type="text" id="plate_letters" placeholder="أ ب ج">
 
-  <button class="btn" onclick="registerCustomer()">تسجيل</button>
+  <button class="btn" id="submitBtn" onclick="registerCustomer()">تسجيل</button>
+
+  <div class="success" id="successMsg">✔ تم التسجيل بنجاح</div>
 
   <div class="link" onclick="window.location.href='customer-login.html'">
     لدي حساب بالفعل
@@ -108,9 +142,12 @@
 
 <script src="api.js"></script>
 <script>
+
 let CAR_TYPES = [];
 let BRANCHES = [];
+let isSubmitting = false;
 
+// تعبئة رقم الجوال لو جاي من login
 (function(){
   const pending = localStorage.getItem("pendingPhone");
   if(pending){
@@ -119,10 +156,15 @@ let BRANCHES = [];
 })();
 
 window.onload = async function(){
-  await loadCarTypes();
-  await loadBranches();
+  await Promise.all([
+    loadCarTypes(),
+    loadBranches()
+  ]);
 };
 
+// =============================
+// تحميل أنواع السيارات
+// =============================
 async function loadCarTypes(){
   const res = await apiGetCarTypes();
   if(!res.success){
@@ -138,6 +180,9 @@ async function loadCarTypes(){
     brands.map(b => `<option value="${b}">${b}</option>`).join("");
 }
 
+// =============================
+// تحميل الفروع
+// =============================
 async function loadBranches(){
   const res = await apiGetBranches();
   if(!res.success){
@@ -147,11 +192,20 @@ async function loadBranches(){
 
   BRANCHES = res.rows;
 
-  document.getElementById("branch").innerHTML =
-    `<option value="">اختر الفرع</option>` +
-    BRANCHES.map(r => `<option value="${r[1]}">${r[1]}</option>`).join("");
+  const branchSelect = document.getElementById("branch");
+
+  if(BRANCHES.length === 1){
+    branchSelect.innerHTML = `<option value="${BRANCHES[0][1]}">${BRANCHES[0][1]}</option>`;
+  } else {
+    branchSelect.innerHTML =
+      `<option value="">اختر الفرع</option>` +
+      BRANCHES.map(r => `<option value="${r[1]}">${r[1]}</option>`).join("");
+  }
 }
 
+// =============================
+// تحميل الموديلات
+// =============================
 function loadModels(){
   const brand = document.getElementById("brand").value;
   const modelSelect = document.getElementById("model");
@@ -168,6 +222,9 @@ function loadModels(){
     models.map(m => `<option value="${m}">${m}</option>`).join("");
 }
 
+// =============================
+// تحديد الحجم تلقائياً
+// =============================
 function autoSize(){
   const brand = document.getElementById("brand").value;
   const model = document.getElementById("model").value;
@@ -178,7 +235,16 @@ function autoSize(){
   }
 }
 
+// =============================
+// تسجيل العميل
+// =============================
 async function registerCustomer(){
+
+  if(isSubmitting) return;
+
+  const btn = document.getElementById("submitBtn");
+  const successMsg = document.getElementById("successMsg");
+
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const city = document.getElementById("city").value.trim();
@@ -198,6 +264,11 @@ async function registerCustomer(){
     alert("رقم الجوال غير صحيح");
     return;
   }
+
+  // زر حماية
+  isSubmitting = true;
+  btn.disabled = true;
+  btn.innerText = "جاري التسجيل...";
 
   const membership = '="' + phone + '"';
 
@@ -221,8 +292,13 @@ async function registerCustomer(){
 
   if(!res.success){
     alert("خطأ في التسجيل: " + res.error);
+    btn.disabled = false;
+    btn.innerText = "تسجيل";
+    isSubmitting = false;
     return;
   }
+
+  successMsg.style.display = "block";
 
   const CUSTOMER = {
     name,
@@ -236,8 +312,11 @@ async function registerCustomer(){
   localStorage.removeItem("pendingPhone");
   localStorage.setItem("customer", JSON.stringify(CUSTOMER));
 
-  window.location.href = "customer-dashboard.html";
+  setTimeout(() => {
+    window.location.href = "customer-dashboard.html";
+  }, 800);
 }
+
 </script>
 
 </body>
