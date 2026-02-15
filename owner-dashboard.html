@@ -5,7 +5,7 @@
   <title>لوحة المالك</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" href="dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="api.js"></script>
 
   <style>
@@ -16,13 +16,15 @@
       padding:16px;
     }
 
+    h2{margin-bottom:12px;}
+
+    /* Tabs */
     .tabs{
       display:flex;
       gap:8px;
       margin-bottom:16px;
       overflow-x:auto;
     }
-
     .tab-btn{
       padding:10px 16px;
       border-radius:999px;
@@ -33,20 +35,18 @@
       font-size:14px;
       white-space:nowrap;
     }
-
     .tab-btn.active{
       background:#0D47A1;
       color:white;
     }
-
     .tab-content{
       display:none;
     }
-
     .tab-content.active{
       display:block;
     }
 
+    /* Cards */
     .card{
       background:white;
       padding:16px;
@@ -61,78 +61,164 @@
       grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
       gap:16px;
     }
+
+    .value{
+      font-size:20px;
+      font-weight:700;
+      margin-top:6px;
+    }
+
+    input,select{
+      width:100%;
+      padding:8px;
+      border-radius:8px;
+      border:1px solid #D1D5DB;
+      margin-bottom:8px;
+      font-size:14px;
+    }
+
+    .btn{
+      padding:10px 16px;
+      border:none;
+      border-radius:999px;
+      background:#0D47A1;
+      color:white;
+      cursor:pointer;
+      font-size:14px;
+      margin-top:6px;
+    }
+
+    .btn-outline{
+      padding:10px 16px;
+      border-radius:999px;
+      background:white;
+      border:1px solid #0D47A1;
+      color:#0D47A1;
+      cursor:pointer;
+      font-size:14px;
+      margin-top:6px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    th,td{
+      border-bottom:1px solid #E5E7EB;
+      padding:6px;
+      text-align:right;
+    }
+    th{
+      background:#F3F4F6;
+      font-weight:600;
+    }
+
+    .tag{
+      background:#E3F2FD;
+      padding:2px 6px;
+      border-radius:999px;
+      font-size:11px;
+      color:#0D47A1;
+    }
   </style>
 </head>
 
 <body>
 
-  <h2>لوحة المالك</h2>
+<h2>لوحة المالك</h2>
 
-  <!-- التبويبات -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="openTab('dashboard')">📊 الرئيسية</button>
-    <button class="tab-btn" onclick="openTab('activeCars')">🚗 السيارات غير المدفوعة</button>
-    <button class="tab-btn" onclick="openTab('reports')">📑 التقارير</button>
-    <button class="tab-btn" onclick="openTab('customers')">👥 العملاء</button>
-    <button class="tab-btn" onclick="openTab('bookings')">📅 الحجوزات</button>
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="openTab('dashboard')">📊 الرئيسية</button>
+  <button class="tab-btn" onclick="openTab('activeCars')">🚗 السيارات غير المدفوعة</button>
+  <button class="tab-btn" onclick="openTab('reports')">📑 التقارير</button>
+  <button class="tab-btn" onclick="openTab('customers')">👥 العملاء</button>
+  <button class="tab-btn" onclick="openTab('bookings')">📅 الحجوزات</button>
+</div>
+
+<!-- ============================
+     TAB 1 — DASHBOARD
+============================ -->
+<div id="dashboard" class="tab-content active">
+
+  <div class="card">
+    <h3>📅 فلتر التاريخ</h3>
+
+    <label>من تاريخ</label>
+    <input type="date" id="dateFrom">
+
+    <label>إلى تاريخ</label>
+    <input type="date" id="dateTo">
+
+    <button class="btn" onclick="loadDashboard()">عرض</button>
+    <button class="btn-outline" onclick="resetDates()">عرض كل البيانات</button>
   </div>
 
-  <!-- المحتوى -->
-
-  <!-- Tab 1 -->
-  <div id="dashboard" class="tab-content active">
-    <div class="card">
-      <h3>📊 ملخص اليوم</h3>
-      <div id="dashboardContent">جاري التحميل...</div>
-    </div>
-
-    <div class="card">
-      <h3>📈 شارت الوارد اليومي</h3>
-      <canvas id="chartRevenue"></canvas>
-    </div>
-
-    <div class="card">
-      <h3>📉 شارت عمولات الموظفين</h3>
-      <canvas id="chartCommission"></canvas>
-    </div>
+  <div class="card">
+    <h3>📊 ملخص</h3>
+    <div id="dashboardContent">جاري التحميل...</div>
   </div>
 
-  <!-- Tab 2 -->
-  <div id="activeCars" class="tab-content">
-    <div class="card">
-      <h3>🚗 السيارات داخل المغسلة</h3>
-      <div id="activeCarsList">جاري التحميل...</div>
-    </div>
+  <div class="card">
+    <h3>📈 شارت الوارد اليومي</h3>
+    <canvas id="chartRevenue"></canvas>
   </div>
 
-  <!-- Tab 3 -->
-  <div id="reports" class="tab-content">
-    <div class="card">
-      <h3>📑 التقارير التفصيلية</h3>
-      <button class="btn" onclick="downloadExcel()">تحميل Excel</button>
-      <div id="reportsTable">جاري التحميل...</div>
-    </div>
+  <div class="card">
+    <h3>📉 شارت عمولات الموظفين</h3>
+    <canvas id="chartCommission"></canvas>
   </div>
 
-  <!-- Tab 4 -->
-  <div id="customers" class="tab-content">
-    <div class="card">
-      <h3>👥 العملاء</h3>
-      <input id="customerSearch" placeholder="بحث عن عميل">
-      <button class="btn" onclick="loadCustomers()">بحث</button>
-      <div id="customersTable">جاري التحميل...</div>
-    </div>
-  </div>
+</div>
 
-  <!-- Tab 5 -->
-  <div id="bookings" class="tab-content">
-    <div class="card">
-      <h3>📅 الحجوزات</h3>
-      <div id="bookingsList">جاري التحميل...</div>
-    </div>
+<!-- ============================
+     TAB 2 — ACTIVE CARS
+============================ -->
+<div id="activeCars" class="tab-content">
+  <div class="card">
+    <h3>🚗 السيارات داخل المغسلة (غير مدفوعة)</h3>
+    <div id="activeCarsList">جاري التحميل...</div>
   </div>
+</div>
+
+<!-- ============================
+     TAB 3 — REPORTS
+============================ -->
+<div id="reports" class="tab-content">
+  <div class="card">
+    <h3>📑 التقارير التفصيلية</h3>
+    <button class="btn" onclick="downloadExcel()">تحميل Excel</button>
+    <div id="reportsTable">جاري التحميل...</div>
+  </div>
+</div>
+
+<!-- ============================
+     TAB 4 — CUSTOMERS
+============================ -->
+<div id="customers" class="tab-content">
+  <div class="card">
+    <h3>👥 العملاء</h3>
+    <input id="customerSearch" placeholder="بحث عن عميل">
+    <button class="btn" onclick="loadCustomers()">بحث</button>
+    <div id="customersTable">جاري التحميل...</div>
+  </div>
+</div>
+
+<!-- ============================
+     TAB 5 — BOOKINGS
+============================ -->
+<div id="bookings" class="tab-content">
+  <div class="card">
+    <h3>📅 الحجوزات</h3>
+    <div id="bookingsList">جاري التحميل...</div>
+  </div>
+</div>
 
 <script>
+/* ============================
+   Tabs Switching
+============================ */
 function openTab(id){
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
   document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
@@ -140,6 +226,111 @@ function openTab(id){
   event.target.classList.add("active");
   document.getElementById(id).classList.add("active");
 }
+
+/* ============================
+   Reset Date Filter
+============================ */
+function resetDates(){
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value = "";
+  loadDashboard();
+}
+
+/* ============================
+   Dashboard Logic
+============================ */
+async function loadDashboard() {
+
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+
+  const visitsRes = await apiGetAll("Visits");
+  const customersRes = await apiGetAll("Customers");
+
+  if (!visitsRes.success) return;
+
+  let visits = visitsRes.rows;
+
+  // فلترة حسب التاريخ
+  if (from && to) {
+    visits = visits.filter(v => {
+      const date = String(v[8] || "").slice(0, 10);
+      return date >= from && date <= to;
+    });
+  }
+
+  let total = 0, cash = 0, network = 0;
+  let commissionMap = {};
+
+  visits.forEach(v => {
+    const price = Number(v[2] || 0);
+    const method = String(v[11] || "");
+    const employee = String(v[4] || "");
+
+    total += price;
+    if (method === "كاش") cash += price;
+    if (method === "شبكة") network += price;
+
+    if (employee) {
+      commissionMap[employee] = (commissionMap[employee] || 0) + Math.round(price * 0.10);
+    }
+  });
+
+  document.getElementById("dashboardContent").innerHTML = `
+    <div class="grid">
+      <div class="card"><h4>💰 إجمالي الوارد</h4><div class="value">${total} ريال</div></div>
+      <div class="card"><h4>💳 شبكة</h4><div class="value">${network} ريال</div></div>
+      <div class="card"><h4>💵 كاش</h4><div class="value">${cash} ريال</div></div>
+      <div class="card"><h4>🧽 عدد الخدمات</h4><div class="value">${visits.length}</div></div>
+      <div class="card"><h4>👥 عدد العملاء</h4><div class="value">${customersRes.rows.length}</div></div>
+      <div class="card"><h4>💼 إجمالي عمولات الموظفين</h4><div class="value">${
+        Object.values(commissionMap).reduce((a,b)=>a+b,0)
+      } ريال</div></div>
+    </div>
+  `;
+
+  /* ============================
+       Revenue Chart
+  ============================= */
+  const revenueByDay = {};
+  visits.forEach(v => {
+    const date = String(v[8] || "").slice(0, 10);
+    const price = Number(v[2] || 0);
+    revenueByDay[date] = (revenueByDay[date] || 0) + price;
+  });
+
+  new Chart(document.getElementById("chartRevenue"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(revenueByDay),
+      datasets: [{
+        label: "الوارد اليومي",
+        data: Object.values(revenueByDay),
+        backgroundColor: "#0D47A1"
+      }]
+    }
+  });
+
+  /* ============================
+       Commission Chart
+  ============================= */
+  new Chart(document.getElementById("chartCommission"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(commissionMap),
+      datasets: [{
+        label: "عمولات الموظفين",
+        data: Object.values(commissionMap),
+        backgroundColor: "#FF8F00"
+      }]
+    }
+  });
+}
+
+/* ============================
+   Load on Start
+============================ */
+loadDashboard();
 </script>
 
 </body>
