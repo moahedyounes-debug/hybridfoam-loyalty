@@ -24,19 +24,6 @@
       position:relative;
     }
 
-    .card::after{
-      content:"";
-      position:absolute;
-      top:50%;
-      left:50%;
-      width:220px;
-      height:220px;
-      background:url('logo.png') center/contain no-repeat;
-      opacity:0.08;
-      transform:translate(-50%, -50%);
-      pointer-events:none;
-    }
-
     .top{
       padding:14px;
       color:white;
@@ -101,51 +88,79 @@
 
 let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
 
-// لو ما فيه بيانات عميل → رجوع للصفحة الرئيسية
+// لو ما فيه بيانات عميل → رجوع
 if(!CUSTOMER){
   window.location.href = "customer-home.html";
 }
 
-// معالجة المستوى (case-insensitive)
-let level = (CUSTOMER.level || "").toLowerCase();
+/* ============================
+   تحديث بيانات العميل من الـ API
+============================ */
 
-// ألوان المستويات
-let color = "#cd7f32"; // bronze
-if (level === "silver") color = "#c0c0c0";
-if (level === "gold") color = "#d4af37";
-if (level === "platinum") color = "#e5e4e2";
-if (level === "vip") color = "#000";
+async function refreshCustomer() {
+  const res = await apiGetCustomerByMembership(CUSTOMER.membership);
+  if (res.success) {
+    const c = res.customer;
+    CUSTOMER = {
+      name: c[0],
+      phone: c[1],
+      membership: c[8],
+      city: c[4],
+      last_visit: c[9],
+      points: c[11],
+      level: c[12],
+      subscription: c[7]
+    };
+    localStorage.setItem("customer", JSON.stringify(CUSTOMER));
+  }
+}
 
-// نص المستوى
-let levelText = CUSTOMER.level || "";
-if (level === "vip") levelText = "👑 VIP";
+/* ============================
+   رسم البطاقة
+============================ */
 
-// QR دائمًا يظهر
-let qrValue = CUSTOMER.phone || CUSTOMER.membership || "NO_DATA";
-let qrURL = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${qrValue}`;
+function renderCard() {
 
-document.getElementById("cardContainer").innerHTML = `
-  <div class="card">
-    <div class="top" style="background:${color};">
-      بطاقة الولاء
-    </div>
+  // ألوان المستويات
+  let color = "#cd7f32"; // Bronze
+  if (CUSTOMER.level === "Silver") color = "#c0c0c0";
+  if (CUSTOMER.level === "Gold") color = "#d4af37";
+  if (CUSTOMER.level === "Platinum") color = "#e5e4e2";
+  if (CUSTOMER.level === "VIP") color = "#000";
 
-    <div class="content">
-      <div class="row"><span class="label">الاسم</span><span class="value">${CUSTOMER.name}</span></div>
-      <div class="row"><span class="label">رقم الجوال</span><span class="value">${CUSTOMER.phone}</span></div>
-      <div class="row"><span class="label">رقم العضوية</span><span class="value">${CUSTOMER.membership}</span></div>
-      <div class="row"><span class="label">المستوى</span><span class="value">${levelText}</span></div>
-      <div class="row"><span class="label">النقاط</span><span class="value">${CUSTOMER.points}</span></div>
+  // QR دائمًا يظهر
+  let qrValue = CUSTOMER.phone || CUSTOMER.membership || "NO_DATA";
+  let qrURL = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${qrValue}`;
 
-      <div class="qr">
-        <img src="${qrURL}" width="130" height="130">
+  document.getElementById("cardContainer").innerHTML = `
+    <div class="card">
+      <div class="top" style="background:${color};">
+        بطاقة الولاء
       </div>
 
-      <div class="row"><span class="label">الاشتراك</span><span class="value">${CUSTOMER.subscription || "بدون اشتراك"}</span></div>
-      <div class="row"><span class="label">آخر زيارة</span><span class="value">${CUSTOMER.last_visit || "—"}</span></div>
+      <div class="content">
+        <div class="row"><span class="label">الاسم</span><span class="value">${CUSTOMER.name}</span></div>
+        <div class="row"><span class="label">رقم الجوال</span><span class="value">${CUSTOMER.phone}</span></div>
+        <div class="row"><span class="label">رقم العضوية</span><span class="value">${CUSTOMER.membership}</span></div>
+        <div class="row"><span class="label">المستوى</span><span class="value">${CUSTOMER.level}</span></div>
+        <div class="row"><span class="label">النقاط</span><span class="value">${CUSTOMER.points}</span></div>
+
+        <div class="qr">
+          <img src="${qrURL}" width="130" height="130">
+        </div>
+
+        <div class="row"><span class="label">الاشتراك</span><span class="value">${CUSTOMER.subscription || "بدون اشتراك"}</span></div>
+        <div class="row"><span class="label">آخر زيارة</span><span class="value">${CUSTOMER.last_visit || "—"}</span></div>
+      </div>
     </div>
-  </div>
-`;
+  `;
+}
+
+/* ============================
+   تشغيل الصفحة
+============================ */
+
+refreshCustomer().then(renderCard);
 
 </script>
 
