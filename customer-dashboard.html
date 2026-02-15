@@ -150,6 +150,19 @@
       margin-top:6px;
       text-align:left;
     }
+
+    /* زر واتساب */
+    .whatsapp-btn{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:999px;
+      background:#25D366;
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+      margin-top:20px;
+    }
   </style>
 </head>
 
@@ -213,6 +226,9 @@
   <button class="btn btn-outline" onclick="window.location.href='customer-bookings.html'">عرض كل الحجوزات</button>
   <button class="btn" onclick="window.location.href='customer-booking.html'">حجز موعد جديد</button>
 </div>
+
+<!-- زر واتساب -->
+<button class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
 
 <div class="logout" onclick="logout()">تسجيل خروج</div>
 
@@ -387,6 +403,38 @@ function loadLevelSystem(){
 function logout(){
   localStorage.removeItem("customer");
   window.location.href = "customer-home.html";
+}
+
+// ===============================
+// زر واتساب
+// ===============================
+async function contactWhatsApp() {
+  const phone = CUSTOMER.phone;
+  let msg = "مرحباً مغسلة رغوة الهجين%0A";
+
+  const res = await apiGetCustomerByPhone(phone);
+
+  if (!res.success) {
+    msg += "رقم الجوال: " + phone;
+    window.location.href = "https://wa.me/966582007063?text=" + msg;
+    return;
+  }
+
+  const c = res.customer;
+
+  const carsRes = await apiGet({ action: "getAll", sheet: "Cars" });
+  let carCount = 0;
+
+  if (carsRes.success) {
+    carCount = carsRes.rows.filter(r => r[1] === phone).length;
+  }
+
+  msg +=
+    "الاسم: " + c[0] + "%0A" +
+    "رقم العضوية: " + c[8] + "%0A" +
+    "عدد السيارات: " + carCount;
+
+  window.location.href = "https://wa.me/966582007063?text=" + msg;
 }
 
 </script>
