@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة العميل</title>
+  <title>تسجيل عميل جديد</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
@@ -10,7 +10,7 @@
       font-family:"Tajawal",sans-serif;
       background:#050608;
       color:#f5f5f5;
-      padding:16px;
+      padding:20px;
       animation:fadeIn .4s ease;
     }
 
@@ -21,55 +21,38 @@
 
     h2{
       text-align:center;
-      margin-bottom:6px;
+      margin-bottom:16px;
       font-size:22px;
       font-weight:700;
     }
 
-    .subtitle{
-      text-align:center;
-      color:#aaa;
-      font-size:13px;
-      margin-bottom:18px;
-    }
-
-    .section{
+    .box{
       background:#111318;
+      padding:20px;
       border-radius:18px;
-      padding:18px;
-      margin-bottom:16px;
-      box-shadow:0 8px 20px rgba(0,0,0,0.5);
+      max-width:420px;
+      margin:auto;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
       animation:fadeIn .5s ease;
     }
 
-    .title{
-      font-size:17px;
-      font-weight:700;
-      margin-bottom:6px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    .title span{
-      font-size:18px;
-    }
-
-    .sub{
-      font-size:12px;
+    label{
+      font-size:13px;
       color:#9ca3af;
-      margin-bottom:12px;
+      display:block;
+      margin-bottom:4px;
     }
 
-    .row{
-      display:flex;
-      justify-content:space-between;
-      margin-bottom:6px;
+    input,select{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:none;
+      margin-bottom:10px;
+      background:#1a1c22;
+      color:white;
       font-size:14px;
     }
-
-    .label{color:#9ca3af;}
-    .value{color:#e5e7eb;font-weight:500;}
 
     .btn{
       width:100%;
@@ -78,274 +61,285 @@
       border-radius:999px;
       background:linear-gradient(135deg,#22c55e,#16a34a);
       color:white;
-      font-size:15px;
+      font-size:16px;
       cursor:pointer;
       margin-top:10px;
+      transition:.3s;
     }
 
-    .btn-outline{
-      background:transparent;
-      border:1px solid #374151;
+    .btn:disabled{
+      opacity:.5;
+      cursor:not-allowed;
     }
 
-    /* بطاقات السيارات */
-    .car-card{
-      background:#1a1c22;
-      padding:12px;
-      border-radius:14px;
-      margin-bottom:10px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.4);
-      animation:fadeIn .4s ease;
-    }
-
-    .car-img{
-      width:55px;
-      height:55px;
-      border-radius:10px;
-      background:#0d0f12;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:26px;
-    }
-
-    .car-info{
-      flex:1;
-    }
-
-    .car-info div{
-      font-size:13px;
-      margin-bottom:2px;
-    }
-
-    .empty{
-      font-size:13px;
-      color:#6b7280;
-    }
-
-    .logout{
+    .link{
+      margin-top:14px;
+      font-size:14px;
+      color:#4ade80;
       text-align:center;
-      margin-top:10px;
-      font-size:13px;
-      color:#f97373;
       cursor:pointer;
     }
 
-    /* Progress */
-    .progress-box{
-      background:#1f2937;
-      border-radius:999px;
-      height:8px;
-      margin-top:8px;
-      overflow:hidden;
-    }
-
-    .progress-fill{
-      height:100%;
-      background:linear-gradient(90deg,#22c55e,#a3e635);
-      width:0%;
-      transition:.4s;
+    .success{
+      text-align:center;
+      color:#4ade80;
+      margin-top:10px;
+      font-size:14px;
+      display:none;
     }
   </style>
 </head>
 
 <body>
 
-<h2>لوحة العميل</h2>
-<div class="subtitle">مرحباً بك في Hybrid Foam — كل بياناتك في مكان واحد</div>
+<h2>تسجيل عميل جديد</h2>
 
-<!-- بيانات العميل -->
-<div class="section">
-  <div class="title"><span>👤</span> بيانات العميل</div>
-  <div class="sub">معلومات حسابك الأساسية</div>
+<div class="box">
 
-  <div class="row"><span class="label">الاسم</span><span class="value" id="name">—</span></div>
-  <div class="row"><span class="label">رقم الجوال</span><span class="value" id="phone">—</span></div>
-  <div class="row"><span class="label">رقم العضوية</span><span class="value" id="membership">—</span></div>
-  <div class="row"><span class="label">الفرع</span><span class="value" id="city">—</span></div>
-  <div class="row"><span class="label">النقاط</span><span class="value" id="points">0</span></div>
-  <div class="row"><span class="label">غسيل مجاني</span><span class="value" id="freeWash">—</span></div>
-  <div class="row"><span class="label">المستوى</span><span class="value" id="level">—</span></div>
-  <div class="row"><span class="label">إلى المستوى التالي</span><span class="value" id="nextLevel">—</span></div>
+  <label>الاسم</label>
+  <input type="text" id="name" placeholder="الاسم الثلاثي">
 
-  <div class="progress-box">
-    <div class="progress-fill" id="progress"></div>
+  <label>رقم الجوال</label>
+  <input type="text" id="phone" placeholder="05XXXXXXXX"
+         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+
+  <label>الفرع</label>
+  <select id="branch">
+    <option value="">اختر الفرع</option>
+  </select>
+
+  <label>البراند</label>
+  <select id="brand" onchange="loadModels()">
+    <option value="">اختر البراند</option>
+  </select>
+
+  <label>الموديل</label>
+  <select id="model" onchange="autoSize()">
+    <option value="">اختر الموديل</option>
+  </select>
+
+  <label>الحجم</label>
+  <input type="text" id="size" readonly placeholder="يتم تحديده تلقائياً">
+
+  <label>رقم اللوحة</label>
+  <input type="text" id="plate_numbers" placeholder="1234">
+
+  <label>حروف اللوحة</label>
+  <input type="text" id="plate_letters" placeholder="أ ب ج">
+
+  <button class="btn" id="submitBtn" onclick="registerCustomer()">تسجيل</button>
+
+  <div class="success" id="successMsg">✔ تم التسجيل بنجاح</div>
+
+  <div class="link" onclick="window.location.href='customer-login.html'">
+    لدي حساب بالفعل
   </div>
 
-  <button class="btn btn-outline" onclick="window.location.href='customer-membership.html'">
-    عرض بطاقة العضوية
-  </button>
 </div>
-
-<!-- سيارات -->
-<div class="section">
-  <div class="title"><span>🚗</span> سياراتك</div>
-  <div class="sub">السيارات المرتبطة بحسابك</div>
-
-  <div id="carsBox" class="empty">جاري التحميل...</div>
-
-  <button class="btn btn-outline" onclick="window.location.href='customer-cars.html'">عرض كل السيارات</button>
-  <button class="btn" onclick="window.location.href='customer-add-car.html'">إضافة سيارة</button>
-</div>
-
-<!-- آخر زيارة -->
-<div class="section">
-  <div class="title"><span>🧽</span> آخر زيارة</div>
-  <div class="sub">تفاصيل آخر خدمة تمت على عضويتك</div>
-
-  <div id="lastVisitBox" class="empty">جاري التحميل...</div>
-</div>
-
-<!-- الحجوزات -->
-<div class="section">
-  <div class="title"><span>📅</span> الحجوزات</div>
-  <div class="sub">مواعيدك الحالية والسابقة</div>
-
-  <div id="bookingsBox" class="empty">جاري التحميل...</div>
-
-  <button class="btn btn-outline" onclick="window.location.href='customer-bookings.html'">عرض كل الحجوزات</button>
-  <button class="btn" onclick="window.location.href='customer-booking.html'">حجز موعد جديد</button>
-</div>
-
-<div class="logout" onclick="logout()">تسجيل خروج</div>
 
 <script src="api.js"></script>
 <script>
 
-let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
-let PHONE = CUSTOMER ? CUSTOMER.phone : null;
+let CAR_TYPES = [];
+let BRANCHES = [];
+let isSubmitting = false;
 
-if(!CUSTOMER || !PHONE){
-  window.location.href = "customer-login.html";
-}
+// تعبئة رقم الجوال لو جاي من login
+(function(){
+  const pending = localStorage.getItem("pendingPhone");
+  if(pending){
+    document.getElementById("phone").value = pending;
+  }
+})();
 
 window.onload = async function(){
-  loadCustomerInfoFromLocal();
-
-  // تحميل البيانات بالتوازي (أسرع)
   await Promise.all([
-    loadCars(),
-    loadLastVisit(),
-    loadBookings()
+    loadCarTypes(),
+    loadBranches()
   ]);
-
-  loadLevelSystem();
 };
 
-function loadCustomerInfoFromLocal(){
-  document.getElementById("name").innerText = CUSTOMER.name;
-  document.getElementById("phone").innerText = CUSTOMER.phone;
-  document.getElementById("membership").innerText = CUSTOMER.membership;
-  document.getElementById("city").innerText = CUSTOMER.city;
-  document.getElementById("points").innerText = CUSTOMER.points;
-  document.getElementById("freeWash").innerText = CUSTOMER.free_wash > 0 ? "متوفر" : "لا يوجد";
-  document.getElementById("level").innerText = CUSTOMER.level;
-}
-
-async function loadCars(){
-  const box = document.getElementById("carsBox");
-
-  const res = await apiGetCarsByPhone(PHONE);
+// =============================
+// تحميل أنواع السيارات
+// =============================
+async function loadCarTypes(){
+  const res = await apiGetCarTypes();
   if(!res.success){
-    box.innerHTML = "خطأ في قراءة البيانات.";
+    alert("خطأ في تحميل أنواع السيارات");
     return;
   }
 
-  const cars = res.cars.map(c => c.data);
+  CAR_TYPES = res.rows;
 
-  if(cars.length === 0){
-    box.innerHTML = "لا توجد سيارات مسجلة.";
+  const brands = [...new Set(CAR_TYPES.map(r => r[0]))];
+  document.getElementById("brand").innerHTML =
+    `<option value="">اختر البراند</option>` +
+    brands.map(b => `<option value="${b}">${b}</option>`).join("");
+}
+
+// =============================
+// تحميل الفروع
+// =============================
+async function loadBranches(){
+  const res = await apiGetBranches();
+  if(!res.success){
+    alert("خطأ في تحميل الفروع");
     return;
   }
 
-  box.classList.remove("empty");
+  BRANCHES = res.rows;
 
-  box.innerHTML = cars.map(c => `
-    <div class="car-card">
-      <div class="car-img">🚗</div>
-      <div class="car-info">
-        <div><b>${c[2]}</b></div>
-        <div>الحجم: ${c[3]}</div>
-        <div>اللوحة: ${c[5]} ${c[4]}</div>
-        <div>عضوية السيارة: <span style="color:#4ade80">${c[0]}</span></div>
-      </div>
-    </div>
-  `).join("");
+  const branchSelect = document.getElementById("branch");
+
+  if(BRANCHES.length === 1){
+    branchSelect.innerHTML = `<option value="${BRANCHES[0][1]}">${BRANCHES[0][1]}</option>`;
+  } else {
+    branchSelect.innerHTML =
+      `<option value="">اختر الفرع</option>` +
+      BRANCHES.map(r => `<option value="${r[1]}">${r[1]}</option>`).join("");
+  }
 }
 
-async function loadLastVisit(){
-  const box = document.getElementById("lastVisitBox");
+// =============================
+// تحميل الموديلات
+// =============================
+function loadModels(){
+  const brand = document.getElementById("brand").value;
+  const modelSelect = document.getElementById("model");
 
-  const membership = CUSTOMER.membership;
-  const res = await apiGetVisitsByMembership(membership);
-
-  if(!res.success || res.visits.length === 0){
-    box.innerHTML = "لا توجد زيارات.";
+  if(!brand){
+    modelSelect.innerHTML = `<option value="">اختر الموديل</option>`;
     return;
   }
 
-  const last = res.visits[res.visits.length - 1].data;
+  const models = CAR_TYPES.filter(r => r[0] === brand).map(r => r[1]);
 
-  box.classList.remove("empty");
-  box.innerHTML = `
-    <div style="font-size:14px;">
-      الخدمة: ${last[1]}<br>
-      السعر: ${last[2]} ريال<br>
-      النقاط: ${last[3]}<br>
-      التاريخ: ${last[8]}
-    </div>
-  `;
+  modelSelect.innerHTML =
+    `<option value="">اختر الموديل</option>` +
+    models.map(m => `<option value="${m}">${m}</option>`).join("");
 }
 
-async function loadBookings(){
-  const box = document.getElementById("bookingsBox");
+// =============================
+// تحديد الحجم تلقائياً
+// =============================
+function autoSize(){
+  const brand = document.getElementById("brand").value;
+  const model = document.getElementById("model").value;
 
-  const res = await apiGetBookingsByPhone(PHONE);
-  if(!res.success || res.bookings.length === 0){
-    box.innerHTML = "لا توجد حجوزات.";
+  const row = CAR_TYPES.find(r => r[0] === brand && r[1] === model);
+  if(row){
+    document.getElementById("size").value = row[2];
+  }
+}
+
+// =============================
+// تسجيل العميل + تسجيل السيارة بعضوية C+timestamp
+// =============================
+async function registerCustomer(){
+
+  if(isSubmitting) return;
+
+  const btn = document.getElementById("submitBtn");
+  const successMsg = document.getElementById("successMsg");
+
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const branch = document.getElementById("branch").value;
+  const brand = document.getElementById("brand").value;
+  const model = document.getElementById("model").value;
+  const size = document.getElementById("size").value;
+  const plate_numbers = document.getElementById("plate_numbers").value.trim();
+  const plate_letters = document.getElementById("plate_letters").value.trim();
+
+  if(!name || !phone || !branch){
+    alert("الرجاء تعبئة الاسم + الجوال + الفرع");
     return;
   }
 
-  const bookings = res.bookings.map(b => b.data);
-  const last = bookings[bookings.length - 1];
-
-  box.classList.remove("empty");
-  box.innerHTML = `
-    <div style="font-size:14px;margin-bottom:6px;">${bookings.length} حجز</div>
-    <div style="font-size:14px;">
-      آخر حجز: ${last[2]} • ${last[3]} ${last[4]}
-    </div>
-  `;
-}
-
-function loadLevelSystem(){
-  let points = Number(CUSTOMER.points || 0);
-
-  let levelName = "Hybrid Foam Loyalty";
-  let next = 100 - points;
-  let progress = (points / 100) * 100;
-
-  if(points >= 100 && points < 300){
-    levelName = "Hybrid Foam Silver";
-    next = 300 - points;
-    progress = ((points - 100) / 200) * 100;
-  }else if(points >= 300){
-    levelName = "Hybrid Foam Gold";
-    next = 0;
-    progress = 100;
+  if(phone.length < 10){
+    alert("رقم الجوال غير صحيح");
+    return;
   }
 
-  document.getElementById("level").innerText = levelName;
-  document.getElementById("nextLevel").innerText = next > 0 ? next + " نقطة" : "أعلى مستوى 🎉";
-  document.getElementById("progress").style.width = progress + "%";
-}
+  // زر حماية
+  isSubmitting = true;
+  btn.disabled = true;
+  btn.innerText = "جاري التسجيل...";
 
-function logout(){
-  localStorage.removeItem("customer");
-  window.location.href = "customer-login.html";
+  // عضوية العميل = رقم الجوال
+  const customerMembership = '="' + phone + '"';
+
+  // 1) تسجيل العميل
+  const res = await apiPost({
+    action: "addCustomer",
+    name,
+    phone: '="' + phone + '"',
+    car: brand + " " + model,
+    size,
+    city: branch,
+    plate_numbers,
+    plate_letters,
+    subscription: "",
+    membership: customerMembership,
+    last_visit: "",
+    visit_count: 0,
+    points: 0,
+
+    // 🔥 المستوى الصحيح
+    level: "Bronze",
+
+    free_wash: 0
+  });
+
+  if(!res.success){
+    alert("خطأ في التسجيل: " + res.error);
+    btn.disabled = false;
+    btn.innerText = "تسجيل";
+    isSubmitting = false;
+    return;
+  }
+
+  // 2) إنشاء عضوية السيارة (C + timestamp)
+  const t = new Date();
+  const carMembership =
+    "C" +
+    t.getFullYear() +
+    (t.getMonth()+1).toString().padStart(2,"0") +
+    t.getDate().toString().padStart(2,"0") +
+    "-" +
+    t.getHours().toString().padStart(2,"0") +
+    t.getMinutes().toString().padStart(2,"0") +
+    t.getSeconds().toString().padStart(2,"0");
+
+  // 3) تسجيل السيارة
+  await apiAddCar({
+    membership: carMembership,
+    phone: '="' + phone + '"',
+    car: brand + " " + model,
+    size,
+    plate_letters,
+    plate_numbers,
+    city: branch
+  });
+
+  // 4) حفظ بيانات العميل محلياً
+  const CUSTOMER = {
+    name,
+    phone,
+    city: branch,
+    membership: customerMembership,
+    points: 0,
+    level: "Bronze"
+  };
+
+  localStorage.removeItem("pendingPhone");
+  localStorage.setItem("customer", JSON.stringify(CUSTOMER));
+
+  successMsg.style.display = "block";
+
+  setTimeout(() => {
+    window.location.href = "customer-dashboard.html";
+  }, 800);
 }
 
 </script>
