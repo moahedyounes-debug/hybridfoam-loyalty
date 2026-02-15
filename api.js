@@ -118,3 +118,13 @@ async function apiGetCarTypes() {
     action: "getCarTypes"
   });
 }
+
+/* ============================
+   Employees API
+============================ */
+
+async function apiGetEmployees() {
+  return apiPost({
+    action: "getEmployees"
+  });
+}
