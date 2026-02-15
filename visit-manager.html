@@ -19,7 +19,6 @@
     <!-- العمود الأيمن -->
     <div class="right-col">
 
-      <!-- السيارات غير المدفوعة -->
       <div class="box">
         <h3>🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
         <div id="activeVisitsList"></div>
@@ -40,9 +39,7 @@
         <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
         <input type="text" id="phone" placeholder="اكتب رقم اللوحة أو الجوال أو العضوية">
 
-        <button id="btnSearch" class="btn-primary">
-          بحث
-        </button>
+        <button id="btnSearch" class="btn-primary">بحث</button>
 
         <div id="customerInfo" style="margin-top:8px;font-size:13px;color:#555;display:none;"></div>
       </div>
@@ -81,9 +78,7 @@
           </div>
         </div>
 
-        <button id="btnAddService" class="btn-secondary">
-          إضافة خدمة +
-        </button>
+        <button id="btnAddService" class="btn-secondary">إضافة خدمة +</button>
 
         <div id="servicesList" style="margin-top:10px;"></div>
 
@@ -93,6 +88,16 @@
           <div>
             <label>الخصم (ريال)</label>
             <input type="number" id="discount" placeholder="0">
+          </div>
+        </div>
+
+        <!-- اختيار الموظف -->
+        <div class="row">
+          <div>
+            <label>الموظف</label>
+            <select id="employee_in">
+              <option value="">— اختر الموظف —</option>
+            </select>
           </div>
         </div>
 
@@ -130,15 +135,6 @@
             </select>
           </div>
 
-<div class="row">
-  <div>
-    <label>الموظف</label>
-    <select id="employee_in">
-      <option value="">— اختر الموظف —</option>
-    </select>
-  </div>
-</div>
-          
           <div>
             <label>الفرع</label>
             <select id="branch">
@@ -147,7 +143,7 @@
           </div>
         </div>
 
-        <button id="btnSubmitVisit" class="btn-primary">
+        <button id="btnSubmitVisit" class="btn-primary" disabled>
           تسجيل الزيارة
         </button>
 
