@@ -223,7 +223,7 @@ let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
 let PHONE = CUSTOMER ? CUSTOMER.phone : null;
 
 if(!CUSTOMER || !PHONE){
-  window.location.href = "customer-login.html";
+  window.location.href = "customer-home.html";
 }
 
 window.onload = async function(){
