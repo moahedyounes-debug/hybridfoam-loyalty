@@ -103,9 +103,6 @@
   <input type="text" id="phone" placeholder="05XXXXXXXX"
          oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-  <label>المدينة</label>
-  <input type="text" id="city" placeholder="مثال: الرياض">
-
   <label>الفرع</label>
   <select id="branch">
     <option value="">اختر الفرع</option>
@@ -236,7 +233,7 @@ function autoSize(){
 }
 
 // =============================
-// تسجيل العميل
+// تسجيل العميل + تسجيل السيارة بعضوية C+timestamp
 // =============================
 async function registerCustomer(){
 
@@ -247,7 +244,6 @@ async function registerCustomer(){
 
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone").value.trim();
-  const city = document.getElementById("city").value.trim();
   const branch = document.getElementById("branch").value;
   const brand = document.getElementById("brand").value;
   const model = document.getElementById("model").value;
@@ -255,8 +251,8 @@ async function registerCustomer(){
   const plate_numbers = document.getElementById("plate_numbers").value.trim();
   const plate_letters = document.getElementById("plate_letters").value.trim();
 
-  if(!name || !phone || !city || !branch){
-    alert("الرجاء تعبئة جميع الحقول الأساسية");
+  if(!name || !phone || !branch){
+    alert("الرجاء تعبئة الاسم + الجوال + الفرع");
     return;
   }
 
@@ -270,19 +266,21 @@ async function registerCustomer(){
   btn.disabled = true;
   btn.innerText = "جاري التسجيل...";
 
-  const membership = '="' + phone + '"';
+  // عضوية العميل = رقم الجوال
+  const customerMembership = '="' + phone + '"';
 
+  // 1) تسجيل العميل
   const res = await apiPost({
     action: "addCustomer",
     name,
     phone: '="' + phone + '"',
     car: brand + " " + model,
     size,
-    city,
+    city: branch, // المدينة = الفرع (بما أنك لغيت city)
     plate_numbers,
     plate_letters,
     subscription: "",
-    membership,
+    membership: customerMembership,
     last_visit: "",
     visit_count: 0,
     points: 0,
@@ -298,19 +296,43 @@ async function registerCustomer(){
     return;
   }
 
-  successMsg.style.display = "block";
+  // 2) إنشاء عضوية السيارة (C + timestamp)
+  const t = new Date();
+  const carMembership =
+    "C" +
+    t.getFullYear() +
+    (t.getMonth()+1).toString().padStart(2,"0") +
+    t.getDate().toString().padStart(2,"0") +
+    "-" +
+    t.getHours().toString().padStart(2,"0") +
+    t.getMinutes().toString().padStart(2,"0") +
+    t.getSeconds().toString().padStart(2,"0");
 
+  // 3) تسجيل السيارة في شيت Cars
+  await apiAddCar({
+    membership: carMembership,
+    phone: '="' + phone + '"',
+    car: brand + " " + model,
+    size,
+    plate_letters,
+    plate_numbers,
+    city: branch
+  });
+
+  // 4) حفظ بيانات العميل محلياً
   const CUSTOMER = {
     name,
     phone,
-    city,
-    membership,
+    city: branch,
+    membership: customerMembership,
     points: 0,
     level: "Hybrid Foam Loyalty"
   };
 
   localStorage.removeItem("pendingPhone");
   localStorage.setItem("customer", JSON.stringify(CUSTOMER));
+
+  successMsg.style.display = "block";
 
   setTimeout(() => {
     window.location.href = "customer-dashboard.html";
