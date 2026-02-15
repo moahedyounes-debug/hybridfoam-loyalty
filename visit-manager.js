@@ -105,17 +105,15 @@ async function vm_loadBranches() {
 /* ============================
    تحميل الموظفين
 ============================ */
-
 async function vm_loadEmployees() {
   const res = await apiGetEmployees();
   if (!res.success) return;
 
-  VM_STATE.employees = res.rows;
+  const employees = res.rows || [];
+  const select = document.getElementById("employee_in");
 
-  const select = document.getElementById("employee");
-  select.innerHTML =
-    '<option value="">— اختر الموظف —</option>' +
-    VM_STATE.employees.map(e => `<option value="${e[0]}">${e[0]}</option>`).join("");
+  select.innerHTML = '<option value="">— اختر الموظف —</option>' +
+    employees.map(e => `<option value="${e[0]}">${e[0]}</option>`).join("");
 }
 
 /* ============================
