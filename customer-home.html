@@ -77,11 +77,34 @@
       cursor:not-allowed;
     }
 
-    .link{
-      margin-top:14px;
-      font-size:14px;
-      color:#4FC3F7;
+    .otp-box{
+      background:#E3F2FD;
+      padding:10px;
+      border-radius:10px;
+      margin-bottom:12px;
+      font-size:18px;
+      font-weight:700;
+      color:#0D47A1;
+      display:none;
+    }
+
+    /* زر واتساب عائم */
+    .whatsapp-float{
+      position:fixed;
+      bottom:25px;
+      right:25px;
+      background:#25D366;
+      color:white;
+      width:60px;
+      height:60px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:30px;
       cursor:pointer;
+      box-shadow:0 4px 12px rgba(0,0,0,0.2);
+      z-index:999;
     }
   </style>
 </head>
@@ -94,23 +117,71 @@
 <div class="subtitle">مرحباً بك — فضلاً أدخل رقم جوالك للمتابعة</div>
 
 <div class="box">
+
   <input type="text" id="phone" placeholder="05XXXXXXXX"
+         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+
+  <!-- كود التحقق -->
+  <div id="otpBox" class="otp-box"></div>
+
+  <input type="text" id="otpInput" placeholder="أدخل رمز التحقق" style="display:none;"
          oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
   <button id="loginBtn" class="btn" onclick="start()">متابعة</button>
 
-  <div class="link" onclick="window.location.href='customer-register.html'">
-    تسجيل عميل جديد
-  </div>
 </div>
+
+<!-- زر واتساب عائم -->
+<div class="whatsapp-float" onclick="contactWhatsApp()">💬</div>
 
 <script src="api.js"></script>
 <script>
 
 let isProcessing = false;
+let generatedOTP = null;
 
 // ===============================
-// بدء التحقق
+// زر واتساب (بدون تحقق)
+// ===============================
+async function contactWhatsApp(){
+  const phone = document.getElementById("phone").value.trim();
+
+  let msg = "مرحباً مغسلة رغوة الهجين%0A";
+
+  if(!phone){
+    msg += "رقم الجوال غير مُدخل";
+    window.location.href = "https://wa.me/966582007063?text=" + msg;
+    return;
+  }
+
+  const res = await apiGetCustomerByPhone(phone);
+
+  if(!res.success){
+    msg += "رقم الجوال: " + phone;
+    window.location.href = "https://wa.me/966582007063?text=" + msg;
+    return;
+  }
+
+  const c = res.customer;
+
+  // عدد السيارات
+  const carsRes = await apiGet({ action:"getAll", sheet:"Cars" });
+  let carCount = 0;
+
+  if(carsRes.success){
+    carCount = carsRes.rows.filter(r => r[1] === phone).length;
+  }
+
+  msg += 
+    "الاسم: " + c[0] + "%0A" +
+    "رقم العضوية: " + c[8] + "%0A" +
+    "عدد السيارات: " + carCount;
+
+  window.location.href = "https://wa.me/966582007063?text=" + msg;
+}
+
+// ===============================
+// بدء التحقق للدخول
 // ===============================
 async function start(){
 
@@ -126,26 +197,41 @@ async function start(){
     return;
   }
 
+  // إذا ما تم إنشاء كود تحقق → ننشئه الآن
+  if(!generatedOTP){
+    generatedOTP = Math.floor(1000 + Math.random() * 9000);
+
+    document.getElementById("otpBox").style.display = "block";
+    document.getElementById("otpInput").style.display = "block";
+
+    document.getElementById("otpBox").innerText = "رمز التحقق: " + generatedOTP;
+
+    btn.innerText = "تأكيد الرمز";
+    isProcessing = false;
+    return;
+  }
+
+  // تحقق من الكود
+  const otpInput = document.getElementById("otpInput").value.trim();
+
+  if(otpInput != generatedOTP){
+    alert("رمز التحقق غير صحيح");
+    isProcessing = false;
+    return;
+  }
+
   btn.disabled = true;
   btn.innerText = "جاري التحقق...";
 
-  // التحقق السريع من وجود العميل
   const res = await apiGetCustomerByPhone(phone);
 
-  // حفظ رقم الجوال دائماً
   localStorage.setItem("pendingPhone", phone);
 
   if(!res.success){
-    // عميل جديد
-    btn.innerText = "متابعة";
-    btn.disabled = false;
-    isProcessing = false;
-
     window.location.href = "customer-register.html";
     return;
   }
 
-  // عميل موجود → حفظ بياناته
   const c = res.customer;
 
   const CUSTOMER = {
@@ -167,7 +253,6 @@ async function start(){
 
   localStorage.setItem("customer", JSON.stringify(CUSTOMER));
 
-  // تحويل مباشر للوحة العميل
   window.location.href = "customer-dashboard.html";
 }
 
