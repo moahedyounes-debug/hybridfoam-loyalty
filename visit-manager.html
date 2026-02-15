@@ -16,18 +16,32 @@
 
   <div class="layout">
 
+    <!-- العمود الأيمن (كما طلبت) -->
+    <div class="right-col">
+
+      <!-- السيارات غير المدفوعة -->
+      <div class="box">
+        <h3>🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
+        <div id="activeVisitsList"></div>
+        <button id="btnRefreshActive" class="btn-secondary" style="width:100%;margin-top:10px;">
+          تحديث القائمة
+        </button>
+      </div>
+
+    </div>
+
     <!-- العمود الأيسر -->
-    <div>
+    <div class="left-col">
 
       <!-- البحث -->
       <div class="box">
-        <h3>بحث عن العميل</h3>
+        <h3>بحث عن السيارة</h3>
 
         <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
-        <input type="text" id="phone" placeholder="05XXXXXXXX أو 20260001 أو لوحة السيارة">
+        <input type="text" id="phone" placeholder="اكتب رقم اللوحة أو الجوال أو العضوية">
 
         <button id="btnSearch" class="btn-primary">
-          بحث عن العميل
+          بحث
         </button>
 
         <div id="customerInfo" style="margin-top:8px;font-size:13px;color:#555;display:none;"></div>
@@ -75,7 +89,6 @@
 
         <h3 style="margin-top:15px;">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
 
-        <!-- الخصم -->
         <div class="row">
           <div>
             <label>الخصم (ريال)</label>
@@ -129,20 +142,6 @@
           تسجيل الزيارة
         </button>
 
-      </div>
-    </div>
-
-    <!-- العمود الأيمن -->
-    <div>
-      <div class="box">
-        <h3>السيارات داخل المغسلة (غير مدفوعة)</h3>
-
-        <div class="active-list" id="activeVisitsList"></div>
-
-        <button id="btnRefreshActive" class="btn-secondary"
-                style="width:100%; margin-top:10px;">
-          تحديث القائمة
-        </button>
       </div>
     </div>
 
