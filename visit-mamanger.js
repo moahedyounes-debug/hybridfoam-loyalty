@@ -20,7 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
   vm_loadActiveVisits();
 });
 
-// تحميل الخدمات من Commissions
+/* ============================
+   تحميل الخدمات
+============================ */
 async function vm_loadServices(){
   const res = await apiGetServices();
   if(!res.success) return;
@@ -30,7 +32,7 @@ async function vm_loadServices(){
   const typeSelect = document.getElementById("service_type");
   const detailSelect = document.getElementById("service_detail");
 
-  const categories = [...new Set(res.services.map(s => s[4]))]; // Category
+  const categories = [...new Set(res.services.map(s => s.category))];
 
   typeSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join("");
   typeSelect.addEventListener("change", vm_filterServiceDetails);
@@ -39,23 +41,21 @@ async function vm_loadServices(){
   detailSelect.addEventListener("change", vm_updatePrice);
 }
 
-// فلترة تفاصيل الخدمة حسب النوع
 function vm_filterServiceDetails(){
   const type = document.getElementById("service_type").value;
   const detailSelect = document.getElementById("service_detail");
 
-  const filtered = VM_STATE.services.filter(s => String(s[4]) === String(type));
+  const filtered = VM_STATE.services.filter(s => String(s.category) === String(type));
 
   detailSelect.innerHTML = filtered.map(s =>
-    `<option value="${s[0]}" data-price="${s[2]}" data-commission="${s[1]}">
-      ${s[0]}
+    `<option value="${s.service}" data-price="${s.price}" data-commission="${s.commission}">
+      ${s.service}
     </option>`
   ).join("");
 
   vm_updatePrice();
 }
 
-// تحديث السعر والنقاط بناءً على الخدمة
 function vm_updatePrice(){
   const detailSelect = document.getElementById("service_detail");
   const opt = detailSelect.selectedOptions[0];
@@ -68,28 +68,59 @@ function vm_updatePrice(){
 
 function vm_updatePoints(){
   const price = Number(document.getElementById("price").value || 0);
-  const points = Math.round(price / 10); // مثال: كل 10 ريال = نقطة
+  const points = Math.round(price / 10);
   document.getElementById("points").value = points;
 }
 
-// بحث عن العميل + سياراته
-async function vm_searchCustomer(){
-  const phone = document.getElementById("phone").value.trim();
-  if(!phone){
-    alert("ادخل رقم الجوال");
+/* ============================
+   البحث الذكي (جوال – عضوية – لوحة)
+============================ */
+async function vm_searchCustomer() {
+  const input = document.getElementById("phone").value.trim();
+  if (!input) {
+    alert("ادخل رقم الجوال أو العضوية أو رقم اللوحة");
     return;
   }
 
-  const infoBox = document.getElementById("customerInfo");
-  infoBox.style.display = "none";
+  let customerRes = null;
 
-  const custRes = await apiGetCustomerByPhone(phone);
-  if(!custRes.success){
-    alert("العميل غير موجود");
+  // 1) رقم الجوال
+  if (input.startsWith("05") && input.length === 10) {
+    customerRes = await apiGetCustomerByPhone(input);
+  }
+
+  // 2) رقم العضوية
+  else if (/^\d+$/.test(input) && input.length >= 6 && input.length <= 10) {
+    customerRes = await apiGetCustomerByMembership(input);
+  }
+
+  // 3) رقم اللوحة
+  else {
+    const cars = await apiGet({ action: "getAll", sheet: "Cars" });
+
+    if (!cars.success) {
+      alert("خطأ في قراءة بيانات السيارات");
+      return;
+    }
+
+    const foundCar = cars.rows.find(r =>
+      String(r[5]) === input ||
+      String(r[4]) === input ||
+      (r[4] + r[5]) === input
+    );
+
+    if (foundCar) {
+      customerRes = await apiGetCustomerByMembership(foundCar[0]);
+    }
+  }
+
+  if (!customerRes || !customerRes.success) {
+    alert("لم يتم العثور على العميل");
     return;
   }
 
-  const c = custRes.customer;
+  const c = customerRes.customer;
+
   VM_STATE.customer = {
     name: c[0],
     phone: c[1],
@@ -97,15 +128,17 @@ async function vm_searchCustomer(){
     city: c[4]
   };
 
+  const infoBox = document.getElementById("customerInfo");
   infoBox.style.display = "block";
   infoBox.innerHTML = `
     الاسم: ${VM_STATE.customer.name}<br>
-    العضوية: ${VM_STATE.customer.membership || "—"}<br>
-    المدينة: ${VM_STATE.customer.city || "—"}
+    العضوية: ${VM_STATE.customer.membership}<br>
+    المدينة: ${VM_STATE.customer.city}
   `;
 
-  const carsRes = await apiGetCarsByPhone(phone);
-  if(!carsRes.success || !carsRes.cars || carsRes.cars.length === 0){
+  const carsRes = await apiGetCarsByPhone(VM_STATE.customer.phone);
+
+  if (!carsRes.success || carsRes.cars.length === 0) {
     document.getElementById("carsBox").style.display = "none";
     document.getElementById("visitBox").style.display = "none";
     alert("لا توجد سيارات مسجلة لهذا العميل");
@@ -116,7 +149,9 @@ async function vm_searchCustomer(){
   vm_renderCars();
 }
 
-// عرض السيارات للاختيار
+/* ============================
+   عرض السيارات
+============================ */
 function vm_renderCars(){
   const box = document.getElementById("carsBox");
   const list = document.getElementById("carsList");
@@ -149,8 +184,12 @@ function vm_renderCars(){
       VM_STATE.selectedMembership = membership;
       document.querySelectorAll(".car-item").forEach(el => {
         el.style.background = "transparent";
+        el.style.color = "inherit";
+        el.style.border = "1px solid #374151";
       });
-      div.style.background = "#111827";
+      div.style.background = "#0D47A1";
+      div.style.color = "white";
+      div.style.border = "1px solid #0D47A1";
       document.getElementById("visitBox").style.display = "block";
     });
 
@@ -158,7 +197,9 @@ function vm_renderCars(){
   });
 }
 
-// إضافة خدمة إلى قائمة الزيارة
+/* ============================
+   إضافة خدمة
+============================ */
 function vm_addService(){
   const detailSelect = document.getElementById("service_detail");
   const opt = detailSelect.selectedOptions[0];
@@ -173,7 +214,6 @@ function vm_addService(){
   vm_renderSelectedServices();
 }
 
-// عرض الخدمات المضافة
 function vm_renderSelectedServices(){
   const box = document.getElementById("servicesList");
   const totalSpan = document.getElementById("totalPrice");
@@ -203,7 +243,9 @@ function vm_removeService(index){
   vm_renderSelectedServices();
 }
 
-// تحميل الفروع
+/* ============================
+   تحميل الفروع
+============================ */
 async function vm_loadBranches(){
   const res = await apiGetBranches();
   if(!res.success) return;
@@ -216,7 +258,9 @@ async function vm_loadBranches(){
     branches.map(b => `<option value="${b[0]}">${b[0]} - ${b[1]}</option>`).join("");
 }
 
-// تسجيل الزيارة
+/* ============================
+   تسجيل الزيارة (مع الخصم + الإشعار + الواتساب + الإغلاق التلقائي)
+============================ */
 async function vm_submitVisit(){
   if(!VM_STATE.selectedMembership){
     alert("اختر سيارة أولاً");
@@ -232,14 +276,14 @@ async function vm_submitVisit(){
   const payment_method = document.getElementById("payment_method").value;
   const parking_slot = document.getElementById("parking_slot").value;
   const branch = document.getElementById("branch").value;
+  const discount = Number(document.getElementById("discount")?.value || 0);
 
   if(!payment_status || !payment_method || !parking_slot || !branch){
     alert("أكمل بيانات الدفع والفرع والموقف");
     return;
   }
 
-  // هنا بنسجل زيارة واحدة بإجمالي الخدمات (ممكن تطورها لاحقاً لتفاصيل متعددة)
-  const totalPrice = VM_STATE.selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const totalPrice = VM_STATE.selectedServices.reduce((sum, s) => sum + s.price, 0) - discount;
   const totalPoints = VM_STATE.selectedServices.reduce((sum, s) => sum + s.points, 0);
   const serviceNames = VM_STATE.selectedServices.map(s => s.name).join(" + ");
 
@@ -248,7 +292,7 @@ async function vm_submitVisit(){
     service_detail: serviceNames,
     price: totalPrice,
     points: totalPoints,
-    employee_in: "", // ممكن تربطها بتسجيل دخول الموظف
+    employee_in: "",
     employee_out: "",
     branch,
     commission: "",
@@ -263,13 +307,44 @@ async function vm_submitVisit(){
     return;
   }
 
+  // إشعار العميل
+  await apiPost({
+    action: "addNotification",
+    phone: VM_STATE.customer.phone,
+    message: `تم تسجيل زيارة جديدة\nالخدمة: ${serviceNames}\nالسعر: ${totalPrice} ريال\nالنقاط: ${totalPoints}`,
+    type: "info"
+  });
+
+  // إغلاق تلقائي إذا مدفوع
+  if (payment_status === "مدفوع") {
+    await apiPost({
+      action: "closeVisit",
+      row: res.row,
+      payment_status: "مدفوع",
+      payment_method
+    });
+  }
+
+  // مشاركة الفاتورة عبر الواتساب
+  const msg =
+    `فاتورة زيارة جديدة\n` +
+    `العميل: ${VM_STATE.customer.name}\n` +
+    `الجوال: ${VM_STATE.customer.phone}\n` +
+    `الخدمات: ${serviceNames}\n` +
+    `الإجمالي: ${totalPrice} ريال\n` +
+    `النقاط: ${totalPoints}`;
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+
   alert("تم تسجيل الزيارة بنجاح");
   VM_STATE.selectedServices = [];
   vm_renderSelectedServices();
   vm_loadActiveVisits();
 }
 
-// تحميل السيارات داخل المغسلة (غير مدفوعة)
+/* ============================
+   الزيارات غير المدفوعة
+============================ */
 async function vm_loadActiveVisits(){
   const box = document.getElementById("activeVisitsList");
   box.innerHTML = "جاري التحميل...";
@@ -295,7 +370,9 @@ async function vm_loadActiveVisits(){
   }).join("");
 }
 
-// إغلاق زيارة (مدفوعة)
+/* ============================
+   إغلاق الزيارة يدوياً
+============================ */
 async function vm_markPaid(row){
   const res = await apiPost({
     action: "closeVisit",
