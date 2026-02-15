@@ -1,169 +1,168 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>لوحة العميل</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>لوحة العميل</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body{
-      font-family:"Tajawal",sans-serif;
-      background:#F4FAFF;
-      color:#0D47A1;
-      padding:16px;
-    }
+<style>
+body{
+  font-family:"Tajawal",sans-serif;
+  background:#F4FAFF;
+  color:#0D47A1;
+  padding:16px;
+}
 
-    .logo{
-      width:140px;
-      display:block;
-      margin:0 auto 10px auto;
-    }
+.logo{
+  width:140px;
+  display:block;
+  margin:0 auto 10px auto;
+}
 
-    h2{
-      text-align:center;
-      margin-bottom:6px;
-      font-size:24px;
-      font-weight:700;
-      color:#0D47A1;
-    }
+h2{
+  text-align:center;
+  margin-bottom:6px;
+  font-size:24px;
+  font-weight:700;
+  color:#0D47A1;
+}
 
-    .subtitle{
-      text-align:center;
-      color:#4FC3F7;
-      font-size:14px;
-      margin-bottom:18px;
-    }
+.subtitle{
+  text-align:center;
+  color:#4FC3F7;
+  font-size:14px;
+  margin-bottom:18px;
+}
 
-    .section{
-      background:#FFFFFF;
-      border-radius:18px;
-      padding:18px;
-      margin-bottom:16px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.08);
-      border:1px solid #E3F2FD;
-    }
+.section{
+  background:#FFFFFF;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  border:1px solid #E3F2FD;
+}
 
-    .title{
-      font-size:18px;
-      font-weight:700;
-      margin-bottom:6px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      color:#0D47A1;
-    }
+.title{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:6px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#0D47A1;
+}
 
-    .sub{
-      font-size:13px;
-      color:#4FC3F7;
-      margin-bottom:12px;
-    }
+.sub{
+  font-size:13px;
+  color:#4FC3F7;
+  margin-bottom:12px;
+}
 
-    .row{
-      display:flex;
-      justify-content:space-between;
-      margin-bottom:6px;
-      font-size:15px;
-    }
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+  font-size:15px;
+}
 
-    .label{color:#4FC3F7;}
-    .value{color:#0D47A1;font-weight:600;}
+.label{color:#4FC3F7;}
+.value{color:#0D47A1;font-weight:600;}
 
-    .btn{
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:999px;
-      background:#0D47A1;
-      color:white;
-      font-size:15px;
-      cursor:pointer;
-      margin-top:10px;
-    }
+.btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:999px;
+  background:#0D47A1;
+  color:white;
+  font-size:15px;
+  cursor:pointer;
+  margin-top:10px;
+}
 
-    .btn-outline{
-      background:transparent;
-      border:2px solid #0D47A1;
-      color:#0D47A1;
-    }
+.btn-outline{
+  background:transparent;
+  border:2px solid #0D47A1;
+  color:#0D47A1;
+}
 
-    .car-card{
-      background:#F0F7FF;
-      padding:12px;
-      border-radius:14px;
-      margin-bottom:10px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      border:1px solid #DCEBFF;
-    }
+.car-card{
+  background:#F0F7FF;
+  padding:12px;
+  border-radius:14px;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border:1px solid #DCEBFF;
+}
 
-    .car-img{
-      width:55px;
-      height:55px;
-      border-radius:10px;
-      background:#0D47A1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:26px;
-      color:white;
-    }
+.car-img{
+  width:55px;
+  height:55px;
+  border-radius:10px;
+  background:#0D47A1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  color:white;
+}
 
-    .car-info div{
-      font-size:14px;
-      margin-bottom:2px;
-      color:#0D47A1;
-    }
+.car-info div{
+  font-size:14px;
+  margin-bottom:2px;
+  color:#0D47A1;
+}
 
-    .empty{
-      font-size:14px;
-      color:#4FC3F7;
-    }
+.empty{
+  font-size:14px;
+  color:#4FC3F7;
+}
 
-    .logout{
-      text-align:center;
-      margin-top:10px;
-      font-size:14px;
-      color:#D32F2F;
-      cursor:pointer;
-    }
+.logout{
+  text-align:center;
+  margin-top:10px;
+  font-size:14px;
+  color:#D32F2F;
+  cursor:pointer;
+}
 
-    .progress-box{
-      background:#E3F2FD;
-      border-radius:999px;
-      height:10px;
-      margin-top:8px;
-      overflow:hidden;
-    }
+.progress-box{
+  background:#E3F2FD;
+  border-radius:999px;
+  height:10px;
+  margin-top:8px;
+  overflow:hidden;
+}
 
-    .progress-fill{
-      height:100%;
-      background:#4FC3F7;
-      width:0%;
-      transition:.4s;
-    }
+.progress-fill{
+  height:100%;
+  background:#4FC3F7;
+  width:0%;
+  transition:.4s;
+}
 
-    .next-level{
-      font-size:13px;
-      color:#FF8F00;
-      margin-top:6px;
-      text-align:left;
-    }
+.next-level{
+  font-size:13px;
+  color:#FF8F00;
+  margin-top:6px;
+  text-align:left;
+}
 
-    /* زر واتساب */
-    .whatsapp-btn{
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:999px;
-      background:#25D366;
-      color:white;
-      font-size:16px;
-      cursor:pointer;
-      margin-top:20px;
-    }
-  </style>
+.whatsapp-btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:999px;
+  background:#25D366;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:20px;
+}
+</style>
 </head>
 
 <body>
@@ -227,12 +226,12 @@
   <button class="btn" onclick="window.location.href='customer-booking.html'">حجز موعد جديد</button>
 </div>
 
-<!-- زر واتساب -->
 <button class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
 
 <div class="logout" onclick="logout()">تسجيل خروج</div>
 
 <script src="api.js"></script>
+
 <script>
 
 let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
@@ -265,13 +264,8 @@ async function loadCustomerFromAPI(){
   CUSTOMER = {
     name: c[0],
     phone: c[1],
-    car: c[2],
-    size: c[3],
-    city: c[4],
-    plate_numbers: c[5],
-    plate_letters: c[6],
-    subscription: c[7],
     membership: c[8],
+    city: c[4],
     last_visit: c[9],
     visit_count: c[10],
     points: c[11],
@@ -294,8 +288,8 @@ function loadCustomerInfoFromLocal(){
 
 async function loadCars(){
   const box = document.getElementById("carsBox");
-
   const res = await apiGetCarsByPhone(PHONE);
+
   if(!res.success){
     box.innerHTML = "خطأ في قراءة البيانات.";
     return;
@@ -325,7 +319,6 @@ async function loadCars(){
 
 async function loadLastVisit(){
   const box = document.getElementById("lastVisitBox");
-
   const res = await apiGetVisitsByMembership(CUSTOMER.membership);
 
   if(!res.success || !res.visits.length){
@@ -336,6 +329,7 @@ async function loadLastVisit(){
   const last = res.visits[res.visits.length - 1].data;
 
   box.classList.remove("empty");
+
   box.innerHTML = `
     <div style="font-size:14px;">
       الخدمة: ${last[1]}<br>
@@ -348,8 +342,8 @@ async function loadLastVisit(){
 
 async function loadBookings(){
   const box = document.getElementById("bookingsBox");
-
   const res = await apiGetBookingsByPhone(PHONE);
+
   if(!res.success || !res.bookings.length){
     box.innerHTML = "لا توجد حجوزات.";
     return;
@@ -359,6 +353,7 @@ async function loadBookings(){
   const last = bookings[bookings.length - 1];
 
   box.classList.remove("empty");
+
   box.innerHTML = `
     <div style="font-size:14px;margin-bottom:6px;">${bookings.length} حجز</div>
     <div style="font-size:14px;">
@@ -380,13 +375,18 @@ function loadLevelSystem(){
   }
 
   if(level === "Silver"){
-    next = 300 - points;
-    progress = ((points - 100) / 200) * 100;
+    next = 200 - points;
+    progress = ((points - 100) / 100) * 100;
   }
 
   if(level === "Gold"){
-    next = 600 - points;
-    progress = ((points - 300) / 300) * 100;
+    next = 400 - points;
+    progress = ((points - 200) / 200) * 100;
+  }
+
+  if(level === "Platinum"){
+    next = 900 - points;
+    progress = ((points - 400) / 500) * 100;
   }
 
   if(level === "VIP"){
@@ -405,9 +405,7 @@ function logout(){
   window.location.href = "customer-home.html";
 }
 
-// ===============================
-// زر واتساب
-// ===============================
+// واتساب
 async function contactWhatsApp() {
   const phone = CUSTOMER.phone;
   let msg = "مرحباً مغسلة رغوة الهجين%0A";
@@ -423,6 +421,7 @@ async function contactWhatsApp() {
   const c = res.customer;
 
   const carsRes = await apiGet({ action: "getAll", sheet: "Cars" });
+
   let carCount = 0;
 
   if (carsRes.success) {
