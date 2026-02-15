@@ -1,128 +1,99 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>بطاقة العضوية</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>بطاقة العضوية</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body{
-    font-family:"Tajawal",sans-serif;
-    background:#000;
-    color:white;
-    padding:20px;
-    text-align:center;
-}
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#F4FAFF;
+      color:#0D47A1;
+      padding:20px;
+      text-align:center;
+    }
 
-h2{
-    margin-bottom:20px;
-    font-size:24px;
-    color:#f5f5f5;
-}
+    .card{
+      width:330px;
+      margin:auto;
+      border-radius:18px;
+      overflow:hidden;
+      background:white;
+      box-shadow:0 6px 18px rgba(0,0,0,0.15);
+      position:relative;
+    }
 
-/* البطاقة */
-.card{
-    width:340px;
-    margin:auto;
-    border-radius:20px;
-    overflow:hidden;
-    background:#0d0d0d;
-    border:2px solid #d4af37;
-    box-shadow:0 0 25px rgba(212,175,55,0.4);
-    animation:fadeIn .4s ease;
-}
+    /* اللوجو الخلفي */
+    .card::after{
+      content:"";
+      position:absolute;
+      top:50%;
+      left:50%;
+      width:220px;
+      height:220px;
+      background:url('logo.png') center/contain no-repeat;
+      opacity:0.08;
+      transform:translate(-50%, -50%);
+      pointer-events:none;
+    }
 
-@keyframes fadeIn{
-    from{opacity:0;transform:translateY(10px);}
-    to{opacity:1;transform:translateY(0);}
-}
+    .top{
+      padding:14px;
+      color:white;
+      font-size:20px;
+      font-weight:700;
+      text-align:center;
+    }
 
-/* الجزء العلوي */
-.top{
-    padding:22px;
-    background:#000;
-    color:white;
-    text-align:center;
-    border-bottom:1px solid #d4af37;
-}
+    .content{
+      padding:20px;
+      position:relative;
+      z-index:2;
+    }
 
-.logo{
-    width:70px;
-    height:70px;
-    object-fit:contain;
-    margin-bottom:8px;
-}
+    .row{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:10px;
+      font-size:15px;
+    }
 
-.level-text{
-    font-size:22px;
-    font-weight:bold;
-    margin-top:6px;
-    color:#d4af37;
-}
+    .label{
+      color:#4FC3F7;
+    }
 
-.membership{
-    font-size:16px;
-    margin-top:6px;
-    color:#f5f5f5;
-}
+    .value{
+      color:#0D47A1;
+      font-weight:600;
+    }
 
-/* QR */
-.qr-box{
-    margin-top:12px;
-}
-.qr-box canvas{
-    width:110px !important;
-    height:110px !important;
-}
+    .qr{
+      width:110px;
+      height:110px;
+      background:#E3F2FD;
+      margin:14px auto;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#0D47A1;
+      font-size:14px;
+      border:2px dashed #4FC3F7;
+    }
 
-/* الجزء السفلي */
-.bottom{
-    padding:18px;
-    text-align:right;
-    background:#0d0d0d;
-}
-
-.row{
-    margin-bottom:8px;
-    font-size:15px;
-    color:#e5e5e5;
-}
-
-.row b{
-    color:#d4af37;
-}
-
-/* زر الإضافة للشاشة */
-.add-btn{
-    margin-top:15px;
-    background:#d4af37;
-    color:black;
-    padding:12px;
-    border-radius:12px;
-    font-size:15px;
-    cursor:pointer;
-    width:100%;
-    text-align:center;
-    display:none;
-    font-weight:bold;
-}
-
-.btn-back{
-    margin-top:20px;
-    padding:12px;
-    background:#111;
-    border:1px solid #d4af37;
-    color:#d4af37;
-    border-radius:12px;
-    width:100%;
-    max-width:340px;
-    cursor:pointer;
-}
-</style>
-
-<script src="api.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-
+    .btn{
+      margin-top:20px;
+      padding:12px;
+      width:100%;
+      border:none;
+      border-radius:999px;
+      background:#0D47A1;
+      color:white;
+      font-size:15px;
+      cursor:pointer;
+    }
+  </style>
 </head>
 
 <body>
@@ -131,83 +102,48 @@ h2{
 
 <div id="cardContainer"></div>
 
-<button class="btn-back" onclick="window.location.href='customer-dashboard.html'">
-العودة للوحة العميل
-</button>
+<button class="btn" onclick="window.location.href='customer-dashboard.html'">العودة للوحة العميل</button>
 
+<script src="api.js"></script>
 <script>
-let deferredPrompt;
 
-// إظهار زر الإضافة للشاشة
-window.addEventListener("beforeinstallprompt", (e)=>{
-    e.preventDefault();
-    deferredPrompt = e;
-    const btn = document.getElementById("addBtn");
-    if(btn) btn.style.display = "block";
-});
+let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
 
-// تحميل البطاقة
-async function loadCard(){
-    const CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
+if(!CUSTOMER){
+  window.location.href = "customer-login.html";
+}
 
-    if(!CUSTOMER){
-        alert("يرجى تسجيل الدخول أولاً");
-        location.href = "customer-login.html";
-        return;
-    }
+// ألوان المستويات
+let color = "#cd7f32"; // Bronze
+if (CUSTOMER.level === "Silver") color = "#c0c0c0";
+if (CUSTOMER.level === "Gold") color = "#d4af37";
+if (CUSTOMER.level === "Platinum") color = "#e5e4e2";
+if (CUSTOMER.level === "VIP") color = "#000";
 
-    // تحديد اللون حسب المستوى
-    let color = "#d4af37"; // Gold default
-    let levelText = CUSTOMER.level || "Loyalty";
+// نص المستوى
+let levelText = CUSTOMER.level;
+if (CUSTOMER.level === "VIP") levelText = "👑 VIP";
 
-    if(levelText.includes("VIP")){
-        levelText = "👑 VIP";
-        color = "#000"; // VIP أسود ملكي
-    }
-
-    // بناء البطاقة
-    document.getElementById("cardContainer").innerHTML = `
-    <div class="card">
-        <div class="top">
-            <img src="logo.png" class="logo">
-            <div class="level-text">${levelText}</div>
-            <div class="membership"><b>رقم العضوية:</b> ${CUSTOMER.membership}</div>
-
-            <div class="qr-box">
-                <canvas id="qr"></canvas>
-            </div>
-        </div>
-
-        <div class="bottom">
-            <div class="row"><b>الاسم:</b> ${CUSTOMER.name}</div>
-            <div class="row"><b>النقاط:</b> ${CUSTOMER.points} نقطة</div>
-            <div class="row"><b>آخر زيارة:</b> ${CUSTOMER.last_visit || "—"}</div>
-
-            <div id="addBtn" class="add-btn" onclick="addToHome()">
-                📱 أضف للشاشة الرئيسية
-            </div>
-        </div>
+document.getElementById("cardContainer").innerHTML = `
+  <div class="card">
+    <div class="top" style="background:${color};">
+      بطاقة الولاء
     </div>
-    `;
 
-    // QR
-    new QRious({
-        element: document.getElementById("qr"),
-        value: CUSTOMER.phone,
-        size: 110
-    });
-}
+    <div class="content">
+      <div class="row"><span class="label">الاسم</span><span class="value">${CUSTOMER.name}</span></div>
+      <div class="row"><span class="label">رقم العضوية</span><span class="value">${CUSTOMER.membership}</span></div>
+      <div class="row"><span class="label">المستوى</span><span class="value">${levelText}</span></div>
+      <div class="row"><span class="label">النقاط</span><span class="value">${CUSTOMER.points}</span></div>
 
-function addToHome(){
-    if(deferredPrompt){
-        deferredPrompt.prompt();
-        deferredPrompt = null;
-    } else {
-        alert("لإضافة البطاقة للشاشة الرئيسية:\n\n📱 iPhone:\nاضغط مشاركة → Add to Home Screen\n\n🤖 Android:\nمن القائمة → Add to Home Screen");
-    }
-}
+      <div class="qr">QR هنا</div>
 
-loadCard();
+      <div class="row"><span class="label">الاشتراك</span><span class="value">${CUSTOMER.subscription || "بدون اشتراك"}</span></div>
+      <div class="row"><span class="label">آخر زيارة</span><span class="value">${CUSTOMER.last_visit || "—"}</span></div>
+    </div>
+  </div>
+`;
+
 </script>
 
 </body>
