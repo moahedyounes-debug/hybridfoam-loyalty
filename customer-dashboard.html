@@ -8,9 +8,15 @@
   <style>
     body{
       font-family:"Tajawal",sans-serif;
-      background:#F5F9FF;
+      background:#F4FAFF;
       color:#0D47A1;
       padding:16px;
+    }
+
+    .logo{
+      width:140px;
+      display:block;
+      margin:0 auto 10px auto;
     }
 
     h2{
@@ -34,6 +40,7 @@
       padding:18px;
       margin-bottom:16px;
       box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      border:1px solid #E3F2FD;
     }
 
     .title{
@@ -80,7 +87,6 @@
       color:#0D47A1;
     }
 
-    /* بطاقات السيارات */
     .car-card{
       background:#F0F7FF;
       padding:12px;
@@ -123,11 +129,10 @@
       cursor:pointer;
     }
 
-    /* Progress */
     .progress-box{
       background:#E3F2FD;
       border-radius:999px;
-      height:8px;
+      height:10px;
       margin-top:8px;
       overflow:hidden;
     }
@@ -138,13 +143,22 @@
       width:0%;
       transition:.4s;
     }
+
+    .next-level{
+      font-size:13px;
+      color:#FF8F00;
+      margin-top:6px;
+      text-align:left;
+    }
   </style>
 </head>
 
 <body>
 
+<img src="logo.png" class="logo">
+
 <h2>لوحة العميل</h2>
-<div class="subtitle">مرحباً بك في Hybrid Foam — كل بياناتك في مكان واحد</div>
+<div class="subtitle">مرحباً بك في رغوة الهجين — كل بياناتك في مكان واحد</div>
 
 <!-- بيانات العميل -->
 <div class="section">
@@ -162,6 +176,8 @@
   <div class="progress-box">
     <div class="progress-fill" id="progress"></div>
   </div>
+
+  <div class="next-level" id="nextLevelText"></div>
 
   <button class="btn btn-outline" onclick="window.location.href='customer-membership.html'">
     عرض بطاقة العضوية
@@ -285,7 +301,7 @@ async function loadCars(){
         <div><b>${c[2]}</b></div>
         <div>الحجم: ${c[3]}</div>
         <div>اللوحة: ${c[5]} ${c[4]}</div>
-        <div>عضوية السيارة: <span style="color:#4FC3F7">${c[0]}</span></div>
+        <div>عضوية السيارة: <span style="color:#FF8F00">${c[0]}</span></div>
       </div>
     </div>
   `).join("");
@@ -339,17 +355,33 @@ function loadLevelSystem(){
   const level = CUSTOMER.level;
   const points = Number(CUSTOMER.points || 0);
 
-  document.getElementById("level").innerText = level;
-  document.getElementById("points").innerText = points;
-
+  let next = 0;
   let progress = 0;
 
-  if(level === "Bronze") progress = 25;
-  if(level === "Silver") progress = 50;
-  if(level === "Gold") progress = 75;
-  if(level === "VIP") progress = 100;
+  if(level === "Bronze"){
+    next = 100 - points;
+    progress = (points / 100) * 100;
+  }
+
+  if(level === "Silver"){
+    next = 300 - points;
+    progress = ((points - 100) / 200) * 100;
+  }
+
+  if(level === "Gold"){
+    next = 600 - points;
+    progress = ((points - 300) / 300) * 100;
+  }
+
+  if(level === "VIP"){
+    next = 0;
+    progress = 100;
+  }
 
   document.getElementById("progress").style.width = progress + "%";
+
+  document.getElementById("nextLevelText").innerText =
+    next > 0 ? `متبقي ${next} نقطة للوصول إلى المستوى التالي` : "أنت في أعلى مستوى 🎉";
 }
 
 function logout(){
