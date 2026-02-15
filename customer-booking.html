@@ -63,38 +63,187 @@
 <h2>حجز موعد جديد</h2>
 
 <div class="box">
+
+  <label>الفئة (Category)</label>
+  <select id="category" onchange="loadServices()">
+    <option value="">اختر الفئة</option>
+  </select>
+
   <label>الخدمة</label>
-  <input type="text" id="service" placeholder="مثال: غسيل كامل">
+  <select id="service" onchange="updatePrice()">
+    <option value="">اختر الخدمة</option>
+  </select>
+
+  <label>السعر</label>
+  <input type="text" id="price" readonly placeholder="السعر يظهر تلقائياً">
+
+  <label>الفرع</label>
+  <select id="branch">
+    <option value="">اختر الفرع</option>
+  </select>
 
   <label>التاريخ</label>
-  <input type="date" id="date">
+  <input type="date" id="date" onchange="loadAvailableTimes()">
 
-  <label>الوقت</label>
-  <input type="time" id="time">
+  <label>الوقت (من 1 الظهر إلى 1 الليل)</label>
+  <select id="time">
+    <option value="">اختر الوقت</option>
+  </select>
 
   <button class="btn" onclick="addBooking()">تأكيد الحجز</button>
   <button class="btn btn-outline" onclick="window.location.href='customer-bookings.html'">
     العودة لقائمة الحجوزات
   </button>
+
 </div>
 
 <script src="api.js"></script>
 <script>
+
 let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
-let PHONE = CUSTOMER ? CUSTOMER.phone : null;
+if(!CUSTOMER){
+  window.location.href = "customer-login.html";
+}
 
-(function(){
-  if(!CUSTOMER || !PHONE){
-    window.location.href = "customer-login.html";
+let SERVICES = [];
+let BRANCHES = [];
+
+// تحميل الفئات والخدمات والفروع
+window.onload = async function(){
+  await loadCategories();
+  await loadBranches();
+};
+
+// =============================
+// تحميل الفئات من شيت Commissions
+// =============================
+async function loadCategories(){
+  const res = await apiGetServices();
+  if(!res.success){
+    alert("خطأ في تحميل الفئات");
+    return;
   }
-})();
 
+  SERVICES = res.services;
+
+  const categories = [...new Set(SERVICES.map(s => s.category))];
+
+  document.getElementById("category").innerHTML =
+    `<option value="">اختر الفئة</option>` +
+    categories.map(c => `<option value="${c}">${c}</option>`).join("");
+}
+
+// =============================
+// تحميل الخدمات حسب الفئة
+// =============================
+function loadServices(){
+  const category = document.getElementById("category").value;
+
+  const filtered = SERVICES.filter(s => s.category === category);
+
+  document.getElementById("service").innerHTML =
+    `<option value="">اختر الخدمة</option>` +
+    filtered.map(s => `<option value="${s.service}">${s.service}</option>`).join("");
+
+  document.getElementById("price").value = "";
+}
+
+// =============================
+// تحديث السعر تلقائياً
+// =============================
+function updatePrice(){
+  const service = document.getElementById("service").value;
+
+  const row = SERVICES.find(s => s.service === service);
+  if(row){
+    document.getElementById("price").value = row.price + " ريال";
+  }
+}
+
+// =============================
+// تحميل الفروع
+// =============================
+async function loadBranches(){
+  const res = await apiGetBranches();
+  if(!res.success){
+    alert("خطأ في تحميل الفروع");
+    return;
+  }
+
+  BRANCHES = res.rows;
+
+  const branchSelect = document.getElementById("branch");
+
+  if(BRANCHES.length === 1){
+    // فرع واحد فقط → تعيين تلقائي
+    branchSelect.innerHTML = `<option value="${BRANCHES[0][0]}">${BRANCHES[0][0]}</option>`;
+  } else {
+    // أكثر من فرع → قائمة اختيار
+    branchSelect.innerHTML =
+      `<option value="">اختر الفرع</option>` +
+      BRANCHES.map(b => `<option value="${b[0]}">${b[0]}</option>`).join("");
+  }
+}
+
+// =============================
+// تحميل الأوقات المتاحة
+// =============================
+async function loadAvailableTimes(){
+  const date = document.getElementById("date").value;
+  const timeSelect = document.getElementById("time");
+
+  if(!date){
+    timeSelect.innerHTML = `<option value="">اختر الوقت</option>`;
+    return;
+  }
+
+  // جلب حجوزات هذا اليوم
+  const res = await apiGetBookingsByDate(date);
+  const bookings = res.success ? res.bookings : [];
+
+  // حساب عدد الحجوزات لكل وقت
+  const countByTime = {};
+  bookings.forEach(b => {
+    const t = b.data[4]; // TIME
+    const status = b.data[5];
+    if(status !== "ملغي"){
+      countByTime[t] = (countByTime[t] || 0) + 1;
+    }
+  });
+
+  // إعادة بناء قائمة الأوقات
+  timeSelect.innerHTML = `<option value="">اختر الوقت</option>`;
+
+  // من 13:00 إلى 23:30
+  for(let h = 13; h <= 23; h++){
+    const hour = h.toString().padStart(2, "0");
+    ["00","30"].forEach(min => {
+      const t = `${hour}:${min}`;
+      if(!countByTime[t] || countByTime[t] < 6){
+        timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
+      }
+    });
+  }
+
+  // 00:00 – 01:00
+  ["00:00","00:30","01:00"].forEach(t => {
+    if(!countByTime[t] || countByTime[t] < 6){
+      timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
+    }
+  });
+}
+
+// =============================
+// إنشاء الحجز
+// =============================
 async function addBooking(){
-  const service = document.getElementById("service").value.trim();
+  const category = document.getElementById("category").value;
+  const service = document.getElementById("service").value;
+  const branch = document.getElementById("branch").value;
   const date = document.getElementById("date").value;
   const time = document.getElementById("time").value;
 
-  if(!service || !date || !time){
+  if(!category || !service || !branch || !date || !time){
     alert("الرجاء تعبئة جميع الحقول");
     return;
   }
@@ -102,11 +251,11 @@ async function addBooking(){
   const res = await apiPost({
     action: "addBooking",
     phone: CUSTOMER.phone,
-    membership: CUSTOMER.membership || CUSTOMER.phone,
+    membership: CUSTOMER.membership,
     service,
     date,
     time,
-    status: "نشط"
+    status: "قيد الانتظار"
   });
 
   if(!res.success){
@@ -114,9 +263,10 @@ async function addBooking(){
     return;
   }
 
-  alert("تم إنشاء الحجز بنجاح");
+  alert("تم إنشاء الحجز وهو الآن قيد الانتظار");
   window.location.href = "customer-bookings.html";
 }
+
 </script>
 
 </body>
