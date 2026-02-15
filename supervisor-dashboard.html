@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة المشرف</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="dashboard.css">
+  <script src="api.js"></script>
+
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#F4FAFF;
+      color:#0D47A1;
+      padding:16px;
+    }
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+    }
+    .logo{width:120px;}
+    h2{margin:0;}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:16px;
+    }
+    .card{
+      background:#fff;
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      border:1px solid #E3F2FD;
+    }
+    .card h3{
+      margin-top:0;
+      margin-bottom:10px;
+      font-size:16px;
+    }
+    .stat-row{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:6px;
+      font-size:14px;
+    }
+    .label{color:#4FC3F7;}
+    .value{color:#0D47A1;font-weight:600;}
+    .btn{
+      padding:8px 12px;
+      border:none;
+      border-radius:999px;
+      background:#0D47A1;
+      color:#fff;
+      font-size:13px;
+      cursor:pointer;
+      margin-top:8px;
+    }
+    .btn-outline{
+      background:transparent;
+      border:1px solid #0D47A1;
+      color:#0D47A1;
+    }
+    input,select{
+      width:100%;
+      padding:6px 8px;
+      border-radius:8px;
+      border:1px solid #D1D5DB;
+      margin-bottom:6px;
+      font-size:13px;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+    }
+    th,td{
+      border-bottom:1px solid #E5E7EB;
+      padding:4px 6px;
+      text-align:right;
+    }
+    th{background:#F3F4F6;font-weight:600;}
+    .tag{
+      display:inline-block;
+      padding:2px 6px;
+      border-radius:999px;
+      font-size:11px;
+      background:#E3F2FD;
+      color:#0D47A1;
+    }
+    .logout{
+      margin-top:16px;
+      text-align:center;
+      font-size:14px;
+      color:#D32F2F;
+      cursor:pointer;
+    }
+    .section-title{
+      font-size:15px;
+      font-weight:700;
+      margin-bottom:6px;
+      color:#0D47A1;
+    }
+    .small{
+      font-size:12px;
+      color:#6B7280;
+      margin-bottom:6px;
+    }
+    @media(max-width:900px){
+      .header{flex-direction:column;gap:8px;}
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="logo.png" class="logo">
+      <div>
+        <h2>لوحة المشرف</h2>
+        <div style="font-size:13px;color:#4FC3F7;">إدارة اليوم بالكامل من مكان واحد</div>
+      </div>
+    </div>
+    <button class="btn-outline" onclick="logout()">تسجيل خروج</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- ملخص اليوم -->
+    <div class="card">
+      <div class="section-title">📊 ملخص اليوم</div>
+      <div class="small">الوارد اليومي حسب طرق الدفع والخدمات</div>
+
+      <div class="stat-row">
+        <span class="label">إجمالي الوارد اليوم</span>
+        <span class="value" id="todayTotal">0 ريال</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">شبكة اليوم</span>
+        <span class="value" id="todayNetwork">0 ريال</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">كاش اليوم</span>
+        <span class="value" id="todayCash">0 ريال</span>
+      </div>
+
+      <hr style="margin:10px 0;">
+
+      <div class="section-title" style="font-size:14px;">🧽 عدد الخدمات اليوم</div>
+      <div id="todayServices" class="small">جاري التحميل...</div>
+
+      <hr style="margin:10px 0;">
+
+      <div class="section-title" style="font-size:14px;">👥 العملاء</div>
+      <div class="stat-row">
+        <span class="label">إجمالي حاملي العضوية</span>
+        <span class="value" id="totalMembers">0</span>
+      </div>
+    </div>
+
+    <!-- بيانات العملاء التفصيلية -->
+    <div class="card">
+      <div class="section-title">👤 بيانات العملاء</div>
+      <div class="small">بحث تفصيلي في بيانات العملاء</div>
+
+      <input id="customerSearch" placeholder="اسم / رقم عضوية / جوال">
+      <button class="btn" onclick="loadCustomers()">بحث</button>
+
+      <div style="max-height:260px;overflow:auto;margin-top:6px;">
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>العضوية</th>
+              <th>السيارات</th>
+              <th>الزيارات</th>
+              <th>الخدمات</th>
+              <th>المدفوع</th>
+            </tr>
+          </thead>
+          <tbody id="customersTable">
+            <tr><td colspan="6" style="text-align:center;color:#9CA3AF;">لا توجد بيانات</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- السيارات داخل المغسلة -->
+    <div class="card">
+      <div class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</div>
+      <div class="small">تحديث حالة الدفع لكل سيارة</div>
+
+      <div id="activeVisitsList" class="small">جاري التحميل...</div>
+      <button class="btn" onclick="loadActiveVisits()" style="width:100%;">تحديث القائمة</button>
+    </div>
+
+    <!-- طلبات الحجوزات -->
+    <div class="card">
+      <div class="section-title">📅 طلبات الحجوزات</div>
+      <div class="small">تأكيد أو إلغاء الحجوزات وإشعار العميل</div>
+
+      <div id="bookingsList" class="small">جاري التحميل...</div>
+      <button class="btn" onclick="loadBookings()" style="width:100%;">تحديث الحجوزات</button>
+    </div>
+
+    <!-- طباعة / مشاركة الفاتورة -->
+    <div class="card">
+      <div class="section-title">🧾 الفواتير ومشاركتها</div>
+      <div class="small">بحث عن العميل وإرسال الفاتورة لآخر زيارة أو كل الزيارات</div>
+
+      <input id="invoiceSearch" placeholder="رقم الجوال أو رقم العضوية">
+      <button class="btn" onclick="searchInvoices()">بحث عن الزيارات</button>
+
+      <div id="invoiceVisits" class="small" style="max-height:160px;overflow:auto;margin-top:6px;">
+        لا توجد زيارات بعد
+      </div>
+
+      <div style="margin-top:8px;">
+        <button class="btn-outline" onclick="sendInvoice('last')">إرسال فاتورة آخر زيارة</button>
+        <button class="btn-outline" onclick="sendInvoice('all')">إرسال فاتورة كل الزيارات</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="logout" onclick="logout()">تسجيل خروج</div>
+
+<script>
+function logout(){
+  localStorage.removeItem("supervisor");
+  window.location.href = "index.html";
+}
+
+/* ============================
+   ملخص اليوم
+============================ */
+
+async function loadTodaySummary(){
+  const visitsRes = await apiGetAll("Visits");
+  if(!visitsRes.success) return;
+
+  const today = new Date().toISOString().slice(0,10);
+  const todayVisits = visitsRes.rows.filter(v => String(v[8] || "").startsWith(today));
+
+  let total = 0, cash = 0, network = 0;
+  const serviceCount = {};
+
+  todayVisits.forEach(v => {
+    const price = Number(v[2] || 0);
+    const method = String(v[11] || "");
+    const service = String(v[1] || "غير محدد");
+
+    total += price;
+    if(method === "كاش") cash += price;
+    if(method === "شبكة") network += price;
+
+    serviceCount[service] = (serviceCount[service] || 0) + 1;
+  });
+
+  document.getElementById("todayTotal").innerText = total + " ريال";
+  document.getElementById("todayCash").innerText = cash + " ريال";
+  document.getElementById("todayNetwork").innerText = network + " ريال";
+
+  const servicesBox = document.getElementById("todayServices");
+  if(Object.keys(serviceCount).length === 0){
+    servicesBox.innerText = "لا توجد خدمات اليوم.";
+  } else {
+    servicesBox.innerHTML = Object.keys(serviceCount).map(s =>
+      `<div>${s}: <span class="tag">${serviceCount[s]}</span></div>`
+    ).join("");
+  }
+
+  const customersRes = await apiGetAll("Customers");
+  if(customersRes.success){
+    document.getElementById("totalMembers").innerText = customersRes.rows.length;
+  }
+}
+
+/* ============================
+   بيانات العملاء التفصيلية
+============================ */
+
+async function loadCustomers(){
+  const q = document.getElementById("customerSearch").value.trim().toLowerCase();
+  const tbody = document.getElementById("customersTable");
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">جاري التحميل...</td></tr>';
+
+  const customersRes = await apiGetAll("Customers");
+  const carsRes = await apiGetAll("Cars");
+  const visitsRes = await apiGetAll("Visits");
+
+  if(!customersRes.success){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">خطأ في قراءة البيانات</td></tr>';
+    return;
+  }
+
+  const customers = customersRes.rows;
+
+  const carsByMembership = {};
+  if(carsRes.success){
+    carsRes.rows.forEach(c => {
+      const mem = c[0];
+      if(!carsByMembership[mem]) carsByMembership[mem] = [];
+      carsByMembership[mem].push(c);
+    });
+  }
+
+  const visitsByMembership = {};
+  if(visitsRes.success){
+    visitsRes.rows.forEach(v => {
+      const mem = v[0];
+      if(!visitsByMembership[mem]) visitsByMembership[mem] = [];
+      visitsByMembership[mem].push(v);
+    });
+  }
+
+  const filtered = customers.filter(c => {
+    const name = String(c[0] || "").toLowerCase();
+    const phone = String(c[1] || "").toLowerCase();
+    const mem = String(c[8] || "").toLowerCase();
+    if(!q) return true;
+    return name.includes(q) || phone.includes(q) || mem.includes(q);
+  });
+
+  if(filtered.length === 0){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">لا توجد نتائج</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c => {
+    const mem = c[8];
+    const cars = carsByMembership[mem] || [];
+    const visits = visitsByMembership[mem] || [];
+
+    const servicesCount = visits.length;
+    const paidAmount = visits.reduce((sum, v) => sum + Number(v[2] || 0), 0);
+
+    return `
+      <tr>
+        <td>${c[0]}</td>
+        <td>${mem || "—"}</td>
+        <td>${cars.length}</td>
+        <td>${visits.length}</td>
+        <td>${servicesCount}</td>
+        <td>${paidAmount} ريال</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+/* ============================
+   السيارات غير المدفوعة
+============================ */
+
+async function loadActiveVisits(){
+  const box = document.getElementById("activeVisitsList");
+  box.innerHTML = "جاري التحميل...";
+
+  const res = await apiGetActiveVisits();
+  if(!res.success || !res.visits || res.visits.length === 0){
+    box.innerHTML = "لا توجد سيارات غير مدفوعة حالياً.";
+    return;
+  }
+
+  const carsRes = await apiGetAll("Cars");
+  let carMap = {};
+  if(carsRes.success){
+    carsRes.rows.forEach(r => {
+      const mem = r[0];
+      carMap[mem] = {
+        car: r[2],
+        letters: r[4],
+        numbers: r[5]
+      };
+    });
+  }
+
+  box.innerHTML = res.visits.map(v => {
+    const row = v.row;
+    const d = v.data;
+    const mem = d[0];
+
+    let plate = "غير معروف";
+    let carName = "";
+    if(carMap[mem]){
+      plate = `${carMap[mem].numbers} ${carMap[mem].letters}`;
+      carName = carMap[mem].car;
+    }
+
+    return `
+      <div style="border:1px solid #E5E7EB;border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;">
+        <b>🚗 اللوحة:</b> ${plate} — ${carName}<br>
+        <b>العضوية:</b> ${mem || "—"}<br>
+        <b>الخدمة:</b> ${d[1]}<br>
+        <b>السعر:</b> ${d[2]} ريال<br>
+        <b>الموقف:</b> ${d[12] || "—"}<br>
+        <label style="font-size:12px;">طريقة الدفع</label>
+        <select id="pay_${row}" style="margin-top:2px;">
+          <option value="كاش">كاش</option>
+          <option value="شبكة">شبكة</option>
+        </select>
+        <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;" onclick="markPaid(${row})">
+          تحديث حالة الدفع
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+async function markPaid(row){
+  const method = document.getElementById(`pay_${row}`).value;
+  const res = await apiPost({
+    action:"closeVisit",
+    row,
+    payment_status:"مدفوع",
+    payment_method:method
+  });
+  if(!res.success){
+    alert("خطأ في تحديث حالة الدفع");
+    return;
+  }
+  alert("تم تحديث حالة الدفع");
+  loadActiveVisits();
+}
+
+/* ============================
+   طلبات الحجوزات
+============================ */
+
+async function loadBookings(){
+  const box = document.getElementById("bookingsList");
+  box.innerHTML = "جاري التحميل...";
+
+  const res = await apiGetAll("Bookings");
+  if(!res.success || !res.rows.length){
+    box.innerHTML = "لا توجد حجوزات حالياً.";
+    return;
+  }
+
+  box.innerHTML = res.rows.map((b, idx) => {
+    const phone = b[0];
+    const mem = b[1];
+    const service = b[2];
+    const date = b[3];
+    const time = b[4];
+    const status = b[5];
+
+    return `
+      <div style="border:1px solid #E5E7EB;border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;">
+        <b>الخدمة:</b> ${service}<br>
+        <b>التاريخ:</b> ${date} ${time}<br>
+        <b>الجوال:</b> ${phone}<br>
+        <b>العضوية:</b> ${mem || "—"}<br>
+        <b>الحالة:</b> <span class="tag">${status}</span><br>
+        <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;" onclick="updateBooking(${idx+2},'مؤكد')">تأكيد</button>
+        <button class="btn-outline" style="margin-top:4px;font-size:11px;padding:4px 8px;" onclick="updateBooking(${idx+2},'ملغي')">إلغاء</button>
+      </div>
+    `;
+  }).join("");
+}
+
+async function updateBooking(row,status){
+  const res = await apiPost({
+    action:"updateRow",
+    sheet:"Bookings",
+    row,
+    values:JSON.stringify([null,null,null,null,null,status,null])
+  });
+  if(!res.success){
+    alert("خطأ في تحديث الحجز");
+    return;
+  }
+  alert("تم تحديث حالة الحجز إلى: " + status);
+  loadBookings();
+}
+
+/* ============================
+   الفواتير ومشاركتها
+============================ */
+
+let INVOICE_STATE = {
+  customer:null,
+  visits:[]
+};
+
+async function searchInvoices(){
+  const q = document.getElementById("invoiceSearch").value.trim();
+  const box = document.getElementById("invoiceVisits");
+  box.innerHTML = "جاري البحث...";
+
+  if(!q){
+    box.innerHTML = "اكتب رقم الجوال أو العضوية.";
+    return;
+  }
+
+  let custRes = null;
+
+  if(/^05\d{8}$/.test(q)){
+    custRes = await apiGetCustomerByPhone(q);
+  } else {
+    custRes = await apiGetCustomerByMembership(q);
+  }
+
+  if(!custRes.success){
+    box.innerHTML = "لم يتم العثور على العميل.";
+    return;
+  }
+
+  const c = custRes.customer;
+  INVOICE_STATE.customer = {
+    name:c[0],
+    phone:c[1],
+    membership:c[8]
+  };
+
+  const visitsRes = await apiGetVisitsByMembership(c[8]);
+  if(!visitsRes.success || !visitsRes.visits.length){
+    box.innerHTML = "لا توجد زيارات لهذا العميل.";
+    INVOICE_STATE.visits = [];
+    return;
+  }
+
+  INVOICE_STATE.visits = visitsRes.visits.map(v => v.data);
+
+  box.innerHTML = INVOICE_STATE.visits.map((v,idx) => `
+    <div style="border-bottom:1px solid #E5E7EB;padding:4px 0;font-size:13px;">
+      #${idx+1} — ${v[1]} — ${v[2]} ريال — ${v[8]}
+    </div>
+  `).join("");
+}
+
+function sendInvoice(mode){
+  if(!INVOICE_STATE.customer || !INVOICE_STATE.visits.length){
+    alert("ابحث عن العميل أولاً.");
+    return;
+  }
+
+  let selectedVisits = [];
+  if(mode === "last"){
+    selectedVisits = [INVOICE_STATE.visits[INVOICE_STATE.visits.length-1]];
+  } else {
+    selectedVisits = INVOICE_STATE.visits;
+  }
+
+  const c = INVOICE_STATE.customer;
+
+  let total = 0;
+  let lines = selectedVisits.map((v,idx) => {
+    total += Number(v[2] || 0);
+    return `${idx+1}- ${v[1]} — ${v[2]} ريال (${v[8]})`;
+  }).join("\n");
+
+  const msg =
+    `فاتورة زيارات مغسلة رغوة الهجين\n` +
+    `العميل: ${c.name}\n` +
+    `الجوال: ${c.phone}\n` +
+    `العضوية: ${c.membership}\n\n` +
+    `الزيارات:\n${lines}\n\n` +
+    `الإجمالي: ${total} ريال`;
+
+  const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url,"_blank");
+}
+
+/* ============================
+   تشغيل أولي
+============================ */
+
+loadTodaySummary();
+loadCustomers();
+loadActiveVisits();
+loadBookings();
+</script>
+
+</body>
+</html>
