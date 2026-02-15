@@ -109,11 +109,12 @@ async function vm_loadEmployees() {
   const res = await apiGetEmployees();
   if (!res.success) return;
 
-  const employees = res.rows || [];
-  const select = document.getElementById("employee_in");
+  VM_STATE.employees = res.rows;
 
-  select.innerHTML = '<option value="">— اختر الموظف —</option>' +
-    employees.map(e => `<option value="${e[0]}">${e[0]}</option>`).join("");
+  const select = document.getElementById("employee_in"); // ← هنا التعديل الصحيح
+  select.innerHTML =
+    '<option value="">— اختر الموظف —</option>' +
+    VM_STATE.employees.map(e => `<option value="${e[0]}">${e[0]}</option>`).join("");
 }
 
 /* ============================
