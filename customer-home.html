@@ -2,45 +2,71 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Hybrid Foam - تسجيل الدخول</title>
+    <title>رغوة الهجين - تسجيل الدخول</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
         body {
             font-family: "Tajawal", sans-serif;
-            background: #f5f5f5;
+            background: #F4FAFF;
             padding: 30px;
             text-align: center;
+            color:#0D47A1;
         }
+
+        .logo{
+            width:150px;
+            margin:0 auto 15px auto;
+            display:block;
+        }
+
         .box {
             background: white;
             padding: 25px;
-            border-radius: 12px;
+            border-radius: 16px;
             max-width: 400px;
             margin: auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            border:1px solid #E3F2FD;
         }
+
         input {
             width: 100%;
             padding: 14px;
             margin-top: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+            border-radius: 10px;
+            border: 1px solid #DCEBFF;
+            background:#F9FCFF;
             font-size: 16px;
+            text-align:center;
+            color:#0D47A1;
         }
+
+        input::placeholder{
+            color:#90A4AE;
+        }
+
         button {
             width: 100%;
             padding: 14px;
             margin-top: 12px;
             border: none;
-            border-radius: 8px;
+            border-radius: 999px;
             font-size: 17px;
             cursor: pointer;
+            transition: .3s;
         }
+
+        button:disabled{
+            opacity:.6;
+            cursor:not-allowed;
+        }
+
         .main-btn {
-            background: #007bff;
+            background: #0D47A1;
             color: white;
         }
+
         .whatsapp-btn {
             background: #25D366;
             color: white;
@@ -50,26 +76,37 @@
 
 <body>
 
+<img src="logo.png" class="logo">
+
 <div class="box">
-    <h2>مرحباً بك في Hybrid Foam</h2>
-    <p>فضلاً أدخل رقم جوالك للمتابعة</p>
+    <h2>مرحباً بك في رغوة الهجين</h2>
+    <p style="color:#4FC3F7">فضلاً أدخل رقم جوالك للمتابعة</p>
 
     <input id="phone" type="tel" placeholder="05xxxxxxxx" maxlength="10">
 
     <button id="continueBtn" class="main-btn" onclick="start()">متابعة</button>
 
-    <button class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
+    <button id="waBtn" class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
 </div>
 
 <script src="api.js"></script>
 
 <script>
+let isProcessing = false;
+
+// ===============================
+// زر متابعة
+// ===============================
 async function start() {
+    if (isProcessing) return;
+    isProcessing = true;
+
     const btn = document.getElementById("continueBtn");
     const phone = document.getElementById("phone").value.trim();
 
     if (phone.length !== 10 || !phone.startsWith("05")) {
         alert("الرجاء إدخال رقم جوال صحيح");
+        isProcessing = false;
         return;
     }
 
@@ -82,6 +119,7 @@ async function start() {
         alert("خطأ في الاتصال بالنظام");
         btn.disabled = false;
         btn.innerText = "متابعة";
+        isProcessing = false;
         return;
     }
 
@@ -91,33 +129,82 @@ async function start() {
     localStorage.setItem("phone", phone);
 
     if (!customer) {
-        // عميل جديد
         window.location.href = "customer-register.html";
         return;
     }
 
-    // عميل موجود — نخزن بياناته
     const customerObj = {
         id: customer[0],
         phone: customer[1],
         name: customer[2],
         membership: customer[3] || "",
-        city: customer[4] || ""
+        city: customer[4] || "",
+        level: customer[12] || "",
+        points: customer[11] || 0
     };
 
     localStorage.setItem("customer", JSON.stringify(customerObj));
 
-    // نروح للوحة العميل
     window.location.href = "customer-dashboard.html";
 }
 
-function contactWhatsApp() {
-    const phone = document.getElementById("phone").value.trim();
+// ===============================
+// زر واتساب
+// ===============================
+async function contactWhatsApp() {
+    if (isProcessing) return;
+    isProcessing = true;
 
-    let msg = "مرحباً، أحتاج مساعدة من خدمة العملاء.%0A";
-    if (phone) msg += "%0Aرقم الجوال: " + phone;
+    const waBtn = document.getElementById("waBtn");
+    waBtn.disabled = true;
+    waBtn.innerText = "جاري التحضير...";
+
+    const phone = document.getElementById("phone").value.trim();
+    let msg = "مرحباً مغسلة رغوة الهجين%0A";
+
+    if (!phone) {
+        window.location.href = "https://wa.me/966582007063?text=" + msg;
+        isProcessing = false;
+        waBtn.disabled = false;
+        waBtn.innerText = "التواصل عبر الواتساب";
+        return;
+    }
+
+    const res = await apiGet({ action: "getAll", sheet: "Customers" });
+    let customer = null;
+
+    if (res.success) {
+        customer = res.rows.find(c => c[1] === phone);
+    }
+
+    if (!customer) {
+        msg += "%0Aرقم الجوال: " + phone;
+    } else {
+        const name = customer[2] || "—";
+        const membership = customer[3] || "—";
+        const level = customer[12] || "—";
+
+        const carsRes = await apiGet({ action: "getAll", sheet: "Cars" });
+        let carCount = 0;
+
+        if (carsRes.success) {
+            carCount = carsRes.rows.filter(c => c[1] === phone).length;
+        }
+
+        msg += 
+            "%0Aالاسم: " + name +
+            "%0Aرقم العضوية: " + membership +
+            "%0Aمستوى العضوية: " + level +
+            "%0Aعدد السيارات: " + carCount;
+    }
 
     window.location.href = "https://wa.me/966582007063?text=" + msg;
+
+    setTimeout(() => {
+        isProcessing = false;
+        waBtn.disabled = false;
+        waBtn.innerText = "التواصل عبر الواتساب";
+    }, 1500);
 }
 </script>
 
