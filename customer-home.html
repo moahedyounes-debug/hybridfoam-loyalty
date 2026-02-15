@@ -1,211 +1,176 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>رغوة الهجين - تسجيل الدخول</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>الصفحة الرئيسية - رغوة الهجين</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: "Tajawal", sans-serif;
-            background: #F4FAFF;
-            padding: 30px;
-            text-align: center;
-            color:#0D47A1;
-        }
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#F4FAFF;
+      color:#0D47A1;
+      padding:20px;
+      text-align:center;
+    }
 
-        .logo{
-            width:150px;
-            margin:0 auto 15px auto;
-            display:block;
-        }
+    .logo{
+      width:160px;
+      display:block;
+      margin:0 auto 20px auto;
+    }
 
-        .box {
-            background: white;
-            padding: 25px;
-            border-radius: 16px;
-            max-width: 400px;
-            margin: auto;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-            border:1px solid #E3F2FD;
-        }
+    h2{
+      margin-bottom:10px;
+      font-size:26px;
+      font-weight:700;
+      color:#0D47A1;
+    }
 
-        input {
-            width: 100%;
-            padding: 14px;
-            margin-top: 10px;
-            border-radius: 10px;
-            border: 1px solid #DCEBFF;
-            background:#F9FCFF;
-            font-size: 16px;
-            text-align:center;
-            color:#0D47A1;
-        }
+    .subtitle{
+      color:#4FC3F7;
+      font-size:15px;
+      margin-bottom:20px;
+    }
 
-        input::placeholder{
-            color:#90A4AE;
-        }
+    .box{
+      background:#FFFFFF;
+      padding:22px;
+      border-radius:18px;
+      max-width:380px;
+      margin:auto;
+      box-shadow:0 4px 14px rgba(0,0,0,0.1);
+      border:1px solid #E3F2FD;
+    }
 
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 12px;
-            border: none;
-            border-radius: 999px;
-            font-size: 17px;
-            cursor: pointer;
-            transition: .3s;
-        }
+    input{
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #DCEBFF;
+      margin-bottom:12px;
+      background:#F9FCFF;
+      color:#0D47A1;
+      font-size:15px;
+      text-align:center;
+    }
 
-        button:disabled{
-            opacity:.6;
-            cursor:not-allowed;
-        }
+    input::placeholder{
+      color:#90A4AE;
+    }
 
-        .main-btn {
-            background: #0D47A1;
-            color: white;
-        }
+    .btn{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:999px;
+      background:#0D47A1;
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+      margin-top:10px;
+      transition:.3s;
+    }
 
-        .whatsapp-btn {
-            background: #25D366;
-            color: white;
-        }
-    </style>
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+    }
+
+    .link{
+      margin-top:14px;
+      font-size:14px;
+      color:#4FC3F7;
+      cursor:pointer;
+    }
+  </style>
 </head>
 
 <body>
 
 <img src="logo.png" class="logo">
 
+<h2>رغوة الهجين</h2>
+<div class="subtitle">مرحباً بك — فضلاً أدخل رقم جوالك للمتابعة</div>
+
 <div class="box">
-    <h2>مرحباً بك في رغوة الهجين</h2>
-    <p style="color:#4FC3F7">فضلاً أدخل رقم جوالك للمتابعة</p>
+  <input type="text" id="phone" placeholder="05XXXXXXXX"
+         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-    <input id="phone" type="tel" placeholder="05xxxxxxxx" maxlength="10">
+  <button id="loginBtn" class="btn" onclick="start()">متابعة</button>
 
-    <button id="continueBtn" class="main-btn" onclick="start()">متابعة</button>
-
-    <button id="waBtn" class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
+  <div class="link" onclick="window.location.href='customer-register.html'">
+    تسجيل عميل جديد
+  </div>
 </div>
 
 <script src="api.js"></script>
-
 <script>
+
 let isProcessing = false;
 
 // ===============================
-// زر متابعة
+// بدء التحقق
 // ===============================
-async function start() {
-    if (isProcessing) return;
-    isProcessing = true;
+async function start(){
 
-    const btn = document.getElementById("continueBtn");
-    const phone = document.getElementById("phone").value.trim();
+  if(isProcessing) return;
+  isProcessing = true;
 
-    if (phone.length !== 10 || !phone.startsWith("05")) {
-        alert("الرجاء إدخال رقم جوال صحيح");
-        isProcessing = false;
-        return;
-    }
+  const btn = document.getElementById("loginBtn");
+  const phone = document.getElementById("phone").value.trim();
 
-    btn.disabled = true;
-    btn.innerText = "جاري التحقق...";
+  if(phone.length !== 10 || !phone.startsWith("05")){
+    alert("الرجاء إدخال رقم جوال صحيح");
+    isProcessing = false;
+    return;
+  }
 
-    const res = await apiGet({ action: "getAll", sheet: "Customers" });
+  btn.disabled = true;
+  btn.innerText = "جاري التحقق...";
 
-    if (!res.success) {
-        alert("خطأ في الاتصال بالنظام");
-        btn.disabled = false;
-        btn.innerText = "متابعة";
-        isProcessing = false;
-        return;
-    }
+  // التحقق السريع من وجود العميل
+  const res = await apiGetCustomerByPhone(phone);
 
-    const customers = res.rows;
-    const customer = customers.find(c => c[1] === phone);
+  // حفظ رقم الجوال دائماً
+  localStorage.setItem("pendingPhone", phone);
 
-    localStorage.setItem("phone", phone);
+  if(!res.success){
+    // عميل جديد
+    btn.innerText = "متابعة";
+    btn.disabled = false;
+    isProcessing = false;
 
-    if (!customer) {
-        window.location.href = "customer-register.html";
-        return;
-    }
+    window.location.href = "customer-register.html";
+    return;
+  }
 
-    const customerObj = {
-        id: customer[0],
-        phone: customer[1],
-        name: customer[2],
-        membership: customer[3] || "",
-        city: customer[4] || "",
-        level: customer[12] || "",
-        points: customer[11] || 0
-    };
+  // عميل موجود → حفظ بياناته
+  const c = res.customer;
 
-    localStorage.setItem("customer", JSON.stringify(customerObj));
+  const CUSTOMER = {
+    name: c[0],
+    phone: c[1],
+    car: c[2],
+    size: c[3],
+    city: c[4],
+    plate_numbers: c[5],
+    plate_letters: c[6],
+    subscription: c[7],
+    membership: c[8],
+    last_visit: c[9],
+    visit_count: c[10],
+    points: c[11],
+    level: c[12],
+    free_wash: c[13]
+  };
 
-    window.location.href = "customer-dashboard.html";
+  localStorage.setItem("customer", JSON.stringify(CUSTOMER));
+
+  // تحويل مباشر للوحة العميل
+  window.location.href = "customer-dashboard.html";
 }
 
-// ===============================
-// زر واتساب
-// ===============================
-async function contactWhatsApp() {
-    if (isProcessing) return;
-    isProcessing = true;
-
-    const waBtn = document.getElementById("waBtn");
-    waBtn.disabled = true;
-    waBtn.innerText = "جاري التحضير...";
-
-    const phone = document.getElementById("phone").value.trim();
-    let msg = "مرحباً مغسلة رغوة الهجين%0A";
-
-    if (!phone) {
-        window.location.href = "https://wa.me/966582007063?text=" + msg;
-        isProcessing = false;
-        waBtn.disabled = false;
-        waBtn.innerText = "التواصل عبر الواتساب";
-        return;
-    }
-
-    const res = await apiGet({ action: "getAll", sheet: "Customers" });
-    let customer = null;
-
-    if (res.success) {
-        customer = res.rows.find(c => c[1] === phone);
-    }
-
-    if (!customer) {
-        msg += "%0Aرقم الجوال: " + phone;
-    } else {
-        const name = customer[2] || "—";
-        const membership = customer[3] || "—";
-        const level = customer[12] || "—";
-
-        const carsRes = await apiGet({ action: "getAll", sheet: "Cars" });
-        let carCount = 0;
-
-        if (carsRes.success) {
-            carCount = carsRes.rows.filter(c => c[1] === phone).length;
-        }
-
-        msg += 
-            "%0Aالاسم: " + name +
-            "%0Aرقم العضوية: " + membership +
-            "%0Aمستوى العضوية: " + level +
-            "%0Aعدد السيارات: " + carCount;
-    }
-
-    window.location.href = "https://wa.me/966582007063?text=" + msg;
-
-    setTimeout(() => {
-        isProcessing = false;
-        waBtn.disabled = false;
-        waBtn.innerText = "التواصل عبر الواتساب";
-    }, 1500);
-}
 </script>
 
 </body>
