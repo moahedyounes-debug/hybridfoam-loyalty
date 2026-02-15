@@ -1,8 +1,6 @@
 // api.js – موحد لكل المشروع
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbxybD4tx9fy5QI9mJktGIiRoCrfaeX5FDeyfT6aQpR7XnRI2m3t5lSRNXhvWqRNoDMuFA/exec'
-
-
+const API_URL = "https://script.google.com/macros/s/AKfycbwMSrcX2Q1Z-sdfGaaiXp7eXOv3qUby-LrVYemiuZBcXYQXK03fEMGxQILeDwT31Ijxgw/exec";
 
 async function apiPost(params) {
   const form = new URLSearchParams();
@@ -83,6 +81,13 @@ async function apiGetBookingsByPhone(phone) {
   });
 }
 
+async function apiGetBookingsByDate(date) {
+  return apiPost({
+    action: 'getBookingsByDate',
+    date
+  });
+}
+
 async function apiAddVisit(data) {
   return apiPost({
     action: 'addVisit',
@@ -111,11 +116,5 @@ async function apiGetBranches() {
 async function apiGetCarTypes() {
   return apiPost({
     action: "getCarTypes"
-  });
-}
-
-async function apiGetBranches() {
-  return apiPost({
-    action: "getBranches"
   });
 }
