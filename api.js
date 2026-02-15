@@ -1,6 +1,8 @@
 // api.js – موحد لكل المشروع
 
-const API_URL = 'YOUR_WEB_APP_URL_HERE'; // حط رابط Web App تبع Apps Script
+const API_URL = 'https://script.google.com/macros/s/AKfycbxybD4tx9fy5QI9mJktGIiRoCrfaeX5FDeyfT6aQpR7XnRI2m3t5lSRNXhvWqRNoDMuFA/exec'
+
+
 
 async function apiPost(params) {
   const form = new URLSearchParams();
