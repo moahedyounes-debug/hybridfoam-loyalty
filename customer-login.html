@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>تسجيل دخول العميل</title>
+  <title>صقحة تسجيل الدخول - رغوة الهجين</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
@@ -77,11 +77,15 @@
       cursor:not-allowed;
     }
 
-    .link{
-      margin-top:14px;
-      font-size:14px;
-      color:#4FC3F7;
-      cursor:pointer;
+    .otp-box{
+      background:#E3F2FD;
+      padding:10px;
+      border-radius:10px;
+      margin-bottom:12px;
+      font-size:18px;
+      font-weight:700;
+      color:#0D47A1;
+      display:none;
     }
   </style>
 </head>
@@ -90,68 +94,85 @@
 
 <img src="logo.png" class="logo">
 
-<h2>تسجيل دخول العميل</h2>
-<div class="subtitle">مرحباً بك في رغوة الهجين</div>
+<h2>رغوة الهجين</h2>
+<div class="subtitle">مرحباً بك — فضلاً أدخل رقم جوالك للمتابعة</div>
 
 <div class="box">
+
   <input type="text" id="phone" placeholder="05XXXXXXXX"
          oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-  <button id="loginBtn" class="btn" onclick="loginCustomer()">تسجيل الدخول</button>
+  <!-- كود التحقق -->
+  <div id="otpBox" class="otp-box"></div>
 
-  <div class="link" onclick="window.location.href='customer-register.html'">
-    ليس لديك حساب؟ تسجيل عميل جديد
-  </div>
+  <input type="text" id="otpInput" placeholder="أدخل رمز التحقق" style="display:none;"
+         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+
+  <button id="loginBtn" class="btn" onclick="start()">متابعة</button>
+
 </div>
 
 <script src="api.js"></script>
 <script>
 
-// منع الدخول التلقائي لو فيه بيانات قديمة
-(function(){
-  const c = localStorage.getItem("customer");
-  if(c){
-    window.location.href = "customer-dashboard.html";
-  }
-})();
-
 let isProcessing = false;
+let generatedOTP = null;
 
 // ===============================
-// تسجيل الدخول
+// بدء العملية
 // ===============================
-async function loginCustomer(){
+async function start(){
 
-  if(isProcessing) return; // منع الضغط المتكرر
+  if(isProcessing) return;
   isProcessing = true;
 
   const btn = document.getElementById("loginBtn");
   const phone = document.getElementById("phone").value.trim();
 
-  if(phone.length < 10){
+  if(phone.length !== 10 || !phone.startsWith("05")){
     alert("الرجاء إدخال رقم جوال صحيح");
     isProcessing = false;
     return;
   }
 
+  // إذا ما تم إنشاء كود تحقق → ننشئه الآن
+  if(!generatedOTP){
+    generatedOTP = Math.floor(1000 + Math.random() * 9000); // كود 4 أرقام
+
+    document.getElementById("otpBox").style.display = "block";
+    document.getElementById("otpInput").style.display = "block";
+
+    document.getElementById("otpBox").innerText = "رمز التحقق: " + generatedOTP;
+
+    btn.innerText = "تأكيد الرمز";
+    isProcessing = false;
+    return;
+  }
+
+  // تحقق من الكود
+  const otpInput = document.getElementById("otpInput").value.trim();
+
+  if(otpInput != generatedOTP){
+    alert("رمز التحقق غير صحيح");
+    isProcessing = false;
+    return;
+  }
+
+  // الآن نتحقق من وجود العميل
   btn.disabled = true;
   btn.innerText = "جاري التحقق...";
 
   const res = await apiGetCustomerByPhone(phone);
 
+  localStorage.setItem("pendingPhone", phone);
+
   if(!res.success){
-    // العميل غير موجود → نرسله للتسجيل
-    localStorage.setItem("pendingPhone", phone);
-
-    btn.disabled = false;
-    btn.innerText = "تسجيل الدخول";
-    isProcessing = false;
-
+    // عميل جديد
     window.location.href = "customer-register.html";
     return;
   }
 
-  // العميل موجود → نحفظ بياناته
+  // عميل موجود
   const c = res.customer;
 
   const CUSTOMER = {
