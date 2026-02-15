@@ -23,12 +23,11 @@
       <div class="box">
         <h3>بحث عن العميل</h3>
 
-        <label>رقم الجوال</label>
-        <input type="text" id="phone" placeholder="05XXXXXXXX"
-               oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
+        <input type="text" id="phone" placeholder="05XXXXXXXX أو 20260001 أو لوحة السيارة">
 
         <button id="btnSearch" class="btn-primary">
-          بحث عن السيارات
+          بحث عن العميل
         </button>
 
         <div id="customerInfo" style="margin-top:8px;font-size:13px;color:#ddd;display:none;"></div>
@@ -75,6 +74,14 @@
         <div id="servicesList" style="margin-top:10px;"></div>
 
         <h3 style="margin-top:15px;">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+
+        <!-- الخصم -->
+        <div class="row">
+          <div>
+            <label>الخصم (ريال)</label>
+            <input type="number" id="discount" placeholder="0">
+          </div>
+        </div>
 
         <div class="row">
           <div>
