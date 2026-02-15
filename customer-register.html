@@ -66,6 +66,7 @@
 <h2>تسجيل عميل جديد</h2>
 
 <div class="box">
+
   <label>الاسم</label>
   <input type="text" id="name" placeholder="الاسم الثلاثي">
 
@@ -76,16 +77,23 @@
   <label>المدينة</label>
   <input type="text" id="city" placeholder="مثال: الرياض">
 
-  <label>نوع السيارة</label>
-  <input type="text" id="car" placeholder="مثال: كامري">
+  <label>الفرع</label>
+  <select id="branch">
+    <option value="">اختر الفرع</option>
+  </select>
+
+  <label>البراند</label>
+  <select id="brand" onchange="loadModels()">
+    <option value="">اختر البراند</option>
+  </select>
+
+  <label>الموديل</label>
+  <select id="model" onchange="autoSize()">
+    <option value="">اختر الموديل</option>
+  </select>
 
   <label>الحجم</label>
-  <select id="size">
-    <option value="">اختر الحجم</option>
-    <option value="صغير">صغير</option>
-    <option value="متوسط">متوسط</option>
-    <option value="كبير">كبير</option>
-  </select>
+  <input type="text" id="size" readonly placeholder="يتم تحديده تلقائياً">
 
   <label>رقم اللوحة</label>
   <input type="text" id="plate_numbers" placeholder="1234">
@@ -98,11 +106,14 @@
   <div class="link" onclick="window.location.href='customer-login.html'">
     لدي حساب بالفعل
   </div>
+
 </div>
 
 <script src="api.js"></script>
 <script>
-// تعبئة رقم الجوال لو جاي من login
+let CAR_TYPES = [];
+let BRANCHES = [];
+
 (function(){
   const pending = localStorage.getItem("pendingPhone");
   if(pending){
@@ -110,17 +121,79 @@
   }
 })();
 
+window.onload = async function(){
+  await loadCarTypes();
+  await loadBranches();
+};
+
+async function loadCarTypes(){
+  const res = await apiGetCarTypes();
+  if(!res.success){
+    alert("خطأ في تحميل أنواع السيارات");
+    return;
+  }
+
+  CAR_TYPES = res.rows;
+
+  const brands = [...new Set(CAR_TYPES.map(r => r[0]))];
+  document.getElementById("brand").innerHTML =
+    `<option value="">اختر البراند</option>` +
+    brands.map(b => `<option value="${b}">${b}</option>`).join("");
+}
+
+async function loadBranches(){
+  const res = await apiGetBranches();
+  if(!res.success){
+    alert("خطأ في تحميل الفروع");
+    return;
+  }
+
+  BRANCHES = res.rows;
+
+  document.getElementById("branch").innerHTML =
+    `<option value="">اختر الفرع</option>` +
+    BRANCHES.map(r => `<option value="${r[1]}">${r[1]}</option>`).join("");
+}
+
+function loadModels(){
+  const brand = document.getElementById("brand").value;
+  const modelSelect = document.getElementById("model");
+
+  if(!brand){
+    modelSelect.innerHTML = `<option value="">اختر الموديل</option>`;
+    return;
+  }
+
+  const models = CAR_TYPES.filter(r => r[0] === brand).map(r => r[1]);
+
+  modelSelect.innerHTML =
+    `<option value="">اختر الموديل</option>` +
+    models.map(m => `<option value="${m}">${m}</option>`).join("");
+}
+
+function autoSize(){
+  const brand = document.getElementById("brand").value;
+  const model = document.getElementById("model").value;
+
+  const row = CAR_TYPES.find(r => r[0] === brand && r[1] === model);
+  if(row){
+    document.getElementById("size").value = row[2];
+  }
+}
+
 async function registerCustomer(){
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const city = document.getElementById("city").value.trim();
-  const car = document.getElementById("car").value.trim();
+  const branch = document.getElementById("branch").value;
+  const brand = document.getElementById("brand").value;
+  const model = document.getElementById("model").value;
   const size = document.getElementById("size").value;
   const plate_numbers = document.getElementById("plate_numbers").value.trim();
   const plate_letters = document.getElementById("plate_letters").value.trim();
 
-  if(!name || !phone || !city){
-    alert("الرجاء تعبئة الاسم ورقم الجوال والمدينة");
+  if(!name || !phone || !city || !branch){
+    alert("الرجاء تعبئة جميع الحقول الأساسية");
     return;
   }
 
@@ -129,14 +202,13 @@ async function registerCustomer(){
     return;
   }
 
-  // رقم العضوية = رقم الجوال (ممكن تغيره لاحقاً)
-  const membership = phone;
+  const membership = '="' + phone + '"';
 
   const res = await apiPost({
     action: "addCustomer",
     name,
-    phone,
-    car,
+    phone: '="' + phone + '"',
+    car: brand + " " + model,
     size,
     city,
     plate_numbers,
@@ -158,18 +230,10 @@ async function registerCustomer(){
   const CUSTOMER = {
     name,
     phone,
-    car,
-    size,
     city,
-    plate_numbers,
-    plate_letters,
-    subscription: "",
     membership,
-    last_visit: "",
-    visit_count: 0,
     points: 0,
-    level: "Hybrid Foam Loyalty",
-    free_wash: 0
+    level: "Hybrid Foam Loyalty"
   };
 
   localStorage.removeItem("pendingPhone");
