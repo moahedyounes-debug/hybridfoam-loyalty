@@ -1,6 +1,6 @@
 // api.js – موحد لكل المشروع
 
-const API_URL = 'https://script.google.com/macros/library/d/13vsR_yHHbr41BzU4NsAMzHJvGiNDfeGCNorN8Bh1sUotg6vtDodAQ6nd/50'
+const API_URL = 'https://script.google.com/macros/s/AKfycbxybD4tx9fy5QI9mJktGIiRoCrfaeX5FDeyfT6aQpR7XnRI2m3t5lSRNXhvWqRNoDMuFA/exec'
 
 
 
@@ -111,5 +111,11 @@ async function apiGetBranches() {
 async function apiGetCarTypes() {
   return apiPost({
     action: "getCarTypes"
+  });
+}
+
+async function apiGetBranches() {
+  return apiPost({
+    action: "getBranches"
   });
 }
