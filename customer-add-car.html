@@ -63,16 +63,19 @@
 <h2>إضافة سيارة جديدة</h2>
 
 <div class="box">
-  <label>نوع السيارة</label>
-  <input type="text" id="car" placeholder="مثال: كامري">
+
+  <label>البراند</label>
+  <select id="brand" onchange="loadModels()">
+    <option value="">اختر البراند</option>
+  </select>
+
+  <label>الموديل</label>
+  <select id="model" onchange="autoSize()">
+    <option value="">اختر الموديل</option>
+  </select>
 
   <label>الحجم</label>
-  <select id="size">
-    <option value="">اختر الحجم</option>
-    <option value="صغير">صغير</option>
-    <option value="متوسط">متوسط</option>
-    <option value="كبير">كبير</option>
-  </select>
+  <input type="text" id="size" readonly placeholder="يتم تحديده تلقائياً">
 
   <label>رقم اللوحة</label>
   <input type="text" id="plate_numbers" placeholder="1234">
@@ -80,44 +83,129 @@
   <label>حروف اللوحة</label>
   <input type="text" id="plate_letters" placeholder="أ ب ج">
 
-  <label>المدينة</label>
-  <input type="text" id="city" placeholder="مثال: الرياض">
-
   <button class="btn" onclick="addCar()">حفظ السيارة</button>
   <button class="btn btn-outline" onclick="window.location.href='customer-cars.html'">
     العودة لقائمة السيارات
   </button>
+
 </div>
 
 <script src="api.js"></script>
 <script>
+
 let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
 let PHONE = CUSTOMER ? CUSTOMER.phone : null;
 
-(function(){
-  if(!CUSTOMER || !PHONE){
-    window.location.href = "customer-login.html";
-  }
-})();
+let CAR_TYPES = [];
+let BRANCHES = [];
 
+if(!CUSTOMER || !PHONE){
+  window.location.href = "customer-login.html";
+}
+
+window.onload = async function(){
+  await Promise.all([
+    loadCarTypes(),
+    loadBranches()
+  ]);
+};
+
+// =============================
+// تحميل أنواع السيارات
+// =============================
+async function loadCarTypes(){
+  const res = await apiGetCarTypes();
+  if(!res.success){
+    alert("خطأ في تحميل أنواع السيارات");
+    return;
+  }
+
+  CAR_TYPES = res.rows;
+
+  const brands = [...new Set(CAR_TYPES.map(r => r[0]))];
+
+  document.getElementById("brand").innerHTML =
+    `<option value="">اختر البراند</option>` +
+    brands.map(b => `<option value="${b}">${b}</option>`).join("");
+}
+
+// =============================
+// تحميل الفروع (لأخذ مدينة العميل)
+// =============================
+async function loadBranches(){
+  const res = await apiGetBranches();
+  if(!res.success){
+    alert("خطأ في تحميل الفروع");
+    return;
+  }
+
+  BRANCHES = res.rows;
+}
+
+// =============================
+// تحميل الموديلات حسب البراند
+// =============================
+function loadModels(){
+  const brand = document.getElementById("brand").value;
+
+  const models = CAR_TYPES
+    .filter(r => r[0] === brand)
+    .map(r => r[1]);
+
+  document.getElementById("model").innerHTML =
+    `<option value="">اختر الموديل</option>` +
+    models.map(m => `<option value="${m}">${m}</option>`).join("");
+}
+
+// =============================
+// تحديد الحجم تلقائياً
+// =============================
+function autoSize(){
+  const brand = document.getElementById("brand").value;
+  const model = document.getElementById("model").value;
+
+  const row = CAR_TYPES.find(r => r[0] === brand && r[1] === model);
+
+  if(row){
+    document.getElementById("size").value = row[2];
+  }
+}
+
+// =============================
+// إضافة السيارة
+// =============================
 async function addCar(){
-  const car = document.getElementById("car").value.trim();
+
+  const brand = document.getElementById("brand").value;
+  const model = document.getElementById("model").value;
   const size = document.getElementById("size").value;
   const plate_numbers = document.getElementById("plate_numbers").value.trim();
   const plate_letters = document.getElementById("plate_letters").value.trim();
-  const city = document.getElementById("city").value.trim();
 
-  if(!car || !size || !plate_numbers || !plate_letters || !city){
+  if(!brand || !model || !size || !plate_numbers || !plate_letters){
     alert("الرجاء تعبئة جميع الحقول");
     return;
   }
 
-  const membership = CUSTOMER.membership || CUSTOMER.phone;
+  // مدينة السيارة = نفس فرع العميل
+  const city = CUSTOMER.city;
+
+  // عضوية السيارة C + timestamp
+  const t = new Date();
+  const carMembership =
+    "C" +
+    t.getFullYear() +
+    (t.getMonth()+1).toString().padStart(2,"0") +
+    t.getDate().toString().padStart(2,"0") +
+    "-" +
+    t.getHours().toString().padStart(2,"0") +
+    t.getMinutes().toString().padStart(2,"0") +
+    t.getSeconds().toString().padStart(2,"0");
 
   const res = await apiAddCar({
-    membership,
+    membership: carMembership,
     phone: CUSTOMER.phone,
-    car,
+    car: brand + " " + model,
     size,
     plate_letters,
     plate_numbers,
@@ -132,6 +220,7 @@ async function addCar(){
   alert("تم إضافة السيارة بنجاح");
   window.location.href = "customer-cars.html";
 }
+
 </script>
 
 </body>
