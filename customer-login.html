@@ -69,6 +69,12 @@
       font-size:16px;
       cursor:pointer;
       margin-top:10px;
+      transition:.3s;
+    }
+
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
     }
 
     .link{
@@ -91,7 +97,7 @@
   <input type="text" id="phone" placeholder="05XXXXXXXX"
          oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-  <button class="btn" onclick="loginCustomer()">تسجيل الدخول</button>
+  <button id="loginBtn" class="btn" onclick="loginCustomer()">تسجيل الدخول</button>
 
   <div class="link" onclick="window.location.href='customer-register.html'">
     ليس لديك حساب؟ تسجيل عميل جديد
@@ -100,7 +106,8 @@
 
 <script src="api.js"></script>
 <script>
-// لو العميل مسجل من قبل → دخوله مباشرة
+
+// منع الدخول التلقائي لو فيه بيانات قديمة
 (function(){
   const c = localStorage.getItem("customer");
   if(c){
@@ -108,19 +115,38 @@
   }
 })();
 
+let isProcessing = false;
+
+// ===============================
+// تسجيل الدخول
+// ===============================
 async function loginCustomer(){
+
+  if(isProcessing) return; // منع الضغط المتكرر
+  isProcessing = true;
+
+  const btn = document.getElementById("loginBtn");
   const phone = document.getElementById("phone").value.trim();
 
   if(phone.length < 10){
     alert("الرجاء إدخال رقم جوال صحيح");
+    isProcessing = false;
     return;
   }
+
+  btn.disabled = true;
+  btn.innerText = "جاري التحقق...";
 
   const res = await apiGetCustomerByPhone(phone);
 
   if(!res.success){
     // العميل غير موجود → نرسله للتسجيل
     localStorage.setItem("pendingPhone", phone);
+
+    btn.disabled = false;
+    btn.innerText = "تسجيل الدخول";
+    isProcessing = false;
+
     window.location.href = "customer-register.html";
     return;
   }
@@ -147,9 +173,9 @@ async function loginCustomer(){
 
   localStorage.setItem("customer", JSON.stringify(CUSTOMER));
 
-  // تحويل للوحة العميل
   window.location.href = "customer-dashboard.html";
 }
+
 </script>
 
 </body>
