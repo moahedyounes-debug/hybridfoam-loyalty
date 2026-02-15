@@ -8,48 +8,73 @@
   <style>
     body{
       font-family:"Tajawal",sans-serif;
-      background:#050608;
-      color:#f5f5f5;
+      background:#F4FAFF;
+      color:#0D47A1;
       padding:20px;
       text-align:center;
     }
+
+    .logo{
+      width:150px;
+      display:block;
+      margin:0 auto 15px auto;
+    }
+
     h2{
+      margin-bottom:10px;
+      font-size:24px;
+      font-weight:700;
+      color:#0D47A1;
+    }
+
+    .subtitle{
+      color:#4FC3F7;
+      font-size:14px;
       margin-bottom:20px;
     }
+
     .box{
-      background:#111318;
-      padding:20px;
-      border-radius:16px;
+      background:#FFFFFF;
+      padding:22px;
+      border-radius:18px;
       max-width:380px;
       margin:auto;
-      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+      box-shadow:0 4px 14px rgba(0,0,0,0.1);
+      border:1px solid #E3F2FD;
     }
+
     input{
       width:100%;
       padding:12px;
       border-radius:10px;
-      border:none;
+      border:1px solid #DCEBFF;
       margin-bottom:12px;
-      background:#1a1c22;
-      color:white;
+      background:#F9FCFF;
+      color:#0D47A1;
       font-size:15px;
       text-align:center;
     }
+
+    input::placeholder{
+      color:#90A4AE;
+    }
+
     .btn{
       width:100%;
       padding:12px;
       border:none;
       border-radius:999px;
-      background:linear-gradient(135deg,#22c55e,#16a34a);
+      background:#0D47A1;
       color:white;
       font-size:16px;
       cursor:pointer;
       margin-top:10px;
     }
+
     .link{
       margin-top:14px;
       font-size:14px;
-      color:#4ade80;
+      color:#4FC3F7;
       cursor:pointer;
     }
   </style>
@@ -57,7 +82,10 @@
 
 <body>
 
+<img src="logo.png" class="logo">
+
 <h2>تسجيل دخول العميل</h2>
+<div class="subtitle">مرحباً بك في رغوة الهجين</div>
 
 <div class="box">
   <input type="text" id="phone" placeholder="05XXXXXXXX"
@@ -72,7 +100,7 @@
 
 <script src="api.js"></script>
 <script>
-// لو العميل مسجل من قبل نخليه يدخل مباشرة
+// لو العميل مسجل من قبل → دخوله مباشرة
 (function(){
   const c = localStorage.getItem("customer");
   if(c){
