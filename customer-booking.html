@@ -248,6 +248,8 @@ async function addBooking(){
     return;
   }
 
+  const createdAt = new Date().toISOString();
+
   const res = await apiPost({
     action: "addBooking",
     phone: CUSTOMER.phone,
@@ -255,7 +257,8 @@ async function addBooking(){
     service,
     date,
     time,
-    status: "قيد الانتظار"
+    status: "قيد الانتظار",
+    created_at: createdAt
   });
 
   if(!res.success){
