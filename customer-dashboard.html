@@ -74,13 +74,13 @@
     .btn{
       width:100%;
       padding:12px;
-      margin-top:10px;
       border:none;
       border-radius:999px;
       background:linear-gradient(135deg,#22c55e,#16a34a);
       color:white;
       font-size:15px;
       cursor:pointer;
+      margin-top:10px;
     }
 
     .btn-outline{
@@ -165,7 +165,7 @@
   <div class="row"><span class="label">الاسم</span><span class="value" id="name">—</span></div>
   <div class="row"><span class="label">رقم الجوال</span><span class="value" id="phone">—</span></div>
   <div class="row"><span class="label">رقم العضوية</span><span class="value" id="membership">—</span></div>
-  <div class="row"><span class="label">المدينة</span><span class="value" id="city">—</span></div>
+  <div class="row"><span class="label">الفرع</span><span class="value" id="city">—</span></div>
   <div class="row"><span class="label">النقاط</span><span class="value" id="points">0</span></div>
   <div class="row"><span class="label">غسيل مجاني</span><span class="value" id="freeWash">—</span></div>
   <div class="row"><span class="label">المستوى</span><span class="value" id="level">—</span></div>
@@ -226,7 +226,7 @@ window.onload = async function(){
   loadCustomerInfoFromLocal();
 
   // تحميل البيانات بالتوازي (أسرع)
-  const [cars, visits, bookings] = await Promise.all([
+  await Promise.all([
     loadCars(),
     loadLastVisit(),
     loadBookings()
@@ -270,6 +270,7 @@ async function loadCars(){
         <div><b>${c[2]}</b></div>
         <div>الحجم: ${c[3]}</div>
         <div>اللوحة: ${c[5]} ${c[4]}</div>
+        <div>عضوية السيارة: <span style="color:#4ade80">${c[0]}</span></div>
       </div>
     </div>
   `).join("");
