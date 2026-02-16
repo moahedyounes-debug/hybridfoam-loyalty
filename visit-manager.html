@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>إدارة الزيارات</title>
+  <title>رغوة الهجين - إدارة الزيارات</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="visit-manager.css">
@@ -12,155 +12,140 @@
 
 <body>
 
-  <h2>إدارة الزيارات</h2>
+  <!-- شعار + عنوان -->
+  <div class="header">
+    <img src="logo.png" class="logo">
+    <h1>رغوة الهجين</h1>
+    <h2>إدارة الزيارات</h2>
+  </div>
 
-  <div class="layout">
+  <!-- السيارات داخل المغسلة -->
+  <div class="section">
+    <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
+    <div id="activeVisitsList" class="cards"></div>
+    <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
+  </div>
 
-    <!-- العمود الأيمن: السيارات غير المدفوعة -->
-    <div class="right-col">
-      <div class="box">
-        <h3>🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
-        <div id="activeVisitsList"></div>
-        <button id="btnRefreshActive" class="btn-secondary" style="width:100%;margin-top:10px;">
-          تحديث القائمة
-        </button>
+  <!-- البحث -->
+  <div class="section">
+    <h3 class="section-title">بحث عن السيارة</h3>
+
+    <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
+    <input type="text" id="phone" placeholder="اكتب رقم اللوحة أو الجوال أو العضوية">
+
+    <button id="btnSearch" class="btn-primary full">بحث</button>
+
+    <div id="customerInfo" class="info-box" style="display:none;"></div>
+  </div>
+
+  <!-- اختيار السيارة -->
+  <div id="carsBox" class="section" style="display:none;">
+    <h3 class="section-title">اختر السيارة</h3>
+    <div id="carsList"></div>
+  </div>
+
+  <!-- تسجيل الزيارة -->
+  <div id="visitBox" class="section" style="display:none;">
+    <h3 class="section-title">تسجيل زيارة جديدة</h3>
+
+    <div class="row">
+      <div>
+        <label>نوع الخدمة</label>
+        <select id="service_type"></select>
+      </div>
+
+      <div>
+        <label>تفاصيل الخدمة</label>
+        <select id="service_detail"></select>
       </div>
     </div>
 
-    <!-- العمود الأيسر: البحث + التسجيل -->
-    <div class="left-col">
-
-      <!-- البحث -->
-      <div class="box">
-        <h3>بحث عن السيارة</h3>
-
-        <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
-        <input type="text" id="phone" placeholder="اكتب رقم اللوحة أو الجوال أو العضوية">
-
-        <button id="btnSearch" class="btn-primary">بحث</button>
-
-        <div id="customerInfo" style="margin-top:8px;font-size:13px;color:#555;display:none;"></div>
+    <div class="row">
+      <div>
+        <label>السعر</label>
+        <input type="number" id="price">
       </div>
 
-      <!-- اختيار السيارة -->
-      <div id="carsBox" class="box" style="display:none;">
-        <h3>اختر السيارة</h3>
-        <div id="carsList"></div>
-      </div>
-
-      <!-- تسجيل الزيارة -->
-      <div id="visitBox" class="box" style="display:none;">
-        <h3>تسجيل زيارة جديدة</h3>
-
-        <!-- نوع الخدمة + تفاصيلها -->
-        <div class="row">
-          <div>
-            <label>نوع الخدمة</label>
-            <select id="service_type"></select>
-          </div>
-
-          <div>
-            <label>تفاصيل الخدمة</label>
-            <select id="service_detail"></select>
-          </div>
-        </div>
-
-        <!-- السعر + النقاط -->
-        <div class="row">
-          <div>
-            <label>السعر</label>
-            <input type="number" id="price">
-          </div>
-
-          <div>
-            <label>النقاط</label>
-            <input type="number" id="points" readonly>
-          </div>
-        </div>
-
-        <!-- إضافة خدمة -->
-        <button id="btnAddService" class="btn-secondary">إضافة خدمة +</button>
-
-        <!-- قائمة الخدمات المختارة -->
-        <div id="servicesList" style="margin-top:10px;"></div>
-
-        <h3 style="margin-top:15px;">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
-
-        <!-- الخصم -->
-        <div class="row">
-          <div>
-            <label>الخصم (ريال)</label>
-            <input type="number" id="discount" placeholder="0">
-          </div>
-        </div>
-
-        <!-- رقم الموقف -->
-        <div class="row">
-          <div>
-            <label>رقم الموقف</label>
-            <select id="parking_slot">
-              <option value="">— اختر رقم الموقف —</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- الموظف -->
-        <div class="row">
-          <div>
-            <label>الموظف</label>
-            <select id="employee_in">
-              <option value="">— اختر الموظف —</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- حالة الدفع -->
-        <div class="row">
-          <div>
-            <label>حالة الدفع</label>
-            <select id="payment_status">
-              <option value="">— اختر حالة الدفع —</option>
-              <option value="مدفوع">مدفوع</option>
-              <option value="غير مدفوع">غير مدفوع</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- الفرع + طريقة الدفع (تظهر فقط إذا مدفوع) -->
-        <div class="row">
-          <div>
-            <label>الفرع</label>
-            <select id="branch">
-              <option value="Makkah - مكة">Makkah - مكة</option>
-            </select>
-          </div>
-
-          <div id="payment_method_wrapper" style="display:none;">
-            <label>طريقة الدفع</label>
-            <select id="payment_method">
-              <option value="">— اختر طريقة الدفع —</option>
-              <option value="كاش">كاش</option>
-              <option value="شبكة">شبكة</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- زر تسجيل الزيارة -->
-        <button id="btnSubmitVisit" class="btn-primary" disabled>
-          تسجيل الزيارة
-        </button>
-
+      <div>
+        <label>النقاط</label>
+        <input type="number" id="points" readonly>
       </div>
     </div>
+
+    <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
+
+    <div id="servicesList" class="services-box"></div>
+
+    <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+
+    <div class="row">
+      <div>
+        <label>الخصم (ريال)</label>
+        <input type="number" id="discount" placeholder="0">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>رقم الموقف</label>
+        <select id="parking_slot">
+          <option value="">— اختر رقم الموقف —</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>الموظف</label>
+        <select id="employee_in">
+          <option value="">— اختر الموظف —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>حالة الدفع</label>
+        <select id="payment_status">
+          <option value="">— اختر حالة الدفع —</option>
+          <option value="مدفوع">مدفوع</option>
+          <option value="غير مدفوع">غير مدفوع</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>الفرع</label>
+        <select id="branch">
+          <option value="Makkah - مكة">Makkah - مكة</option>
+        </select>
+      </div>
+
+      <div id="payment_method_wrapper" style="display:none;">
+        <label>طريقة الدفع</label>
+        <select id="payment_method">
+          <option value="">— اختر طريقة الدفع —</option>
+          <option value="كاش">كاش</option>
+          <option value="شبكة">شبكة</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="btnSubmitVisit" class="btn-primary full" disabled>
+      تسجيل الزيارة
+    </button>
 
   </div>
 
+  <!-- Toast -->
+  <div id="toast-container"></div>
+
 </body>
 </html>
-
