@@ -176,7 +176,6 @@ color:#0D47A1;
 <div id="customersTable">جاري التحميل...</div>
 </div>
 </div>
-
 <!-- BOOKINGS -->
 <div id="bookings" class="tab-content">
 <div class="card">
@@ -551,13 +550,18 @@ return `
 <b>الحالة:</b> <span class="tag">${status}</span><br>
 
 <button onclick="updateBookingStatus(${i + 2}, 'مؤكد', '${phone}')" class="btn" style="width:100%;margin-top:6px;">تأكيد الحجز</button>
-<button onclick="updateBookingStatus(${i + 2}, 'ملغي', '${phone}')" class="btn-outline" style="width:100%;margin-top:6px;">إلغاء الحجز</button>
+<button onclick="updateBookingStatus(${i + 2}, 'ملغي', '${phone}')" 
+class="btn-outline" style="width:100%;margin-top:6px;">
+إلغاء الحجز
+</button>
+
 </div>
 `;
 }).join("");
 }
 
 async function updateBookingStatus(row, status, phone) {
+
 const res = await apiPost({
 action: "updateRow",
 sheet: "Bookings",
@@ -570,4 +574,24 @@ alert("خطأ في تحديث الحجز");
 return;
 }
 
-alert
+alert("تم تحديث حالة الحجز إلى: " + status);
+
+// إشعار واتساب للعميل
+const msg = `تم تحديث حالة حجزك في مغسلة رغوة الهجين إلى: ${status}`;
+window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+
+loadBookings();
+}
+
+document.querySelector("[onclick=\"openTab('bookings')\"]")
+.addEventListener("click", loadBookings);
+
+/* ============================
+Load on Start
+============================ */
+loadDashboard();
+
+</script>
+
+</body>
+</html>
