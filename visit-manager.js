@@ -265,8 +265,8 @@ async function vm_searchCustomer() {
   document.getElementById("carsBox").style.display = "none";
   document.getElementById("visitBox").style.display = "none";
 
-  return; // ← مهم جداً
-}مهم جداًهذا هو المهم
+  return; //
+   }
 
 /* ============================
    عرض السيارات
