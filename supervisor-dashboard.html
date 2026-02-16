@@ -5,12 +5,7 @@
 <title>لوحة المشرف</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="api.js">
-
 <style>
-/* ============================
-   الأساسيات
-============================ */
 body{
   font-family:"Tajawal",sans-serif;
   background:#F4FAFF;
@@ -20,9 +15,6 @@ body{
   margin:auto;
 }
 
-/* ============================
-   الهيدر
-============================ */
 .header{
   display:flex;
   align-items:center;
@@ -35,9 +27,6 @@ body{
 .logo{width:120px;}
 h2{margin:0;}
 
-/* ============================
-   الشبكة المتجاوبة
-============================ */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
@@ -45,9 +34,6 @@ h2{margin:0;}
   width:100%;
 }
 
-/* ============================
-   الكروت
-============================ */
 .card{
   background:#fff;
   border-radius:16px;
@@ -142,29 +128,16 @@ th{background:#F3F4F6;font-weight:600;}
   margin-bottom:6px;
 }
 
-/* ============================
-   تحسينات للجوال
-============================ */
 @media(max-width:600px){
-  body{
-    padding:10px;
-  }
-  .card{
-    padding:12px;
-  }
-  .header{
-    flex-direction:column;
-    text-align:center;
-  }
+  body{ padding:10px; }
+  .card{ padding:12px; }
+  .header{ flex-direction:column; text-align:center; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- ============================
-     الهيدر
-============================ -->
 <div class="header">
   <div style="display:flex;align-items:center;gap:10px;">
     <img src="logo.png" class="logo">
@@ -176,12 +149,8 @@ th{background:#F3F4F6;font-weight:600;}
   <button class="btn-outline" onclick="logout()">تسجيل خروج</button>
 </div>
 
-<!-- ============================
-     الشبكة الرئيسية
-============================ -->
 <div class="grid">
 
-  <!-- ملخص اليوم -->
   <div class="card">
     <div class="section-title">📊 ملخص اليوم</div>
     <div class="small">الوارد اليومي حسب طرق الدفع والخدمات</div>
@@ -215,7 +184,6 @@ th{background:#F3F4F6;font-weight:600;}
     </div>
   </div>
 
-  <!-- بيانات العملاء -->
   <div class="card">
     <div class="section-title">👤 بيانات العملاء</div>
     <div class="small">بحث تفصيلي في بيانات العملاء</div>
@@ -242,7 +210,6 @@ th{background:#F3F4F6;font-weight:600;}
     </div>
   </div>
 
-  <!-- السيارات داخل المغسلة -->
   <div class="card">
     <div class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</div>
     <div class="small">تحديث حالة الدفع لكل سيارة</div>
@@ -251,7 +218,6 @@ th{background:#F3F4F6;font-weight:600;}
     <button class="btn" onclick="loadActiveVisits()" style="width:100%;">تحديث القائمة</button>
   </div>
 
-  <!-- الحجوزات -->
   <div class="card">
     <div class="section-title">📅 طلبات الحجوزات</div>
     <div class="small">تأكيد أو إلغاء الحجوزات وإشعار العميل</div>
@@ -260,7 +226,6 @@ th{background:#F3F4F6;font-weight:600;}
     <button class="btn" onclick="loadBookings()" style="width:100%;">تحديث الحجوزات</button>
   </div>
 
-  <!-- الفواتير -->
   <div class="card">
     <div class="section-title">🧾 الفواتير ومشاركتها</div>
     <div class="small">بحث عن العميل وإرسال الفاتورة</div>
