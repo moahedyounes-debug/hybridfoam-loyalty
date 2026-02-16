@@ -293,6 +293,48 @@ function vm_renderCars() {
 }
 
 /* ============================
+   إضافة سيارة لعميل ضيف
+============================ */
+async function vm_addGuestCar() {
+  const type = document.getElementById("guest_car_type").value.trim();
+  const model = document.getElementById("guest_car_model").value.trim();
+  const letters = document.getElementById("guest_car_letters").value.trim();
+  const numbers = document.getElementById("guest_car_numbers").value.trim();
+
+  if (!type || !model || !letters || !numbers) {
+    showToast("أكمل جميع بيانات السيارة", "error");
+    return;
+  }
+
+  // إنشاء عضوية ضيف
+  const membership = "GUEST-" + Date.now();
+  VM_STATE.selectedMembership = membership;
+
+  // إضافة السيارة إلى الشيت
+  const res = await apiPost({
+    action: "addCar",
+    membership,
+    car: type,
+    model,
+    letters,
+    numbers
+  });
+
+  if (!res.success) {
+    showToast("خطأ في إضافة السيارة", "error");
+    return;
+  }
+
+  showToast("تم إضافة السيارة بنجاح", "success");
+
+  // إخفاء نموذج السيارة وفتح نموذج الزيارة
+  document.getElementById("guestCarBox").style.display = "none";
+  document.getElementById("visitBox").style.display = "block";
+}
+
+
+
+/* ============================
    إضافة خدمة
 ============================ */
 function vm_addService() {
