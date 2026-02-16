@@ -118,6 +118,7 @@ color:#0D47A1;
 <button class="tab-btn" onclick="openTab('reports')">📑 التقارير</button>
 <button class="tab-btn" onclick="openTab('customers')">👥 العملاء</button>
 <button class="tab-btn" onclick="openTab('bookings')">📅 الحجوزات</button>
+<button class="tab-btn" onclick="openTab('payroll')">💼 الرواتب</button> 
 </div>
 
 <!-- DASHBOARD -->
@@ -182,6 +183,14 @@ color:#0D47A1;
 <h3>📅 الحجوزات</h3>
 <div id="bookingsList">جاري التحميل...</div>
 </div>
+</div>
+
+  <!-- PAYROLL -->
+<div id="payroll" class="tab-content">
+  <div class="card">
+    <h3>💼 رواتب الموظفين</h3>
+    <div id="payrollTable">جاري التحميل...</div>
+  </div>
 </div>
 
 <script>
@@ -585,6 +594,78 @@ loadBookings();
 
 document.querySelector("[onclick=\"openTab('bookings')\"]")
 .addEventListener("click", loadBookings);
+
+  async function loadPayroll() {
+
+  const box = document.getElementById("payrollTable");
+  box.innerHTML = "جاري التحميل...";
+
+  // 1) جلب البيانات
+  const visitsRes = await apiGetAll("Visits");
+  const servicesRes = await apiGetAll("Services");
+  const employeesRes = await apiGetAll("Employees");
+
+  if (!visitsRes.success || !servicesRes.success || !employeesRes.success) {
+    box.innerHTML = "خطأ في تحميل البيانات";
+    return;
+  }
+
+  const visits = visitsRes.rows;
+  const services = servicesRes.rows;
+  const employees = employeesRes.rows;
+
+  // 2) بناء خريطة العمولة حسب اسم الخدمة
+  const commissionMap = {};
+  services.forEach(s => {
+    const serviceName = s[0];
+    const commission = Number(s[1] || 0);
+    commissionMap[serviceName] = commission;
+  });
+
+  // 3) حساب الرواتب
+  const payroll = {};
+
+  employees.forEach(e => {
+    const name = e[0];
+    payroll[name] = { visits: 0, commission: 0 };
+  });
+
+  visits.forEach(v => {
+    const employee = v[4];
+    const service = v[1];
+
+    if (!payroll[employee]) return;
+
+    payroll[employee].visits += 1;
+    payroll[employee].commission += (commissionMap[service] || 0);
+  });
+
+  // 4) عرض النتائج
+  box.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>الموظف</th>
+          <th>عدد الزيارات</th>
+          <th>إجمالي العمولة</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${Object.keys(payroll).map(name => `
+          <tr>
+            <td>${name}</td>
+            <td>${payroll[name].visits}</td>
+            <td>${payroll[name].commission} ريال</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+// تشغيل التبويب عند فتحه
+document.querySelector("[onclick=\"openTab('payroll')\"]")
+  .addEventListener("click", loadPayroll);
 
 /* ============================
 Load on Start
