@@ -37,6 +37,24 @@
     <div id="customerInfo" class="info-box" style="display:none;"></div>
   </div>
 
+  <div id="guestCarBox" class="section" style="display:none;">
+  <h3 class="section-title">إضافة سيارة للعميل الضيف</h3>
+
+  <label>نوع السيارة</label>
+  <input type="text" id="guest_car_type" placeholder="مثال: Camry">
+
+  <label>الموديل</label>
+  <input type="text" id="guest_car_model" placeholder="مثال: 2020">
+
+  <label>حروف اللوحة</label>
+  <input type="text" id="guest_car_letters" placeholder="مثال: ABC">
+
+  <label>أرقام اللوحة</label>
+  <input type="text" id="guest_car_numbers" placeholder="مثال: 1234">
+
+  <button class="btn-primary full" onclick="vm_addGuestCar()">إضافة السيارة</button>
+</div>
+
   <!-- اختيار السيارة -->
   <div id="carsBox" class="section" style="display:none;">
     <h3 class="section-title">اختر السيارة</h3>
