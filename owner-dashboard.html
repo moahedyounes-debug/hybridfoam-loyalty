@@ -1,738 +1,573 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>لوحة المالك</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>لوحة المالك</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="api.js"></script>
 
-  <style>
-    body{
-      font-family:"Tajawal",sans-serif;
-      background:#F4FAFF;
-      color:#0D47A1;
-      padding:16px;
-    }
-
-    h2{margin-bottom:12px;}
-
-    /* Tabs */
-    .tabs{
-      display:flex;
-      gap:8px;
-      margin-bottom:16px;
-      overflow-x:auto;
-    }
-    .tab-btn{
-      padding:10px 16px;
-      border-radius:999px;
-      background:#E3F2FD;
-      color:#0D47A1;
-      border:none;
-      cursor:pointer;
-      font-size:14px;
-      white-space:nowrap;
-    }
-    .tab-btn.active{
-      background:#0D47A1;
-      color:white;
-    }
-    .tab-content{
-      display:none;
-    }
-    .tab-content.active{
-      display:block;
-    }
-
-    /* Cards */
-    .card{
-      background:white;
-      padding:16px;
-      border-radius:16px;
-      margin-bottom:16px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.08);
-      border:1px solid #E3F2FD;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-      gap:16px;
-    }
-
-    .value{
-      font-size:20px;
-      font-weight:700;
-      margin-top:6px;
-    }
-
-    input,select{
-      width:100%;
-      padding:8px;
-      border-radius:8px;
-      border:1px solid #D1D5DB;
-      margin-bottom:8px;
-      font-size:14px;
-    }
-
-    .btn{
-      padding:10px 16px;
-      border:none;
-      border-radius:999px;
-      background:#0D47A1;
-      color:white;
-      cursor:pointer;
-      font-size:14px;
-      margin-top:6px;
-    }
-
-    .btn-outline{
-      padding:10px 16px;
-      border-radius:999px;
-      background:white;
-      border:1px solid #0D47A1;
-      color:#0D47A1;
-      cursor:pointer;
-      font-size:14px;
-      margin-top:6px;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:13px;
-    }
-    th,td{
-      border-bottom:1px solid #E5E7EB;
-      padding:6px;
-      text-align:right;
-    }
-    th{
-      background:#F3F4F6;
-      font-weight:600;
-    }
-
-    .tag{
-      background:#E3F2FD;
-      padding:2px 6px;
-      border-radius:999px;
-      font-size:11px;
-      color:#0D47A1;
-    }
-  </style>
+<style>
+body{
+font-family:"Tajawal",sans-serif;
+background:#F4FAFF;
+color:#0D47A1;
+padding:16px;
+}
+h2{margin-bottom:12px;}
+.tabs{
+display:flex;
+gap:8px;
+margin-bottom:16px;
+overflow-x:auto;
+}
+.tab-btn{
+padding:10px 16px;
+border-radius:999px;
+background:#E3F2FD;
+color:#0D47A1;
+border:none;
+cursor:pointer;
+font-size:14px;
+white-space:nowrap;
+}
+.tab-btn.active{
+background:#0D47A1;
+color:white;
+}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.card{
+background:white;
+padding:16px;
+border-radius:16px;
+margin-bottom:16px;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
+border:1px solid #E3F2FD;
+}
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:16px;
+}
+.value{
+font-size:20px;
+font-weight:700;
+margin-top:6px;
+}
+input,select{
+width:100%;
+padding:8px;
+border-radius:8px;
+border:1px solid #D1D5DB;
+margin-bottom:8px;
+font-size:14px;
+}
+.btn{
+padding:10px 16px;
+border:none;
+border-radius:999px;
+background:#0D47A1;
+color:white;
+cursor:pointer;
+font-size:14px;
+margin-top:6px;
+}
+.btn-outline{
+padding:10px 16px;
+border-radius:999px;
+background:white;
+border:1px solid #0D47A1;
+color:#0D47A1;
+cursor:pointer;
+font-size:14px;
+margin-top:6px;
+}
+table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+}
+th,td{
+border-bottom:1px solid #E5E7EB;
+padding:6px;
+text-align:right;
+}
+th{
+background:#F3F4F6;
+font-weight:600;
+}
+.tag{
+background:#E3F2FD;
+padding:2px 6px;
+border-radius:999px;
+font-size:11px;
+color:#0D47A1;
+}
+</style>
 </head>
 
 <body>
 
 <h2>لوحة المالك</h2>
 
-<!-- Tabs -->
 <div class="tabs">
-  <button class="tab-btn active" onclick="openTab('dashboard')">📊 الرئيسية</button>
-  <button class="tab-btn" onclick="openTab('activeCars')">🚗 السيارات غير المدفوعة</button>
-  <button class="tab-btn" onclick="openTab('reports')">📑 التقارير</button>
-  <button class="tab-btn" onclick="openTab('customers')">👥 العملاء</button>
-  <button class="tab-btn" onclick="openTab('bookings')">📅 الحجوزات</button>
+<button class="tab-btn active" onclick="openTab('dashboard')">📊 الرئيسية</button>
+<button class="tab-btn" onclick="openTab('activeCars')">🚗 السيارات غير المدفوعة</button>
+<button class="tab-btn" onclick="openTab('reports')">📑 التقارير</button>
+<button class="tab-btn" onclick="openTab('customers')">👥 العملاء</button>
+<button class="tab-btn" onclick="openTab('bookings')">📅 الحجوزات</button>
 </div>
 
-<!-- ============================
-     TAB 1 — DASHBOARD
-============================ -->
+<!-- DASHBOARD -->
 <div id="dashboard" class="tab-content active">
 
-  <div class="card">
-    <h3>📅 فلتر التاريخ</h3>
+<div class="card">
+<h3>📅 فلتر التاريخ</h3>
+<label>من تاريخ</label>
+<input type="date" id="dateFrom">
+<label>إلى تاريخ</label>
+<input type="date" id="dateTo">
+<button class="btn" onclick="loadDashboard()">عرض</button>
+<button class="btn-outline" onclick="resetDates()">عرض كل البيانات</button>
+</div>
 
-    <label>من تاريخ</label>
-    <input type="date" id="dateFrom">
+<div class="card">
+<h3>📊 ملخص</h3>
+<div id="dashboardContent">جاري التحميل...</div>
+</div>
 
-    <label>إلى تاريخ</label>
-    <input type="date" id="dateTo">
+<div class="card">
+<h3>📈 شارت الوارد اليومي</h3>
+<canvas id="chartRevenue"></canvas>
+</div>
 
-    <button class="btn" onclick="loadDashboard()">عرض</button>
-    <button class="btn-outline" onclick="resetDates()">عرض كل البيانات</button>
-  </div>
-
-  <div class="card">
-    <h3>📊 ملخص</h3>
-    <div id="dashboardContent">جاري التحميل...</div>
-  </div>
-
-  <div class="card">
-    <h3>📈 شارت الوارد اليومي</h3>
-    <canvas id="chartRevenue"></canvas>
-  </div>
-
-  <div class="card">
-    <h3>📉 شارت عمولات الموظفين</h3>
-    <canvas id="chartCommission"></canvas>
-  </div>
+<div class="card">
+<h3>📉 شارت عمولات الموظفين</h3>
+<canvas id="chartCommission"></canvas>
+</div>
 
 </div>
 
-<!-- ============================
-     TAB 2 — ACTIVE CARS
-============================ -->
+<!-- ACTIVE CARS -->
 <div id="activeCars" class="tab-content">
-  <div class="card">
-    <h3>🚗 السيارات داخل المغسلة (غير مدفوعة)</h3>
-    <div id="activeCarsList">جاري التحميل...</div>
-  </div>
+<div class="card">
+<h3>🚗 السيارات داخل المغسلة (غير مدفوعة)</h3>
+<div id="activeCarsList">جاري التحميل...</div>
+</div>
 </div>
 
-<!-- ============================
-     TAB 3 — REPORTS
-============================ -->
+<!-- REPORTS -->
 <div id="reports" class="tab-content">
-  <div class="card">
-    <h3>📑 التقارير التفصيلية</h3>
-    <button class="btn" onclick="downloadExcel()">تحميل Excel</button>
-    <div id="reportsTable">جاري التحميل...</div>
-  </div>
+<div class="card">
+<h3>📑 التقارير التفصيلية</h3>
+<button class="btn" onclick="downloadExcel()">تحميل Excel</button>
+<div id="reportsTable">جاري التحميل...</div>
+</div>
 </div>
 
-<!-- ============================
-     TAB 4 — CUSTOMERS
-============================ -->
+<!-- CUSTOMERS -->
 <div id="customers" class="tab-content">
-  <div class="card">
-    <h3>👥 العملاء</h3>
-    <input id="customerSearch" placeholder="بحث عن عميل">
-    <button class="btn" onclick="loadCustomers()">بحث</button>
-    <div id="customersTable">جاري التحميل...</div>
-  </div>
+<div class="card">
+<h3>👥 العملاء</h3>
+<input id="customerSearch" placeholder="بحث عن عميل">
+<button class="btn" onclick="loadCustomers()">بحث</button>
+<div id="customersTable">جاري التحميل...</div>
+</div>
 </div>
 
-<!-- ============================
-     TAB 5 — BOOKINGS
-============================ -->
+<!-- BOOKINGS -->
 <div id="bookings" class="tab-content">
-  <div class="card">
-    <h3>📅 الحجوزات</h3>
-    <div id="bookingsList">جاري التحميل...</div>
-  </div>
+<div class="card">
+<h3>📅 الحجوزات</h3>
+<div id="bookingsList">جاري التحميل...</div>
+</div>
 </div>
 
 <script>
-/* ============================
-   Tabs Switching
-============================ */
+
 function openTab(id){
-  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-  document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
-
-  event.target.classList.add("active");
-  document.getElementById(id).classList.add("active");
+document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+event.target.classList.add("active");
+document.getElementById(id).classList.add("active");
 }
 
-/* ============================
-   Reset Date Filter
-============================ */
 function resetDates(){
-  document.getElementById("dateFrom").value = "";
-  document.getElementById("dateTo").value = "";
-  loadDashboard();
+document.getElementById("dateFrom").value = "";
+document.getElementById("dateTo").value = "";
+loadDashboard();
 }
 
-/* ============================
-   Dashboard Logic
-============================ */
 async function loadDashboard() {
+const from = document.getElementById("dateFrom").value;
+const to = document.getElementById("dateTo").value;
 
-  const from = document.getElementById("dateFrom").value;
-  const to = document.getElementById("dateTo").value;
+const visitsRes = await apiGetAll("Visits");
+const customersRes = await apiGetAll("Customers");
 
-  const visitsRes = await apiGetAll("Visits");
-  const customersRes = await apiGetAll("Customers");
+if (!visitsRes.success) return;
 
-  if (!visitsRes.success) return;
+let visits = visitsRes.rows;
 
-  let visits = visitsRes.rows;
-
-  // فلترة حسب التاريخ
-  if (from && to) {
-    visits = visits.filter(v => {
-      const date = String(v[8] || "").slice(0, 10);
-      return date >= from && date <= to;
-    });
-  }
-
-  let total = 0, cash = 0, network = 0;
-  let commissionMap = {};
-
-  visits.forEach(v => {
-    const price = Number(v[2] || 0);
-    const method = String(v[11] || "");
-    const employee = String(v[4] || "");
-
-    total += price;
-    if (method === "كاش") cash += price;
-    if (method === "شبكة") network += price;
-
-    if (employee) {
-      commissionMap[employee] = (commissionMap[employee] || 0) + Math.round(price * 0.10);
-    }
-  });
-
-  document.getElementById("dashboardContent").innerHTML = `
-    <div class="grid">
-      <div class="card"><h4>💰 إجمالي الوارد</h4><div class="value">${total} ريال</div></div>
-      <div class="card"><h4>💳 شبكة</h4><div class="value">${network} ريال</div></div>
-      <div class="card"><h4>💵 كاش</h4><div class="value">${cash} ريال</div></div>
-      <div class="card"><h4>🧽 عدد الخدمات</h4><div class="value">${visits.length}</div></div>
-      <div class="card"><h4>👥 عدد العملاء</h4><div class="value">${customersRes.rows.length}</div></div>
-      <div class="card"><h4>💼 إجمالي عمولات الموظفين</h4><div class="value">${
-        Object.values(commissionMap).reduce((a,b)=>a+b,0)
-      } ريال</div></div>
-    </div>
-  `;
-
-  /* ============================
-       Revenue Chart
-  ============================= */
-  const revenueByDay = {};
-  visits.forEach(v => {
-    const date = String(v[8] || "").slice(0, 10);
-    const price = Number(v[2] || 0);
-    revenueByDay[date] = (revenueByDay[date] || 0) + price;
-  });
-
-  new Chart(document.getElementById("chartRevenue"), {
-    type: "bar",
-    data: {
-      labels: Object.keys(revenueByDay),
-      datasets: [{
-        label: "الوارد اليومي",
-        data: Object.values(revenueByDay),
-        backgroundColor: "#0D47A1"
-      }]
-    }
-  });
-
-  /* ============================
-       Commission Chart
-  ============================= */
-  new Chart(document.getElementById("chartCommission"), {
-    type: "bar",
-    data: {
-      labels: Object.keys(commissionMap),
-      datasets: [{
-        label: "عمولات الموظفين",
-        data: Object.values(commissionMap),
-        backgroundColor: "#FF8F00"
-      }]
-    }
-  });
+if (from && to) {
+visits = visits.filter(v => {
+const date = String(v[8] || "").slice(0, 10);
+return date >= from && date <= to;
+});
 }
 
-  /* ============================
-   TAB 2 — السيارات غير المدفوعة
-============================ */
+let total = 0, cash = 0, network = 0;
+let commissionMap = {};
+
+visits.forEach(v => {
+const price = Number(v[2] || 0);
+const method = String(v[11] || "");
+const employee = String(v[4] || "");
+
+total += price;
+if (method === "كاش") cash += price;
+if (method === "شبكة") network += price;
+
+if (employee) {
+commissionMap[employee] = (commissionMap[employee] || 0) + Math.round(price * 0.10);
+}
+});
+
+document.getElementById("dashboardContent").innerHTML = `
+<div class="grid">
+<div class="card"><h4>💰 إجمالي الوارد</h4><div class="value">${total} ريال</div></div>
+<div class="card"><h4>💳 شبكة</h4><div class="value">${network} ريال</div></div>
+<div class="card"><h4>💵 كاش</h4><div class="value">${cash} ريال</div></div>
+<div class="card"><h4>🧽 عدد الخدمات</h4><div class="value">${visits.length}</div></div>
+<div class="card"><h4>👥 عدد العملاء</h4><div class="value">${customersRes.rows.length}</div></div>
+<div class="card"><h4>💼 إجمالي عمولات الموظفين</h4><div class="value">${
+Object.values(commissionMap).reduce((a,b)=>a+b,0)
+} ريال</div></div>
+</div>
+`;
+
+const revenueByDay = {};
+visits.forEach(v => {
+const date = String(v[8] || "").slice(0, 10);
+const price = Number(v[2] || 0);
+revenueByDay[date] = (revenueByDay[date] || 0) + price;
+});
+
+new Chart(document.getElementById("chartRevenue"), {
+type: "bar",
+data: {
+labels: Object.keys(revenueByDay),
+datasets: [{
+label: "الوارد اليومي",
+data: Object.values(revenueByDay),
+backgroundColor: "#0D47A1"
+}]
+}
+});
+
+new Chart(document.getElementById("chartCommission"), {
+type: "bar",
+data: {
+labels: Object.keys(commissionMap),
+datasets: [{
+label: "عمولات الموظفين",
+data: Object.values(commissionMap),
+backgroundColor: "#FF8F00"
+}]
+}
+});
+}
 
 async function loadActiveCars() {
-  const box = document.getElementById("activeCarsList");
-  box.innerHTML = "جاري التحميل...";
+const box = document.getElementById("activeCarsList");
+box.innerHTML = "جاري التحميل...";
 
-  // جلب الزيارات غير المدفوعة
-  const visitsRes = await apiGetActiveVisits();
-  if (!visitsRes.success || !visitsRes.visits.length) {
-    box.innerHTML = `
-      <div style="text-align:center;color:#9CA3AF;font-size:14px;">
-        لا توجد سيارات داخل المغسلة حالياً.
-      </div>
-    `;
-    return;
-  }
+const visitsRes = await apiGetActiveVisits();
 
-  // جلب السيارات لربط العضوية باللوحة
-  const carsRes = await apiGetAll("Cars");
-  let carMap = {};
-
-  if (carsRes.success) {
-    carsRes.rows.forEach(c => {
-      const membership = c[0];
-      carMap[membership] = {
-        car: c[2],
-        size: c[3],
-        letters: c[4],
-        numbers: c[5]
-      };
-    });
-  }
-
-  // عرض السيارات
-  box.innerHTML = visitsRes.visits.map(v => {
-    const row = v.row;
-    const d = v.data;
-    const membership = d[0];
-
-    let plate = "—";
-    let carName = "—";
-
-    if (membership && carMap[membership]) {
-      plate = `${carMap[membership].numbers} ${carMap[membership].letters}`;
-      carName = carMap[membership].car;
-    }
-
-    return `
-      <div style="
-        border:1px solid #E5E7EB;
-        border-radius:12px;
-        padding:10px;
-        margin-bottom:10px;
-        background:white;
-        font-size:14px;
-      ">
-        <b>🚗 اللوحة:</b> ${plate}<br>
-        <b>نوع السيارة:</b> ${carName}<br>
-        <b>العضوية:</b> ${membership || "—"}<br>
-        <b>الخدمة:</b> ${d[1]}<br>
-        <b>السعر:</b> ${d[2]} ريال<br>
-        <b>الموقف:</b> ${d[12] || "—"}<br>
-        <b>الفرع:</b> ${d[9] || "—"}<br>
-
-        <label style="font-size:13px;margin-top:6px;display:block;">طريقة الدفع</label>
-        <select id="pay_${row}" style="width:100%;padding:6px;border-radius:8px;border:1px solid #D1D5DB;">
-          <option value="كاش">كاش</option>
-          <option value="شبكة">شبكة</option>
-        </select>
-
-        <button
-          onclick="markActiveCarPaid(${row})"
-          style="
-            margin-top:8px;
-            width:100%;
-            padding:8px;
-            background:#0D47A1;
-            color:white;
-            border:none;
-            border-radius:8px;
-            cursor:pointer;
-          "
-        >
-          تحديث حالة الدفع
-        </button>
-      </div>
-    `;
-  }).join("");
+if (!visitsRes.success || !visitsRes.visits.length) {
+box.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد سيارات داخل المغسلة حالياً.</div>`;
+return;
 }
 
-/* ============================
-   تحديث حالة الدفع
-============================ */
+const carsRes = await apiGetAll("Cars");
+let carMap = {};
+
+if (carsRes.success) {
+carsRes.rows.forEach(c => {
+const membership = c[0];
+carMap[membership] = {
+car: c[2],
+size: c[3],
+letters: c[4],
+numbers: c[5]
+};
+});
+}
+
+box.innerHTML = visitsRes.visits.map(v => {
+const row = v.row;
+const d = v.data;
+const membership = d[0];
+
+let plate = "—";
+let carName = "—";
+
+if (membership && carMap[membership]) {
+plate = `${carMap[membership].numbers} ${carMap[membership].letters}`;
+carName = carMap[membership].car;
+}
+
+return `
+<div style="border:1px solid #E5E7EB;border-radius:12px;padding:10px;margin-bottom:10px;background:white;font-size:14px;">
+<b>🚗 اللوحة:</b> ${plate}<br>
+<b>نوع السيارة:</b> ${carName}<br>
+<b>العضوية:</b> ${membership || "—"}<br>
+<b>الخدمة:</b> ${d[1]}<br>
+<b>السعر:</b> ${d[2]} ريال<br>
+<b>الموقف:</b> ${d[12] || "—"}<br>
+<b>الفرع:</b> ${d[9] || "—"}<br>
+
+<label style="font-size:13px;margin-top:6px;display:block;">طريقة الدفع</label>
+<select id="pay_${row}" style="width:100%;padding:6px;border-radius:8px;border:1px solid #D1D5DB;">
+<option value="كاش">كاش</option>
+<option value="شبكة">شبكة</option>
+</select>
+
+<button onclick="markActiveCarPaid(${row})"
+style="margin-top:8px;width:100%;padding:8px;background:#0D47A1;color:white;border:none;border-radius:8px;cursor:pointer;">
+تحديث حالة الدفع
+</button>
+</div>
+`;
+}).join("");
+}
 
 async function markActiveCarPaid(row) {
-  const method = document.getElementById(`pay_${row}`).value;
+const method = document.getElementById(`pay_${row}`).value;
 
-  const res = await apiPost({
-    action: "closeVisit",
-    row,
-    payment_status: "مدفوع",
-    payment_method: method
-  });
+const res = await apiPost({
+action: "closeVisit",
+row,
+payment_status: "مدفوع",
+payment_method: method
+});
 
-  if (!res.success) {
-    alert("خطأ في تحديث حالة الدفع");
-    return;
-  }
-
-  alert("تم تحديث حالة الدفع بنجاح");
-  loadActiveCars();
+if (!res.success) {
+alert("خطأ في تحديث حالة الدفع");
+return;
 }
 
-/* ============================
-   تشغيل التبويب عند فتحه
-============================ */
+alert("تم تحديث حالة الدفع بنجاح");
+loadActiveCars();
+}
 
 document.querySelector("[onclick=\"openTab('activeCars')\"]")
-  .addEventListener("click", loadActiveCars);
-
-  /* ============================
-   TAB 3 — التقارير التفصيلية
-============================ */
+.addEventListener("click", loadActiveCars);
 
 async function loadReports() {
-  const box = document.getElementById("reportsTable");
-  box.innerHTML = "جاري التحميل...";
+const box = document.getElementById("reportsTable");
+box.innerHTML = "جاري التحميل...";
 
-  const visitsRes = await apiGetAll("Visits");
-  const customersRes = await apiGetAll("Customers");
-  const carsRes = await apiGetAll("Cars");
+const visitsRes = await apiGetAll("Visits");
 
-  if (!visitsRes.success) {
-    box.innerHTML = "خطأ في تحميل البيانات";
-    return;
-  }
-
-  const visits = visitsRes.rows;
-
-  box.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>العضوية</th>
-          <th>العميل</th>
-          <th>السيارة</th>
-          <th>الخدمة</th>
-          <th>السعر</th>
-          <th>طريقة الدفع</th>
-          <th>الموظف</th>
-          <th>التاريخ</th>
-          <th>الفرع</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${visits.map(v => `
-          <tr>
-            <td>${v[0] || "—"}</td>
-            <td>${v[13] || "—"}</td>
-            <td>${v[14] || "—"}</td>
-            <td>${v[1] || "—"}</td>
-            <td>${v[2] || 0} ريال</td>
-            <td>${v[11] || "—"}</td>
-            <td>${v[4] || "—"}</td>
-            <td>${v[8] || "—"}</td>
-            <td>${v[9] || "—"}</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
+if (!visitsRes.success) {
+box.innerHTML = "خطأ في تحميل البيانات";
+return;
 }
 
-/* ============================
-   تحميل Excel (طريقة بسيطة)
-============================ */
+const visits = visitsRes.rows;
+
+box.innerHTML = `
+<table>
+<thead>
+<tr>
+<th>العضوية</th>
+<th>الخدمة</th>
+<th>السعر</th>
+<th>طريقة الدفع</th>
+<th>الموظف</th>
+<th>التاريخ</th>
+<th>الفرع</th>
+</tr>
+</thead>
+<tbody>
+${visits.map(v => `
+<tr>
+<td>${v[0] || "—"}</td>
+<td>${v[1] || "—"}</td>
+<td>${v[2] || 0} ريال</td>
+<td>${v[11] || "—"}</td>
+<td>${v[4] || "—"}</td>
+<td>${v[8] || "—"}</td>
+<td>${v[9] || "—"}</td>
+</tr>
+`).join("")}
+</tbody>
+</table>
+`;
+}
 
 function downloadExcel() {
-  const table = document.getElementById("reportsTable").innerHTML;
+const table = document.getElementById("reportsTable").innerHTML;
 
-  const excelContent = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office"
-          xmlns:x="urn:schemas-microsoft-com:office:excel"
-          xmlns="http://www.w3.org/TR/REC-html40">
-    <head><meta charset="UTF-8"></head>
-    <body>
-      <table>${table}</table>
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob([excelContent], { type: "application/vnd.ms-excel" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "reports.xls";
-  a.click();
-
-  URL.revokeObjectURL(url);
-}
-
-/* ============================
-   تشغيل التبويب عند فتحه
-============================ */
-
-document.querySelector("[onclick=\"openTab('reports')\"]")
-  .addEventListener("click", loadReports);
-
-/* ============================
-   TAB 4 — العملاء (بحث + تفاصيل)
-============================ */
-
-async function loadCustomers() {
-  const box = document.getElementById("customersTable");
-  const q = document.getElementById("customerSearch").value.trim().toLowerCase();
-
-  box.innerHTML = "جاري التحميل...";
-
-  const customersRes = await apiGetAll("Customers");
-  const carsRes = await apiGetAll("Cars");
-  const visitsRes = await apiGetAll("Visits");
-
-  if (!customersRes.success) {
-    box.innerHTML = "خطأ في تحميل البيانات";
-    return;
-  }
-
-  const customers = customersRes.rows;
-
-  // ربط السيارات بالعضوية
-  const carsMap = {};
-  if (carsRes.success) {
-    carsRes.rows.forEach(c => {
-      const mem = c[0];
-      if (!carsMap[mem]) carsMap[mem] = [];
-      carsMap[mem].push(c);
-    });
-  }
-
-  // ربط الزيارات بالعضوية
-  const visitsMap = {};
-  if (visitsRes.success) {
-    visitsRes.rows.forEach(v => {
-      const mem = v[0];
-      if (!visitsMap[mem]) visitsMap[mem] = [];
-      visitsMap[mem].push(v);
-    });
-  }
-
-  // فلترة البحث
-  const filtered = customers.filter(c => {
-    const name = String(c[0] || "").toLowerCase();
-    const phone = String(c[1] || "").toLowerCase();
-    const mem = String(c[8] || "").toLowerCase();
-    if (!q) return true;
-    return name.includes(q) || phone.includes(q) || mem.includes(q);
-  });
-
-  if (!filtered.length) {
-    box.innerHTML = `
-      <div style="text-align:center;color:#9CA3AF;font-size:14px;">
-        لا توجد نتائج مطابقة
-      </div>
-    `;
-    return;
-  }
-
-  box.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>الاسم</th>
-          <th>العضوية</th>
-          <th>السيارات</th>
-          <th>الزيارات</th>
-          <th>إجمالي المدفوع</th>
-          <th>النقاط</th>
-          <th>المستوى</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${filtered.map(c => {
-          const mem = c[8];
-          const cars = carsMap[mem] || [];
-          const visits = visitsMap[mem] || [];
-          const totalPaid = visits.reduce((sum, v) => sum + Number(v[2] || 0), 0);
-
-          return `
-            <tr>
-              <td>${c[0]}</td>
-              <td>${mem}</td>
-              <td>${cars.length}</td>
-              <td>${visits.length}</td>
-              <td>${totalPaid} ريال</td>
-              <td>${c[11] || 0}</td>
-              <td>${c[12] || "—"}</td>
-            </tr>
-          `;
-        }).join("")}
-      </tbody>
-    </table>
-  `;
-}
-
-/* تشغيل التبويب عند فتحه */
-document.querySelector("[onclick=\"openTab('customers')\"]")
-  .addEventListener("click", loadCustomers);
-
-  /* ============================
-   TAB 5 — الحجوزات
-============================ */
-
-async function loadBookings() {
-  const box = document.getElementById("bookingsList");
-  box.innerHTML = "جاري التحميل...";
-
-  const res = await apiGetAll("Bookings");
-
-  if (!res.success || !res.rows.length) {
-    box.innerHTML = `
-      <div style="text-align:center;color:#9CA3AF;font-size:14px;">
-        لا توجد حجوزات حالياً
-      </div>
-    `;
-    return;
-  }
-
-  box.innerHTML = res.rows.map((b, i) => {
-    const phone = b[0];
-    const membership = b[1];
-    const service = b[2];
-    const date = b[3];
-    const time = b[4];
-    const status = b[5];
-
-    return `
-      <div style="
-        border:1px solid #E5E7EB;
-        border-radius:12px;
-        padding:10px;
-        margin-bottom:10px;
-        background:white;
-        font-size:14px;
-      ">
-        <b>الخدمة:</b> ${service}<br>
-        <b>التاريخ:</b> ${date} ${time}<br>
-        <b>الجوال:</b> ${phone}<br>
-        <b>العضوية:</b> ${membership}<br>
-        <b>الحالة:</b> <span class="tag">${status}</span><br>
-
-        <button
-          onclick="updateBookingStatus(${i + 2}, 'مؤكد', '${phone}')"
-          class="btn"
-          style="width:100%;margin-top:6px;"
-        >
-          تأكيد الحجز
-        </button>
-
-        <button
-          onclick="updateBookingStatus(${i + 2}, 'ملغي', '${phone}')"
-          class="btn-outline"
-          style="width:100%;margin-top:6px;"
-        >
-          إلغاء الحجز
-        </button>
-      </div>
-    `;
-  }).join("");
-}
-
-/* تحديث حالة الحجز */
-async function updateBookingStatus(row, status, phone) {
-  const res = await apiPost({
-    action: "updateRow",
-    sheet: "Bookings",
-    row,
-    values: JSON.stringify([null, null, null, null, null, status, null])
-  });
-
-  if (!res.success) {
-    alert("خطأ في تحديث الحجز");
-    return;
-  }
-
-  alert("تم تحديث حالة الحجز إلى: " + status);
-
-  // إرسال إشعار واتساب للعميل
-  const msg = `تم تحديث حالة حجزك في مغسلة رغوة الهجين إلى: ${status}`;
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
-
-  loadBookings();
-}
-
-/* تشغيل التبويب عند فتحه */
-document.querySelector("[onclick=\"openTab('bookings')\"]")
-  .addEventListener("click", loadBookings);
-  
-/* ============================
-   Load on Start
-============================ */
-loadDashboard();
-
-</script>
-
+const excelContent = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:x="urn:schemas-microsoft-com:office:excel"
+xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"></head>
+<body>
+<table>${table}</table>
 </body>
 </html>
+`;
+
+const blob = new Blob([excelContent], { type: "application/vnd.ms-excel" });
+const url = URL.createObjectURL(blob);
+const a = document.createElement("a");
+a.href = url;
+a.download = "reports.xls";
+a.click();
+URL.revokeObjectURL(url);
+}
+
+document.querySelector("[onclick=\"openTab('reports')\"]")
+.addEventListener("click", loadReports);
+
+async function loadCustomers() {
+const box = document.getElementById("customersTable");
+const q = document.getElementById("customerSearch").value.trim().toLowerCase();
+
+box.innerHTML = "جاري التحميل...";
+
+const customersRes = await apiGetAll("Customers");
+const carsRes = await apiGetAll("Cars");
+const visitsRes = await apiGetAll("Visits");
+
+if (!customersRes.success) {
+box.innerHTML = "خطأ في تحميل البيانات";
+return;
+}
+
+const customers = customersRes.rows;
+
+const carsMap = {};
+if (carsRes.success) {
+carsRes.rows.forEach(c => {
+const mem = c[0];
+if (!carsMap[mem]) carsMap[mem] = [];
+carsMap[mem].push(c);
+});
+}
+
+const visitsMap = {};
+if (visitsRes.success) {
+visitsRes.rows.forEach(v => {
+const mem = v[0];
+if (!visitsMap[mem]) visitsMap[mem] = [];
+visitsMap[mem].push(v);
+});
+}
+
+const filtered = customers.filter(c => {
+const name = String(c[0] || "").toLowerCase();
+const phone = String(c[1] || "").toLowerCase();
+const mem = String(c[8] || "").toLowerCase();
+if (!q) return true;
+return name.includes(q) || phone.includes(q) || mem.includes(q);
+});
+
+if (!filtered.length) {
+box.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد نتائج مطابقة</div>`;
+return;
+}
+
+box.innerHTML = `
+<table>
+<thead>
+<tr>
+<th>الاسم</th>
+<th>العضوية</th>
+<th>السيارات</th>
+<th>الزيارات</th>
+<th>إجمالي المدفوع</th>
+<th>النقاط</th>
+<th>المستوى</th>
+</tr>
+</thead>
+<tbody>
+${filtered.map(c => {
+const mem = c[8];
+const cars = carsMap[mem] || [];
+const visits = visitsMap[mem] || [];
+const totalPaid = visits.reduce((sum, v) => sum + Number(v[2] || 0), 0);
+
+return `
+<tr>
+<td>${c[0]}</td>
+<td>${mem}</td>
+<td>${cars.length}</td>
+<td>${visits.length}</td>
+<td>${totalPaid} ريال</td>
+<td>${c[11] || 0}</td>
+<td>${c[12] || "—"}</td>
+</tr>
+`;
+}).join("")}
+</tbody>
+</table>
+`;
+}
+
+document.querySelector("[onclick=\"openTab('customers')\"]")
+.addEventListener("click", loadCustomers);
+
+async function loadBookings() {
+const box = document.getElementById("bookingsList");
+box.innerHTML = "جاري التحميل...";
+
+const res = await apiGetAll("Bookings");
+
+if (!res.success || !res.rows.length) {
+box.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد حجوزات حالياً</div>`;
+return;
+}
+
+box.innerHTML = res.rows.map((b, i) => {
+const phone = b[0];
+const membership = b[1];
+const service = b[2];
+const date = b[3];
+const time = b[4];
+const status = b[5];
+
+return `
+<div style="border:1px solid #E5E7EB;border-radius:12px;padding:10px;margin-bottom:10px;background:white;font-size:14px;">
+<b>الخدمة:</b> ${service}<br>
+<b>التاريخ:</b> ${date} ${time}<br>
+<b>الجوال:</b> ${phone}<br>
+<b>العضوية:</b> ${membership}<br>
+<b>الحالة:</b> <span class="tag">${status}</span><br>
+
+<button onclick="updateBookingStatus(${i + 2}, 'مؤكد', '${phone}')" class="btn" style="width:100%;margin-top:6px;">تأكيد الحجز</button>
+<button onclick="updateBookingStatus(${i + 2}, 'ملغي', '${phone}')" class="btn-outline" style="width:100%;margin-top:6px;">إلغاء الحجز</button>
+</div>
+`;
+}).join("");
+}
+
+async function updateBookingStatus(row, status, phone) {
+const res = await apiPost({
+action: "updateRow",
+sheet: "Bookings",
+row,
+values: JSON.stringify([null, null, null, null, null, status, null])
+});
+
+if (!res.success) {
+alert("خطأ في تحديث الحجز");
+return;
+}
+
+alert
