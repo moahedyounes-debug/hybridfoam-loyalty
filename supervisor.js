@@ -242,20 +242,34 @@ async function loadBookings() {
 }
 
 async function updateBooking(row, phone, status) {
+
+  // 1) قراءة بيانات الحجز الأصلية
+  const resOld = await apiGetAll("Bookings");
+  const old = resOld.rows[row - 2]; // الصفوف تبدأ من 2
+
+  // 2) بناء الصف الجديد بدون حذف أي بيانات
+  const newValues = [
+    old[0], // phone
+    old[1], // membership
+    old[2], // service
+    old[3], // date
+    old[4], // time
+    status, // new status
+    old[6]  // created_at
+  ];
+
+  // 3) تحديث الصف
   const res = await apiPost({
     action: "updateRow",
     sheet: "Bookings",
     row,
-    values: JSON.stringify([null, null, null, null, null, status, null])
+    values: JSON.stringify(newValues)
   });
 
   if (!res.success) {
     alert("خطأ في تحديث الحجز");
     return;
   }
-
-  const msg = `تم تحديث حالة حجزك في مغسلة رغوة الهجين.\nالحالة: ${status}`;
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
 
   alert("تم تحديث حالة الحجز");
   loadBookings();
