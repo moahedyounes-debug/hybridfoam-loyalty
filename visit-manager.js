@@ -236,21 +236,37 @@ async function vm_searchCustomer() {
       الجوال: ${c[1]}
     `;
 
+    // تحميل سيارات العميل
     if (!VM_STATE.cars.length) {
       const carsRes = await apiGetCarsByPhone(c[1]);
       if (carsRes.success) {
         VM_STATE.cars = carsRes.cars.map(c => c.data);
       }
     }
-  } else {
-    VM_STATE.customer = null;
-    document.getElementById("customerInfo").style.display = "block";
-    document.getElementById("customerInfo").innerHTML =
-      "عميل غير مسجل — سيتم إنشاء عضوية ضيف تلقائياً.";
+
+    // عرض قائمة السيارات
+    vm_renderCars();
+    return;
   }
 
-  vm_renderCars();
-}
+  // ============================
+  // عميل غير مسجل (ضيف)
+  // ============================
+  VM_STATE.customer = null;
+
+  document.getElementById("customerInfo").style.display = "block";
+  document.getElementById("customerInfo").innerHTML =
+    "عميل غير مسجل — سيتم إنشاء عضوية ضيف تلقائياً.";
+
+  // إظهار نموذج إضافة السيارة
+  document.getElementById("guestCarBox").style.display = "block";
+
+  // إخفاء الأقسام الأخرى
+  document.getElementById("carsBox").style.display = "none";
+  document.getElementById("visitBox").style.display = "none";
+
+  return; // ← مهم جداً
+}مهم جداًهذا هو المهم
 
 /* ============================
    عرض السيارات
