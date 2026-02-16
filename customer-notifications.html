@@ -81,17 +81,12 @@
 
 <script>
 
-// قراءة بيانات العميل
 let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
 
-// لو ما فيه عميل → رجوع للصفحة الرئيسية
 if (!CUSTOMER) {
     window.location.href = "customer-home.html";
 }
 
-let PHONE = CUSTOMER.phone;
-
-// تحميل الإشعارات تلقائياً عند فتح الصفحة
 window.onload = function() {
     loadNotifications();
 };
@@ -100,42 +95,52 @@ async function loadNotifications() {
     const list = document.getElementById("list");
     list.innerHTML = "<p>جاري التحميل...</p>";
 
-    const res = await apiGet({
-        action: "getNotifications",
-        phone: PHONE
-    });
+    const res = await apiGetNotifications();
 
     if (!res.success) {
         list.innerHTML = "<p>لا توجد بيانات.</p>";
         return;
     }
 
-    if (res.notifications.length === 0) {
+    const rows = res.rows;
+
+    if (rows.length === 0) {
         list.innerHTML = "<p>لا توجد إشعارات.</p>";
         return;
     }
 
     list.innerHTML = "";
 
-    res.notifications.forEach(n => {
+    rows.forEach((n, i) => {
+
+        const notif = {
+            type: n[0],
+            message: n[1],
+            created_at: n[2],
+            related_id: n[3],
+            read: n[4] === "read",
+            row: i + 2
+        };
+
         const div = document.createElement("div");
-        div.className = "notif " + (n.read ? "" : "unread");
+        div.className = "notif " + (notif.read ? "" : "unread");
 
         const typeClass = {
-            info: "info",
-            warning: "warning",
-            success: "success",
-            danger: "danger"
-        }[n.type] || "info";
+            booking_new: "info",
+            booking_cancel: "danger",
+            visit_new: "warning",
+            visit_paid: "success",
+            customer_level_up: "success"
+        }[notif.type] || "info";
 
         div.innerHTML = `
-            <div class="row"><span class="label">الرسالة:</span> ${n.message}</div>
-            <div class="row"><span class="label">التاريخ:</span> ${new Date(n.created_at).toLocaleString("ar-SA")}</div>
+            <div class="row"><span class="label">الرسالة:</span> ${notif.message}</div>
+            <div class="row"><span class="label">التاريخ:</span> ${notif.created_at}</div>
             <div class="row">
                 <span class="label">النوع:</span>
-                <span class="type ${typeClass}">${n.type}</span>
+                <span class="type ${typeClass}">${notif.type}</span>
             </div>
-            ${n.read ? "" : `<button onclick="markRead(${n.row})">تم القراءة</button>`}
+            ${notif.read ? "" : `<button onclick="markRead(${notif.row})">تم القراءة</button>`}
         `;
 
         list.appendChild(div);
@@ -143,11 +148,7 @@ async function loadNotifications() {
 }
 
 async function markRead(row) {
-    await apiPost({
-        action: "markNotificationRead",
-        row
-    });
-
+    await apiMarkNotificationRead(row);
     loadNotifications();
 }
 
