@@ -231,10 +231,10 @@ async function loadBookings() {
         <b>العضوية:</b> ${mem || "—"}<br>
         <b>الحالة:</b> <span class="tag">${status}</span><br>
 
-        <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;" 
+        <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;"
           onclick="updateBooking(${idx + 2}, '${phone}', 'مؤكد')">تأكيد</button>
 
-        <button class="btn-outline" style="margin-top:4px;font-size:11px;padding:4px 8px;" 
+        <button class="btn-outline" style="margin-top:4px;font-size:11px;padding:4px 8px;"
           onclick="updateBooking(${idx + 2}, '${phone}', 'ملغي')">إلغاء</button>
       </div>
     `;
