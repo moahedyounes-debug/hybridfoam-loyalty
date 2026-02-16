@@ -250,17 +250,17 @@ async function addBooking(){
 
   const createdAt = new Date().toISOString();
 
-  const res = await apiPost({
-    action: "addBooking",
-    phone: CUSTOMER.phone,
-    membership: CUSTOMER.membership,
-    service,
-    date,
-    time,
-    status: "قيد الانتظار",
-    created_at: createdAt
-  });
-
+const res = await apiPost({
+  action: "addBooking",
+  phone: '="' + CUSTOMER.phone + '"',   // ← الحل الصحيح
+  membership: CUSTOMER.membership,
+  service,
+  date,
+  time,
+  status: "قيد الانتظار",
+  created_at: createdAt
+});
+  
   if(!res.success){
     alert("خطأ في الحجز: " + res.error);
     return;
