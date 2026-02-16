@@ -176,9 +176,17 @@ function vm_updatePoints() {
    البحث الذكي
 ============================ */
 async function vm_searchCustomer() {
+
+  const btn = document.getElementById("btnSearch");
+  btn.disabled = true;
+  const originalText = btn.innerText;
+  btn.innerText = "جاري جلب بيانات العميل...";
+
   const input = document.getElementById("phone").value.trim();
   if (!input) {
     showToast("ادخل رقم الجوال أو العضوية أو رقم اللوحة", "error");
+    btn.disabled = false;
+    btn.innerText = originalText;
     return;
   }
 
@@ -188,26 +196,35 @@ async function vm_searchCustomer() {
   if (/^05\d{8}$/.test(input)) {
     customerRes = await apiGetCustomerByPhone(input);
   }
+
   // 2) رقم العضوية
   else if (/^\d+$/.test(input)) {
     customerRes = await apiGetCustomerByMembership(input);
   }
-  // 3) رقم اللوحة
+
+  // 3) رقم اللوحة (حروف + أرقام)
   else {
     const cars = await apiGetAll("Cars");
     if (!cars.success) {
       showToast("خطأ في قراءة بيانات السيارات", "error");
+      btn.disabled = false;
+      btn.innerText = originalText;
       return;
     }
 
-    const matches = cars.rows.filter(r =>
-      String(r[5]).includes(input) ||
-      String(r[4]).includes(input) ||
-      (String(r[4]) + String(r[5])).includes(input)
-    );
+    const matches = cars.rows.filter(r => {
+      const letters = String(r[4] || "").toLowerCase();
+      const numbers = String(r[5] || "");
+      const combined = (letters + numbers).toLowerCase();
+      const q = input.toLowerCase();
+
+      return letters.includes(q) || numbers.includes(q) || combined.includes(q);
+    });
 
     if (matches.length === 0) {
       showToast("لا توجد سيارات بهذا الرقم", "error");
+      btn.disabled = false;
+      btn.innerText = originalText;
       return;
     }
 
@@ -244,8 +261,10 @@ async function vm_searchCustomer() {
       }
     }
 
-    // عرض قائمة السيارات
     vm_renderCars();
+
+    btn.disabled = false;
+    btn.innerText = originalText;
     return;
   }
 
@@ -258,16 +277,13 @@ async function vm_searchCustomer() {
   document.getElementById("customerInfo").innerHTML =
     "عميل غير مسجل — سيتم إنشاء عضوية ضيف تلقائياً.";
 
-  // إظهار نموذج إضافة السيارة
   document.getElementById("guestCarBox").style.display = "block";
-
-  // إخفاء الأقسام الأخرى
   document.getElementById("carsBox").style.display = "none";
   document.getElementById("visitBox").style.display = "none";
 
-  return; //
-   }
-
+  btn.disabled = false;
+  btn.innerText = originalText;
+}
 /* ============================
    عرض السيارات
 ============================ */
