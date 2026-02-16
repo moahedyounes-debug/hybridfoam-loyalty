@@ -83,7 +83,9 @@
 
 <button class="btn" onclick="window.location.href='customer-dashboard.html'">العودة للوحة العميل</button>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <script src="api.js"></script>
+
 <script>
 
 let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
@@ -128,10 +130,6 @@ function renderCard() {
   if (CUSTOMER.level === "Platinum") color = "#e5e4e2";
   if (CUSTOMER.level === "VIP") color = "#000";
 
-  // QR دائمًا يظهر
-  let qrValue = CUSTOMER.phone || CUSTOMER.membership || "NO_DATA";
-  let qrURL = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${qrValue}`;
-
   document.getElementById("cardContainer").innerHTML = `
     <div class="card">
       <div class="top" style="background:${color};">
@@ -146,7 +144,7 @@ function renderCard() {
         <div class="row"><span class="label">النقاط</span><span class="value">${CUSTOMER.points}</span></div>
 
         <div class="qr">
-          <img src="${qrURL}" width="130" height="130">
+          <canvas id="qrCanvas" width="130" height="130"></canvas>
         </div>
 
         <div class="row"><span class="label">الاشتراك</span><span class="value">${CUSTOMER.subscription || "بدون اشتراك"}</span></div>
@@ -154,6 +152,16 @@ function renderCard() {
       </div>
     </div>
   `;
+
+  // توليد QR محليًا
+  let qrValue = CUSTOMER.phone || CUSTOMER.membership || "NO_DATA";
+
+  new QRious({
+    element: document.getElementById("qrCanvas"),
+    value: qrValue,
+    size: 130,
+    level: "H"
+  });
 }
 
 /* ============================
