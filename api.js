@@ -1,6 +1,6 @@
 // api.js – موحد لكل المشروع
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyJhYh4pROgQsA9k5jgTFg-B_6YlKRPOgSzwHw_7sdpd620wc_LmXwq7sF0yawZEyt2ow/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyRzBKnaq9_6oNh5zkrF7qIKrXsF8wn3HJKJSVXOvwxUqZHZxLxv3X0WDX0Ddt0smz8pw/exec";
 
 async function apiPost(params) {
   const form = new URLSearchParams();
@@ -22,7 +22,9 @@ async function apiGetAll(sheet) {
   return apiPost({ action: 'getAll', sheet });
 }
 
-// اختصارات سريعة
+/* ============================
+   Supervisors Login
+============================ */
 
 async function apiLoginSupervisor(username, password) {
   return apiPost({
@@ -31,6 +33,10 @@ async function apiLoginSupervisor(username, password) {
     password
   });
 }
+
+/* ============================
+   Customers
+============================ */
 
 async function apiGetCustomerByPhone(phone) {
   return apiPost({
@@ -45,6 +51,10 @@ async function apiGetCustomerByMembership(membership) {
     membership
   });
 }
+
+/* ============================
+   Cars
+============================ */
 
 async function apiGetCarsByPhone(phone) {
   return apiPost({
@@ -67,12 +77,41 @@ async function apiAddCar(data) {
   });
 }
 
+/* ============================
+   Visits
+============================ */
+
+async function apiAddVisit(data) {
+  return apiPost({
+    action: 'addVisit',
+    ...data
+  });
+}
+
+async function apiCloseVisit(row, data) {
+  return apiPost({
+    action: "closeVisit",
+    row,
+    ...data
+  });
+}
+
 async function apiGetVisitsByMembership(membership) {
   return apiPost({
     action: 'getVisitsByMembership',
     membership
   });
 }
+
+async function apiGetActiveVisits() {
+  return apiPost({
+    action: 'getActiveVisits'
+  });
+}
+
+/* ============================
+   Bookings
+============================ */
 
 async function apiGetBookingsByPhone(phone) {
   return apiPost({
@@ -88,18 +127,16 @@ async function apiGetBookingsByDate(date) {
   });
 }
 
-async function apiAddVisit(data) {
+async function apiAddBooking(data) {
   return apiPost({
-    action: 'addVisit',
+    action: 'addBooking',
     ...data
   });
 }
 
-async function apiGetActiveVisits() {
-  return apiPost({
-    action: 'getActiveVisits'
-  });
-}
+/* ============================
+   Services / Commissions
+============================ */
 
 async function apiGetServices() {
   return apiPost({
@@ -107,9 +144,10 @@ async function apiGetServices() {
   });
 }
 
-async function apiGetBranches() {
+async function apiGetServicesByCategory(category) {
   return apiPost({
-    action: 'getBranches'
+    action: 'getServicesByCategory',
+    category
   });
 }
 
@@ -120,11 +158,94 @@ async function apiGetCarTypes() {
 }
 
 /* ============================
-   Employees API
+   Employees
 ============================ */
 
 async function apiGetEmployees() {
   return apiPost({
     action: "getEmployees"
+  });
+}
+
+/* ============================
+   Branches
+============================ */
+
+async function apiGetBranches() {
+  return apiPost({
+    action: "getBranches"
+  });
+}
+
+/* ============================
+   Payroll
+============================ */
+
+async function apiCalculatePayrollByEmployee(employee, from, to) {
+  return apiPost({
+    action: "calculatePayrollByEmployee",
+    employee,
+    from,
+    to
+  });
+}
+
+async function apiAddPayroll(data) {
+  return apiPost({
+    action: "addPayroll",
+    ...data
+  });
+}
+
+/* ============================
+   Notifications
+============================ */
+
+async function apiAddNotification(data) {
+  return apiPost({
+    action: "addNotification",
+    ...data
+  });
+}
+
+async function apiGetNotifications() {
+  return apiPost({
+    action: "getNotifications"
+  });
+}
+
+async function apiMarkNotificationRead(row) {
+  return apiPost({
+    action: "markNotificationRead",
+    row
+  });
+}
+
+/* ============================
+   Universal Row Operations
+============================ */
+
+async function apiUpdateRow(sheet, row, values) {
+  return apiPost({
+    action: "updateRow",
+    sheet,
+    row,
+    values: JSON.stringify(values)
+  });
+}
+
+async function apiDeleteRow(sheet, row) {
+  return apiPost({
+    action: "deleteRow",
+    sheet,
+    row
+  });
+}
+
+async function apiAddRow(sheet, values) {
+  return apiPost({
+    action: "addRow",
+    sheet,
+    values: JSON.stringify(values)
   });
 }
