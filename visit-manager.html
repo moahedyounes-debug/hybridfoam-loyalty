@@ -61,100 +61,90 @@
     <div id="carsList"></div>
   </div>
 
- <!-- تسجيل الزيارة -->
-<div id="visitBox" class="section" style="display:none;">
-  <h3 class="section-title">تسجيل زيارة</h3>
+  <!-- تسجيل الزيارة -->
+  <div id="visitBox" class="section" style="display:none;">
+    <h3 class="section-title">تسجيل زيارة جديدة</h3>
 
-  <!-- بيانات اللوحة -->
-  <div class="row">
-    <div>
-      <label>أرقام اللوحة</label>
-      <input type="text" id="plate_numbers" placeholder="1234">
+    <div class="row">
+      <div>
+        <label>نوع الخدمة</label>
+        <select id="service_type"></select>
+      </div>
+
+      <div>
+        <label>تفاصيل الخدمة</label>
+        <select id="service_detail"></select>
+      </div>
     </div>
 
-    <div>
-      <label>حروف اللوحة</label>
-      <input type="text" id="plate_letters" placeholder="ABC">
-    </div>
-  </div>
+    <div class="row">
+      <div>
+        <label>السعر</label>
+        <input type="number" id="price">
+      </div>
 
-  <!-- نوع السيارة -->
-  <div class="row">
-    <div>
-      <label>نوع السيارة</label>
-      <select id="car_type"></select>
-    </div>
-
-    <div>
-      <label>الحجم</label>
-      <input type="text" id="car_size" readonly>
-    </div>
-  </div>
-
-  <!-- الخدمة -->
-  <div class="row">
-    <div>
-      <label>نوع الخدمة</label>
-      <select id="service_type"></select>
+      <div>
+        <label>النقاط</label>
+        <input type="number" id="points" readonly>
+      </div>
     </div>
 
-    <div>
-      <label>تفاصيل الخدمة</label>
-      <select id="service_detail"></select>
-    </div>
-  </div>
+    <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
 
-  <!-- السعر والنقاط -->
-  <div class="row">
-    <div>
-      <label>السعر</label>
-      <input type="number" id="price" readonly>
-    </div>
+    <div id="servicesList" class="services-box"></div>
 
-    <div>
-      <label>النقاط</label>
-      <input type="number" id="points" readonly>
-    </div>
-  </div>
+    <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
 
-  <!-- الخصم -->
-  <div class="row">
-    <div>
-      <label>الخصم</label>
-      <input type="number" id="discount" placeholder="0">
+    <div class="row">
+      <div>
+        <label>الخصم (ريال)</label>
+        <input type="number" id="discount" placeholder="0">
+      </div>
     </div>
 
-    <div>
-      <label>رقم الموقف</label>
-      <select id="parking_slot">
-        <option value="">— اختر رقم الموقف —</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- الموظف والفرع -->
-  <div class="row">
-    <div>
-      <label>الموظف</label>
-      <select id="employee_in"></select>
+    <div class="row">
+      <div>
+        <label>رقم الموقف</label>
+        <select id="parking_slot">
+          <option value="">— اختر رقم الموقف —</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </div>
     </div>
 
-    <div>
-      <label>الفرع</label>
-      <select id="branch">
-        <option value="Makkah - مكة">Makkah - مكة</option>
-      </select>
+    <div class="row">
+      <div>
+        <label>الموظف</label>
+        <select id="employee_in">
+          <option value="">— اختر الموظف —</option>
+        </select>
+      </div>
     </div>
-  </div>
 
-  <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
-</div>
+    <div class="row">
+      <div>
+        <label>حالة الدفع</label>
+        <select id="payment_status">
+          <option value="">— اختر حالة الدفع —</option>
+          <option value="مدفوع">مدفوع</option>
+          <option value="غير مدفوع">غير مدفوع</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>الفرع</label>
+        <select id="branch">
+          <option value="Makkah - مكة">Makkah - مكة</option>
+        </select>
+      </div>
+
       <div id="payment_method_wrapper" style="display:none;">
         <label>طريقة الدفع</label>
         <select id="payment_method">
@@ -164,6 +154,12 @@
         </select>
       </div>
     </div>
+
+    <button id="btnSubmitVisit" class="btn-primary full" disabled>
+      تسجيل الزيارة
+    </button>
+
+  </div>
 
   <!-- Toast -->
   <div id="toast-container"></div>
