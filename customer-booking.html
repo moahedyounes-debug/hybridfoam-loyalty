@@ -55,6 +55,31 @@
       background:transparent;
       border:1px solid #374151;
     }
+
+    /* Toast */
+    #toast-container{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:9999;
+    }
+    .toast{
+      background:#1f2937;
+      color:white;
+      padding:12px 18px;
+      border-radius:8px;
+      margin-top:10px;
+      opacity:0;
+      transform:translateY(20px);
+      transition:0.3s;
+      border-right:5px solid #3b82f6;
+    }
+    .toast.success{ border-right-color:#22c55e; }
+    .toast.error{ border-right-color:#ef4444; }
+    .toast.show{
+      opacity:1;
+      transform:translateY(0);
+    }
   </style>
 </head>
 
@@ -97,6 +122,8 @@
 
 </div>
 
+<div id="toast-container"></div>
+
 <script src="api.js"></script>
 <script>
 
@@ -108,19 +135,38 @@ if(!CUSTOMER){
 let SERVICES = [];
 let BRANCHES = [];
 
-// تحميل الفئات والخدمات والفروع
+/* =============================
+   Toast Notifications
+============================= */
+function showToast(message, type = "info") {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.innerText = message;
+  container.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 10);
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+/* =============================
+   تحميل الفئات والخدمات والفروع
+============================= */
 window.onload = async function(){
   await loadCategories();
   await loadBranches();
 };
 
-// =============================
-// تحميل الفئات من شيت Commissions
-// =============================
+/* =============================
+   تحميل الفئات
+============================= */
 async function loadCategories(){
   const res = await apiGetServices();
   if(!res.success){
-    alert("خطأ في تحميل الفئات");
+    showToast("خطأ في تحميل الفئات", "error");
     return;
   }
 
@@ -133,9 +179,9 @@ async function loadCategories(){
     categories.map(c => `<option value="${c}">${c}</option>`).join("");
 }
 
-// =============================
-// تحميل الخدمات حسب الفئة
-// =============================
+/* =============================
+   تحميل الخدمات حسب الفئة
+============================= */
 function loadServices(){
   const category = document.getElementById("category").value;
 
@@ -148,9 +194,9 @@ function loadServices(){
   document.getElementById("price").value = "";
 }
 
-// =============================
-// تحديث السعر تلقائياً
-// =============================
+/* =============================
+   تحديث السعر
+============================= */
 function updatePrice(){
   const service = document.getElementById("service").value;
 
@@ -160,13 +206,13 @@ function updatePrice(){
   }
 }
 
-// =============================
-// تحميل الفروع
-// =============================
+/* =============================
+   تحميل الفروع
+============================= */
 async function loadBranches(){
   const res = await apiGetBranches();
   if(!res.success){
-    alert("خطأ في تحميل الفروع");
+    showToast("خطأ في تحميل الفروع", "error");
     return;
   }
 
@@ -175,19 +221,17 @@ async function loadBranches(){
   const branchSelect = document.getElementById("branch");
 
   if(BRANCHES.length === 1){
-    // فرع واحد فقط → تعيين تلقائي
     branchSelect.innerHTML = `<option value="${BRANCHES[0][0]}">${BRANCHES[0][0]}</option>`;
   } else {
-    // أكثر من فرع → قائمة اختيار
     branchSelect.innerHTML =
       `<option value="">اختر الفرع</option>` +
       BRANCHES.map(b => `<option value="${b[0]}">${b[0]}</option>`).join("");
   }
 }
 
-// =============================
-// تحميل الأوقات المتاحة
-// =============================
+/* =============================
+   تحميل الأوقات المتاحة
+============================= */
 async function loadAvailableTimes(){
   const date = document.getElementById("date").value;
   const timeSelect = document.getElementById("time");
@@ -197,24 +241,20 @@ async function loadAvailableTimes(){
     return;
   }
 
-  // جلب حجوزات هذا اليوم
   const res = await apiGetBookingsByDate(date);
   const bookings = res.success ? res.bookings : [];
 
-  // حساب عدد الحجوزات لكل وقت
   const countByTime = {};
   bookings.forEach(b => {
-    const t = b.data[4]; // TIME
+    const t = b.data[4];
     const status = b.data[5];
     if(status !== "ملغي"){
       countByTime[t] = (countByTime[t] || 0) + 1;
     }
   });
 
-  // إعادة بناء قائمة الأوقات
   timeSelect.innerHTML = `<option value="">اختر الوقت</option>`;
 
-  // من 13:00 إلى 23:30
   for(let h = 13; h <= 23; h++){
     const hour = h.toString().padStart(2, "0");
     ["00","30"].forEach(min => {
@@ -225,7 +265,6 @@ async function loadAvailableTimes(){
     });
   }
 
-  // 00:00 – 01:00
   ["00:00","00:30","01:00"].forEach(t => {
     if(!countByTime[t] || countByTime[t] < 6){
       timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
@@ -233,9 +272,9 @@ async function loadAvailableTimes(){
   });
 }
 
-// =============================
-// إنشاء الحجز
-// =============================
+/* =============================
+   إنشاء الحجز
+============================= */
 async function addBooking(){
   const category = document.getElementById("category").value;
   const service = document.getElementById("service").value;
@@ -244,30 +283,33 @@ async function addBooking(){
   const time = document.getElementById("time").value;
 
   if(!category || !service || !branch || !date || !time){
-    alert("الرجاء تعبئة جميع الحقول");
+    showToast("الرجاء تعبئة جميع الحقول", "error");
     return;
   }
 
   const createdAt = new Date().toISOString();
 
-const res = await apiPost({
-  action: "addBooking",
-  phone: '="' + CUSTOMER.phone + '"',   // ← الحل الصحيح
-  membership: CUSTOMER.membership,
-  service,
-  date,
-  time,
-  status: "قيد الانتظار",
-  created_at: createdAt
-});
-  
+  const res = await apiPost({
+    action: "addBooking",
+    phone: String(CUSTOMER.phone),   // ← يحفظ 05xxxxxx بدون سقوط الصفر
+    membership: CUSTOMER.membership,
+    service,
+    date,
+    time,
+    status: "قيد الانتظار",
+    created_at: createdAt
+  });
+
   if(!res.success){
-    alert("خطأ في الحجز: " + res.error);
+    showToast("خطأ في الحجز: " + res.error, "error");
     return;
   }
 
-  alert("تم إنشاء الحجز وهو الآن قيد الانتظار");
-  window.location.href = "customer-bookings.html";
+  showToast("تم إنشاء الحجز بنجاح", "success");
+
+  setTimeout(() => {
+    window.location.href = "customer-bookings.html";
+  }, 1200);
 }
 
 </script>
