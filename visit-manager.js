@@ -373,7 +373,8 @@ async function vm_submitVisit() {
 
     const serviceNames = VM_STATE.selectedServices.map(s => s.name).join(" + ");
 
-    const res = await apiAddVisit({
+    // نبني البيانات بدون طريقة الدفع
+    let payload = {
       membership,
       service_detail: serviceNames,
       price: totalPrice,
@@ -383,10 +384,16 @@ async function vm_submitVisit() {
       branch,
       commission: "",
       payment_status,
-      payment_method,
       parking_slot,
       rating: ""
-    });
+    };
+
+    // فقط إذا كانت مدفوعة نضيف طريقة الدفع
+    if (payment_status === "مدفوع") {
+      payload.payment_method = payment_method;
+    }
+
+    const res = await apiAddVisit(payload);
 
     if (!res.success) {
       showToast("خطأ في تسجيل الزيارة", "error");
