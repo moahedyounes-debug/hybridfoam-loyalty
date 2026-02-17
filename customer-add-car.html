@@ -8,7 +8,7 @@
   <style>
     body{
       font-family:"Tajawal",sans-serif;
-      background: url('logo-bg.png') center/cover no-repeat fixed, #050608;
+      background: url('logo-bg.png') center/cover no-repeat fixed, #050608 !important;
       color:#f5f5f5;
       padding:20px;
     }
@@ -176,7 +176,7 @@ function autoSize(){
 // إنشاء عضوية سيارة جديدة
 // =============================
 async function generateCarMembership() {
-  const customerMembership = CUSTOMER.membership; // مثال: 20260001
+  const customerMembership = CUSTOMER.membership;
 
   const res = await apiGetAll("Cars");
   if (!res.success) return "C-" + customerMembership;
@@ -227,7 +227,7 @@ async function addCar(){
 
   const res = await apiAddCar({
     membership: carMembership,
-    phone: CUSTOMER.phone,
+    phone: String(CUSTOMER.phone), // ← يحفظ 05xxxx كنص
     car: brand + " " + model,
     size,
     plate_letters,
