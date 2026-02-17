@@ -2,132 +2,145 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>API Universal Test</title>
+    <title>Hybrid Foam – API Tester</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
         body {
             font-family: "Tajawal", sans-serif;
+            background: #f0f2f5;
             padding: 20px;
-            background: #f5f5f5;
         }
-        textarea {
-            width: 100%;
-            height: 220px;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            margin-top: 10px;
-            font-size: 14px;
+        h2, h3 {
+            margin-bottom: 10px;
+        }
+        .box {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         button {
-            padding: 12px 20px;
-            margin: 5px 0;
             width: 100%;
-            background: #007bff;
-            color: white;
+            padding: 12px;
+            margin: 5px 0;
             border: none;
             border-radius: 8px;
-            cursor: pointer;
+            background: #007bff;
+            color: white;
             font-size: 16px;
+            cursor: pointer;
         }
         button:hover {
             background: #005fcc;
+        }
+        textarea {
+            width: 100%;
+            height: 260px;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
 
 <body>
 
-<h2>اختبار الـ API الجديد</h2>
+<h2>🧪 Hybrid Foam – Universal API Tester</h2>
 
-<h3>🟦 GET TEST</h3>
-<button onclick="testGet('Car-Type')">GET Car-Type</button>
-<button onclick="testGet('Branches')">GET Branches</button>
-<button onclick="testGet('Cars')">GET Cars</button>
-<button onclick="testGet('Customers')">GET Customers</button>
+<div class="box">
+    <h3>🔗 رابط الـ API</h3>
+    <input id="apiUrl" value="https://script.google.com/macros/s/AKfycbx14lxAd1ftGgWJzHkPyzzuimOAvu2LxbGm4Wzq6gFcCK5sRHGF232rGGNkkQBezJ1YMQ/exec">
+</div>
 
-<h3>🟨 POST TEST</h3>
-<button onclick="testAdd()">POST addRow → Cars</button>
-<button onclick="testUpdate()">POST updateRow → Cars</button>
-<button onclick="testDelete()">POST deleteRow → Cars</button>
+<div class="box">
+    <h3>🟦 اختبار GET (getAll)</h3>
+    <select id="sheetSelect">
+        <option value="Customers">Customers</option>
+        <option value="Cars">Cars</option>
+        <option value="Visits">Visits</option>
+        <option value="Bookings">Bookings</option>
+        <option value="Branches">Branches</option>
+        <option value="Commissions">Commissions</option>
+        <option value="Employees">Employees</option>
+        <option value="Level">Level</option>
+        <option value="Cost">Cost</option>
+    </select>
+    <button onclick="runGet()">تشغيل GET</button>
+</div>
+
+<div class="box">
+    <h3>🟨 اختبار POST (أي أكشن)</h3>
+
+    <input id="actionName" placeholder="action مثال: getCustomerByPhone">
+
+    <textarea id="params" placeholder='{
+  "phone": "0582007063",
+  "membership": "20260001"
+}'></textarea>
+
+    <button onclick="runPost()">تشغيل POST</button>
+</div>
 
 <textarea id="output" placeholder="النتيجة تظهر هنا..."></textarea>
 
-<script src="api.js"></script>
-
 <script>
+async function runGet() {
+    const url = document.getElementById("apiUrl").value;
+    const sheet = document.getElementById("sheetSelect").value;
 
-// ========== GET TEST ==========
-async function testGet(sheet) {
-    const res = await apiGet({
-        action: "getAll",
-        sheet: sheet
-    });
+    const form = new URLSearchParams();
+    form.append("action", "getAll");
+    form.append("sheet", sheet);
 
-    document.getElementById("output").value =
-        "GET " + sheet + ":\n\n" + JSON.stringify(res, null, 2);
-}
-
-// ========== ADD TEST ==========
-async function testAdd() {
-    const row = [
-        "TEST-" + Date.now(),   // car_membership
-        '="0500000000"',        // phone
-        "Toyota",               // brand
-        "Sedan",                // size
-        "أ ب ج",                // plate_letters
-        "1234",                 // plate_numbers
-        "Riyadh",               // city
-        new Date()              // created_at
-    ];
-
-    const res = await apiPost({
-        action: "addRow",
-        sheet: "Cars",
-        values: JSON.stringify(row)
-    });
+    const res = await fetch(url, { method: "POST", body: form });
+    const json = await res.json();
 
     document.getElementById("output").value =
-        "ADD ROW:\n\n" + JSON.stringify(res, null, 2);
+        "GET " + sheet + ":\n\n" + JSON.stringify(json, null, 2);
 }
 
-// ========== UPDATE TEST ==========
-async function testUpdate() {
-    const row = [
-        "UPDATED",
-        '="0599999999"',
-        "Lexus",
-        "SUV",
-        "د ر س",
-        "9999",
-        "Jeddah",
-        new Date()
-    ];
+async function runPost() {
+    const url = document.getElementById("apiUrl").value;
+    const action = document.getElementById("actionName").value.trim();
+    const paramsText = document.getElementById("params").value.trim();
 
-    const res = await apiPost({
-        action: "updateRow",
-        sheet: "Cars",
-        row: 2, // تعديل الصف الثاني كمثال
-        values: JSON.stringify(row)
+    if (!action) {
+        alert("اكتب اسم الأكشن");
+        return;
+    }
+
+    let params = {};
+    try {
+        params = JSON.parse(paramsText);
+    } catch (e) {
+        alert("صيغة JSON غير صحيحة");
+        return;
+    }
+
+    const form = new URLSearchParams();
+    form.append("action", action);
+
+    Object.keys(params).forEach(k => {
+        form.append(k, params[k]);
     });
 
-    document.getElementById("output").value =
-        "UPDATE ROW:\n\n" + JSON.stringify(res, null, 2);
-}
-
-// ========== DELETE TEST ==========
-async function testDelete() {
-    const res = await apiPost({
-        action: "deleteRow",
-        sheet: "Cars",
-        row: 2 // حذف الصف الثاني كمثال
-    });
+    const res = await fetch(url, { method: "POST", body: form });
+    const json = await res.json();
 
     document.getElementById("output").value =
-        "DELETE ROW:\n\n" + JSON.stringify(res, null, 2);
+        "POST " + action + ":\n\n" + JSON.stringify(json, null, 2);
 }
-
 </script>
 
 </body>
