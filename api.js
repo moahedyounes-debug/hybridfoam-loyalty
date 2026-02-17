@@ -208,9 +208,10 @@ async function apiAddNotification(data) {
   });
 }
 
-async function apiGetNotifications() {
+async function apiGetNotifications(phone) {
   return apiPost({
-    action: "getNotifications"
+    action: "getNotifications",
+    phone
   });
 }
 
@@ -218,6 +219,16 @@ async function apiMarkNotificationRead(row) {
   return apiPost({
     action: "markNotificationRead",
     row
+  });
+}
+
+/* ============================
+   Levels (NEW)
+============================ */
+
+async function apiGetLevels() {
+  return apiPost({
+    action: "getLevels"
   });
 }
 
