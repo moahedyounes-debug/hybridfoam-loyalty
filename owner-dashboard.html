@@ -1,687 +1,1214 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>لوحة المالك</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="api.js"></script>
-
-<style>
-body{
-font-family:"Tajawal",sans-serif;
-background:#F4FAFF;
-color:#0D47A1;
-padding:16px;
-}
-h2{margin-bottom:12px;}
-.tabs{
-display:flex;
-gap:8px;
-margin-bottom:16px;
-overflow-x:auto;
-}
-.tab-btn{
-padding:10px 16px;
-border-radius:999px;
-background:#E3F2FD;
-color:#0D47A1;
-border:none;
-cursor:pointer;
-font-size:14px;
-white-space:nowrap;
-}
-.tab-btn.active{
-background:#0D47A1;
-color:white;
-}
-.tab-content{display:none;}
-.tab-content.active{display:block;}
-.card{
-background:white;
-padding:16px;
-border-radius:16px;
-margin-bottom:16px;
-box-shadow:0 4px 12px rgba(0,0,0,0.08);
-border:1px solid #E3F2FD;
-}
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-gap:16px;
-}
-.value{
-font-size:20px;
-font-weight:700;
-margin-top:6px;
-}
-input,select{
-width:100%;
-padding:8px;
-border-radius:8px;
-border:1px solid #D1D5DB;
-margin-bottom:8px;
-font-size:14px;
-}
-.btn{
-padding:10px 16px;
-border:none;
-border-radius:999px;
-background:#0D47A1;
-color:white;
-cursor:pointer;
-font-size:14px;
-margin-top:6px;
-}
-.btn-outline{
-padding:10px 16px;
-border-radius:999px;
-background:white;
-border:1px solid #0D47A1;
-color:#0D47A1;
-cursor:pointer;
-font-size:14px;
-margin-top:6px;
-}
-table{
-width:100%;
-border-collapse:collapse;
-font-size:13px;
-}
-th,td{
-border-bottom:1px solid #E5E7EB;
-padding:6px;
-text-align:right;
-}
-th{
-background:#F3F4F6;
-font-weight:600;
-}
-.tag{
-background:#E3F2FD;
-padding:2px 6px;
-border-radius:999px;
-font-size:11px;
-color:#0D47A1;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>لوحة المالك – Hybrid Foam</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="api.js"></script>
+  <style>
+    body{
+      font-family:"Tajawal",sans-serif;
+      background:#F4FAFF;
+      color:#0D47A1;
+      padding:16px;
+      margin:0;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+    }
+    header .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    header img{
+      height:40px;
+    }
+    header h1{
+      font-size:20px;
+      margin:0;
+    }
+    .tabs{
+      display:flex;
+      gap:8px;
+      margin-bottom:16px;
+      overflow-x:auto;
+    }
+    .tab-btn{
+      padding:10px 16px;
+      border-radius:999px;
+      background:#E3F2FD;
+      color:#0D47A1;
+      border:none;
+      cursor:pointer;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    .tab-btn.active{
+      background:#0D47A1;
+      color:white;
+    }
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
+    .card{
+      background:white;
+      padding:16px;
+      border-radius:16px;
+      margin-bottom:16px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      border:1px solid #E3F2FD;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:12px;
+    }
+    .kpi{
+      background:#F9FBFF;
+      border-radius:14px;
+      padding:10px 12px;
+      border:1px solid #E3F2FD;
+    }
+    .kpi-title{
+      font-size:13px;
+      color:#64748B;
+    }
+    .kpi-value{
+      font-size:20px;
+      font-weight:700;
+      margin-top:4px;
+    }
+    .kpi-sub{
+      font-size:11px;
+      color:#94A3B8;
+      margin-top:2px;
+    }
+    input,select{
+      width:100%;
+      padding:8px;
+      border-radius:8px;
+      border:1px solid #D1D5DB;
+      margin-bottom:8px;
+      font-size:14px;
+      box-sizing:border-box;
+    }
+    .btn{
+      padding:10px 16px;
+      border:none;
+      border-radius:999px;
+      background:#0D47A1;
+      color:white;
+      cursor:pointer;
+      font-size:14px;
+      margin-top:4px;
+    }
+    .btn-outline{
+      padding:10px 16px;
+      border-radius:999px;
+      background:white;
+      border:1px solid #0D47A1;
+      color:#0D47A1;
+      cursor:pointer;
+      font-size:14px;
+      margin-top:4px;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    th,td{
+      border-bottom:1px solid #E5E7EB;
+      padding:6px;
+      text-align:right;
+    }
+    th{
+      background:#F3F4F6;
+      font-weight:600;
+    }
+    .tag{
+      background:#E3F2FD;
+      padding:2px 6px;
+      border-radius:999px;
+      font-size:11px;
+      color:#0D47A1;
+    }
+    .section-title{
+      margin-bottom:8px;
+      font-size:15px;
+      font-weight:600;
+    }
+    .flex{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .flex > div{
+      flex:1;
+      min-width:160px;
+    }
+    @media (max-width:600px){
+      header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
-<h2>لوحة المالك</h2>
+<header>
+  <div class="brand">
+    <img src="https://raw.githubusercontent.com/moahedyounes-debug/hybridfoam-loyalty/main/logo.png" alt="Hybrid Foam Logo">
+    <h1>لوحة المالك – Hybrid Foam</h1>
+  </div>
+  <div style="font-size:12px;color:#64748B;">
+    نظام تقارير وإدارة متقدم
+  </div>
+</header>
 
 <div class="tabs">
-<button class="tab-btn active" onclick="openTab('dashboard')">📊 الرئيسية</button>
-<button class="tab-btn" onclick="openTab('activeCars')">🚗 السيارات غير المدفوعة</button>
-<button class="tab-btn" onclick="openTab('reports')">📑 التقارير</button>
-<button class="tab-btn" onclick="openTab('customers')">👥 العملاء</button>
-<button class="tab-btn" onclick="openTab('bookings')">📅 الحجوزات</button>
-<button class="tab-btn" onclick="openTab('payroll')">💼 الرواتب</button> 
+  <button class="tab-btn active" data-tab="dashboard">📊 الرئيسية</button>
+  <button class="tab-btn" data-tab="daily">📅 تقارير يومية / أسبوعية / شهرية / سنوية</button>
+  <button class="tab-btn" data-tab="payroll">💼 رواتب الموظفين (عمولات)</button>
+  <button class="tab-btn" data-tab="decision">🧠 تقارير اتخاذ القرار</button>
+  <button class="tab-btn" data-tab="customers">👥 العملاء</button>
+  <button class="tab-btn" data-tab="bookings">📅 الحجوزات</button>
+  <button class="tab-btn" data-tab="costs">💸 المصاريف</button>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="tab-content active">
+  <div class="card">
+    <div class="section-title">📅 فلتر التاريخ (اختياري)</div>
+    <div class="flex">
+      <div>
+        <label>من تاريخ</label>
+        <input type="date" id="dashFrom">
+      </div>
+      <div>
+        <label>إلى تاريخ</label>
+        <input type="date" id="dashTo">
+      </div>
+    </div>
+    <button class="btn" onclick="loadDashboard()">تحديث الملخص</button>
+    <button class="btn-outline" onclick="resetDashboardDates()">عرض كل الفترات</button>
+  </div>
 
-<div class="card">
-<h3>📅 فلتر التاريخ</h3>
-<label>من تاريخ</label>
-<input type="date" id="dateFrom">
-<label>إلى تاريخ</label>
-<input type="date" id="dateTo">
-<button class="btn" onclick="loadDashboard()">عرض</button>
-<button class="btn-outline" onclick="resetDates()">عرض كل البيانات</button>
+  <div class="card">
+    <div class="section-title">📊 ملخص إداري عالي المستوى</div>
+    <div id="dashboardKpis">جاري التحميل...</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📈 شارت الدخل اليومي</div>
+    <canvas id="chartRevenueDaily"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📉 شارت صافي الربح اليومي</div>
+    <canvas id="chartProfitDaily"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="section-title">💼 شارت عمولات الموظفين</div>
+    <canvas id="chartCommissionEmployees"></canvas>
+  </div>
 </div>
 
-<div class="card">
-<h3>📊 ملخص</h3>
-<div id="dashboardContent">جاري التحميل...</div>
+<!-- DAILY / WEEKLY / MONTHLY / YEARLY REPORTS -->
+<div id="daily" class="tab-content">
+  <div class="card">
+    <div class="section-title">📅 نوع التقرير</div>
+    <select id="reportType">
+      <option value="daily">يومي</option>
+      <option value="weekly">أسبوعي (الأربعاء → الأربعاء)</option>
+      <option value="monthly">شهري</option>
+      <option value="yearly">سنوي</option>
+    </select>
+    <div id="reportFilters" class="flex">
+      <div id="dailyFilter">
+        <label>تاريخ اليوم</label>
+        <input type="date" id="dailyDate">
+      </div>
+      <div id="weeklyFilter" style="display:none;">
+        <label>اختر أي يوم داخل الأسبوع المطلوب</label>
+        <input type="date" id="weeklyAnyDate">
+      </div>
+      <div id="monthlyFilter" style="display:none;">
+        <label>السنة</label>
+        <input type="number" id="monthlyYear" placeholder="مثال: 2026">
+        <label>الشهر</label>
+        <input type="number" id="monthlyMonth" placeholder="1 - 12">
+      </div>
+      <div id="yearlyFilter" style="display:none;">
+        <label>السنة</label>
+        <input type="number" id="yearlyYear" placeholder="مثال: 2026">
+      </div>
+    </div>
+    <button class="btn" onclick="loadPeriodReport()">عرض التقرير</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📊 ملخص الفترة</div>
+    <div id="periodSummary">اختر نوع التقرير ثم اضغط عرض.</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📈 شارت الدخل وصافي الربح للفترة</div>
+    <canvas id="chartPeriodRevenue"></canvas>
+  </div>
 </div>
 
-<div class="card">
-<h3>📈 شارت الوارد اليومي</h3>
-<canvas id="chartRevenue"></canvas>
+<!-- PAYROLL -->
+<div id="payroll" class="tab-content">
+  <div class="card">
+    <div class="section-title">💼 حساب رواتب الموظفين (عمولات)</div>
+    <div class="flex">
+      <div>
+        <label>من تاريخ</label>
+        <input type="date" id="payFrom">
+      </div>
+      <div>
+        <label>إلى تاريخ</label>
+        <input type="date" id="payTo">
+      </div>
+    </div>
+    <button class="btn" onclick="loadPayroll()">حساب الرواتب</button>
+    <button class="btn-outline" onclick="setDefaultPayrollWeek()">أسبوع من الأربعاء إلى الأربعاء</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📋 تفاصيل الرواتب</div>
+    <div id="payrollTable">اختر الفترة ثم اضغط حساب.</div>
+  </div>
 </div>
 
-<div class="card">
-<h3>📉 شارت عمولات الموظفين</h3>
-<canvas id="chartCommission"></canvas>
-</div>
-
-</div>
-
-<!-- ACTIVE CARS -->
-<div id="activeCars" class="tab-content">
-<div class="card">
-<h3>🚗 السيارات داخل المغسلة (غير مدفوعة)</h3>
-<div id="activeCarsList">جاري التحميل...</div>
-</div>
-</div>
-
-<!-- REPORTS -->
-<div id="reports" class="tab-content">
-<div class="card">
-<h3>📑 التقارير التفصيلية</h3>
-<button class="btn" onclick="downloadExcel()">تحميل Excel</button>
-<div id="reportsTable">جاري التحميل...</div>
-</div>
+<!-- DECISION REPORTS -->
+<div id="decision" class="tab-content">
+  <div class="card">
+    <div class="section-title">🧠 تقارير تساعدك في اتخاذ القرار</div>
+    <div id="decisionContent">جاري التحميل...</div>
+  </div>
 </div>
 
 <!-- CUSTOMERS -->
 <div id="customers" class="tab-content">
-<div class="card">
-<h3>👥 العملاء</h3>
-<input id="customerSearch" placeholder="بحث عن عميل">
-<button class="btn" onclick="loadCustomers()">بحث</button>
-<div id="customersTable">جاري التحميل...</div>
-</div>
-</div>
-<!-- BOOKINGS -->
-<div id="bookings" class="tab-content">
-<div class="card">
-<h3>📅 الحجوزات</h3>
-<div id="bookingsList">جاري التحميل...</div>
-</div>
-</div>
-
-  <!-- PAYROLL -->
-<div id="payroll" class="tab-content">
   <div class="card">
-    <h3>💼 رواتب الموظفين</h3>
-    <div id="payrollTable">جاري التحميل...</div>
+    <div class="section-title">👥 العملاء</div>
+    <input id="customerSearch" placeholder="بحث بالاسم / الجوال / العضوية">
+    <button class="btn" onclick="loadCustomers()">بحث</button>
+  </div>
+  <div class="card">
+    <div id="customersTable">جاري التحميل...</div>
   </div>
 </div>
 
-  <script>
+<!-- BOOKINGS -->
+<div id="bookings" class="tab-content">
+  <div class="card">
+    <div class="section-title">📅 الحجوزات</div>
+    <div id="bookingsList">جاري التحميل...</div>
+  </div>
+</div>
 
-function openTab(id){
-  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-  document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
-  event.target.classList.add("active");
-  document.getElementById(id).classList.add("active");
-}
+<!-- COSTS -->
+<div id="costs" class="tab-content">
+  <div class="card">
+    <div class="section-title">💸 ملخص المصاريف</div>
+    <div id="costSummary">جاري التحميل...</div>
+  </div>
+  <div class="card">
+    <div class="section-title">📋 تفاصيل المصاريف (من شيت Cost)</div>
+    <div id="costTable">جاري التحميل...</div>
+  </div>
+</div>
 
-function resetDates(){
-  document.getElementById("dateFrom").value = "";
-  document.getElementById("dateTo").value = "";
-  loadDashboard();
-}
-
-/* ============================
-   DASHBOARD
-============================ */
-async function loadDashboard() {
-
-  const from = document.getElementById("dateFrom").value;
-  const to = document.getElementById("dateTo").value;
-
-  const visitsRes = await apiGetAll("Visits");
-  const customersRes = await apiGetAll("Customers");
-  const servicesRes = await apiGetAll("Commissions");
-
-  if (!visitsRes.success || !servicesRes.success) return;
-
-  let visits = visitsRes.rows;
-
-  /* بناء خريطة العمولة من شيت Commissions */
-  let commissionMapServices = {};
-  servicesRes.rows.forEach(s => {
-    const serviceName = s[0];      // service
-    const commission = Number(s[1] || 0); // commission
-    commissionMapServices[serviceName] = commission;
-  });
-
-  /* فلترة حسب التاريخ */
-  if (from && to) {
-    visits = visits.filter(v => {
-      const date = String(v[8] || "").slice(0, 10);
-      return date >= from && date <= to;
-    });
-  }
-
-  let total = 0, cash = 0, network = 0;
+<script>
+  // ===========================
+  // GLOBAL DATA CACHE
+  // ===========================
+  let allVisits = [];
+  let allCustomers = [];
+  let allServices = [];
+  let allEmployees = [];
+  let allBookings = [];
+  let allCosts = [];
   let commissionMap = {};
+  let charts = {};
 
-  visits.forEach(v => {
-    const price = Number(v[2] || 0);
-    const method = String(v[11] || "");
-    const employee = String(v[4] || "");
-    const service = v[1];
+  // ===========================
+  // TABS
+  // ===========================
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      const id = btn.getAttribute("data-tab");
+      document.getElementById(id).classList.add("active");
 
-    total += price;
-    if (method === "كاش") cash += price;
-    if (method === "شبكة") network += price;
-
-    if (employee) {
-      const commission = commissionMapServices[service] || 0;
-      commissionMap[employee] = (commissionMap[employee] || 0) + commission;
-    }
-  });
-
-  document.getElementById("dashboardContent").innerHTML = `
-    <div class="grid">
-      <div class="card"><h4>💰 إجمالي الوارد</h4><div class="value">${total} ريال</div></div>
-      <div class="card"><h4>💳 شبكة</h4><div class="value">${network} ريال</div></div>
-      <div class="card"><h4>💵 كاش</h4><div class="value">${cash} ريال</div></div>
-      <div class="card"><h4>🧽 عدد الخدمات</h4><div class="value">${visits.length}</div></div>
-      <div class="card"><h4>👥 عدد العملاء</h4><div class="value">${customersRes.rows.length}</div></div>
-      <div class="card"><h4>💼 إجمالي عمولات الموظفين</h4><div class="value">${
-        Object.values(commissionMap).reduce((a,b)=>a+b,0)
-      } ريال</div></div>
-    </div>
-  `;
-
-  /* شارت الوارد */
-  const revenueByDay = {};
-  visits.forEach(v => {
-    const date = String(v[8] || "").slice(0, 10);
-    const price = Number(v[2] || 0);
-    revenueByDay[date] = (revenueByDay[date] || 0) + price;
-  });
-
-  new Chart(document.getElementById("chartRevenue"), {
-    type: "bar",
-    data: {
-      labels: Object.keys(revenueByDay),
-      datasets: [{
-        label: "الوارد اليومي",
-        data: Object.values(revenueByDay),
-        backgroundColor: "#0D47A1"
-      }]
-    }
-  });
-
-  /* شارت عمولات الموظفين */
-  new Chart(document.getElementById("chartCommission"), {
-    type: "bar",
-    data: {
-      labels: Object.keys(commissionMap),
-      datasets: [{
-        label: "عمولات الموظفين",
-        data: Object.values(commissionMap),
-        backgroundColor: "#FF8F00"
-      }]
-    }
-  });
-
-}
-
-/* ============================
-   ACTIVE CARS
-============================ */
-async function loadActiveCars() {
-
-  const box = document.getElementById("activeCarsList");
-  box.innerHTML = "جاري التحميل...";
-
-  const visitsRes = await apiGetActiveVisits();
-  if (!visitsRes.success || !visitsRes.visits.length) {
-    box.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد سيارات داخل المغسلة حالياً.</div>`;
-    return;
-  }
-
-  const carsRes = await apiGetAll("Cars");
-  let carMap = {};
-
-  if (carsRes.success) {
-    carsRes.rows.forEach(c => {
-      const membership = c[0];
-      carMap[membership] = {
-        car: c[2],
-        size: c[3],
-        letters: c[4],
-        numbers: c[5]
-      };
+      if (id === "dashboard") loadDashboard();
+      if (id === "daily") initPeriodTab();
+      if (id === "payroll") {/* لا شيء تلقائي */ }
+      if (id === "decision") loadDecisionReports();
+      if (id === "customers") loadCustomers();
+      if (id === "bookings") loadBookings();
+      if (id === "costs") loadCosts();
     });
+  });
+
+  // ===========================
+  // INIT
+  // ===========================
+  async function initData() {
+    const [vRes, cRes, sRes, eRes, bRes, costRes] = await Promise.all([
+      apiGetAll("Visits"),
+      apiGetAll("Customers"),
+      apiGetAll("Commissions"),
+      apiGetAll("Employees"),
+      apiGetAll("Bookings"),
+      apiGetAll("Cost")
+    ]);
+
+    if (vRes.success) allVisits = vRes.rows || [];
+    if (cRes.success) allCustomers = cRes.rows || [];
+    if (sRes.success) allServices = sRes.rows || [];
+    if (eRes.success) allEmployees = eRes.rows || [];
+    if (bRes.success) allBookings = bRes.rows || [];
+    if (costRes.success) allCosts = costRes.rows || [];
+
+    commissionMap = {};
+    allServices.forEach(r => {
+      const service = r[0];
+      const comm = Number(r[1] || 0);
+      commissionMap[service] = comm;
+    });
+
+    loadDashboard();
+    loadDecisionReports();
+    loadCosts();
   }
 
-  box.innerHTML = visitsRes.visits.map(v => {
-    const row = v.row;
-    const d = v.data;
-    const membership = d[0];
+  // ===========================
+  // HELPERS
+  // ===========================
+  function parseDateFromVisit(v) {
+    const raw = String(v[8] || "");
+    if (!raw) return null;
+    const d = raw.split(" ")[0];
+    return d || null;
+  }
 
-    let plate = "—";
-    let carName = "—";
+  function inRange(dateStr, from, to) {
+    if (!dateStr) return false;
+    if (from && dateStr < from) return false;
+    if (to && dateStr > to) return false;
+    return true;
+  }
 
-    if (membership && carMap[membership]) {
-      plate = `${carMap[membership].numbers} ${carMap[membership].letters}`;
-      carName = carMap[membership].car;
+  function sum(arr) {
+    return arr.reduce((a,b)=>a+Number(b||0),0);
+  }
+
+  function formatCurrency(v) {
+    return Number(v || 0).toLocaleString("ar-SA") + " ريال";
+  }
+
+  function clearChart(id) {
+    if (charts[id]) {
+      charts[id].destroy();
+      charts[id] = null;
+    }
+  }
+
+  // ===========================
+  // DASHBOARD
+  // ===========================
+  function resetDashboardDates() {
+    document.getElementById("dashFrom").value = "";
+    document.getElementById("dashTo").value = "";
+    loadDashboard();
+  }
+
+  function getCostForDate(dateStr) {
+    // Cost sheet: A:Details, B:Amount, C:Type (Monthly, Yearly, ...)
+    // هنا نحسب تقريب تقريبي: 
+    // Monthly → نقسم على 30
+    // Yearly → نقسم على 365
+    // Daily → كامل
+    // Weekly → نقسم على 7
+    let total = 0;
+    allCosts.forEach(r => {
+      const amount = Number(r[1] || 0);
+      const type = String(r[2] || "").toLowerCase();
+      if (!amount) return;
+      if (type === "daily") total += amount;
+      else if (type === "weekly") total += amount / 7;
+      else if (type === "monthly") total += amount / 30;
+      else if (type === "yearly") total += amount / 365;
+      else total += amount; // لو ما حدد النوع نعتبره كامل
+    });
+    return total;
+  }
+
+  async function loadDashboard() {
+    const from = document.getElementById("dashFrom").value || null;
+    const to = document.getElementById("dashTo").value || null;
+
+    let visits = allVisits.slice();
+    if (from || to) {
+      visits = visits.filter(v => inRange(parseDateFromVisit(v), from, to));
     }
 
-    return `
-      <div style="border:1px solid #E5E7EB;border-radius:12px;padding:10px;margin-bottom:10px;background:white;font-size:14px;">
-        <b>🚗 اللوحة:</b> ${plate}<br>
-        <b>نوع السيارة:</b> ${carName}<br>
-        <b>العضوية:</b> ${membership || "—"}<br>
-        <b>الخدمة:</b> ${d[1]}<br>
-        <b>السعر:</b> ${d[2]} ريال<br>
-        <b>الموقف:</b> ${d[12] || "—"}<br>
-        <b>الفرع:</b> ${d[9] || "—"}<br>
+    let totalRevenue = 0;
+    let cash = 0;
+    let network = 0;
+    let totalCommission = 0;
+    let revenueByDay = {};
+    let profitByDay = {};
+    let commissionByEmployee = {};
 
-        <label style="font-size:13px;margin-top:6px;display:block;">طريقة الدفع</label>
-        <select id="pay_${row}" style="width:100%;padding:6px;border-radius:8px;border:1px solid #D1D5DB;">
-          <option value="كاش">كاش</option>
-          <option value="شبكة">شبكة</option>
-        </select>
+    visits.forEach(v => {
+      const price = Number(v[2] || 0);
+      const method = String(v[11] || "");
+      const employee = String(v[4] || "");
+      const service = v[1];
+      const date = parseDateFromVisit(v);
 
-        <button onclick="markActiveCarPaid(${row})"
-        style="margin-top:8px;width:100%;padding:8px;background:#0D47A1;color:white;border:none;border-radius:8px;cursor:pointer;">
-          تحديث حالة الدفع
-        </button>
+      totalRevenue += price;
+      if (method === "كاش") cash += price;
+      if (method === "شبكة") network += price;
+
+      const comm = commissionMap[service] || 0;
+      totalCommission += comm;
+      if (employee) {
+        commissionByEmployee[employee] = (commissionByEmployee[employee] || 0) + comm;
+      }
+
+      if (date) {
+        revenueByDay[date] = (revenueByDay[date] || 0) + price;
+      }
+    });
+
+    // تقدير المصاريف اليومية الإجمالية للفترة
+    let costTotal = 0;
+    let daysSet = new Set(Object.keys(revenueByDay));
+    daysSet.forEach(d => {
+      costTotal += getCostForDate(d);
+    });
+
+    const totalProfit = totalRevenue - (costTotal + totalCommission);
+
+    // بناء profitByDay
+    Object.keys(revenueByDay).forEach(d => {
+      const rev = revenueByDay[d];
+      const cost = getCostForDate(d);
+      // تقدير عمولة اليوم: نسبة من إجمالي العمولة حسب نسبة الدخل
+      const dayShare = rev / (totalRevenue || 1);
+      const dayComm = totalCommission * dayShare;
+      profitByDay[d] = rev - (cost + dayComm);
+    });
+
+    // أفضل موظف / خدمة / فرع / يوم
+    let bestEmployee = "-";
+    let bestEmployeeVal = 0;
+    Object.keys(commissionByEmployee).forEach(e => {
+      if (commissionByEmployee[e] > bestEmployeeVal) {
+        bestEmployeeVal = commissionByEmployee[e];
+        bestEmployee = e;
+      }
+    });
+
+    let serviceCount = {};
+    let branchCount = {};
+    let dayCount = {};
+    visits.forEach(v => {
+      const s = v[1];
+      const b = v[6];
+      const d = parseDateFromVisit(v);
+      if (s) serviceCount[s] = (serviceCount[s] || 0) + 1;
+      if (b) branchCount[b] = (branchCount[b] || 0) + 1;
+      if (d) dayCount[d] = (dayCount[d] || 0) + 1;
+    });
+
+    function getMaxKey(obj) {
+      let maxK = "-";
+      let maxV = 0;
+      Object.keys(obj).forEach(k => {
+        if (obj[k] > maxV) {
+          maxV = obj[k];
+          maxK = k;
+        }
+      });
+      return maxK;
+    }
+
+    const bestService = getMaxKey(serviceCount);
+    const bestBranch = getMaxKey(branchCount);
+    const bestDay = getMaxKey(dayCount);
+
+    const avgVisitPrice = visits.length ? (totalRevenue / visits.length) : 0;
+
+    document.getElementById("dashboardKpis").innerHTML = `
+      <div class="grid">
+        <div class="kpi">
+          <div class="kpi-title">💰 إجمالي الدخل</div>
+          <div class="kpi-value">${formatCurrency(totalRevenue)}</div>
+          <div class="kpi-sub">من ${visits.length} زيارة</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">💸 إجمالي المصاريف التقديرية</div>
+          <div class="kpi-value">${formatCurrency(costTotal)}</div>
+          <div class="kpi-sub">من شيت Cost</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">💼 إجمالي العمولات</div>
+          <div class="kpi-value">${formatCurrency(totalCommission)}</div>
+          <div class="kpi-sub">حسب شيت Commissions</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">📈 صافي الربح التقديري</div>
+          <div class="kpi-value">${formatCurrency(totalProfit)}</div>
+          <div class="kpi-sub">الدخل - (المصاريف + العمولات)</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">💳 شبكة</div>
+          <div class="kpi-value">${formatCurrency(network)}</div>
+          <div class="kpi-sub">إجمالي المدفوع بالشبكة</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">💵 كاش</div>
+          <div class="kpi-value">${formatCurrency(cash)}</div>
+          <div class="kpi-sub">إجمالي المدفوع كاش</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">🧽 عدد الزيارات</div>
+          <div class="kpi-value">${visits.length}</div>
+          <div class="kpi-sub">في الفترة المحددة</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">👥 عدد العملاء</div>
+          <div class="kpi-value">${allCustomers.length}</div>
+          <div class="kpi-sub">إجمالي العملاء المسجلين</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">💳 متوسط سعر الزيارة</div>
+          <div class="kpi-value">${formatCurrency(avgVisitPrice)}</div>
+          <div class="kpi-sub">الدخل ÷ عدد الزيارات</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">🏅 أفضل موظف (عمولة)</div>
+          <div class="kpi-value">${bestEmployee}</div>
+          <div class="kpi-sub">${formatCurrency(bestEmployeeVal)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">🧴 أكثر خدمة طلباً</div>
+          <div class="kpi-value">${bestService}</div>
+          <div class="kpi-sub">حسب عدد الزيارات</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">🏢 أفضل فرع</div>
+          <div class="kpi-value">${bestBranch}</div>
+          <div class="kpi-sub">حسب عدد الزيارات</div>
+        </div>
       </div>
     `;
-  }).join("");
 
-}
+    // Charts
+    const labels = Object.keys(revenueByDay).sort();
+    const revData = labels.map(d => revenueByDay[d]);
+    const profitData = labels.map(d => profitByDay[d] || 0);
 
-async function markActiveCarPaid(row) {
-  const method = document.getElementById(`pay_${row}`).value;
+    clearChart("chartRevenueDaily");
+    clearChart("chartProfitDaily");
+    clearChart("chartCommissionEmployees");
 
-  const res = await apiPost({
-    action: "closeVisit",
-    row,
-    payment_status: "مدفوع",
-    payment_method: method
-  });
+    charts["chartRevenueDaily"] = new Chart(document.getElementById("chartRevenueDaily"), {
+      type:"bar",
+      data:{
+        labels,
+        datasets:[{
+          label:"الدخل اليومي",
+          data:revData,
+          backgroundColor:"#0D47A1"
+        }]
+      }
+    });
 
-  if (!res.success) {
-    alert("خطأ في تحديث حالة الدفع");
-    return;
-  }
+    charts["chartProfitDaily"] = new Chart(document.getElementById("chartProfitDaily"), {
+      type:"line",
+      data:{
+        labels,
+        datasets:[{
+          label:"صافي الربح اليومي",
+          data:profitData,
+          borderColor:"#FF8F00",
+          backgroundColor:"rgba(255,143,0,0.2)",
+          fill:true,
+          tension:0.3
+        }]
+      }
+    });
 
-  alert("تم تحديث حالة الدفع بنجاح");
-  loadActiveCars();
-}
+    const empLabels = Object.keys(commissionByEmployee);
+    const empData = empLabels.map(e => commissionByEmployee[e]);
 
-document.querySelector("[onclick=\"openTab('activeCars')\"]")
-  .addEventListener("click", loadActiveCars);
-
-/* ============================
-   REPORTS
-============================ */
-async function loadReports() {
-
-  const box = document.getElementById("reportsTable");
-  box.innerHTML = "جاري التحميل...";
-
-  const visitsRes = await apiGetAll("Visits");
-  if (!visitsRes.success) {
-    box.innerHTML = "خطأ في تحميل البيانات";
-    return;
-  }
-
-  const visits = visitsRes.rows;
-
-  box.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>العضوية</th>
-          <th>الخدمة</th>
-          <th>السعر</th>
-          <th>طريقة الدفع</th>
-          <th>الموظف</th>
-          <th>التاريخ</th>
-          <th>الفرع</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${visits.map(v => `
-          <tr>
-            <td>${v[0] || "—"}</td>
-            <td>${v[1] || "—"}</td>
-            <td>${v[2] || 0} ريال</td>
-            <td>${v[11] || "—"}</td>
-            <td>${v[4] || "—"}</td>
-            <td>${v[8] || "—"}</td>
-            <td>${v[9] || "—"}</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
-}
-
-document.querySelector("[onclick=\"openTab('reports')\"]")
-  .addEventListener("click", loadReports);
-
-/* ============================
-   CUSTOMERS
-============================ */
-async function loadCustomers() {
-
-  const box = document.getElementById("customersTable");
-  const q = document.getElementById("customerSearch").value.trim().toLowerCase();
-
-  box.innerHTML = "جاري التحميل...";
-
-  const customersRes = await apiGetAll("Customers");
-  const carsRes = await apiGetAll("Cars");
-  const visitsRes = await apiGetAll("Visits");
-
-  if (!customersRes.success) {
-    box.innerHTML = "خطأ في تحميل البيانات";
-    return;
-  }
-
-  const customers = customersRes.rows;
-
-  const carsMap = {};
-  if (carsRes.success) {
-    carsRes.rows.forEach(c => {
-      const mem = c[0];
-      if (!carsMap[mem]) carsMap[mem] = [];
-      carsMap[mem].push(c);
+    charts["chartCommissionEmployees"] = new Chart(document.getElementById("chartCommissionEmployees"), {
+      type:"bar",
+      data:{
+        labels:empLabels,
+        datasets:[{
+          label:"عمولات الموظفين",
+          data:empData,
+          backgroundColor:"#FF8F00"
+        }]
+      }
     });
   }
 
-  const visitsMap = {};
-  if (visitsRes.success) {
-    visitsRes.rows.forEach(v => {
+  // ===========================
+  // PERIOD REPORTS (DAILY/WEEKLY/MONTHLY/YEARLY)
+  // ===========================
+  function initPeriodTab() {
+    document.getElementById("reportType").addEventListener("change", onReportTypeChange);
+  }
+
+  function onReportTypeChange() {
+    const type = document.getElementById("reportType").value;
+    document.getElementById("dailyFilter").style.display = (type === "daily") ? "block" : "none";
+    document.getElementById("weeklyFilter").style.display = (type === "weekly") ? "block" : "none";
+    document.getElementById("monthlyFilter").style.display = (type === "monthly") ? "block" : "none";
+    document.getElementById("yearlyFilter").style.display = (type === "yearly") ? "block" : "none";
+  }
+
+  function getWeekRangeFromDate(dateStr) {
+    // نعتبر بداية الأسبوع الأربعاء
+    const d = new Date(dateStr);
+    if (isNaN(d)) return null;
+    // 3 = Wednesday
+    let day = d.getDay(); // 0-6
+    // نحول التاريخ إلى الأربعاء السابق
+    let diffToWed = (day - 3 + 7) % 7;
+    const start = new Date(d);
+    start.setDate(d.getDate() - diffToWed);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 7);
+    const fmt = x => x.toISOString().slice(0,10);
+    return { from: fmt(start), to: fmt(end) };
+  }
+
+  function loadPeriodReport() {
+    const type = document.getElementById("reportType").value;
+    let from = null, to = null, label = "";
+
+    if (type === "daily") {
+      const d = document.getElementById("dailyDate").value;
+      if (!d) { alert("اختر تاريخ اليوم"); return; }
+      from = d; to = d;
+      label = "تقرير يومي لـ " + d;
+    } else if (type === "weekly") {
+      const d = document.getElementById("weeklyAnyDate").value;
+      if (!d) { alert("اختر أي تاريخ داخل الأسبوع"); return; }
+      const range = getWeekRangeFromDate(d);
+      from = range.from;
+      to = range.to;
+      label = `تقرير أسبوعي من ${from} إلى ${to}`;
+    } else if (type === "monthly") {
+      const y = document.getElementById("monthlyYear").value;
+      const m = document.getElementById("monthlyMonth").value;
+      if (!y || !m) { alert("أدخل السنة والشهر"); return; }
+      const mm = String(m).padStart(2,"0");
+      from = `${y}-${mm}-01`;
+      const lastDay = new Date(y, m, 0).getDate();
+      to = `${y}-${mm}-${String(lastDay).padStart(2,"0")}`;
+      label = `تقرير شهري لـ ${y}-${mm}`;
+    } else if (type === "yearly") {
+      const y = document.getElementById("yearlyYear").value;
+      if (!y) { alert("أدخل السنة"); return; }
+      from = `${y}-01-01`;
+      to = `${y}-12-31`;
+      label = `تقرير سنوي لـ ${y}`;
+    }
+
+    let visits = allVisits.filter(v => inRange(parseDateFromVisit(v), from, to));
+
+    let totalRevenue = 0;
+    let totalCommission = 0;
+    let totalCost = 0;
+    let revenueByDay = {};
+    let profitByDay = {};
+    let serviceCount = {};
+    let employeeCount = {};
+
+    visits.forEach(v => {
+      const price = Number(v[2] || 0);
+      const service = v[1];
+      const employee = v[4];
+      const date = parseDateFromVisit(v);
+
+      totalRevenue += price;
+      const comm = commissionMap[service] || 0;
+      totalCommission += comm;
+
+      if (service) serviceCount[service] = (serviceCount[service] || 0) + 1;
+      if (employee) employeeCount[employee] = (employeeCount[employee] || 0) + 1;
+
+      if (date) {
+        revenueByDay[date] = (revenueByDay[date] || 0) + price;
+      }
+    });
+
+    let daysSet = new Set(Object.keys(revenueByDay));
+    daysSet.forEach(d => {
+      totalCost += getCostForDate(d);
+    });
+
+    const totalProfit = totalRevenue - (totalCost + totalCommission);
+
+    function getMaxKey(obj) {
+      let maxK = "-";
+      let maxV = 0;
+      Object.keys(obj).forEach(k => {
+        if (obj[k] > maxV) {
+          maxV = obj[k];
+          maxK = k;
+        }
+      });
+      return maxK;
+    }
+
+    const bestService = getMaxKey(serviceCount);
+    const bestEmployee = getMaxKey(employeeCount);
+
+    Object.keys(revenueByDay).forEach(d => {
+      const rev = revenueByDay[d];
+      const cost = getCostForDate(d);
+      const share = rev / (totalRevenue || 1);
+      const comm = totalCommission * share;
+      profitByDay[d] = rev - (cost + comm);
+    });
+
+    document.getElementById("periodSummary").innerHTML = `
+      <div style="margin-bottom:8px;font-weight:600;">${label}</div>
+      <div class="grid">
+        <div class="kpi">
+          <div class="kpi-title">💰 إجمالي الدخل</div>
+          <div class="kpi-value">${formatCurrency(totalRevenue)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">💸 إجمالي المصاريف التقديرية</div>
+          <div class="kpi-value">${formatCurrency(totalCost)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">💼 إجمالي العمولات</div>
+          <div class="kpi-value">${formatCurrency(totalCommission)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">📈 صافي الربح التقديري</div>
+          <div class="kpi-value">${formatCurrency(totalProfit)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">🧽 عدد الزيارات</div>
+          <div class="kpi-value">${visits.length}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">🧴 أكثر خدمة طلباً</div>
+          <div class="kpi-value">${bestService}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">🏅 أكثر موظف نشاطاً</div>
+          <div class="kpi-value">${bestEmployee}</div>
+        </div>
+      </div>
+    `;
+
+    const labels = Object.keys(revenueByDay).sort();
+    const revData = labels.map(d => revenueByDay[d]);
+    const profitData = labels.map(d => profitByDay[d] || 0);
+
+    clearChart("chartPeriodRevenue");
+    charts["chartPeriodRevenue"] = new Chart(document.getElementById("chartPeriodRevenue"), {
+      type:"bar",
+      data:{
+        labels,
+        datasets:[
+          {
+            label:"الدخل",
+            data:revData,
+            backgroundColor:"#0D47A1"
+          },
+          {
+            label:"صافي الربح",
+            data:profitData,
+            backgroundColor:"#FF8F00"
+          }
+        ]
+      }
+    });
+  }
+
+  // ===========================
+  // PAYROLL
+  // ===========================
+  function setDefaultPayrollWeek() {
+    const today = new Date();
+    const range = getWeekRangeFromDate(today.toISOString().slice(0,10));
+    document.getElementById("payFrom").value = range.from;
+    document.getElementById("payTo").value = range.to;
+  }
+
+  function loadPayroll() {
+    const from = document.getElementById("payFrom").value;
+    const to = document.getElementById("payTo").value;
+    if (!from || !to) {
+      alert("اختر من تاريخ وإلى تاريخ");
+      return;
+    }
+
+    let visits = allVisits.filter(v => inRange(parseDateFromVisit(v), from, to));
+
+    let payroll = {};
+    allEmployees.forEach(e => {
+      const name = e[0];
+      payroll[name] = { visits:0, commission:0, revenue:0 };
+    });
+
+    visits.forEach(v => {
+      const employee = v[4];
+      const service = v[1];
+      const price = Number(v[2] || 0);
+      const comm = commissionMap[service] || 0;
+      if (!payroll[employee]) {
+        payroll[employee] = { visits:0, commission:0, revenue:0 };
+      }
+      payroll[employee].visits += 1;
+      payroll[employee].commission += comm;
+      payroll[employee].revenue += price;
+    });
+
+    const rows = Object.keys(payroll).map(name => {
+      const p = payroll[name];
+      return { name, ...p };
+    }).filter(r => r.visits > 0);
+
+    if (!rows.length) {
+      document.getElementById("payrollTable").innerHTML =
+        `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد زيارات في هذه الفترة.</div>`;
+      return;
+    }
+
+    document.getElementById("payrollTable").innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>الموظف</th>
+            <th>عدد الزيارات</th>
+            <th>إجمالي الدخل الذي اشتغل عليه</th>
+            <th>إجمالي العمولة المستحقة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td>${r.name}</td>
+              <td>${r.visits}</td>
+              <td>${formatCurrency(r.revenue)}</td>
+              <td>${formatCurrency(r.commission)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // ===========================
+  // DECISION REPORTS
+  // ===========================
+  function loadDecisionReports() {
+    if (!allVisits.length) {
+      document.getElementById("decisionContent").innerHTML = "جاري التحميل...";
+      return;
+    }
+
+    let serviceCount = {};
+    let serviceRevenue = {};
+    let hourCount = {};
+    let branchRevenue = {};
+    let customerVisits = {};
+    let customerRevenue = {};
+
+    allVisits.forEach(v => {
+      const service = v[1];
+      const price = Number(v[2] || 0);
+      const branch = v[6];
+      const membership = v[0];
+      const checkIn = String(v[8] || "");
+      const hour = checkIn.split(" ")[1] ? checkIn.split(" ")[1].slice(0,2) : null;
+
+      if (service) {
+        serviceCount[service] = (serviceCount[service] || 0) + 1;
+        serviceRevenue[service] = (serviceRevenue[service] || 0) + price;
+      }
+      if (branch) {
+        branchRevenue[branch] = (branchRevenue[branch] || 0) + price;
+      }
+      if (membership) {
+        customerVisits[membership] = (customerVisits[membership] || 0) + 1;
+        customerRevenue[membership] = (customerRevenue[membership] || 0) + price;
+      }
+      if (hour) {
+        hourCount[hour] = (hourCount[hour] || 0) + 1;
+      }
+    });
+
+    function topN(obj, n=5) {
+      return Object.keys(obj)
+        .map(k => ({ key:k, value:obj[k] }))
+        .sort((a,b)=>b.value-a.value)
+        .slice(0,n);
+    }
+
+    const topServices = topN(serviceCount);
+    const lowServices = topN(serviceCount).reverse();
+    const topBranches = topN(branchRevenue);
+    const topHours = topN(hourCount);
+    const topCustomersVisits = topN(customerVisits);
+    const topCustomersRevenue = topN(customerRevenue);
+
+    document.getElementById("decisionContent").innerHTML = `
+      <div class="grid">
+        <div>
+          <h4>🧴 أكثر الخدمات طلباً</h4>
+          <table>
+            <thead><tr><th>الخدمة</th><th>عدد الزيارات</th></tr></thead>
+            <tbody>
+              ${topServices.map(r=>`
+                <tr><td>${r.key}</td><td>${r.value}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4>🧴 أقل الخدمات طلباً</h4>
+          <table>
+            <thead><tr><th>الخدمة</th><th>عدد الزيارات</th></tr></thead>
+            <tbody>
+              ${lowServices.map(r=>`
+                <tr><td>${r.key}</td><td>${r.value}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4>🏢 الفروع الأعلى دخلاً</h4>
+          <table>
+            <thead><tr><th>الفرع</th><th>الدخل</th></tr></thead>
+            <tbody>
+              ${topBranches.map(r=>`
+                <tr><td>${r.key}</td><td>${formatCurrency(r.value)}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4>⏰ أوقات الذروة</h4>
+          <table>
+            <thead><tr><th>الساعة</th><th>عدد الزيارات</th></tr></thead>
+            <tbody>
+              ${topHours.map(r=>`
+                <tr><td>${r.key}:00</td><td>${r.value}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4>👥 العملاء الأكثر زيارة</h4>
+          <table>
+            <thead><tr><th>العضوية</th><th>عدد الزيارات</th></tr></thead>
+            <tbody>
+              ${topCustomersVisits.map(r=>`
+                <tr><td>${r.key}</td><td>${r.value}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4>👑 العملاء الأعلى إنفاقاً</h4>
+          <table>
+            <thead><tr><th>العضوية</th><th>إجمالي الإنفاق</th></tr></thead>
+            <tbody>
+              ${topCustomersRevenue.map(r=>`
+                <tr><td>${r.key}</td><td>${formatCurrency(r.value)}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // ===========================
+  // CUSTOMERS
+  // ===========================
+  function loadCustomers() {
+    const box = document.getElementById("customersTable");
+    const q = document.getElementById("customerSearch").value.trim().toLowerCase();
+
+    const visitsMap = {};
+    allVisits.forEach(v => {
       const mem = v[0];
       if (!visitsMap[mem]) visitsMap[mem] = [];
       visitsMap[mem].push(v);
     });
+
+    const filtered = allCustomers.filter(c => {
+      const name = String(c[0] || "").toLowerCase();
+      const phone = String(c[1] || "").toLowerCase();
+      const mem = String(c[8] || "").toLowerCase();
+      if (!q) return true;
+      return name.includes(q) || phone.includes(q) || mem.includes(q);
+    });
+
+    if (!filtered.length) {
+      box.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد نتائج مطابقة</div>`;
+      return;
+    }
+
+    box.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>الاسم</th>
+            <th>العضوية</th>
+            <th>الجوال</th>
+            <th>عدد الزيارات</th>
+            <th>إجمالي المدفوع</th>
+            <th>النقاط</th>
+            <th>المستوى</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(c => {
+            const mem = c[8];
+            const phone = c[1];
+            const vs = visitsMap[mem] || [];
+            const totalPaid = vs.reduce((s,v)=>s+Number(v[2]||0),0);
+            return `
+              <tr>
+                <td>${c[0] || "-"}</td>
+                <td>${mem || "-"}</td>
+                <td>${phone || "-"}</td>
+                <td>${vs.length}</td>
+                <td>${formatCurrency(totalPaid)}</td>
+                <td>${c[11] || 0}</td>
+                <td>${c[12] || "-"}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
   }
 
-  const filtered = customers.filter(c => {
-    const name = String(c[0] || "").toLowerCase();
-    const phone = String(c[1] || "").toLowerCase();
-    const mem = String(c[8] || "").toLowerCase();
-    if (!q) return true;
-    return name.includes(q) || phone.includes(q) || mem.includes(q);
-  });
+  // ===========================
+  // BOOKINGS
+  // ===========================
+  function loadBookings() {
+    const box = document.getElementById("bookingsList");
+    if (!allBookings.length) {
+      box.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد حجوزات حالياً</div>`;
+      return;
+    }
 
-  if (!filtered.length) {
-    box.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد نتائج مطابقة</div>`;
-    return;
+    box.innerHTML = allBookings.map((b,i) => {
+      const phone = b[0];
+      const membership = b[1];
+      const service = b[2];
+      const date = b[3];
+      const time = b[4];
+      const status = b[5];
+      return `
+        <div style="border:1px solid #E5E7EB;border-radius:12px;padding:10px;margin-bottom:10px;background:white;font-size:14px;">
+          <b>الخدمة:</b> ${service}<br>
+          <b>التاريخ:</b> ${date} ${time}<br>
+          <b>الجوال:</b> ${phone}<br>
+          <b>العضوية:</b> ${membership}<br>
+          <b>الحالة:</b> <span class="tag">${status}</span>
+        </div>
+      `;
+    }).join("");
   }
 
-  box.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>الاسم</th>
-          <th>العضوية</th>
-          <th>السيارات</th>
-          <th>الزيارات</th>
-          <th>إجمالي المدفوع</th>
-          <th>النقاط</th>
-          <th>المستوى</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${filtered.map(c => {
-          const mem = c[8];
-          const cars = carsMap[mem] || [];
-          const visits = visitsMap[mem] || [];
-          const totalPaid = visits.reduce((sum, v) => sum + Number(v[2] || 0), 0);
+  // ===========================
+  // COSTS
+  // ===========================
+  function loadCosts() {
+    const boxSum = document.getElementById("costSummary");
+    const boxTable = document.getElementById("costTable");
 
-          return `
-            <tr>
-              <td>${c[0]}</td>
-              <td>${mem}</td>
-              <td>${cars.length}</td>
-              <td>${visits.length}</td>
-              <td>${totalPaid} ريال</td>
-              <td>${c[11] || 0}</td>
-              <td>${c[12] || "—"}</td>
-            </tr>
-          `;
-        }).join("")}
-      </tbody>
-    </table>
-  `;
-}
+    if (!allCosts.length) {
+      boxSum.innerHTML = `<div style="color:#9CA3AF;font-size:14px;">لا توجد بيانات مصاريف في شيت Cost</div>`;
+      boxTable.innerHTML = "";
+      return;
+    }
 
-document.querySelector("[onclick=\"openTab('customers')\"]")
-  .addEventListener("click", loadCustomers);
+    let total = 0;
+    let byType = {};
+    allCosts.forEach(r => {
+      const amount = Number(r[1] || 0);
+      const type = String(r[2] || "Other");
+      total += amount;
+      byType[type] = (byType[type] || 0) + amount;
+    });
 
-/* ============================
-   BOOKINGS
-============================ */
-async function loadBookings() {
-
-  const box = document.getElementById("bookingsList");
-  box.innerHTML = "جاري التحميل...";
-
-  const res = await apiGetAll("Bookings");
-
-  if (!res.success || !res.rows.length) {
-    box.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:14px;">لا توجد حجوزات حالياً</div>`;
-    return;
-  }
-
-  box.innerHTML = res.rows.map((b, i) => {
-
-    const phone = b[0];
-    const membership = b[1];
-    const service = b[2];
-    const date = b[3];
-    const time = b[4];
-    const status = b[5];
-
-    return `
-      <div style="border:1px solid #E5E7EB;border-radius:12px;padding:10px;margin-bottom:10px;background:white;font-size:14px;">
-        <b>الخدمة:</b> ${service}<br>
-        <b>التاريخ:</b> ${date} ${time}<br>
-        <b>الجوال:</b> ${phone}<br>
-        <b>العضوية:</b> ${membership}<br>
-        <b>الحالة:</b> <span class="tag">${status}</span><br>
-
-        <button onclick="updateBookingStatus(${i + 2}, 'مؤكد', '${phone}')" class="btn" style="width:100%;margin-top:6px;">تأكيد الحجز</button>
-
-        <button onclick="updateBookingStatus(${i + 2}, 'ملغي', '${phone}')" class="btn-outline" style="width:100%;margin-top:6px;">
-          إلغاء الحجز
-        </button>
+    boxSum.innerHTML = `
+      <div class="grid">
+        <div class="kpi">
+          <div class="kpi-title">💸 إجمالي المصاريف المسجلة</div>
+          <div class="kpi-value">${formatCurrency(total)}</div>
+        </div>
+        ${Object.keys(byType).map(t => `
+          <div class="kpi">
+            <div class="kpi-title">${t}</div>
+            <div class="kpi-value">${formatCurrency(byType[t])}</div>
+          </div>
+        `).join("")}
       </div>
     `;
-  }).join("");
 
-}
-
-async function updateBookingStatus(row, status, phone) {
-
-  const res = await apiPost({
-    action: "updateRow",
-    sheet: "Bookings",
-    row,
-    values: JSON.stringify([null, null, null, null, null, status, null])
-  });
-
-  if (!res.success) {
-    alert("خطأ في تحديث الحجز");
-    return;
-  }
-
-  alert("تم تحديث حالة الحجز إلى: " + status);
-
-  loadBookings();
-}
-
-document.querySelector("[onclick=\"openTab('bookings')\"]")
-  .addEventListener("click", loadBookings);
-
-/* ============================
-   PAYROLL
-============================ */
-async function loadPayroll() {
-
-  const box = document.getElementById("payrollTable");
-  box.innerHTML = "جاري التحميل...";
-
-  const visitsRes = await apiGetAll("Visits");
-  const servicesRes = await apiGetAll("Commissions");
-  const employeesRes = await apiGetAll("Employees");
-
-  if (!visitsRes.success || !servicesRes.success || !employeesRes.success) {
-    box.innerHTML = "خطأ في تحميل البيانات";
-    return;
-  }
-
-  const visits = visitsRes.rows;
-  const services = servicesRes.rows;
-  const employees = employeesRes.rows;
-
-  /* بناء خريطة العمولة */
-  const commissionMap = {};
-  services.forEach(s => {
-    const serviceName = s[0];
-    const commission = Number(s[1] || 0);
-    commissionMap[serviceName] = commission;
-  });
-
-  /* حساب الرواتب */
-  const payroll = {};
-  employees.forEach(e => {
-    const name = e[0];
-    payroll[name] = { visits: 0, commission: 0 };
-  });
-
-  visits.forEach(v => {
-    const employee = v[4];
-    const service = v[1];
-
-    if (!payroll[employee]) return;
-
-    payroll[employee].visits += 1;
-    payroll[employee].commission += (commissionMap[service] || 0);
-  });
-
-  /* عرض النتائج */
-  box.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>الموظف</th>
-          <th>عدد الزيارات</th>
-          <th>إجمالي العمولة</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${Object.keys(payroll).map(name => `
+    boxTable.innerHTML = `
+      <table>
+        <thead>
           <tr>
-            <td>${name}</td>
-            <td>${payroll[name].visits}</td>
-            <td>${payroll[name].commission} ريال</td>
+            <th>التفاصيل</th>
+            <th>المبلغ</th>
+            <th>النوع</th>
           </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
-}
+        </thead>
+        <tbody>
+          ${allCosts.map(r => `
+            <tr>
+              <td>${r[0] || "-"}</td>
+              <td>${formatCurrency(r[1] || 0)}</td>
+              <td>${r[2] || "-"}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
 
-document.querySelector("[onclick=\"openTab('payroll')\"]")
-  .addEventListener("click", loadPayroll);
-
-/* ============================
-   Load on Start
-============================ */
-loadDashboard();
-
+  // ===========================
+  // START
+  // ===========================
+  initData();
 </script>
-
 
 </body>
 </html>
