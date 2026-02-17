@@ -249,8 +249,15 @@ async function vm_submitVisit() {
   }
 
   // 🔥 Lookup العضوية من اللوحة
-  let membership = await vm_getMembershipByPlate(plate_numbers, plate_letters);
-  if (!membership) membership = "GUEST-" + Date.now();
+let membership = await vm_getMembershipByPlate(plate_numbers, plate_letters);
+
+// 🔥 إصلاح المشكلة
+membership = String(membership || "");
+
+if (!membership || membership === "") {
+  membership = "GUEST-" + Date.now();
+}
+
 
   // 🔥 تسجيل كل خدمة في صف مستقل
   for (let s of VM_STATE.selectedServices) {
