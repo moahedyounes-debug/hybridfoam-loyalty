@@ -8,8 +8,8 @@
 <style>
 body{
   font-family:"Tajawal",sans-serif;
-  background:#F4FAFF;
-  color:#0D47A1;
+  background:url('logo-bg.png') center/cover no-repeat fixed, #050608;
+  color:white;
   padding:16px;
 }
 
@@ -24,7 +24,6 @@ h2{
   margin-bottom:6px;
   font-size:24px;
   font-weight:700;
-  color:#0D47A1;
 }
 
 .subtitle{
@@ -35,12 +34,13 @@ h2{
 }
 
 .section{
-  background:#FFFFFF;
+  background:rgba(0,0,0,0.55);
   border-radius:18px;
   padding:18px;
   margin-bottom:16px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-  border:1px solid #E3F2FD;
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+  border:1px solid #333;
+  backdrop-filter:blur(6px);
 }
 
 .title{
@@ -50,7 +50,6 @@ h2{
   display:flex;
   align-items:center;
   gap:6px;
-  color:#0D47A1;
 }
 
 .sub{
@@ -67,15 +66,15 @@ h2{
 }
 
 .label{color:#4FC3F7;}
-.value{color:#0D47A1;font-weight:600;}
+.value{font-weight:600;}
 
 .btn{
   width:100%;
   padding:12px;
   border:none;
   border-radius:999px;
-  background:#0D47A1;
-  color:white;
+  background:#4FC3F7;
+  color:black;
   font-size:15px;
   cursor:pointer;
   margin-top:10px;
@@ -83,54 +82,53 @@ h2{
 
 .btn-outline{
   background:transparent;
-  border:2px solid #0D47A1;
-  color:#0D47A1;
+  border:2px solid #4FC3F7;
+  color:#4FC3F7;
 }
 
 .car-card{
-  background:#F0F7FF;
+  background:rgba(255,255,255,0.08);
   padding:12px;
   border-radius:14px;
   margin-bottom:10px;
   display:flex;
   align-items:center;
   gap:12px;
-  border:1px solid #DCEBFF;
+  border:1px solid #444;
 }
 
 .car-img{
   width:55px;
   height:55px;
   border-radius:10px;
-  background:#0D47A1;
+  background:#4FC3F7;
   display:flex;
   align-items:center;
   justify-content:center;
   font-size:26px;
-  color:white;
+  color:black;
 }
 
 .car-info div{
   font-size:14px;
   margin-bottom:2px;
-  color:#0D47A1;
 }
 
 .empty{
   font-size:14px;
-  color:#4FC3F7;
+  color:#aaa;
 }
 
 .logout{
   text-align:center;
   margin-top:10px;
   font-size:14px;
-  color:#D32F2F;
+  color:#FF5252;
   cursor:pointer;
 }
 
 .progress-box{
-  background:#E3F2FD;
+  background:#222;
   border-radius:999px;
   height:10px;
   margin-top:8px;
@@ -146,7 +144,7 @@ h2{
 
 .next-level{
   font-size:13px;
-  color:#FF8F00;
+  color:#FFD54F;
   margin-top:6px;
   text-align:left;
 }
@@ -251,10 +249,13 @@ window.onload = async function(){
     loadBookings()
   ]);
 
-  loadLevelSystem();
+  await loadLevelSystem();
 };
 
-// قراءة العميل من الشيت
+/* =============================
+   تحميل بيانات العميل
+============================= */
+
 async function loadCustomerFromAPI(){
   const res = await apiGetCustomerByPhone(PHONE);
   if(!res.success) return;
@@ -283,8 +284,59 @@ function loadCustomerInfoFromLocal(){
   document.getElementById("city").innerText = CUSTOMER.city;
   document.getElementById("points").innerText = CUSTOMER.points;
   document.getElementById("freeWash").innerText = CUSTOMER.free_wash > 0 ? "متوفر" : "لا يوجد";
-  document.getElementById("level").innerText = CUSTOMER.level;
 }
+
+/* =============================
+   قراءة مستويات الترقية من الشيت
+============================= */
+
+async function loadLevelSystem(){
+  const points = Number(CUSTOMER.points || 0);
+
+  const res = await apiGetLevels();
+  if(!res.success){
+    document.getElementById("nextLevelText").innerText = "خطأ في تحميل المستويات";
+    return;
+  }
+
+  const levels = res.levels.map(r => ({
+    level: r[0],
+    from: Number(r[1]),
+    to: r[2] === "" ? null : Number(r[2])
+  }));
+
+  let current = levels.find(l => {
+    if(l.to === null) return points >= l.from;
+    return points >= l.from && points <= l.to;
+  });
+
+  if(!current){
+    document.getElementById("nextLevelText").innerText = "مستوى غير معروف";
+    return;
+  }
+
+  let progress = 0;
+  let nextText = "";
+
+  if(current.to === null){
+    progress = 100;
+    nextText = "أنت في أعلى مستوى 🎉";
+  } else {
+    const range = current.to - current.from;
+    progress = ((points - current.from) / range) * 100;
+
+    const remaining = current.to - points;
+    nextText = `متبقي ${remaining} نقطة للوصول إلى المستوى التالي`;
+  }
+
+  document.getElementById("level").innerText = current.level;
+  document.getElementById("progress").style.width = Math.min(100, Math.max(0, progress)) + "%";
+  document.getElementById("nextLevelText").innerText = nextText;
+}
+
+/* =============================
+   تحميل سيارات العميل
+============================= */
 
 async function loadCars(){
   const box = document.getElementById("carsBox");
@@ -311,11 +363,15 @@ async function loadCars(){
         <div><b>${c[2]}</b></div>
         <div>الحجم: ${c[3]}</div>
         <div>اللوحة: ${c[5]} ${c[4]}</div>
-        <div>عضوية السيارة: <span style="color:#FF8F00">${c[0]}</span></div>
+        <div>عضوية السيارة: <span style="color:#FFD54F">${c[0]}</span></div>
       </div>
     </div>
   `).join("");
 }
+
+/* =============================
+   آخر زيارة
+============================= */
 
 async function loadLastVisit(){
   const box = document.getElementById("lastVisitBox");
@@ -340,6 +396,10 @@ async function loadLastVisit(){
   `;
 }
 
+/* =============================
+   الحجوزات
+============================= */
+
 async function loadBookings(){
   const box = document.getElementById("bookingsBox");
   const res = await apiGetBookingsByPhone(PHONE);
@@ -362,50 +422,10 @@ async function loadBookings(){
   `;
 }
 
-function loadLevelSystem(){
-  const level = CUSTOMER.level;
-  const points = Number(CUSTOMER.points || 0);
+/* =============================
+   واتساب
+============================= */
 
-  let next = 0;
-  let progress = 0;
-
-  if(level === "Bronze"){
-    next = 100 - points;
-    progress = (points / 100) * 100;
-  }
-
-  if(level === "Silver"){
-    next = 200 - points;
-    progress = ((points - 100) / 100) * 100;
-  }
-
-  if(level === "Gold"){
-    next = 400 - points;
-    progress = ((points - 200) / 200) * 100;
-  }
-
-  if(level === "Platinum"){
-    next = 900 - points;
-    progress = ((points - 400) / 500) * 100;
-  }
-
-  if(level === "VIP"){
-    next = 0;
-    progress = 100;
-  }
-
-  document.getElementById("progress").style.width = progress + "%";
-
-  document.getElementById("nextLevelText").innerText =
-    next > 0 ? `متبقي ${next} نقطة للوصول إلى المستوى التالي` : "أنت في أعلى مستوى 🎉";
-}
-
-function logout(){
-  localStorage.removeItem("customer");
-  window.location.href = "customer-home.html";
-}
-
-// واتساب
 async function contactWhatsApp() {
   const phone = CUSTOMER.phone;
   let msg = "مرحباً مغسلة رغوة الهجين%0A";
@@ -420,7 +440,7 @@ async function contactWhatsApp() {
 
   const c = res.customer;
 
-  const carsRes = await apiGet({ action: "getAll", sheet: "Cars" });
+  const carsRes = await apiGetAll("Cars");
 
   let carCount = 0;
 
@@ -434,6 +454,15 @@ async function contactWhatsApp() {
     "عدد السيارات: " + carCount;
 
   window.location.href = "https://wa.me/966582007063?text=" + msg;
+}
+
+/* =============================
+   تسجيل خروج
+============================= */
+
+function logout(){
+  localStorage.removeItem("customer");
+  window.location.href = "customer-home.html";
 }
 
 </script>
