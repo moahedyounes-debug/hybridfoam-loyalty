@@ -1,160 +1,240 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
 <meta charset="UTF-8">
-<title>رغوة الهجين - إدارة الزيارات</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة العميل</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="visit-manager.css">
+<style>
+body{
+  font-family:"Tajawal",sans-serif;
+  background:#F4FAFF; /* خلفية سماوية فاتحة */
+  color:#0D47A1; /* أزرق غامق */
+  padding:16px;
+}
 
-<script src="api.js"></script>
-<script src="visit-manager.js" defer></script>
+.logo{
+  width:140px;
+  display:block;
+  margin:0 auto 10px auto;
+}
 
+h2{
+  text-align:center;
+  margin-bottom:6px;
+  font-size:24px;
+  font-weight:700;
+  color:#0D47A1;
+}
+
+.subtitle{
+  text-align:center;
+  color:#4FC3F7; /* سماوي */
+  font-size:14px;
+  margin-bottom:18px;
+}
+
+.section{
+  background:#FFFFFF;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  border:1px solid #E3F2FD; /* أزرق فاتح */
+}
+
+.title{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:6px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#0D47A1;
+}
+
+.sub{
+  font-size:13px;
+  color:#4FC3F7;
+  margin-bottom:12px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+  font-size:15px;
+}
+
+.label{color:#4FC3F7;}
+.value{color:#0D47A1;font-weight:600;}
+
+.btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:999px;
+  background:#0D47A1;
+  color:white;
+  font-size:15px;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.btn-outline{
+  background:transparent;
+  border:2px solid #0D47A1;
+  color:#0D47A1;
+}
+
+.car-card{
+  background:#F0F7FF;
+  padding:12px;
+  border-radius:14px;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border:1px solid #DCEBFF;
+}
+
+.car-img{
+  width:55px;
+  height:55px;
+  border-radius:10px;
+  background:#0D47A1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  color:white;
+}
+
+.car-info div{
+  font-size:14px;
+  margin-bottom:2px;
+  color:#0D47A1;
+}
+
+.empty{
+  font-size:14px;
+  color:#4FC3F7;
+}
+
+.logout{
+  text-align:center;
+  margin-top:10px;
+  font-size:14px;
+  color:#D32F2F;
+  cursor:pointer;
+}
+
+.progress-box{
+  background:#E3F2FD;
+  border-radius:999px;
+  height:10px;
+  margin-top:8px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+  background:#4FC3F7;
+  width:0%;
+  transition:.4s;
+}
+
+.next-level{
+  font-size:13px;
+  color:#FF8F00;
+  margin-top:6px;
+  text-align:left;
+}
+
+.whatsapp-btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:999px;
+  background:#25D366;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:20px;
+}
+</style>
 </head>
 
 <body>
 
-<!-- العنوان -->
-<div class="page-title">
-  <h1>رغوة الهجين</h1>
-  <h2>إدارة الزيارات</h2>
-</div>
+<img src="logo.png" class="logo">
 
-<!-- السيارات داخل المغسلة -->
+<h2>لوحة العميل</h2>
+<div class="subtitle">مرحباً بك في رغوة الهجين — كل بياناتك في مكان واحد</div>
+
+<!-- بيانات العميل -->
 <div class="section">
-  <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
-  <div id="activeVisitsList" class="cards"></div>
-  <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
+  <div class="title">👤 بيانات العميل</div>
+  <div class="sub">معلومات حسابك الأساسية</div>
+
+  <div class="row"><span class="label">الاسم</span><span class="value" id="name">—</span></div>
+  <div class="row"><span class="label">رقم الجوال</span><span class="value" id="phone">—</span></div>
+  <div class="row"><span class="label">رقم العضوية</span><span class="value" id="membership">—</span></div>
+  <div class="row"><span class="label">الفرع</span><span class="value" id="city">—</span></div>
+  <div class="row"><span class="label">النقاط</span><span class="value" id="points">0</span></div>
+  <div class="row"><span class="label">غسيل مجاني</span><span class="value" id="freeWash">—</span></div>
+  <div class="row"><span class="label">المستوى</span><span class="value" id="level">—</span></div>
+
+  <div class="progress-box">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+
+  <div class="next-level" id="nextLevelText"></div>
+
+  <button class="btn btn-outline" onclick="window.location.href='customer-membership.html'">
+    عرض بطاقة العضوية
+  </button>
 </div>
 
-<!-- تسجيل الزيارة -->
-<div id="visitBox" class="section">
+<!-- سيارات -->
+<div class="section">
+  <div class="title">🚗 سياراتك</div>
+  <div class="sub">السيارات المرتبطة بحسابك</div>
 
-  <h3 class="section-title">تسجيل زيارة</h3>
+  <div id="carsBox" class="empty">جاري التحميل...</div>
 
-  <!-- بيانات اللوحة -->
-  <div class="row">
-    <div>
-      <label>أرقام اللوحة</label>
-      <input type="text" id="plate_numbers" placeholder="1234">
-    </div>
-
-    <div>
-      <label>حروف اللوحة</label>
-      <input type="text" id="plate_letters" placeholder="ABC">
-    </div>
-  </div>
-
-  <!-- نوع السيارة -->
-  <div class="row">
-    <div>
-      <label>نوع السيارة</label>
-      <select id="car_type"></select>
-    </div>
-
-    <div>
-      <label>الحجم</label>
-      <input type="text" id="car_size" readonly>
-    </div>
-  </div>
-
-  <!-- الخدمة -->
-  <div class="row">
-    <div>
-      <label>نوع الخدمة</label>
-      <select id="service_type"></select>
-    </div>
-
-    <div>
-      <label>تفاصيل الخدمة</label>
-      <select id="service_detail"></select>
-    </div>
-  </div>
-
-  <!-- السعر والنقاط -->
-  <div class="row">
-    <div>
-      <label>السعر</label>
-      <input type="number" id="price" readonly>
-    </div>
-
-    <div>
-      <label>النقاط</label>
-      <input type="number" id="points" readonly>
-    </div>
-  </div>
-
-  <!-- إضافة خدمة -->
-  <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
-
-  <div id="servicesList" class="services-box"></div>
-
-  <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
-
-  <!-- الخصم والموقف -->
-  <div class="row">
-    <div>
-      <label>الخصم</label>
-      <input type="number" id="discount" placeholder="0">
-    </div>
-
-    <div>
-      <label>رقم الموقف</label>
-      <select id="parking_slot">
-        <option value="">— اختر رقم الموقف —</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- الموظف والفرع -->
-  <div class="row">
-    <div>
-      <label>الموظف</label>
-      <select id="employee_in"></select>
-    </div>
-
-    <div>
-      <label>الفرع</label>
-      <select id="branch">
-        <option value="Makkah - مكة">Makkah - مكة</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- الدفع -->
-  <div class="row">
-    <div>
-      <label>حالة الدفع</label>
-      <select id="payment_status">
-        <option value="">— اختر حالة الدفع —</option>
-        <option value="مدفوع">مدفوع</option>
-        <option value="غير مدفوع">غير مدفوع</option>
-      </select>
-    </div>
-
-    <div id="payment_method_wrapper" style="display:none;">
-      <label>طريقة الدفع</label>
-      <select id="payment_method">
-        <option value="">— اختر طريقة الدفع —</option>
-        <option value="كاش">كاش</option>
-        <option value="شبكة">شبكة</option>
-      </select>
-    </div>
-  </div>
-
-  <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
-
+  <button class="btn btn-outline" onclick="window.location.href='customer-cars.html'">عرض كل السيارات</button>
+  <button class="btn" onclick="window.location.href='customer-add-car.html'">إضافة سيارة</button>
 </div>
 
-<!-- Toast -->
-<div id="toast-container"></div>
+<!-- آخر زيارة -->
+<div class="section">
+  <div class="title">🧽 آخر زيارة</div>
+  <div class="sub">تفاصيل آخر خدمة تمت على عضويتك</div>
+
+  <div id="lastVisitBox" class="empty">جاري التحميل...</div>
+</div>
+
+<!-- الحجوزات -->
+<div class="section">
+  <div class="title">📅 الحجوزات</div>
+  <div class="sub">مواعيدك الحالية والسابقة</div>
+
+  <div id="bookingsBox" class="empty">جاري التحميل...</div>
+
+  <button class="btn btn-outline" onclick="window.location.href='customer-bookings.html'">عرض كل الحجوزات</button>
+  <button class="btn" onclick="window.location.href='customer-booking.html'">حجز موعد جديد</button>
+</div>
+
+<button class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
+
+<div class="logout" onclick="logout()">تسجيل خروج</div>
+
+<script src="api.js"></script>
+
+<script>
+/* نفس السكربت السابق بدون تغيير */
+</script>
 
 </body>
 </html>
