@@ -25,46 +25,37 @@
     <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
   </div>
 
-  <!-- البحث -->
-  <div class="section">
-    <h3 class="section-title">بحث عن السيارة</h3>
-
-    <label>رقم الجوال / رقم العضوية / رقم اللوحة</label>
-    <input type="text" id="phone" placeholder="اكتب رقم اللوحة أو الجوال أو العضوية">
-
-    <button id="btnSearch" class="btn-primary full">بحث</button>
-
-    <div id="customerInfo" class="info-box" style="display:none;"></div>
-  </div>
-
-  <div id="guestCarBox" class="section" style="display:none;">
-  <h3 class="section-title">إضافة سيارة للعميل الضيف</h3>
-
-  <label>نوع السيارة</label>
-  <input type="text" id="guest_car_type" placeholder="مثال: Camry">
-
-  <label>الموديل</label>
-  <input type="text" id="guest_car_model" placeholder="مثال: 2020">
-
-  <label>حروف اللوحة</label>
-  <input type="text" id="guest_car_letters" placeholder="مثال: ABC">
-
-  <label>أرقام اللوحة</label>
-  <input type="text" id="guest_car_numbers" placeholder="مثال: 1234">
-
-  <button class="btn-primary full" onclick="vm_addGuestCar()">إضافة السيارة</button>
-</div>
-
-  <!-- اختيار السيارة -->
-  <div id="carsBox" class="section" style="display:none;">
-    <h3 class="section-title">اختر السيارة</h3>
-    <div id="carsList"></div>
-  </div>
-
   <!-- تسجيل الزيارة -->
-  <div id="visitBox" class="section" style="display:none;">
-    <h3 class="section-title">تسجيل زيارة جديدة</h3>
+  <div id="visitBox" class="section">
+    <h3 class="section-title">تسجيل زيارة</h3>
 
+    <!-- بيانات اللوحة -->
+    <div class="row">
+      <div>
+        <label>أرقام اللوحة</label>
+        <input type="text" id="plate_numbers" placeholder="1234">
+      </div>
+
+      <div>
+        <label>حروف اللوحة</label>
+        <input type="text" id="plate_letters" placeholder="ABC">
+      </div>
+    </div>
+
+    <!-- نوع السيارة -->
+    <div class="row">
+      <div>
+        <label>نوع السيارة</label>
+        <select id="car_type"></select>
+      </div>
+
+      <div>
+        <label>الحجم</label>
+        <input type="text" id="car_size" readonly>
+      </div>
+    </div>
+
+    <!-- الخدمة -->
     <div class="row">
       <div>
         <label>نوع الخدمة</label>
@@ -77,10 +68,11 @@
       </div>
     </div>
 
+    <!-- السعر والنقاط -->
     <div class="row">
       <div>
         <label>السعر</label>
-        <input type="number" id="price">
+        <input type="number" id="price" readonly>
       </div>
 
       <div>
@@ -89,20 +81,13 @@
       </div>
     </div>
 
-    <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
-
-    <div id="servicesList" class="services-box"></div>
-
-    <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
-
+    <!-- الخصم والموقف -->
     <div class="row">
       <div>
-        <label>الخصم (ريال)</label>
+        <label>الخصم</label>
         <input type="number" id="discount" placeholder="0">
       </div>
-    </div>
 
-    <div class="row">
       <div>
         <label>رقم الموقف</label>
         <select id="parking_slot">
@@ -117,15 +102,22 @@
       </div>
     </div>
 
+    <!-- الموظف والفرع -->
     <div class="row">
       <div>
         <label>الموظف</label>
-        <select id="employee_in">
-          <option value="">— اختر الموظف —</option>
+        <select id="employee_in"></select>
+      </div>
+
+      <div>
+        <label>الفرع</label>
+        <select id="branch">
+          <option value="Makkah - مكة">Makkah - مكة</option>
         </select>
       </div>
     </div>
 
+    <!-- الدفع -->
     <div class="row">
       <div>
         <label>حالة الدفع</label>
@@ -133,15 +125,6 @@
           <option value="">— اختر حالة الدفع —</option>
           <option value="مدفوع">مدفوع</option>
           <option value="غير مدفوع">غير مدفوع</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>الفرع</label>
-        <select id="branch">
-          <option value="Makkah - مكة">Makkah - مكة</option>
         </select>
       </div>
 
@@ -155,10 +138,7 @@
       </div>
     </div>
 
-    <button id="btnSubmitVisit" class="btn-primary full" disabled>
-      تسجيل الزيارة
-    </button>
-
+    <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
   </div>
 
   <!-- Toast -->
