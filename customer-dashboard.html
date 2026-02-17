@@ -1,471 +1,160 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
 <meta charset="UTF-8">
-<title>لوحة العميل</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>رغوة الهجين - إدارة الزيارات</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body{
-  font-family:"Tajawal",sans-serif;
-  background:url('logo-bg.png') center/cover no-repeat fixed, #050608;
-  color:white;
-  padding:16px;
-}
+<link rel="stylesheet" href="visit-manager.css">
 
-.logo{
-  width:140px;
-  display:block;
-  margin:0 auto 10px auto;
-}
+<script src="api.js"></script>
+<script src="visit-manager.js" defer></script>
 
-h2{
-  text-align:center;
-  margin-bottom:6px;
-  font-size:24px;
-  font-weight:700;
-}
-
-.subtitle{
-  text-align:center;
-  color:#4FC3F7;
-  font-size:14px;
-  margin-bottom:18px;
-}
-
-.section{
-  background:rgba(0,0,0,0.55);
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:16px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.2);
-  border:1px solid #333;
-  backdrop-filter:blur(6px);
-}
-
-.title{
-  font-size:18px;
-  font-weight:700;
-  margin-bottom:6px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
-
-.sub{
-  font-size:13px;
-  color:#4FC3F7;
-  margin-bottom:12px;
-}
-
-.row{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:6px;
-  font-size:15px;
-}
-
-.label{color:#4FC3F7;}
-.value{font-weight:600;}
-
-.btn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:999px;
-  background:#4FC3F7;
-  color:black;
-  font-size:15px;
-  cursor:pointer;
-  margin-top:10px;
-}
-
-.btn-outline{
-  background:transparent;
-  border:2px solid #4FC3F7;
-  color:#4FC3F7;
-}
-
-.car-card{
-  background:rgba(255,255,255,0.08);
-  padding:12px;
-  border-radius:14px;
-  margin-bottom:10px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  border:1px solid #444;
-}
-
-.car-img{
-  width:55px;
-  height:55px;
-  border-radius:10px;
-  background:#4FC3F7;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:26px;
-  color:black;
-}
-
-.car-info div{
-  font-size:14px;
-  margin-bottom:2px;
-}
-
-.empty{
-  font-size:14px;
-  color:#aaa;
-}
-
-.logout{
-  text-align:center;
-  margin-top:10px;
-  font-size:14px;
-  color:#FF5252;
-  cursor:pointer;
-}
-
-.progress-box{
-  background:#222;
-  border-radius:999px;
-  height:10px;
-  margin-top:8px;
-  overflow:hidden;
-}
-
-.progress-fill{
-  height:100%;
-  background:#4FC3F7;
-  width:0%;
-  transition:.4s;
-}
-
-.next-level{
-  font-size:13px;
-  color:#FFD54F;
-  margin-top:6px;
-  text-align:left;
-}
-
-.whatsapp-btn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:999px;
-  background:#25D366;
-  color:white;
-  font-size:16px;
-  cursor:pointer;
-  margin-top:20px;
-}
-</style>
 </head>
 
 <body>
 
-<img src="logo.png" class="logo">
+<!-- العنوان -->
+<div class="page-title">
+  <h1>رغوة الهجين</h1>
+  <h2>إدارة الزيارات</h2>
+</div>
 
-<h2>لوحة العميل</h2>
-<div class="subtitle">مرحباً بك في رغوة الهجين — كل بياناتك في مكان واحد</div>
-
-<!-- بيانات العميل -->
+<!-- السيارات داخل المغسلة -->
 <div class="section">
-  <div class="title">👤 بيانات العميل</div>
-  <div class="sub">معلومات حسابك الأساسية</div>
+  <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
+  <div id="activeVisitsList" class="cards"></div>
+  <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
+</div>
 
-  <div class="row"><span class="label">الاسم</span><span class="value" id="name">—</span></div>
-  <div class="row"><span class="label">رقم الجوال</span><span class="value" id="phone">—</span></div>
-  <div class="row"><span class="label">رقم العضوية</span><span class="value" id="membership">—</span></div>
-  <div class="row"><span class="label">الفرع</span><span class="value" id="city">—</span></div>
-  <div class="row"><span class="label">النقاط</span><span class="value" id="points">0</span></div>
-  <div class="row"><span class="label">غسيل مجاني</span><span class="value" id="freeWash">—</span></div>
-  <div class="row"><span class="label">المستوى</span><span class="value" id="level">—</span></div>
+<!-- تسجيل الزيارة -->
+<div id="visitBox" class="section">
 
-  <div class="progress-box">
-    <div class="progress-fill" id="progress"></div>
+  <h3 class="section-title">تسجيل زيارة</h3>
+
+  <!-- بيانات اللوحة -->
+  <div class="row">
+    <div>
+      <label>أرقام اللوحة</label>
+      <input type="text" id="plate_numbers" placeholder="1234">
+    </div>
+
+    <div>
+      <label>حروف اللوحة</label>
+      <input type="text" id="plate_letters" placeholder="ABC">
+    </div>
   </div>
 
-  <div class="next-level" id="nextLevelText"></div>
-
-  <button class="btn btn-outline" onclick="window.location.href='customer-membership.html'">
-    عرض بطاقة العضوية
-  </button>
-</div>
-
-<!-- سيارات -->
-<div class="section">
-  <div class="title">🚗 سياراتك</div>
-  <div class="sub">السيارات المرتبطة بحسابك</div>
-
-  <div id="carsBox" class="empty">جاري التحميل...</div>
-
-  <button class="btn btn-outline" onclick="window.location.href='customer-cars.html'">عرض كل السيارات</button>
-  <button class="btn" onclick="window.location.href='customer-add-car.html'">إضافة سيارة</button>
-</div>
-
-<!-- آخر زيارة -->
-<div class="section">
-  <div class="title">🧽 آخر زيارة</div>
-  <div class="sub">تفاصيل آخر خدمة تمت على عضويتك</div>
-
-  <div id="lastVisitBox" class="empty">جاري التحميل...</div>
-</div>
-
-<!-- الحجوزات -->
-<div class="section">
-  <div class="title">📅 الحجوزات</div>
-  <div class="sub">مواعيدك الحالية والسابقة</div>
-
-  <div id="bookingsBox" class="empty">جاري التحميل...</div>
-
-  <button class="btn btn-outline" onclick="window.location.href='customer-bookings.html'">عرض كل الحجوزات</button>
-  <button class="btn" onclick="window.location.href='customer-booking.html'">حجز موعد جديد</button>
-</div>
-
-<button class="whatsapp-btn" onclick="contactWhatsApp()">التواصل عبر الواتساب</button>
-
-<div class="logout" onclick="logout()">تسجيل خروج</div>
-
-<script src="api.js"></script>
-
-<script>
-
-let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
-let PHONE = CUSTOMER ? CUSTOMER.phone : null;
-
-if(!CUSTOMER || !PHONE){
-  window.location.href = "customer-home.html";
-}
-
-window.onload = async function(){
-  await loadCustomerFromAPI();
-  loadCustomerInfoFromLocal();
-
-  await Promise.all([
-    loadCars(),
-    loadLastVisit(),
-    loadBookings()
-  ]);
-
-  await loadLevelSystem();
-};
-
-/* =============================
-   تحميل بيانات العميل
-============================= */
-
-async function loadCustomerFromAPI(){
-  const res = await apiGetCustomerByPhone(PHONE);
-  if(!res.success) return;
-
-  const c = res.customer;
-
-  CUSTOMER = {
-    name: c[0],
-    phone: c[1],
-    membership: c[8],
-    city: c[4],
-    last_visit: c[9],
-    visit_count: c[10],
-    points: c[11],
-    level: c[12],
-    free_wash: c[13]
-  };
-
-  localStorage.setItem("customer", JSON.stringify(CUSTOMER));
-}
-
-function loadCustomerInfoFromLocal(){
-  document.getElementById("name").innerText = CUSTOMER.name;
-  document.getElementById("phone").innerText = CUSTOMER.phone;
-  document.getElementById("membership").innerText = CUSTOMER.membership;
-  document.getElementById("city").innerText = CUSTOMER.city;
-  document.getElementById("points").innerText = CUSTOMER.points;
-  document.getElementById("freeWash").innerText = CUSTOMER.free_wash > 0 ? "متوفر" : "لا يوجد";
-}
-
-/* =============================
-   قراءة مستويات الترقية من الشيت
-============================= */
-
-async function loadLevelSystem(){
-  const points = Number(CUSTOMER.points || 0);
-
-  const res = await apiGetLevels();
-  if(!res.success){
-    document.getElementById("nextLevelText").innerText = "خطأ في تحميل المستويات";
-    return;
-  }
-
-  const levels = res.levels.map(r => ({
-    level: r[0],
-    from: Number(r[1]),
-    to: r[2] === "" ? null : Number(r[2])
-  }));
-
-  let current = levels.find(l => {
-    if(l.to === null) return points >= l.from;
-    return points >= l.from && points <= l.to;
-  });
-
-  if(!current){
-    document.getElementById("nextLevelText").innerText = "مستوى غير معروف";
-    return;
-  }
-
-  let progress = 0;
-  let nextText = "";
-
-  if(current.to === null){
-    progress = 100;
-    nextText = "أنت في أعلى مستوى 🎉";
-  } else {
-    const range = current.to - current.from;
-    progress = ((points - current.from) / range) * 100;
-
-    const remaining = current.to - points;
-    nextText = `متبقي ${remaining} نقطة للوصول إلى المستوى التالي`;
-  }
-
-  document.getElementById("level").innerText = current.level;
-  document.getElementById("progress").style.width = Math.min(100, Math.max(0, progress)) + "%";
-  document.getElementById("nextLevelText").innerText = nextText;
-}
-
-/* =============================
-   تحميل سيارات العميل
-============================= */
-
-async function loadCars(){
-  const box = document.getElementById("carsBox");
-  const res = await apiGetCarsByPhone(PHONE);
-
-  if(!res.success){
-    box.innerHTML = "خطأ في قراءة البيانات.";
-    return;
-  }
-
-  const cars = res.cars.map(c => c.data);
-
-  if(cars.length === 0){
-    box.innerHTML = "لا توجد سيارات مسجلة.";
-    return;
-  }
-
-  box.classList.remove("empty");
-
-  box.innerHTML = cars.map(c => `
-    <div class="car-card">
-      <div class="car-img">🚗</div>
-      <div class="car-info">
-        <div><b>${c[2]}</b></div>
-        <div>الحجم: ${c[3]}</div>
-        <div>اللوحة: ${c[5]} ${c[4]}</div>
-        <div>عضوية السيارة: <span style="color:#FFD54F">${c[0]}</span></div>
-      </div>
+  <!-- نوع السيارة -->
+  <div class="row">
+    <div>
+      <label>نوع السيارة</label>
+      <select id="car_type"></select>
     </div>
-  `).join("");
-}
 
-/* =============================
-   آخر زيارة
-============================= */
-
-async function loadLastVisit(){
-  const box = document.getElementById("lastVisitBox");
-  const res = await apiGetVisitsByMembership(CUSTOMER.membership);
-
-  if(!res.success || !res.visits.length){
-    box.innerHTML = "لا توجد زيارات.";
-    return;
-  }
-
-  const last = res.visits[res.visits.length - 1].data;
-
-  box.classList.remove("empty");
-
-  box.innerHTML = `
-    <div style="font-size:14px;">
-      الخدمة: ${last[1]}<br>
-      السعر: ${last[2]} ريال<br>
-      النقاط: ${last[3]}<br>
-      التاريخ: ${last[8]}
+    <div>
+      <label>الحجم</label>
+      <input type="text" id="car_size" readonly>
     </div>
-  `;
-}
+  </div>
 
-/* =============================
-   الحجوزات
-============================= */
-
-async function loadBookings(){
-  const box = document.getElementById("bookingsBox");
-  const res = await apiGetBookingsByPhone(PHONE);
-
-  if(!res.success || !res.bookings.length){
-    box.innerHTML = "لا توجد حجوزات.";
-    return;
-  }
-
-  const bookings = res.bookings.map(b => b.data);
-  const last = bookings[bookings.length - 1];
-
-  box.classList.remove("empty");
-
-  box.innerHTML = `
-    <div style="font-size:14px;margin-bottom:6px;">${bookings.length} حجز</div>
-    <div style="font-size:14px;">
-      آخر حجز: ${last[2]} • ${last[3]} ${last[4]}
+  <!-- الخدمة -->
+  <div class="row">
+    <div>
+      <label>نوع الخدمة</label>
+      <select id="service_type"></select>
     </div>
-  `;
-}
 
-/* =============================
-   واتساب
-============================= */
+    <div>
+      <label>تفاصيل الخدمة</label>
+      <select id="service_detail"></select>
+    </div>
+  </div>
 
-async function contactWhatsApp() {
-  const phone = CUSTOMER.phone;
-  let msg = "مرحباً مغسلة رغوة الهجين%0A";
+  <!-- السعر والنقاط -->
+  <div class="row">
+    <div>
+      <label>السعر</label>
+      <input type="number" id="price" readonly>
+    </div>
 
-  const res = await apiGetCustomerByPhone(phone);
+    <div>
+      <label>النقاط</label>
+      <input type="number" id="points" readonly>
+    </div>
+  </div>
 
-  if (!res.success) {
-    msg += "رقم الجوال: " + phone;
-    window.location.href = "https://wa.me/966582007063?text=" + msg;
-    return;
-  }
+  <!-- إضافة خدمة -->
+  <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
 
-  const c = res.customer;
+  <div id="servicesList" class="services-box"></div>
 
-  const carsRes = await apiGetAll("Cars");
+  <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
 
-  let carCount = 0;
+  <!-- الخصم والموقف -->
+  <div class="row">
+    <div>
+      <label>الخصم</label>
+      <input type="number" id="discount" placeholder="0">
+    </div>
 
-  if (carsRes.success) {
-    carCount = carsRes.rows.filter(r => r[1] === phone).length;
-  }
+    <div>
+      <label>رقم الموقف</label>
+      <select id="parking_slot">
+        <option value="">— اختر رقم الموقف —</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+    </div>
+  </div>
 
-  msg +=
-    "الاسم: " + c[0] + "%0A" +
-    "رقم العضوية: " + c[8] + "%0A" +
-    "عدد السيارات: " + carCount;
+  <!-- الموظف والفرع -->
+  <div class="row">
+    <div>
+      <label>الموظف</label>
+      <select id="employee_in"></select>
+    </div>
 
-  window.location.href = "https://wa.me/966582007063?text=" + msg;
-}
+    <div>
+      <label>الفرع</label>
+      <select id="branch">
+        <option value="Makkah - مكة">Makkah - مكة</option>
+      </select>
+    </div>
+  </div>
 
-/* =============================
-   تسجيل خروج
-============================= */
+  <!-- الدفع -->
+  <div class="row">
+    <div>
+      <label>حالة الدفع</label>
+      <select id="payment_status">
+        <option value="">— اختر حالة الدفع —</option>
+        <option value="مدفوع">مدفوع</option>
+        <option value="غير مدفوع">غير مدفوع</option>
+      </select>
+    </div>
 
-function logout(){
-  localStorage.removeItem("customer");
-  window.location.href = "customer-home.html";
-}
+    <div id="payment_method_wrapper" style="display:none;">
+      <label>طريقة الدفع</label>
+      <select id="payment_method">
+        <option value="">— اختر طريقة الدفع —</option>
+        <option value="كاش">كاش</option>
+        <option value="شبكة">شبكة</option>
+      </select>
+    </div>
+  </div>
 
-</script>
+  <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
+
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
 
 </body>
 </html>
