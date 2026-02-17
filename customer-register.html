@@ -8,7 +8,7 @@
   <style>
     body{
       font-family:"Tajawal",sans-serif;
-      background:#050608;
+      background:url('logo-bg.png') center/cover no-repeat fixed, #050608;
       color:#f5f5f5;
       padding:20px;
       animation:fadeIn .4s ease;
@@ -27,13 +27,13 @@
     }
 
     .box{
-      background:#111318;
+      background:rgba(0,0,0,0.65);
       padding:20px;
       border-radius:18px;
       max-width:420px;
       margin:auto;
       box-shadow:0 8px 20px rgba(0,0,0,0.6);
-      animation:fadeIn .5s ease;
+      backdrop-filter:blur(6px);
     }
 
     label{
@@ -144,14 +144,6 @@ let CAR_TYPES = [];
 let BRANCHES = [];
 let isSubmitting = false;
 
-// تعبئة رقم الجوال لو جاي من login
-(function(){
-  const pending = localStorage.getItem("pendingPhone");
-  if(pending){
-    document.getElementById("phone").value = pending;
-  }
-})();
-
 window.onload = async function(){
   await Promise.all([
     loadCarTypes(),
@@ -159,9 +151,9 @@ window.onload = async function(){
   ]);
 };
 
-// =============================
-// تحميل أنواع السيارات
-// =============================
+/* =============================
+   تحميل أنواع السيارات
+============================= */
 async function loadCarTypes(){
   const res = await apiGetCarTypes();
   if(!res.success){
@@ -177,9 +169,9 @@ async function loadCarTypes(){
     brands.map(b => `<option value="${b}">${b}</option>`).join("");
 }
 
-// =============================
-// تحميل الفروع
-// =============================
+/* =============================
+   تحميل الفروع
+============================= */
 async function loadBranches(){
   const res = await apiGetBranches();
   if(!res.success){
@@ -189,39 +181,27 @@ async function loadBranches(){
 
   BRANCHES = res.rows;
 
-  const branchSelect = document.getElementById("branch");
-
-  if(BRANCHES.length === 1){
-    branchSelect.innerHTML = `<option value="${BRANCHES[0][1]}">${BRANCHES[0][1]}</option>`;
-  } else {
-    branchSelect.innerHTML =
-      `<option value="">اختر الفرع</option>` +
-      BRANCHES.map(r => `<option value="${r[1]}">${r[1]}</option>`).join("");
-  }
+  document.getElementById("branch").innerHTML =
+    `<option value="">اختر الفرع</option>` +
+    BRANCHES.map(r => `<option value="${r[1]}">${r[1]}</option>`).join("");
 }
 
-// =============================
-// تحميل الموديلات
-// =============================
+/* =============================
+   تحميل الموديلات
+============================= */
 function loadModels(){
   const brand = document.getElementById("brand").value;
-  const modelSelect = document.getElementById("model");
-
-  if(!brand){
-    modelSelect.innerHTML = `<option value="">اختر الموديل</option>`;
-    return;
-  }
 
   const models = CAR_TYPES.filter(r => r[0] === brand).map(r => r[1]);
 
-  modelSelect.innerHTML =
+  document.getElementById("model").innerHTML =
     `<option value="">اختر الموديل</option>` +
     models.map(m => `<option value="${m}">${m}</option>`).join("");
 }
 
-// =============================
-// تحديد الحجم تلقائياً
-// =============================
+/* =============================
+   تحديد الحجم تلقائياً
+============================= */
 function autoSize(){
   const brand = document.getElementById("brand").value;
   const model = document.getElementById("model").value;
@@ -232,9 +212,47 @@ function autoSize(){
   }
 }
 
-// =============================
-// تسجيل العميل + تسجيل السيارة بعضوية C+timestamp
-// =============================
+/* =============================
+   توليد رقم عضوية العميل من الشيت
+============================= */
+async function generateCustomerMembership(){
+  const res = await apiGetAll("Customers");
+  if(!res.success) return 20260001;
+
+  const rows = res.rows;
+
+  if(rows.length === 0) return 20260001;
+
+  const last = rows[rows.length - 1][8]; // رقم العضوية
+  const num = Number(last);
+
+  return num + 1;
+}
+
+/* =============================
+   توليد عضوية السيارة
+============================= */
+async function generateCarMembership(customerMembership){
+  const res = await apiGetAll("Cars");
+  if(!res.success) return `C-${customerMembership}`;
+
+  const rows = res.rows;
+
+  const cars = rows.filter(r => String(r[0]).startsWith(`C-${customerMembership}`));
+
+  if(cars.length === 0) return `C-${customerMembership}`;
+
+  const nums = cars.map(c => {
+    const parts = c[0].split("-");
+    return parts.length === 2 ? 1 : Number(parts[2]);
+  }).sort((a,b)=>b-a);
+
+  return `C-${customerMembership}-${nums[0] + 1}`;
+}
+
+/* =============================
+   تسجيل العميل + السيارة
+============================= */
 async function registerCustomer(){
 
   if(isSubmitting) return;
@@ -261,33 +279,24 @@ async function registerCustomer(){
     return;
   }
 
-  // زر حماية
   isSubmitting = true;
   btn.disabled = true;
   btn.innerText = "جاري التسجيل...";
 
-  // عضوية العميل = رقم الجوال
-  const customerMembership = '="' + phone + '"';
+  // 🔥 توليد رقم عضوية العميل من الشيت
+  const customerMembership = await generateCustomerMembership();
 
   // 1) تسجيل العميل
   const res = await apiPost({
     action: "addCustomer",
     name,
     phone: '="' + phone + '"',
-    car: brand + " " + model,
-    size,
-    city: branch,
-    plate_numbers,
-    plate_letters,
-    subscription: "",
     membership: customerMembership,
+    city: branch,
     last_visit: "",
     visit_count: 0,
     points: 0,
-
-    // 🔥 المستوى الصحيح
     level: "Bronze",
-
     free_wash: 0
   });
 
@@ -299,19 +308,10 @@ async function registerCustomer(){
     return;
   }
 
-  // 2) إنشاء عضوية السيارة (C + timestamp)
-  const t = new Date();
-  const carMembership =
-    "C" +
-    t.getFullYear() +
-    (t.getMonth()+1).toString().padStart(2,"0") +
-    t.getDate().toString().padStart(2,"0") +
-    "-" +
-    t.getHours().toString().padStart(2,"0") +
-    t.getMinutes().toString().padStart(2,"0") +
-    t.getSeconds().toString().padStart(2,"0");
+  // 🔥 توليد عضوية السيارة
+  const carMembership = await generateCarMembership(customerMembership);
 
-  // 3) تسجيل السيارة
+  // 2) تسجيل السيارة
   await apiAddCar({
     membership: carMembership,
     phone: '="' + phone + '"',
@@ -322,7 +322,7 @@ async function registerCustomer(){
     city: branch
   });
 
-  // 4) حفظ بيانات العميل محلياً
+  // 3) حفظ بيانات العميل محلياً
   const CUSTOMER = {
     name,
     phone,
@@ -332,7 +332,6 @@ async function registerCustomer(){
     level: "Bronze"
   };
 
-  localStorage.removeItem("pendingPhone");
   localStorage.setItem("customer", JSON.stringify(CUSTOMER));
 
   successMsg.style.display = "block";
