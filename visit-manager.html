@@ -1,91 +1,94 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <title>رغوة الهجين - إدارة الزيارات</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="visit-manager.css">
-  <script src="api.js"></script>
-  <script src="visit-manager.js" defer></script>
+<head>
+    <meta charset="UTF-8">
+    <title>رغوة الهجين - إدارة الزيارات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="visit-manager.css">
+
+    <!-- API + JS -->
+    <script src="api.js"></script>
+    <script src="visit-manager.js" defer></script>
 </head>
 
 <body>
 
-  <!-- العنوان -->
-  <div class="page-title">
+<!-- العنوان -->
+<div class="page-title">
     <h1>رغوة الهجين</h1>
     <h2>إدارة الزيارات</h2>
-  </div>
+</div>
 
-  <!-- السيارات داخل المغسلة -->
-  <div class="section">
+<!-- السيارات داخل المغسلة -->
+<div class="section">
     <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
     <div id="activeVisitsList" class="cards"></div>
     <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
-  </div>
+</div>
 
-  <!-- تسجيل الزيارة -->
-  <div id="visitBox" class="section">
+<!-- تسجيل الزيارة -->
+<div id="visitBox" class="section">
     <h3 class="section-title">تسجيل زيارة</h3>
 
     <!-- بيانات اللوحة -->
     <div class="row">
-      <div>
-        <label>أرقام اللوحة</label>
-        <input type="text" id="plate_numbers" placeholder="1234">
-      </div>
+        <div>
+            <label>أرقام اللوحة</label>
+            <input type="text" id="plate_numbers" placeholder="1234">
+        </div>
 
-      <div>
-        <label>حروف اللوحة</label>
-        <input type="text" id="plate_letters" placeholder="ABC">
-      </div>
+        <div>
+            <label>حروف اللوحة</label>
+            <input type="text" id="plate_letters" placeholder="ABC">
+        </div>
     </div>
 
-    <!-- السيارة: براند + موديل + حجم -->
+    <!-- السيارة -->
     <div class="row">
-      <div>
-        <label>براند السيارة</label>
-        <select id="car_type"></select>
-      </div>
+        <div>
+            <label>براند السيارة</label>
+            <select id="car_type"></select>
+        </div>
 
-      <div>
-        <label>موديل السيارة</label>
-        <select id="car_model"></select>
-      </div>
+        <div>
+            <label>موديل السيارة</label>
+            <select id="car_model"></select>
+        </div>
     </div>
 
     <div class="row">
-      <div>
-        <label>الحجم</label>
-        <input type="text" id="car_size" readonly>
-      </div>
+        <div>
+            <label>الحجم</label>
+            <input type="text" id="car_size" readonly>
+        </div>
     </div>
 
     <!-- الخدمة -->
     <div class="row">
-      <div>
-        <label>نوع الخدمة</label>
-        <select id="service_type"></select>
-      </div>
+        <div>
+            <label>نوع الخدمة</label>
+            <select id="service_type"></select>
+        </div>
 
-      <div>
-        <label>تفاصيل الخدمة</label>
-        <select id="service_detail"></select>
-      </div>
+        <div>
+            <label>تفاصيل الخدمة</label>
+            <select id="service_detail"></select>
+        </div>
     </div>
 
     <!-- السعر والنقاط -->
     <div class="row">
-      <div>
-        <label>السعر</label>
-        <input type="number" id="price" readonly>
-      </div>
+        <div>
+            <label>السعر</label>
+            <input type="number" id="price" readonly>
+        </div>
 
-      <div>
-        <label>النقاط</label>
-        <input type="number" id="points" readonly>
-      </div>
+        <div>
+            <label>النقاط</label>
+            <input type="number" id="points" readonly>
+        </div>
     </div>
 
     <!-- إضافة خدمة -->
@@ -97,66 +100,66 @@
 
     <!-- الخصم والموقف -->
     <div class="row">
-      <div>
-        <label>الخصم</label>
-        <input type="number" id="discount" placeholder="0">
-      </div>
+        <div>
+            <label>الخصم</label>
+            <input type="number" id="discount" placeholder="0">
+        </div>
 
-      <div>
-        <label>رقم الموقف</label>
-        <select id="parking_slot">
-          <option value="">— اختر رقم الموقف —</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-        </select>
-      </div>
+        <div>
+            <label>رقم الموقف</label>
+            <select id="parking_slot">
+                <option value="">— اختر رقم الموقف —</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+        </div>
     </div>
 
     <!-- الموظف والفرع -->
     <div class="row">
-      <div>
-        <label>الموظف</label>
-        <select id="employee_in"></select>
-      </div>
+        <div>
+            <label>الموظف</label>
+            <select id="employee_in"></select>
+        </div>
 
-      <div>
-        <label>الفرع</label>
-        <select id="branch">
-          <option value="Makkah - مكة">Makkah - مكة</option>
-        </select>
-      </div>
+        <div>
+            <label>الفرع</label>
+            <select id="branch">
+                <option value="Makkah - مكة">Makkah - مكة</option>
+            </select>
+        </div>
     </div>
 
     <!-- الدفع -->
     <div class="row">
-      <div>
-        <label>حالة الدفع</label>
-        <select id="payment_status">
-          <option value="">— اختر حالة الدفع —</option>
-          <option value="مدفوع">مدفوع</option>
-          <option value="غير مدفوع">غير مدفوع</option>
-        </select>
-      </div>
+        <div>
+            <label>حالة الدفع</label>
+            <select id="payment_status">
+                <option value="">— اختر حالة الدفع —</option>
+                <option value="مدفوع">مدفوع</option>
+                <option value="غير مدفوع">غير مدفوع</option>
+            </select>
+        </div>
 
-      <div id="payment_method_wrapper" style="display:none;">
-        <label>طريقة الدفع</label>
-        <select id="payment_method">
-          <option value="">— اختر طريقة الدفع —</option>
-          <option value="كاش">كاش</option>
-          <option value="شبكة">شبكة</option>
-        </select>
-      </div>
+        <div id="payment_method_wrapper" style="display:none;">
+            <label>طريقة الدفع</label>
+            <select id="payment_method">
+                <option value="">— اختر طريقة الدفع —</option>
+                <option value="كاش">كاش</option>
+                <option value="شبكة">شبكة</option>
+            </select>
+        </div>
     </div>
 
     <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
-  </div>
+</div>
 
-  <!-- Toast -->
-  <div id="toast-container"></div>
+<!-- Toast -->
+<div id="toast-container"></div>
 
 </body>
 </html>
