@@ -1,7 +1,6 @@
 /* ============================
    الحالة العامة
 ============================ */
-
 let VM_STATE = {
   services: [],
   employees: [],
@@ -12,9 +11,7 @@ let VM_STATE = {
 /* ============================
    عند تحميل الصفحة
 ============================ */
-
 document.addEventListener("DOMContentLoaded", () => {
-
   document.getElementById("btnSubmitVisit").addEventListener("click", vm_submitVisit);
   document.getElementById("btnAddService").addEventListener("click", vm_addService);
   document.getElementById("btnRefreshActive").addEventListener("click", vm_loadActiveVisits);
@@ -29,14 +26,12 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ============================
    Toast
 ============================ */
-
 function showToast(msg, type = "info") {
   const box = document.getElementById("toast-container");
   const t = document.createElement("div");
   t.className = `toast ${type}`;
   t.innerText = msg;
   box.appendChild(t);
-
   setTimeout(() => t.classList.add("show"), 10);
   setTimeout(() => {
     t.classList.remove("show");
@@ -47,13 +42,11 @@ function showToast(msg, type = "info") {
 /* ============================
    تحميل الموظفين
 ============================ */
-
 async function vm_loadEmployees() {
   const res = await apiGetEmployees();
   if (!res.success) return;
 
   VM_STATE.employees = res.rows;
-
   const select = document.getElementById("employee_in");
   select.innerHTML =
     '<option value="">— اختر الموظف —</option>' +
@@ -63,7 +56,6 @@ async function vm_loadEmployees() {
 /* ============================
    تحميل أنواع السيارات (Brand → Model → Size)
 ============================ */
-
 async function vm_loadCarTypes() {
   const res = await apiGetCarTypes();
   if (!res.success) return;
@@ -83,7 +75,6 @@ async function vm_loadCarTypes() {
 
   brandSelect.addEventListener("change", () => {
     const brand = brandSelect.value;
-
     if (!brand) {
       modelSelect.innerHTML = `<option value="">— اختر الموديل —</option>`;
       sizeInput.value = "";
@@ -91,7 +82,6 @@ async function vm_loadCarTypes() {
     }
 
     const models = VM_STATE.carTypes.filter(r => r[0] === brand);
-
     modelSelect.innerHTML =
       `<option value="">— اختر الموديل —</option>` +
       models
@@ -110,7 +100,6 @@ async function vm_loadCarTypes() {
 /* ============================
    تحميل الخدمات
 ============================ */
-
 async function vm_loadServices() {
   const res = await apiGetServices();
   if (!res.success) return;
@@ -122,7 +111,9 @@ async function vm_loadServices() {
 
   const categories = [...new Set(res.services.map(s => s.category))];
 
-  typeSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join("");
+  typeSelect.innerHTML = categories
+    .map(c => `<option value="${c}">${c}</option>`)
+    .join("");
 
   typeSelect.addEventListener("change", vm_filterServiceDetails);
   detailSelect.addEventListener("change", vm_updatePrice);
@@ -140,7 +131,7 @@ function vm_filterServiceDetails() {
     .map(
       s => `
 <option value="${s.service}" data-price="${s.price}" data-commission="${s.commission}">
-${s.service}
+  ${s.service}
 </option>`
     )
     .join("");
@@ -157,14 +148,12 @@ function vm_updatePrice() {
 
   document.getElementById("price").value = price;
   document.getElementById("points").value = Math.round(price / 10);
-
   window._currentCommission = commission;
 }
 
 /* ============================
    إضافة خدمة
 ============================ */
-
 function vm_addService() {
   const opt = document.getElementById("service_detail").selectedOptions[0];
   if (!opt) return;
@@ -175,7 +164,6 @@ function vm_addService() {
   const commission = window._currentCommission || 0;
 
   VM_STATE.selectedServices.push({ name, price, points, commission });
-
   vm_renderSelectedServices();
 }
 
@@ -190,7 +178,6 @@ function vm_renderSelectedServices() {
   }
 
   let total = 0;
-
   box.innerHTML = VM_STATE.selectedServices
     .map((s, idx) => {
       total += s.price;
@@ -213,18 +200,15 @@ function vm_removeService(index) {
 /* ============================
    إظهار/إخفاء طريقة الدفع
 ============================ */
-
 function vm_togglePaymentMethod() {
   const status = document.getElementById("payment_status").value;
   const wrapper = document.getElementById("payment_method_wrapper");
-
   wrapper.style.display = status === "مدفوع" ? "block" : "none";
 }
 
 /* ============================
    البحث عن العضوية باللوحة
 ============================ */
-
 async function vm_getMembershipByPlate(numbers, letters) {
   const res = await apiGetAll("Cars");
   if (!res.success) return null;
@@ -233,21 +217,17 @@ async function vm_getMembershipByPlate(numbers, letters) {
     const membership = r[0];
     const carLetters = String(r[4] || "").toUpperCase();
     const carNumbers = String(r[5] || "");
-
     if (carLetters === letters.toUpperCase() && carNumbers === numbers) {
       return membership;
     }
   }
-
   return null;
 }
 
 /* ============================
    تسجيل الزيارة (صف لكل خدمة)
 ============================ */
-
 async function vm_submitVisit() {
-
   const btn = document.getElementById("btnSubmitVisit");
   if (btn.disabled) return;
 
@@ -266,7 +246,6 @@ async function vm_submitVisit() {
   const payment_method = document.getElementById("payment_method").value || "";
   let discount = Number(document.getElementById("discount").value || 0);
 
-  // الحقول الإلزامية فقط
   if (!plate_numbers || !plate_letters) {
     showToast("رقم اللوحة مطلوب", "error");
     btn.disabled = false;
@@ -295,16 +274,13 @@ async function vm_submitVisit() {
     return;
   }
 
-  // Lookup العضوية من اللوحة
   let membership = await vm_getMembershipByPlate(plate_numbers, plate_letters);
   membership = String(membership || "");
   if (!membership) {
     membership = "GUEST-" + Date.now();
   }
 
-  // تسجيل كل خدمة في صف مستقل
   for (let s of VM_STATE.selectedServices) {
-
     const finalPrice = s.price - discount;
     const finalPoints = s.points;
 
@@ -341,7 +317,6 @@ async function vm_submitVisit() {
   }
 
   showToast("تم تسجيل الزيارة بنجاح", "success");
-
   VM_STATE.selectedServices = [];
   vm_renderSelectedServices();
   vm_loadActiveVisits();
@@ -353,7 +328,6 @@ async function vm_submitVisit() {
 /* ============================
    تحميل السيارات داخل المغسلة
 ============================ */
-
 async function vm_loadActiveVisits() {
   const box = document.getElementById("activeVisitsList");
   box.innerHTML = "جاري التحميل...";
@@ -364,48 +338,44 @@ async function vm_loadActiveVisits() {
     return;
   }
 
-  const carsRes = await apiGetAll("Cars");
-
-  let carMap = {};
-
-  if (carsRes.success) {
-    carsRes.rows.forEach(r => {
-      carMap[r[0]] = {
-        car: r[2],
-        letters: r[4],
-        numbers: r[5]
-      };
-    });
-  }
-
   box.innerHTML = res.visits
     .map(v => {
       const row = v.row;
       const d = v.data;
-      const mem = d[0];
 
-      let plate = "غير معروف";
-      let carName = "";
-
-      if (carMap[mem]) {
-        plate = `${carMap[mem].numbers} ${carMap[mem].letters}`;
-        carName = carMap[mem].car;
-      }
+      const carName = `${d[VISIT_COL.CAR_TYPE] || ""} ${d[VISIT_COL.CAR_MODEL] || ""}`.trim();
+      const plate = `${d[VISIT_COL.PLATE_NUMBERS] || ""} ${d[VISIT_COL.PLATE_LETTERS] || ""}`.trim();
 
       return `
 <div class="car-card">
-  <b>🚗 السيارة:</b> ${carName}<br>
-  <b>رقم اللوحة:</b> ${plate}<br>
-  <b>الخدمة:</b> ${d[1]}<br>
-  <b>السعر:</b> ${d[2]} ريال<br>
-  <b>الموقف:</b> ${d[12] || "—"}<br>
-  <b>الموظف:</b> ${d[4] || "—"}<br>
-  <b>حالة الدفع:</b> ${d[10]}<br>
+  <b>🚗 السيارة:</b> ${carName || "غير معروف"}<br>
+  <b>رقم اللوحة:</b> ${plate || "غير معروف"}<br>
+  <b>الخدمة:</b> ${d[VISIT_COL.SERVICE] || "—"}<br>
+  <b>السعر:</b> ${d[VISIT_COL.PRICE] || 0} ريال<br>
+  <b>الموقف:</b> ${d[VISIT_COL.PARKING] || "—"}<br>
+  <b>الموظف:</b> ${d[VISIT_COL.EMP_IN] || "—"}<br>
+  <b>حالة الدفع:</b> ${d[VISIT_COL.PAY_STATUS] || "غير مدفوع"}<br>
+  <b>كاش:</b> ${d[VISIT_COL.CASH_AMOUNT] || 0} ريال<br>
+  <b>شبكة:</b> ${d[VISIT_COL.CARD_AMOUNT] || 0} ريال<br>
+  <b>الإجمالي المدفوع:</b> ${d[VISIT_COL.TOTAL_PAID] || 0} ريال<br>
 
-  <label>طريقة الدفع</label>
+  <div class="row" style="margin-top:8px;">
+    <div style="flex:1;margin-left:4px;">
+      <label>كاش</label>
+      <input type="number" id="cash_${row}" placeholder="0" style="width:100%;">
+    </div>
+    <div style="flex:1;margin-right:4px;">
+      <label>شبكة</label>
+      <input type="number" id="card_${row}" placeholder="0" style="width:100%;">
+    </div>
+  </div>
+
+  <label style="margin-top:6px;display:block;">طريقة الدفع</label>
   <select id="pay_${row}">
+    <option value="">— اختر —</option>
     <option value="كاش">كاش</option>
     <option value="شبكة">شبكة</option>
+    <option value="كاش + شبكة">كاش + شبكة</option>
   </select>
 
   <button class="btn-primary full" style="margin-top:8px;" onclick="vm_markPaid(${row})">
@@ -417,17 +387,24 @@ async function vm_loadActiveVisits() {
 }
 
 /* ============================
-   تحديث حالة الدفع
+   تحديث حالة الدفع (يدعم الدفع الجزئي)
 ============================ */
-
 async function vm_markPaid(row) {
+  const cashVal = Number(document.getElementById(`cash_${row}`).value || 0);
+  const cardVal = Number(document.getElementById(`card_${row}`).value || 0);
   const method = document.getElementById(`pay_${row}`).value;
+
+  if (cashVal === 0 && cardVal === 0) {
+    showToast("أدخل مبلغ كاش أو شبكة", "error");
+    return;
+  }
 
   const res = await apiPost({
     action: "closeVisit",
     row,
-    payment_status: "مدفوع",
-    payment_method: method
+    cash_amount: cashVal,
+    card_amount: cardVal,
+    payment_method: method || "غير محدد"
   });
 
   if (!res.success) {
