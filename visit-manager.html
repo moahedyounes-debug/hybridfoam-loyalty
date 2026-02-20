@@ -1,169 +1,155 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>إدارة الزيارات – Hybrid Foam</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>رغوة الهجين - إدارة الزيارات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="api.js"></script>
-
-<style>
-    body {
-        font-family: "Tajawal", sans-serif;
-        background: #F4FAFF;
-        color: #0D47A1;
-        padding: 20px;
-    }
-    .card {
-        background: white;
-        padding: 20px;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border: 1px solid #E3F2FD;
-        max-width: 600px;
-        margin: auto;
-    }
-    h2 {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    label {
-        font-size: 14px;
-        margin-top: 10px;
-        display: block;
-    }
-    input, select {
-        width: 100%;
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px solid #D1D5DB;
-        margin-top: 5px;
-        font-size: 14px;
-    }
-    button {
-        width: 100%;
-        padding: 12px;
-        background: #0D47A1;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 16px;
-        margin-top: 15px;
-        cursor: pointer;
-    }
-    button:disabled {
-        background: #9BB6E0;
-        cursor: not-allowed;
-    }
-</style>
+  <link rel="stylesheet" href="visit-manager.css">
+  <script src="api.js"></script>
+  <script src="visit-manager.js" defer></script>
 </head>
 
 <body>
 
-<div class="card">
-    <h2>تسجيل زيارة جديدة</h2>
+  <!-- العنوان -->
+  <div class="page-title">
+    <h1>رغوة الهجين</h1>
+    <h2>إدارة الزيارات</h2>
+  </div>
 
-    <form id="visitForm">
+  <!-- السيارات داخل المغسلة -->
+  <div class="section">
+    <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
+    <div id="activeVisitsList" class="cards"></div>
+    <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
+  </div>
 
-        <label>رقم العضوية</label>
-        <input id="membership" placeholder="مثال: 20260001">
+  <!-- تسجيل الزيارة -->
+  <div id="visitBox" class="section">
+    <h3 class="section-title">تسجيل زيارة</h3>
 
-        <label>الخدمة</label>
-        <input id="service_detail" placeholder="مثال: غسيل خارجي">
+    <!-- بيانات اللوحة -->
+    <div class="row">
+      <div>
+        <label>أرقام اللوحة</label>
+        <input type="text" id="plate_numbers" placeholder="1234">
+      </div>
 
+      <div>
+        <label>حروف اللوحة</label>
+        <input type="text" id="plate_letters" placeholder="ABC">
+      </div>
+    </div>
+
+    <!-- نوع السيارة -->
+    <div class="row">
+      <div>
+        <label>براند السيارة</label>
+        <select id="car_type"></select>
+      </div>
+
+      <div>
+        <label>الحجم</label>
+        <input type="text" id="car_size" readonly>
+      </div>
+    </div>
+
+    <!-- الخدمة -->
+    <div class="row">
+      <div>
+        <label>نوع الخدمة</label>
+        <select id="service_type"></select>
+      </div>
+
+      <div>
+        <label>تفاصيل الخدمة</label>
+        <select id="service_detail"></select>
+      </div>
+    </div>
+
+    <!-- السعر والنقاط -->
+    <div class="row">
+      <div>
         <label>السعر</label>
-        <input id="price" type="number">
+        <input type="number" id="price" readonly>
+      </div>
 
+      <div>
         <label>النقاط</label>
-        <input id="points" type="number" value="0">
+        <input type="number" id="points" readonly>
+      </div>
+    </div>
 
-        <label>الموظف الداخل</label>
-        <input id="employee_in">
+    <!-- إضافة خدمة -->
+    <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
 
-        <label>الموظف الخارج</label>
-        <input id="employee_out">
+    <div id="servicesList" class="services-box"></div>
 
+    <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+
+    <!-- الخصم والموقف -->
+    <div class="row">
+      <div>
+        <label>الخصم</label>
+        <input type="number" id="discount" placeholder="0">
+      </div>
+
+      <div>
+        <label>رقم الموقف</label>
+        <select id="parking_slot">
+          <option value="">— اختر رقم الموقف —</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- الموظف والفرع -->
+    <div class="row">
+      <div>
+        <label>الموظف</label>
+        <select id="employee_in"></select>
+      </div>
+
+      <div>
         <label>الفرع</label>
-        <input id="branch">
+        <select id="branch">
+          <option value="Makkah - مكة">Makkah - مكة</option>
+        </select>
+      </div>
+    </div>
 
-        <label>العمولة</label>
-        <input id="commission" type="number" value="0">
-
+    <!-- الدفع -->
+    <div class="row">
+      <div>
         <label>حالة الدفع</label>
         <select id="payment_status">
-            <option value="غير مدفوع">غير مدفوع</option>
-            <option value="مدفوع">مدفوع</option>
+          <option value="">— اختر حالة الدفع —</option>
+          <option value="مدفوع">مدفوع</option>
+          <option value="غير مدفوع">غير مدفوع</option>
         </select>
+      </div>
 
+      <div id="payment_method_wrapper" style="display:none;">
         <label>طريقة الدفع</label>
         <select id="payment_method">
-            <option value="">— اختر —</option>
-            <option value="كاش">كاش</option>
-            <option value="شبكة">شبكة</option>
+          <option value="">— اختر طريقة الدفع —</option>
+          <option value="كاش">كاش</option>
+          <option value="شبكة">شبكة</option>
         </select>
+      </div>
+    </div>
 
-        <label>رقم الموقف</label>
-        <input id="parking_slot">
+    <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
+  </div>
 
-        <label>التقييم (اختياري)</label>
-        <input id="rating" type="number" min="1" max="5">
-
-        <button id="submitBtn" type="button" onclick="submitVisit()">تسجيل الزيارة</button>
-
-    </form>
-</div>
-
-<script>
-async function submitVisit() {
-
-    const btn = document.getElementById("submitBtn");
-    btn.disabled = true;
-    btn.innerText = "جاري تسجيل الزيارة...";
-
-    // جمع البيانات
-    const data = {
-        membership: document.getElementById("membership").value.trim(),
-        service_detail: document.getElementById("service_detail").value.trim(),
-        price: document.getElementById("price").value,
-        points: document.getElementById("points").value,
-        employee_in: document.getElementById("employee_in").value.trim(),
-        employee_out: document.getElementById("employee_out").value.trim(),
-        branch: document.getElementById("branch").value.trim(),
-        commission: document.getElementById("commission").value,
-        payment_status: document.getElementById("payment_status").value,
-        payment_method: document.getElementById("payment_method").value,
-        parking_slot: document.getElementById("parking_slot").value.trim(),
-        rating: document.getElementById("rating").value
-    };
-
-    // تحقق من الحقول الأساسية
-    if (!data.membership || !data.service_detail || !data.price || !data.parking_slot) {
-        alert("الرجاء تعبئة جميع الحقول المطلوبة");
-        btn.disabled = false;
-        btn.innerText = "تسجيل الزيارة";
-        return;
-    }
-
-    // إرسال الزيارة
-    const res = await apiAddVisit(data);
-
-    if (!res.success) {
-        alert("خطأ: " + res.error);
-        btn.disabled = false;
-        btn.innerText = "تسجيل الزيارة";
-        return;
-    }
-
-    alert("تم تسجيل الزيارة بنجاح");
-
-    // إعادة الزر
-    btn.disabled = false;
-    btn.innerText = "تسجيل الزيارة";
-
-    // تفريغ النموذج
-    document.getElementById("visitForm").reset();
-}
-</script>
+  <!-- Toast -->
+  <div id="toast-container"></div>
 
 </body>
 </html>
