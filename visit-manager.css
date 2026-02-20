@@ -12,16 +12,17 @@ body {
   background: #f3f6fa;
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
 }
 
-/* خلفية الشعار الكبيرة الثابتة */
+/* خلفية الشعار */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   background: url("logo.png") no-repeat center center;
-  background-size: 480px;
-  opacity: 0.04;
+  background-size: 420px;
+  opacity: 0.05;
   pointer-events: none;
   z-index: -1;
 }
@@ -83,6 +84,13 @@ input, select {
   border-radius: 10px;
   font-size: 15px;
   background: #f9fafb;
+  transition: 0.2s;
+}
+
+input:focus, select:focus {
+  border-color: #0d47a1;
+  outline: none;
+  background: #fff;
 }
 
 /* ============================
@@ -98,6 +106,11 @@ input, select {
   width: 100%;
   cursor: pointer;
   font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: #09367a;
 }
 
 .btn-primary:disabled {
@@ -114,6 +127,11 @@ input, select {
   font-size: 17px;
   cursor: pointer;
   font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #dd5f0b;
 }
 
 .full {
@@ -121,7 +139,7 @@ input, select {
 }
 
 /* ============================
-   بطاقات السيارات داخل المغسلة
+   بطاقات السيارات
 ============================ */
 .cards {
   display: flex;
@@ -137,29 +155,15 @@ input, select {
   font-size: 15px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.05);
   line-height: 1.7;
+  transition: 0.2s;
+}
+
+.car-card:hover {
+  transform: scale(1.01);
 }
 
 .car-card b {
   color: #0d47a1;
-}
-
-/* ============================
-   اختيار السيارة
-============================ */
-.car-item {
-  padding: 14px;
-  border: 1px solid #374151;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  font-size: 15px;
-  background: #fff;
-}
-
-.car-item.selected {
-  background: #0d47a1;
-  color: white;
-  border-color: #0d47a1;
 }
 
 /* ============================
@@ -226,7 +230,7 @@ input, select {
 /* ============================
    Responsive
 ============================ */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .row {
     flex-direction: column;
   }
@@ -237,5 +241,29 @@ input, select {
 
   .car-card {
     font-size: 14px;
+  }
+
+  body::before {
+    background-size: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title h1 {
+    font-size: 22px;
+  }
+
+  .page-title h2 {
+    font-size: 16px;
+  }
+
+  input, select {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .btn-primary, .btn-secondary {
+    font-size: 15px;
+    padding: 12px;
   }
 }
