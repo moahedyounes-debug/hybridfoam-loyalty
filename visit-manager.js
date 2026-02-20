@@ -58,43 +58,52 @@ async function vm_loadEmployees() {
 ============================ */
 async function vm_loadCarTypes() {
   const res = await apiGetCarTypes();
-  if (!res.success) return;
+  if (!res.success || !res.rows.length) return;
 
-  // نفترض: Brand | Model | Size
+  // البيانات: brand | model | size
   VM_STATE.carTypes = res.rows;
 
   const brandSelect = document.getElementById("car_type");
   const modelSelect = document.getElementById("car_model");
   const sizeInput = document.getElementById("car_size");
 
+  // استخراج البراندات بدون تكرار
   const brands = [...new Set(VM_STATE.carTypes.map(r => r[0]).filter(Boolean))];
 
+  // تعبئة البراندات
   brandSelect.innerHTML =
     `<option value="">— اختر البراند —</option>` +
     brands.map(b => `<option value="${b}">${b}</option>`).join("");
 
-  brandSelect.addEventListener("change", () => {
+  /* ============================
+     عند اختيار البراند
+  ============================ */
+  brandSelect.onchange = () => {
     const brand = brandSelect.value;
-    if (!brand) {
-      modelSelect.innerHTML = `<option value="">— اختر الموديل —</option>`;
-      sizeInput.value = "";
-      return;
-    }
 
+    // إعادة ضبط الموديل والحجم
+    modelSelect.innerHTML = `<option value="">— اختر الموديل —</option>`;
+    sizeInput.value = "";
+
+    if (!brand) return;
+
+    // جلب الموديلات الخاصة بالبراند
     const models = VM_STATE.carTypes.filter(r => r[0] === brand);
+
     modelSelect.innerHTML =
       `<option value="">— اختر الموديل —</option>` +
       models
         .map(m => `<option value="${m[1]}" data-size="${m[2]}">${m[1]}</option>`)
         .join("");
+  };
 
-    sizeInput.value = "";
-  });
-
-  modelSelect.addEventListener("change", () => {
+  /* ============================
+     عند اختيار الموديل → الحجم تلقائي
+  ============================ */
+  modelSelect.onchange = () => {
     const opt = modelSelect.selectedOptions[0];
-    sizeInput.value = opt ? opt.getAttribute("data-size") : "";
-  });
+    sizeInput.value = opt ? opt.dataset.size : "";
+  };
 }
 
 /* ============================
