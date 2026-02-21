@@ -195,7 +195,7 @@ async function loadServices() {
 async function loadEmployees() {
     try {
         const res = await apiGetEmployees();
-        const employees = res.rows || [];   // ← البيانات الصحيحة
+        const employees = res.rows || [];   // ← البيانات الصحيحة من API
 
         const sel = el("employee_in");
         sel.innerHTML = '<option value="">— اختر الموظف —</option>';
