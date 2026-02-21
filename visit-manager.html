@@ -2,223 +2,664 @@
 <html lang="ar" dir="rtl">
 
 <head>
-    <meta charset="UTF-8">
-    <title>رغوة الهجين - إدارة الزيارات</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>رغوة الهجين - إدارة الزيارات</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="visit-manager.css">
-
-    <!-- API + JS -->
-    <script src="api.js"></script>
-    <script src="visit-manager.js" defer></script>
-</head>
-
-<body>
-
-<!-- العنوان -->
-<div class="page-title">
-    <h1>رغوة الهجين</h1>
-    <h2>إدارة الزيارات</h2>
-</div>
-
-<!-- السيارات داخل المغسلة -->
-<div class="section">
-    <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
-
-    <div id="activeVisitsList" class="cards"></div>
-
-    <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
-</div>
-
+<!-- CSS -->
 <style>
-    .cards {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
+/* ============================
+   RESET + الخط
+============================ */
+* {
+  box-sizing: border-box;
+  font-family: "Tajawal", sans-serif;
+}
 
-    .card {
-        background: #fff;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        border-right: 5px solid #007bff;
-    }
+body {
+  margin: 0;
+  padding: 0;
+  background: #f3f6fa;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
 
-    .card h4 {
-        margin: 0 0 10px;
-        font-size: 20px;
-        font-weight: bold;
-    }
+/* خلفية الشعار */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("logo.png") no-repeat center center;
+  background-size: 420px;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: -1;
+}
 
-    .card p {
-        margin: 5px 0;
-        font-size: 15px;
-    }
+/* ============================
+   العنوان
+============================ */
+.page-title {
+  text-align: center;
+  padding: 20px 10px 10px;
+}
 
-    .card ul {
-        margin: 10px 0 0;
-        padding-left: 20px;
-    }
+.page-title h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #0d47a1;
+  font-weight: 700;
+}
 
-    .card ul li {
-        margin-bottom: 5px;
-        font-size: 14px;
-    }
+.page-title h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #374151;
+}
+
+/* ============================
+   الأقسام
+============================ */
+.section {
+  background: white;
+  margin: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+.section-title {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0d47a1;
+}
+
+/* ============================
+   الإدخالات
+============================ */
+label {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 600;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 4px;
+  margin-bottom: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  background: #f9fafb;
+  transition: 0.2s;
+}
+
+input:focus, select:focus {
+  border-color: #0d47a1;
+  outline: none;
+  background: #fff;
+}
+
+/* ============================
+   الأزرار
+============================ */
+.btn-primary {
+  background: #0d47a1;
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: #09367a;
+}
+
+.btn-primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #f97316;
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #dd5f0b;
+}
+
+.full {
+  width: 100%;
+}
+
+/* زر التحميل */
+.btn-loading {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+
+.btn-loading::after {
+  content: " ...";
+  animation: dots 1s infinite;
+}
+
+@keyframes dots {
+  0% { content: " ."; }
+  33% { content: " .."; }
+  66% { content: " ..."; }
+  100% { content: " ."; }
+}
+
+/* ============================
+   بطاقات السيارات
+============================ */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.car-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 15px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  line-height: 1.7;
+  transition: 0.2s;
+}
+
+.car-card:hover {
+  transform: scale(1.01);
+}
+
+.car-card h4 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0d47a1;
+}
+
+.car-card p {
+  margin: 4px 0;
+  font-size: 15px;
+}
+
+.car-card ul {
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+
+.car-card ul li {
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+/* ============================
+   الخدمات المختارة
+============================ */
+.services-box {
+  background: #f3f4f6;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.total {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0d47a1;
+  margin-top: 10px;
+}
+
+/* ============================
+   Toast Notifications
+============================ */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 99999;
+}
+
+.toast {
+  background: #333;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 12px;
+  margin-top: 12px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: 0.3s;
+  font-size: 15px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.success { background: #16a34a; }
+.toast.error { background: #dc2626; }
+.toast.info { background: #2563eb; }
+
+/* ============================
+   صفوف الإدخال
+============================ */
+.row {
+  display: flex;
+  gap: 14px;
+}
+
+.row > div {
+  flex: 1;
+}
+
+/* ============================
+   Responsive
+============================ */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+  }
+
+  .section {
+    padding: 14px;
+  }
+
+  .car-card {
+    font-size: 14px;
+  }
+
+  body::before {
+    background-size: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title h1 {
+    font-size: 22px;
+  }
+
+  .page-title h2 {
+    font-size: 16px;
+  }
+
+  input, select {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .btn-primary, .btn-secondary {
+    font-size: 15px;
+    padding: 12px;
+  }
+}
 </style>
 
-<!-- تسجيل الزيارة -->
-<div id="visitBox" class="section">
-    <h3 class="section-title">تسجيل زيارة</h3>
+<!-- API -->
+<script src="api.js"></script>
 
-    <!-- بيانات اللوحة -->
-    <div class="row">
-        <div>
-            <label>أرقام اللوحة</label>
-            <input type="text" id="plate_numbers" placeholder="1234">
-        </div>
+<!-- ============================
+     visit-manager.js (كامل)
+============================ -->
+<script>
+let currentMembership = "";
+let selectedServices = [];
+let carTypesData = [];
+let servicesData = [];
 
-        <div>
-            <label>حروف اللوحة (اختياري)</label>
-            <input type="text" id="plate_letters" placeholder="ABC">
-        </div>
-    </div>
+const el = id => document.getElementById(id);
 
-    <!-- السيارة -->
-    <div class="row">
-        <div>
-            <label>براند السيارة</label>
-            <select id="car_type"></select>
-        </div>
+function showToast(msg, type = "info") {
+  const container = el("toast-container");
+  const div = document.createElement("div");
+  div.className = "toast " + type;
+  div.textContent = msg;
+  container.appendChild(div);
+  setTimeout(() => div.classList.add("show"), 10);
+  setTimeout(() => div.remove(), 3000);
+}
 
-        <div>
-            <label>موديل السيارة</label>
-            <select id="car_model"></select>
-        </div>
-    </div>
+/* ===========================
+   تحميل الزيارات النشطة
+=========================== */
+async function loadActiveVisits() {
+  const list = el("activeVisitsList");
+  list.innerHTML = "جارِ التحميل...";
 
-    <div class="row">
-        <div>
-            <label>الحجم</label>
-            <input type="text" id="car_size" readonly>
-        </div>
-    </div>
+  try {
+    const res = await apiGetActiveVisits();
+    const rows = res.rows || [];
 
-    <!-- الخدمة -->
-    <div class="row">
-        <div>
-            <label>نوع الخدمة</label>
-            <select id="service_type"></select>
-        </div>
+    list.innerHTML = "";
 
-        <div>
-            <label>تفاصيل الخدمة</label>
-            <select id="service_detail"></select>
-        </div>
-    </div>
+    if (!rows.length) {
+      list.innerHTML = "<p>لا توجد زيارات حالياً.</p>";
+      return;
+    }
 
-    <!-- السعر والنقاط -->
-    <div class="row">
-        <div>
-            <label>السعر</label>
-            <input type="number" id="price" readonly>
-        </div>
+    const cars = {};
 
-        <div>
-            <label>النقاط</label>
-            <input type="number" id="points" readonly>
-        </div>
-    </div>
+    rows.forEach(r => {
+      const plate = r[1];
 
-    <!-- إضافة خدمة -->
-    <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
+      if (!cars[plate]) {
+        cars[plate] = {
+          plate,
+          membership: r[0],
+          services: [],
+          totalPrice: 0,
+          checkIn: r[13],
+          parking: r[17]
+        };
+      }
 
-    <div id="servicesList" class="services-box"></div>
+      cars[plate].services.push({
+        name: r[6],
+        price: r[7]
+      });
 
-    <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+      cars[plate].totalPrice += Number(r[7] || 0);
+    });
 
-    <!-- الخصم والموقف -->
-    <div class="row">
-        <div>
-            <label>الخصم</label>
-            <input type="number" id="discount" placeholder="0">
-        </div>
+    Object.values(cars).forEach(car => {
+      const card = document.createElement("div");
+      card.className = "car-card";
 
-        <div>
-            <label>رقم الموقف</label>
-            <select id="parking_slot">
-                <option value="">— اختر رقم الموقف —</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-            </select>
-        </div>
-    </div>
+      const servicesHTML = car.services
+        .map(s => `<li>${s.name} — ${s.price} ريال</li>`)
+        .join("");
 
-    <!-- الموظف والفرع -->
-    <div class="row">
-        <div>
-            <label>الموظف</label>
-            <select id="employee_in"></select>
-        </div>
+      card.innerHTML = `
+        <h4>لوحة: ${car.plate}</h4>
+        <p><b>رقم العضوية:</b> ${car.membership}</p>
+        <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
+        <p><b>الدخول:</b> ${car.checkIn}</p>
+        <p><b>رقم الموقف:</b> ${car.parking}</p>
 
-        <div>
-            <label>الفرع</label>
-            <select id="branch">
-                <option value="Makkah - مكة">Makkah - مكة</option>
-            </select>
-        </div>
-    </div>
+        <p><b>الخدمات:</b></p>
+        <ul>${servicesHTML}</ul>
+      `;
 
-    <!-- الدفع -->
-    <div class="row">
-        <div>
-            <label>حالة الدفع</label>
-            <select id="payment_status">
-                <option value="">— اختر حالة الدفع —</option>
-                <option value="مدفوع">مدفوع</option>
-                <option value="غير مدفوع">غير مدفوع</option>
-            </select>
-        </div>
+      list.appendChild(card);
+    });
 
-        <div id="payment_method_wrapper" style="display:none;">
-            <label>طريقة الدفع</label>
-            <select id="payment_method">
-                <option value="">— اختر طريقة الدفع —</option>
-                <option value="كاش">كاش</option>
-                <option value="شبكة">شبكة</option>
-                <option value="جزئي">جزئي (كاش + شبكة)</option>
-            </select>
-        </div>
-    </div>
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل الزيارات", "error");
+  }
+}
 
-    <!-- الدفع الجزئي -->
-    <div id="partial_payment_box" style="display:none; margin-top:10px;">
-        <div class="row">
-            <div>
-                <label>مبلغ الكاش</label>
-                <input type="number" id="cash_amount" placeholder="0">
-            </div>
+/* ===========================
+   تحميل أنواع السيارات
+=========================== */
+async function loadCarTypes() {
+  try {
+    const res = await apiGetCarTypes();
+    carTypesData = res.rows || [];
 
-            <div>
-                <label>مبلغ الشبكة</label>
-                <input type="number" id="card_amount" placeholder="0">
-            </div>
-        </div>
+    const brandSelect = el("car_type");
+    const modelSelect = el("car_model");
+    const sizeInput = el("car_size");
 
-        <h4 style="margin-top:10px;">
-            المجموع المدفوع: <span id="paid_total">0</span> ريال
-        </h4>
-    </div>
+    brandSelect.innerHTML = '<option value="">— اختر البراند —</option>';
+    modelSelect.innerHTML = '<option value="">— اختر الموديل —</option>';
+    sizeInput.value = "";
 
-    <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
-</div>
+    const brands = [...new Set(carTypesData.map(r => r[0]))];
 
-<!-- Toast -->
-<div id="toast-container"></div>
+    brands.forEach(b => {
+      const opt = document.createElement("option");
+      opt.value = b;
+      opt.textContent = b;
+      brandSelect.appendChild(opt);
+    });
 
-</body>
-</html>
+    brandSelect.addEventListener("change", () => {
+      const brand = brandSelect.value;
+      modelSelect.innerHTML = '<option value="">— اختر الموديل —</option>';
+      sizeInput.value = "";
+
+      if (!brand) return;
+
+      const models = carTypesData.filter(r => r[0] === brand);
+      const uniqueModels = [...new Set(models.map(r => r[1]))];
+
+      uniqueModels.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        modelSelect.appendChild(opt);
+      });
+    });
+
+    modelSelect.addEventListener("change", () => {
+      const brand = brandSelect.value;
+      const model = modelSelect.value;
+      const row = carTypesData.find(r => r[0] === brand && r[1] === model);
+      sizeInput.value = row ? row[2] : "";
+    });
+
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل أنواع السيارات", "error");
+  }
+}
+
+/* ===========================
+   التعرف التلقائي من اللوحة
+=========================== */
+async function autoDetectCar() {
+  const plate = el("plate_numbers").value.trim();
+  if (!plate) return;
+
+  try {
+    const res = await apiPost({
+      action: "detectCarByPlate",
+      plate_numbers: plate
+    });
+
+    if (!res.success) return;
+
+    currentMembership = res.membership || "";
+    el("car_type").value = res.brand || "";
+    el("car_model").value = res.model || "";
+    el("car_size").value = res.size || "";
+
+    showToast("تم التعرف على السيارة", "success");
+
+  } catch (err) {
+    currentMembership = "";
+  }
+}
+
+/* ===========================
+   تحميل الخدمات
+=========================== */
+async function loadServices() {
+  try {
+    const res = await apiGetServices();
+    servicesData = res.services || [];
+
+    const typeSelect = el("service_type");
+    const detailSelect = el("service_detail");
+
+    typeSelect.innerHTML = '<option value="">— اختر نوع الخدمة —</option>';
+    detailSelect.innerHTML = '<option value="">— اختر الخدمة —</option>';
+
+    const categories = [...new Set(servicesData.map(s => s.category))];
+
+    categories.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      typeSelect.appendChild(opt);
+    });
+
+    typeSelect.addEventListener("change", () => {
+      const cat = typeSelect.value;
+      detailSelect.innerHTML = '<option value="">— اختر الخدمة —</option>';
+
+      const filtered = servicesData.filter(s => s.category === cat);
+
+      filtered.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.service;
+        opt.textContent = s.service;
+        detailSelect.appendChild(opt);
+      });
+    });
+
+    detailSelect.addEventListener("change", () => {
+      const name = detailSelect.value;
+      const row = servicesData.find(s => s.service === name);
+
+      el("price").value = row ? row.price : 0;
+      el("points").value = row ? row.commission : 0;
+    });
+
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل الخدمات", "error");
+  }
+}
+
+/* ===========================
+   تحميل الموظفين
+=========================== */
+async function loadEmployees() {
+  try {
+    const res = await apiGetEmployees();
+    const employees = res.rows || [];
+
+    const sel = el("employee_in");
+    sel.innerHTML = '<option value="">— اختر الموظف —</option>';
+
+    employees.forEach(e => {
+      const opt = document.createElement("option");
+      opt.value = e[0];
+      opt.textContent = e[0];
+      sel.appendChild(opt);
+    });
+
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل الموظفين", "error");
+  }
+}
+
+/* ===========================
+   إضافة خدمة
+=========================== */
+function addServiceToList() {
+  const detail = el("service_detail").value;
+  const price = Number(el("price").value || 0);
+  const points = Number(el("points").value || 0);
+
+  if (!detail) {
+    showToast("اختر خدمة", "error");
+    return;
+  }
+
+  selectedServices.push({ name: detail, price, points });
+  renderServicesList();
+  recalcTotal();
+}
+
+function renderServicesList() {
+  const box = el("servicesList");
+  box.innerHTML = "";
+
+  selectedServices.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "service-item";
+    div.innerHTML = `
+      <span>${s.name} - ${s.price} ريال</span>
+      <button class="btn-remove" data-i="${i}">حذف</button>
+    `;
+    box.appendChild(div);
+  });
+
+  box.querySelectorAll(".btn-remove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const i = btn.getAttribute("data-i");
+      selectedServices.splice(i, 1);
+      renderServicesList();
+      recalcTotal();
+    });
+  });
+}
+
+/* ===========================
+   حساب الإجمالي
+=========================== */
+function recalcTotal() {
+  const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const discount = Number(el("discount").value || 0);
+  el("totalPrice").textContent = Math.max(0, total - discount);
+}
+
+/* ===========================
+   الدفع الجزئي
+=========================== */
+function setupPaymentStatus() {
+  const statusSel = el("payment_status");
+  const methodSel = el("payment_method");
+  const methodWrapper = el("payment_method_wrapper");
+  const partialBox = el("partial_payment_box");
+
+  statusSel.addEventListener("change", () => {
+    if (statusSel.value === "مدفوع") {
+      methodWrapper.style.display = "block";
+    } else {
+      methodWrapper.style.display = "none";
+      partialBox.style.display = "none";
+    }
+  });
+
+  methodSel.addEventListener("change", () => {
+    if (methodSel.value === "جزئي") {
+      partialBox.style.display = "block";
+    } else {
+      partialBox.style.display = "none";
+    }
+  });
+
+  ["cash_amount", "card_amount"].forEach(id => {
+    el(id).addEventListener("input", () => {
+      const cash = Number(el("cash_amount").value || 0);
+      const card = Number(el("card_amount").value || 0);
+      el("paid_total").textContent = cash + card;
+    });
+  });
+}
+
+/* ===========================
+   إرسال الزيارة (مع زر منع الضغط)
+=========================== */
+async function submitVisit() {
+  const btn = el("btnSubmitVisit");
+
+  btn.classList.add("btn-loading");
+  btn.textContent = "جاري تسجيل الزيارة...";
+  btn.disabled = true
