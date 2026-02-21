@@ -13,11 +13,13 @@ function showToast(msg, type = "info") {
   div.className = "toast " + type;
   div.textContent = msg;
   container.appendChild(div);
+  setTimeout(() => div.classList.add("show"), 10);
   setTimeout(() => div.remove(), 3000);
 }
 
 /* ===========================
    تحميل الزيارات النشطة
+   (تجميع حسب السيارة)
 =========================== */
 async function loadActiveVisits() {
   const list = el("activeVisitsList");
@@ -34,34 +36,40 @@ async function loadActiveVisits() {
       return;
     }
 
-    // تجميع الصفوف حسب رقم اللوحة
+    // تجميع حسب رقم اللوحة
     const cars = {};
 
     rows.forEach(r => {
-      const plate = r[VISIT_COL.PLATE_NUMBERS];
+      // مطابق لترتيب VISIT_COL الجديد في الشيت
+      const membership = r[0];        // MEMBERSHIP
+      const plate = r[1];             // PLATE_NUMBERS
+      const serviceName = r[6];       // SERVICE
+      const price = Number(r[7] || 0); // PRICE
+      const checkIn = r[13];          // CHECK_IN
+      const parking = r[17];          // PARKING
+
       if (!cars[plate]) {
         cars[plate] = {
           plate,
+          membership,
           services: [],
           totalPrice: 0,
-          checkIn: r[VISIT_COL.CHECK_IN],
-          parking: r[VISIT_COL.PARKING],
-          membership: r[VISIT_COL.MEMBERSHIP]
+          checkIn,
+          parking
         };
       }
 
       cars[plate].services.push({
-        name: r[VISIT_COL.SERVICE],
-        price: r[VISIT_COL.PRICE]
+        name: serviceName,
+        price
       });
 
-      cars[plate].totalPrice += Number(r[VISIT_COL.PRICE] || 0);
+      cars[plate].totalPrice += price;
     });
 
-    // عرض بطاقة واحدة لكل سيارة
     Object.values(cars).forEach(car => {
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "car-card";
 
       const servicesHTML = car.services
         .map(s => `<li>${s.name} — ${s.price} ريال</li>`)
@@ -69,20 +77,22 @@ async function loadActiveVisits() {
 
       card.innerHTML = `
         <h4>لوحة: ${car.plate}</h4>
-        <p><strong>الإجمالي:</strong> ${car.totalPrice} ريال</p>
-        <p><strong>الدخول:</strong> ${car.checkIn}</p>
-        <p><strong>الخدمات:</strong></p>
+        <p><b>رقم العضوية:</b> ${car.membership || "-"}</p>
+        <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
+        <p><b>الدخول:</b> ${car.checkIn || "-"}</p>
+        <p><b>رقم الموقف:</b> ${car.parking || "-"}</p>
+        <p><b>الخدمات:</b></p>
         <ul>${servicesHTML}</ul>
       `;
 
       list.appendChild(card);
     });
-
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل الزيارات", "error");
   }
 }
+
 /* ===========================
    تحميل أنواع السيارات
 =========================== */
@@ -132,7 +142,6 @@ async function loadCarTypes() {
       const row = carTypesData.find(r => r[0] === brand && r[1] === model);
       sizeInput.value = row ? row[2] : "";
     });
-
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل أنواع السيارات", "error");
@@ -160,7 +169,6 @@ async function autoDetectCar() {
     el("car_size").value = res.size || "";
 
     showToast("تم التعرف على السيارة", "success");
-
   } catch (err) {
     currentMembership = "";
   }
@@ -210,7 +218,6 @@ async function loadServices() {
       el("price").value = row ? row.price : 0;
       el("points").value = row ? row.commission : 0;
     });
-
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل الخدمات", "error");
@@ -234,7 +241,6 @@ async function loadEmployees() {
       opt.textContent = e[0];
       sel.appendChild(opt);
     });
-
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل الموظفين", "error");
@@ -242,7 +248,7 @@ async function loadEmployees() {
 }
 
 /* ===========================
-   إضافة خدمة
+   إضافة خدمة للقائمة
 =========================== */
 function addServiceToList() {
   const detail = el("service_detail").value;
@@ -263,6 +269,11 @@ function renderServicesList() {
   const box = el("servicesList");
   box.innerHTML = "";
 
+  if (!selectedServices.length) {
+    box.textContent = "لا توجد خدمات مضافة بعد.";
+    return;
+  }
+
   selectedServices.forEach((s, i) => {
     const div = document.createElement("div");
     div.className = "service-item";
@@ -275,7 +286,7 @@ function renderServicesList() {
 
   box.querySelectorAll(".btn-remove").forEach(btn => {
     btn.addEventListener("click", () => {
-      const i = btn.getAttribute("data-i");
+      const i = Number(btn.getAttribute("data-i"));
       selectedServices.splice(i, 1);
       renderServicesList();
       recalcTotal();
@@ -328,9 +339,16 @@ function setupPaymentStatus() {
 }
 
 /* ===========================
-   إرسال الزيارة (Multi‑Service)
+   إرسال الزيارة
+   (صف لكل خدمة + زر منع الضغط)
 =========================== */
 async function submitVisit() {
+  const btn = el("btnSubmitVisit");
+
+  btn.classList.add("btn-loading");
+  btn.textContent = "جاري تسجيل الزيارة...";
+  btn.disabled = true;
+
   const plate_numbers = el("plate_numbers").value.trim();
   const plate_letters = el("plate_letters").value.trim();
   const car_type = el("car_type").value;
@@ -342,9 +360,39 @@ async function submitVisit() {
   const payment_status = el("payment_status").value;
   const payment_method = el("payment_method").value;
 
-  if (!plate_numbers) return showToast("أدخل أرقام اللوحة", "error");
-  if (!employee_in) return showToast("اختر الموظف", "error");
-  if (!selectedServices.length) return showToast("أضف خدمة واحدة على الأقل", "error");
+  if (!plate_numbers) {
+    showToast("أدخل أرقام اللوحة", "error");
+    resetButton();
+    return;
+  }
+
+  if (!employee_in) {
+    showToast("اختر الموظف", "error");
+    resetButton();
+    return;
+  }
+
+  if (!selectedServices.length) {
+    showToast("أضف خدمة واحدة على الأقل", "error");
+    resetButton();
+    return;
+  }
+
+  const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const discount = Number(el("discount").value || 0);
+  const finalTotal = Math.max(0, total - discount);
+
+  // توزيع الخصم بشكل نسبي على الخدمات
+  let remaining = finalTotal;
+  const servicesWithNet = selectedServices.map((s, idx) => {
+    if (idx === selectedServices.length - 1) {
+      return { ...s, netPrice: remaining };
+    }
+    const ratio = total ? s.price / total : 0;
+    const net = Math.round(finalTotal * ratio);
+    remaining -= net;
+    return { ...s, netPrice: net };
+  });
 
   let cash_amount = 0;
   let card_amount = 0;
@@ -354,34 +402,50 @@ async function submitVisit() {
     card_amount = Number(el("card_amount").value || 0);
   }
 
-  const payload = {
-    membership: currentMembership,
-    plate_numbers,
-    plate_letters,
-    car_type,
-    car_model,
-    car_size,
-    services: selectedServices,   // ← أهم تعديل
-    employee_in,
-    employee_out: "",
-    branch,
-    commission: 0,
-    payment_status,
-    payment_method,
-    cash_amount,
-    card_amount,
-    parking_slot,
-    rating: ""
-  };
-
   try {
-    await apiAddVisit(payload);
+    // صف لكل خدمة
+    for (let i = 0; i < servicesWithNet.length; i++) {
+      const s = servicesWithNet[i];
+
+      const payload = {
+        membership: currentMembership,
+        plate_numbers,
+        plate_letters,
+        car_type,
+        car_model,
+        car_size,
+        service_detail: s.name,
+        price: s.netPrice,
+        points: s.points,
+        employee_in,
+        employee_out: "",
+        branch,
+        commission: 0,
+        payment_status,
+        payment_method,
+        cash_amount: i === 0 ? cash_amount : 0,
+        card_amount: i === 0 ? card_amount : 0,
+        parking_slot,
+        rating: ""
+      };
+
+      await apiAddVisit(payload);
+    }
+
     showToast("تم تسجيل الزيارة", "success");
     resetForm();
     loadActiveVisits();
   } catch (err) {
     console.error(err);
     showToast("خطأ في تسجيل الزيارة", "error");
+  } finally {
+    resetButton();
+  }
+
+  function resetButton() {
+    btn.classList.remove("btn-loading");
+    btn.textContent = "تسجيل الزيارة";
+    btn.disabled = false;
   }
 }
 
