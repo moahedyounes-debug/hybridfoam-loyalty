@@ -34,15 +34,47 @@ async function loadActiveVisits() {
       return;
     }
 
+    // تجميع الصفوف حسب رقم اللوحة
+    const cars = {};
+
     rows.forEach(r => {
+      const plate = r[VISIT_COL.PLATE_NUMBERS];
+      if (!cars[plate]) {
+        cars[plate] = {
+          plate,
+          services: [],
+          totalPrice: 0,
+          checkIn: r[VISIT_COL.CHECK_IN],
+          parking: r[VISIT_COL.PARKING],
+          membership: r[VISIT_COL.MEMBERSHIP]
+        };
+      }
+
+      cars[plate].services.push({
+        name: r[VISIT_COL.SERVICE],
+        price: r[VISIT_COL.PRICE]
+      });
+
+      cars[plate].totalPrice += Number(r[VISIT_COL.PRICE] || 0);
+    });
+
+    // عرض بطاقة واحدة لكل سيارة
+    Object.values(cars).forEach(car => {
       const card = document.createElement("div");
       card.className = "card";
+
+      const servicesHTML = car.services
+        .map(s => `<li>${s.name} — ${s.price} ريال</li>`)
+        .join("");
+
       card.innerHTML = `
-        <h4>لوحة: ${r[1]}</h4>
-        <p>الخدمة: ${r[6]}</p>
-        <p>السعر: ${r[7]} ريال</p>
-        <p>الدخول: ${r[13]}</p>
+        <h4>لوحة: ${car.plate}</h4>
+        <p><strong>الإجمالي:</strong> ${car.totalPrice} ريال</p>
+        <p><strong>الدخول:</strong> ${car.checkIn}</p>
+        <p><strong>الخدمات:</strong></p>
+        <ul>${servicesHTML}</ul>
       `;
+
       list.appendChild(card);
     });
 
@@ -51,7 +83,6 @@ async function loadActiveVisits() {
     showToast("خطأ في تحميل الزيارات", "error");
   }
 }
-
 /* ===========================
    تحميل أنواع السيارات
 =========================== */
