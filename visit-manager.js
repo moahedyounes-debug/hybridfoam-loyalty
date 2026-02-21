@@ -19,7 +19,6 @@ function showToast(msg, type = "info") {
 
 /* ===========================
    تحميل الزيارات النشطة
-   (تجميع حسب السيارة)
 =========================== */
 async function loadActiveVisits() {
   const list = el("activeVisitsList");
@@ -36,17 +35,15 @@ async function loadActiveVisits() {
       return;
     }
 
-    // تجميع حسب رقم اللوحة
     const cars = {};
 
     rows.forEach(r => {
-      // مطابق لترتيب VISIT_COL الجديد في الشيت
-      const membership = r[0];        // MEMBERSHIP
-      const plate = r[1];             // PLATE_NUMBERS
-      const serviceName = r[6];       // SERVICE
-      const price = Number(r[7] || 0); // PRICE
-      const checkIn = r[13];          // CHECK_IN
-      const parking = r[17];          // PARKING
+      const membership = r[0];
+      const plate = r[1];
+      const serviceName = r[6];
+      const price = Number(r[7] || 0);
+      const checkIn = r[13];
+      const parking = r[17];
 
       if (!cars[plate]) {
         cars[plate] = {
@@ -59,11 +56,7 @@ async function loadActiveVisits() {
         };
       }
 
-      cars[plate].services.push({
-        name: serviceName,
-        price
-      });
-
+      cars[plate].services.push({ name: serviceName, price });
       cars[plate].totalPrice += price;
     });
 
@@ -87,6 +80,7 @@ async function loadActiveVisits() {
 
       list.appendChild(card);
     });
+
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل الزيارات", "error");
@@ -142,6 +136,7 @@ async function loadCarTypes() {
       const row = carTypesData.find(r => r[0] === brand && r[1] === model);
       sizeInput.value = row ? row[2] : "";
     });
+
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل أنواع السيارات", "error");
@@ -169,6 +164,7 @@ async function autoDetectCar() {
     el("car_size").value = res.size || "";
 
     showToast("تم التعرف على السيارة", "success");
+
   } catch (err) {
     currentMembership = "";
   }
@@ -218,6 +214,7 @@ async function loadServices() {
       el("price").value = row ? row.price : 0;
       el("points").value = row ? row.commission : 0;
     });
+
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل الخدمات", "error");
@@ -241,6 +238,7 @@ async function loadEmployees() {
       opt.textContent = e[0];
       sel.appendChild(opt);
     });
+
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل الموظفين", "error");
@@ -248,7 +246,7 @@ async function loadEmployees() {
 }
 
 /* ===========================
-   إضافة خدمة للقائمة
+   إضافة خدمة
 =========================== */
 function addServiceToList() {
   const detail = el("service_detail").value;
@@ -339,8 +337,7 @@ function setupPaymentStatus() {
 }
 
 /* ===========================
-   إرسال الزيارة
-   (صف لكل خدمة + زر منع الضغط)
+   إرسال الزيارة (صف لكل خدمة)
 =========================== */
 async function submitVisit() {
   const btn = el("btnSubmitVisit");
@@ -360,38 +357,24 @@ async function submitVisit() {
   const payment_status = el("payment_status").value;
   const payment_method = el("payment_method").value;
 
-  if (!plate_numbers) {
-    showToast("أدخل أرقام اللوحة", "error");
-    resetButton();
-    return;
-  }
-
-  if (!employee_in) {
-    showToast("اختر الموظف", "error");
-    resetButton();
-    return;
-  }
-
-  if (!selectedServices.length) {
-    showToast("أضف خدمة واحدة على الأقل", "error");
-    resetButton();
-    return;
-  }
+  if (!plate_numbers) return showToast("أدخل أرقام اللوحة", "error");
+  if (!employee_in) return showToast("اختر الموظف", "error");
+  if (!selectedServices.length) return showToast("أضف خدمة واحدة على الأقل", "error");
 
   const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
   const discount = Number(el("discount").value || 0);
   const finalTotal = Math.max(0, total - discount);
 
-  // توزيع الخصم بشكل نسبي على الخدمات
   let remaining = finalTotal;
+
   const servicesWithNet = selectedServices.map((s, idx) => {
     if (idx === selectedServices.length - 1) {
-      return { ...s, netPrice: remaining };
+      return { ...s, price: remaining };
     }
     const ratio = total ? s.price / total : 0;
     const net = Math.round(finalTotal * ratio);
     remaining -= net;
-    return { ...s, netPrice: net };
+    return { ...s, price: net };
   });
 
   let cash_amount = 0;
@@ -402,36 +385,27 @@ async function submitVisit() {
     card_amount = Number(el("card_amount").value || 0);
   }
 
+  const payload = {
+    membership: currentMembership,
+    plate_numbers,
+    plate_letters,
+    car_type,
+    car_model,
+    car_size,
+    employee_in,
+    employee_out: "",
+    branch,
+    parking_slot,
+    payment_status,
+    payment_method,
+    cash_amount,
+    card_amount,
+    rating: "",
+    services: servicesWithNet
+  };
+
   try {
-    // صف لكل خدمة
-    for (let i = 0; i < servicesWithNet.length; i++) {
-      const s = servicesWithNet[i];
-
-      const payload = {
-        membership: currentMembership,
-        plate_numbers,
-        plate_letters,
-        car_type,
-        car_model,
-        car_size,
-        service_detail: s.name,
-        price: s.netPrice,
-        points: s.points,
-        employee_in,
-        employee_out: "",
-        branch,
-        commission: 0,
-        payment_status,
-        payment_method,
-        cash_amount: i === 0 ? cash_amount : 0,
-        card_amount: i === 0 ? card_amount : 0,
-        parking_slot,
-        rating: ""
-      };
-
-      await apiAddVisit(payload);
-    }
-
+    await apiAddVisit(payload);
     showToast("تم تسجيل الزيارة", "success");
     resetForm();
     loadActiveVisits();
@@ -439,10 +413,6 @@ async function submitVisit() {
     console.error(err);
     showToast("خطأ في تسجيل الزيارة", "error");
   } finally {
-    resetButton();
-  }
-
-  function resetButton() {
     btn.classList.remove("btn-loading");
     btn.textContent = "تسجيل الزيارة";
     btn.disabled = false;
