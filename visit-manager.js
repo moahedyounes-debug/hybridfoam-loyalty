@@ -26,7 +26,7 @@ async function loadActiveVisits() {
 
   try {
     const res = await apiGetActiveVisits();
-    const rows = res.rows || [];
+    const rows = res.visits || [];
 
     list.innerHTML = "";
 
@@ -354,7 +354,7 @@ async function submitVisit() {
   const employee_in = el("employee_in").value;
   const branch = el("branch").value;
   const parking_slot = el("parking_slot").value;
-  const payment_status = el("payment_status").value;
+  const payment_status = el("payment_status").value.trim();
   const payment_method = el("payment_method").value;
 
   if (!plate_numbers) return showToast("أدخل أرقام اللوحة", "error");
