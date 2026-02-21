@@ -663,3 +663,67 @@ async function submitVisit() {
   btn.classList.add("btn-loading");
   btn.textContent = "جاري تسجيل الزيارة...";
   btn.disabled = true
+  } finally {
+    resetButton();
+  }
+
+  function resetButton() {
+    btn.classList.remove("btn-loading");
+    btn.textContent = "تسجيل الزيارة";
+    btn.disabled = false;
+  }
+}
+
+/* ===========================
+   إعادة تعيين النموذج
+=========================== */
+function resetForm() {
+  el("plate_numbers").value = "";
+  el("plate_letters").value = "";
+  el("car_type").value = "";
+  el("car_model").innerHTML = '<option value="">— اختر الموديل —</option>';
+  el("car_size").value = "";
+  el("service_type").value = "";
+  el("service_detail").innerHTML = '<option value="">— اختر الخدمة —</option>';
+  el("price").value = "";
+  el("points").value = "";
+  el("discount").value = "";
+  el("parking_slot").value = "";
+  el("payment_status").value = "";
+  el("payment_method").value = "";
+  el("payment_method_wrapper").style.display = "none";
+  el("partial_payment_box").style.display = "none";
+
+  selectedServices = [];
+  renderServicesList();
+  recalcTotal();
+  currentMembership = "";
+}
+
+/* ===========================
+   INIT
+=========================== */
+document.addEventListener("DOMContentLoaded", () => {
+  loadActiveVisits();
+  loadCarTypes();
+  loadServices();
+  loadEmployees();
+  setupPaymentStatus();
+
+  el("btnRefreshActive").addEventListener("click", loadActiveVisits);
+  el("btnAddService").addEventListener("click", addServiceToList);
+  el("discount").addEventListener("input", recalcTotal);
+  el("plate_numbers").addEventListener("blur", autoDetectCar);
+  el("btnSubmitVisit").addEventListener("click", submitVisit);
+});
+</script>
+
+</head>
+
+<body>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+</body>
+</html>
