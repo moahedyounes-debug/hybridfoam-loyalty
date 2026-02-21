@@ -1,6 +1,6 @@
 // api.js – موحد لكل المشروع
 
-const API_URL = "https://script.google.com/macros/s/AKfycbw-xpkMdOKAE6-a_YQPGF6_LwuC7TQfpHaQ5i0kLo01wF_0TXcoy0HwiRG7KYmawMKVzw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbynKTvJY-UPaOxMnTXdswcHOgh1ImcV0NYI4ZpxI5bszYwhn-dXzDf7wfwRa4Ka5QKOzA/exec";
 
 async function apiPost(params) {
   const form = new URLSearchParams();
