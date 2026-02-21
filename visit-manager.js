@@ -16,15 +16,15 @@ function showToast(msg, type = "info") {
     setTimeout(() => div.remove(), 3000);
 }
 
-// =======================
-// تحميل الزيارات النشطة
-// =======================
+/* ===========================
+   تحميل الزيارات النشطة
+=========================== */
 async function loadActiveVisits() {
     const list = el("activeVisitsList");
     list.innerHTML = "جارِ التحميل...";
 
     try {
-        const res = await apiRequest("getActiveVisits", {});
+        const res = await apiGetActiveVisits();
         const rows = res.rows || [];
 
         list.innerHTML = "";
@@ -54,12 +54,12 @@ async function loadActiveVisits() {
     }
 }
 
-// =======================
-// تحميل أنواع السيارات
-// =======================
+/* ===========================
+   تحميل أنواع السيارات
+=========================== */
 async function loadCarTypes() {
     try {
-        const res = await apiRequest("getCarTypes", {});
+        const res = await apiGetCarTypes();
         carTypesData = res.rows || [];
 
         const brandSelect = el("car_type");
@@ -110,15 +110,20 @@ async function loadCarTypes() {
     }
 }
 
-// =======================
-// التعرف التلقائي من اللوحة
-// =======================
+/* ===========================
+   التعرف التلقائي من اللوحة
+=========================== */
 async function autoDetectCar() {
     const plate = el("plate_numbers").value.trim();
     if (!plate) return;
 
     try {
-        const res = await apiRequest("detectCarByPlate", { plate_numbers: plate });
+        const res = await apiPost({
+            action: "detectCarByPlate",
+            plate_numbers: plate
+        });
+
+        if (!res.success) return;
 
         currentMembership = res.membership || "";
 
@@ -133,12 +138,12 @@ async function autoDetectCar() {
     }
 }
 
-// =======================
-// تحميل الخدمات
-// =======================
+/* ===========================
+   تحميل الخدمات
+=========================== */
 async function loadServices() {
     try {
-        const res = await apiRequest("getServices", {});
+        const res = await apiGetServices();
         servicesData = res.services || [];
 
         const typeSelect = el("service_type");
@@ -184,12 +189,12 @@ async function loadServices() {
     }
 }
 
-// =======================
-// تحميل الموظفين
-// =======================
+/* ===========================
+   تحميل الموظفين
+=========================== */
 async function loadEmployees() {
     try {
-        const res = await apiRequest("getEmployees", {});
+        const res = await apiGetEmployees();
         const employees = res.employees || [];
 
         const sel = el("employee_in");
@@ -208,9 +213,9 @@ async function loadEmployees() {
     }
 }
 
-// =======================
-// إضافة خدمة
-// =======================
+/* ===========================
+   إضافة خدمة
+=========================== */
 function addServiceToList() {
     const detail = el("service_detail").value;
     const price = Number(el("price").value || 0);
@@ -250,18 +255,18 @@ function renderServicesList() {
     });
 }
 
-// =======================
-// حساب الإجمالي
-// =======================
+/* ===========================
+   حساب الإجمالي
+=========================== */
 function recalcTotal() {
     const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
     const discount = Number(el("discount").value || 0);
     el("totalPrice").textContent = Math.max(0, total - discount);
 }
 
-// =======================
-// الدفع الجزئي
-// =======================
+/* ===========================
+   الدفع الجزئي
+=========================== */
 function setupPaymentStatus() {
     const statusSel = el("payment_status");
     const methodSel = el("payment_method");
@@ -294,9 +299,9 @@ function setupPaymentStatus() {
     });
 }
 
-// =======================
-// إرسال الزيارة
-// =======================
+/* ===========================
+   إرسال الزيارة
+=========================== */
 async function submitVisit() {
     const plate_numbers = el("plate_numbers").value.trim();
     const plate_letters = el("plate_letters").value.trim();
@@ -351,8 +356,54 @@ async function submitVisit() {
     };
 
     try {
-        await apiRequest("addVisit", payload);
+        await apiAddVisit(payload);
         showToast("تم تسجيل الزيارة", "success");
         resetForm();
         loadActiveVisits();
-   
+    } catch (err) {
+        console.error(err);
+        showToast("خطأ في تسجيل الزيارة", "error");
+    }
+}
+
+/* ===========================
+   إعادة تعيين النموذج
+=========================== */
+function resetForm() {
+    el("plate_numbers").value = "";
+    el("plate_letters").value = "";
+    el("car_type").value = "";
+    el("car_model").innerHTML = '<option value="">— اختر الموديل —</option>';
+    el("car_size").value = "";
+    el("service_type").value = "";
+    el("service_detail").innerHTML = '<option value="">— اختر الخدمة —</option>';
+    el("price").value = "";
+    el("points").value = "";
+    el("discount").value = "";
+    el("parking_slot").value = "";
+    el("payment_status").value = "";
+    el("payment_method").value = "";
+    el("payment_method_wrapper").style.display = "none";
+    el("partial_payment_box").style.display = "none";
+    selectedServices = [];
+    renderServicesList();
+    recalcTotal();
+    currentMembership = "";
+}
+
+/* ===========================
+   INIT
+=========================== */
+document.addEventListener("DOMContentLoaded", () => {
+    loadActiveVisits();
+    loadCarTypes();
+    loadServices();
+    loadEmployees();
+    setupPaymentStatus();
+
+    el("btnRefreshActive").addEventListener("click", loadActiveVisits);
+    el("btnAddService").addEventListener("click", addServiceToList);
+    el("discount").addEventListener("input", recalcTotal);
+    el("plate_numbers").addEventListener("blur", autoDetectCar);
+    el("btnSubmitVisit").addEventListener("click", submitVisit);
+});
