@@ -405,10 +405,15 @@ async function submitVisit() {
   };
 
   try {
-    await apiAddVisit(payload);
+    await apiAddVisit({
+      ...payload,
+      services: JSON.stringify(payload.services)
+    });
+
     showToast("تم تسجيل الزيارة", "success");
     resetForm();
     loadActiveVisits();
+
   } catch (err) {
     console.error(err);
     showToast("خطأ في تسجيل الزيارة", "error");
