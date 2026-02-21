@@ -75,6 +75,7 @@
         <option value="Employees">Employees</option>
         <option value="Level">Level</option>
         <option value="Cost">Cost</option>
+        <option value="Car-Type">Car-Type</option>
     </select>
     <button onclick="runGet()">تشغيل GET</button>
 </div>
@@ -90,6 +91,16 @@
 }'></textarea>
 
     <button onclick="runPost()">تشغيل POST</button>
+</div>
+
+<div class="box">
+    <h3>🚗 إضافة موديل سيارة (addCarModel)</h3>
+
+    <input id="brand" placeholder="Brand مثال: Toyota">
+    <input id="model" placeholder="Model مثال: Camry">
+    <input id="size" placeholder="Size مثال: Sedan">
+
+    <button onclick="addCarModel()">إضافة موديل سيارة</button>
 </div>
 
 <textarea id="output" placeholder="النتيجة تظهر هنا..."></textarea>
@@ -140,6 +151,31 @@ async function runPost() {
 
     document.getElementById("output").value =
         "POST " + action + ":\n\n" + JSON.stringify(json, null, 2);
+}
+
+async function addCarModel() {
+    const url = document.getElementById("apiUrl").value;
+
+    const brand = document.getElementById("brand").value.trim();
+    const model = document.getElementById("model").value.trim();
+    const size = document.getElementById("size").value.trim();
+
+    if (!brand || !model || !size) {
+        alert("املأ جميع الحقول");
+        return;
+    }
+
+    const form = new URLSearchParams();
+    form.append("action", "addCarModel");
+    form.append("brand", brand);
+    form.append("model", model);
+    form.append("size", size);
+
+    const res = await fetch(url, { method: "POST", body: form });
+    const json = await res.json();
+
+    document.getElementById("output").value =
+        "POST addCarModel:\n\n" + JSON.stringify(json, null, 2);
 }
 </script>
 
