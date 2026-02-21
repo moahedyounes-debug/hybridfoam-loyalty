@@ -195,15 +195,15 @@ async function loadServices() {
 async function loadEmployees() {
     try {
         const res = await apiGetEmployees();
-        const employees = res.employees || [];
+        const employees = res.rows || [];   // ← صحيح
 
         const sel = el("employee_in");
         sel.innerHTML = '<option value="">— اختر الموظف —</option>';
 
         employees.forEach(e => {
             const opt = document.createElement("option");
-            opt.value = e.employee;
-            opt.textContent = e.employee;
+            opt.value = e[0];        // اسم الموظف
+            opt.textContent = e[0];  // اسم الموظف
             sel.appendChild(opt);
         });
 
