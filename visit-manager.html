@@ -13,7 +13,6 @@
     <script src="visit-manager.js" defer></script>
 </head>
 
-    
 <body>
 
 <!-- العنوان -->
@@ -41,7 +40,7 @@
         </div>
 
         <div>
-            <label>حروف اللوحة</label>
+            <label>حروف اللوحة (اختياري)</label>
             <input type="text" id="plate_letters" placeholder="ABC">
         </div>
     </div>
@@ -152,8 +151,28 @@
                 <option value="">— اختر طريقة الدفع —</option>
                 <option value="كاش">كاش</option>
                 <option value="شبكة">شبكة</option>
+                <option value="جزئي">جزئي (كاش + شبكة)</option>
             </select>
         </div>
+    </div>
+
+    <!-- الدفع الجزئي -->
+    <div id="partial_payment_box" style="display:none; margin-top:10px;">
+        <div class="row">
+            <div>
+                <label>مبلغ الكاش</label>
+                <input type="number" id="cash_amount" placeholder="0">
+            </div>
+
+            <div>
+                <label>مبلغ الشبكة</label>
+                <input type="number" id="card_amount" placeholder="0">
+            </div>
+        </div>
+
+        <h4 style="margin-top:10px;">
+            المجموع المدفوع: <span id="paid_total">0</span> ريال
+        </h4>
     </div>
 
     <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
