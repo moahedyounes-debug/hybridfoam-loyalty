@@ -81,6 +81,11 @@
 </div>
 
 <div class="box">
+    <h3>🚗 عرض موديلات السيارات (Car-Type)</h3>
+    <button onclick="runCarTypes()">عرض Car-Type</button>
+</div>
+
+<div class="box">
     <h3>🟨 اختبار POST (أي أكشن)</h3>
 
     <input id="actionName" placeholder="action مثال: getCustomerByPhone">
@@ -91,16 +96,6 @@
 }'></textarea>
 
     <button onclick="runPost()">تشغيل POST</button>
-</div>
-
-<div class="box">
-    <h3>🚗 إضافة موديل سيارة (addCarModel)</h3>
-
-    <input id="brand" placeholder="Brand مثال: Toyota">
-    <input id="model" placeholder="Model مثال: Camry">
-    <input id="size" placeholder="Size مثال: Sedan">
-
-    <button onclick="addCarModel()">إضافة موديل سيارة</button>
 </div>
 
 <textarea id="output" placeholder="النتيجة تظهر هنا..."></textarea>
@@ -119,6 +114,19 @@ async function runGet() {
 
     document.getElementById("output").value =
         "GET " + sheet + ":\n\n" + JSON.stringify(json, null, 2);
+}
+
+async function runCarTypes() {
+    const url = document.getElementById("apiUrl").value;
+
+    const form = new URLSearchParams();
+    form.append("action", "getCarTypes");
+
+    const res = await fetch(url, { method: "POST", body: form });
+    const json = await res.json();
+
+    document.getElementById("output").value =
+        "Car-Type:\n\n" + JSON.stringify(json, null, 2);
 }
 
 async function runPost() {
@@ -151,31 +159,6 @@ async function runPost() {
 
     document.getElementById("output").value =
         "POST " + action + ":\n\n" + JSON.stringify(json, null, 2);
-}
-
-async function addCarModel() {
-    const url = document.getElementById("apiUrl").value;
-
-    const brand = document.getElementById("brand").value.trim();
-    const model = document.getElementById("model").value.trim();
-    const size = document.getElementById("size").value.trim();
-
-    if (!brand || !model || !size) {
-        alert("املأ جميع الحقول");
-        return;
-    }
-
-    const form = new URLSearchParams();
-    form.append("action", "addCarModel");
-    form.append("brand", brand);
-    form.append("model", model);
-    form.append("size", size);
-
-    const res = await fetch(url, { method: "POST", body: form });
-    const json = await res.json();
-
-    document.getElementById("output").value =
-        "POST addCarModel:\n\n" + JSON.stringify(json, null, 2);
 }
 </script>
 
