@@ -3,9 +3,11 @@
 ============================================================ */
 
 const el = id => document.getElementById(id);
+
+let carTypes = [];
 let services = [];
 let employees = [];
-let carTypes = [];
+let addedServices = [];
 let activeVisits = [];
 let completedVisits = [];
 let selectedPlate = null;
@@ -25,7 +27,7 @@ function showToast(msg, type = "info") {
 }
 
 /* ============================================================
-   تحميل بيانات أساسية
+   تحميل أنواع السيارات
 ============================================================ */
 
 async function loadCarTypes() {
@@ -44,16 +46,19 @@ function loadModels() {
     const models = carTypes.find(c => c.brand === brand)?.models || [];
 
     el("car_model").innerHTML = models
-        .map(m => `<option value="${m.model}" data-size="${m.size}">${m.model}</option>`)
+        .map(m => `<option value="${m}">${m}</option>`)
         .join("");
 
     updateCarSize();
 }
 
 function updateCarSize() {
-    const size = el("car_model").selectedOptions[0]?.dataset.size || "";
-    el("car_size").value = size;
+    el("car_size").value = ""; // لا يوجد حجم في API
 }
+
+/* ============================================================
+   تحميل الخدمات
+============================================================ */
 
 async function loadServices() {
     const res = await apiGetServices();
@@ -86,10 +91,21 @@ function updateServicePrice() {
 }
 
 /* ============================================================
-   إضافة خدمة
+   تحميل الموظفين
 ============================================================ */
 
-let addedServices = [];
+async function loadEmployees() {
+    const res = await apiGetEmployees();
+    employees = res.data || [];
+
+    el("employee_in").innerHTML = employees
+        .map(e => `<option value="${e.name}">${e.name}</option>`)
+        .join("");
+}
+
+/* ============================================================
+   إضافة خدمة
+============================================================ */
 
 function addService() {
     const name = el("service_detail").value;
@@ -134,34 +150,20 @@ async function submitVisit() {
         return;
     }
 
-    const plate = el("plate_numbers").value;
-    const letters = el("plate_letters").value;
-    const brand = el("car_type").value;
-    const model = el("car_model").value;
-    const size = el("car_size").value;
-    const discount = Number(el("discount").value || 0);
-    const parking = el("parking_slot").value;
-    const employee = el("employee_in").value;
-    const branch = el("branch").value;
-    const paymentStatus = el("payment_status").value;
-    const paymentMethod = el("payment_method").value;
-
-    const total = Number(el("totalPrice").textContent);
-
     const payload = {
-        plate,
-        letters,
-        brand,
-        model,
-        size,
-        services: addedServices,
-        discount,
-        total,
-        parking,
-        employee,
-        branch,
-        paymentStatus,
-        paymentMethod,
+        plate: el("plate_numbers").value,
+        letters: el("plate_letters").value,
+        brand: el("car_type").value,
+        model: el("car_model").value,
+        size: el("car_size").value,
+        services: JSON.stringify(addedServices),
+        discount: Number(el("discount").value || 0),
+        total: Number(el("totalPrice").textContent),
+        parking: el("parking_slot").value,
+        employee: el("employee_in").value,
+        branch: el("branch").value,
+        paymentStatus: el("payment_status").value,
+        paymentMethod: el("payment_method").value,
         cash: Number(el("cash_amount").value || 0),
         card: Number(el("card_amount").value || 0)
     };
@@ -195,7 +197,7 @@ async function loadActiveVisits() {
         const plate = d[1];
         const service = d[6];
         const price = Number(d[7] || 0);
-        const checkIn = d[13];
+        const checkin = d[13];
         const parking = d[17];
         const employee = d[9] || "—";
 
@@ -204,7 +206,7 @@ async function loadActiveVisits() {
                 plate,
                 services: [],
                 total: 0,
-                checkIn,
+                checkin,
                 parking,
                 employee
             };
@@ -217,7 +219,7 @@ async function loadActiveVisits() {
     list.innerHTML = "";
 
     Object.values(cars).forEach(car => {
-        const dt = new Date(car.checkIn);
+        const dt = new Date(car.checkin);
         const formatted = `${dt.getMonth()+1}-${dt.getDate()}-${dt.getFullYear()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2,'0')}`;
 
         const card = document.createElement("div");
@@ -250,7 +252,6 @@ async function loadActiveVisits() {
         list.appendChild(card);
     });
 
-    // ملخص
     el("sumCars").textContent = Object.keys(cars).length;
     el("sumServices").textContent = activeVisits.length;
 }
@@ -293,7 +294,7 @@ async function loadCompletedVisits() {
     const box = el("completedList");
     box.innerHTML = "جارِ التحميل...";
 
-    const res = await apiGetCompletedVisits();
+    const res = await apiGetVisitsByMembership(""); // لا يوجد API خاص
     completedVisits = res.visits || [];
 
     if (!completedVisits.length) {
@@ -371,7 +372,6 @@ async function submitQuickPayment(method, total) {
     showToast("تم الدفع", "success");
     closeModal();
     loadActiveVisits();
-    loadCompletedVisits();
 }
 
 /* ============================================================
@@ -401,9 +401,9 @@ function closeModal() {
 document.addEventListener("DOMContentLoaded", async () => {
     await loadCarTypes();
     await loadServices();
-    await loadEmployees?.();
-    loadActiveVisits();
-    loadCompletedVisits();
+    await loadEmployees();
+    await loadActiveVisits();
+    await loadCompletedVisits();
 
     el("btnAddService").onclick = addService;
     el("btnSubmitVisit").onclick = submitVisit;
