@@ -130,8 +130,16 @@ function openPaymentModal(method) {
   el("modal_cash").value = "";
   el("modal_card").value = "";
 
-  const visitRows = activeVisits.filter(v => v.data[1] == selectedPlate);
-  const totalRequired = visitRows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
+  // جلب كل الصفوف الخاصة باللوحة (مو أول صف فقط)
+  const visitRows = activeVisits.filter(v => {
+    const plateCell = String(v.data[1] || "");
+    return plateCell.startsWith(String(selectedPlate));
+  });
+
+  const totalRequired = visitRows.reduce(
+    (sum, v) => sum + Number(v.data[7] || 0),
+    0
+  );
 
   el("modal_total").textContent = totalRequired + " ريال";
 
@@ -140,11 +148,9 @@ function openPaymentModal(method) {
 
   if (method === "كاش") {
     el("cash_box").style.display = "block";
-  } 
-  else if (method === "شبكة") {
+  } else if (method === "شبكة") {
     el("card_box").style.display = "block";
-  } 
-  else if (method === "جزئي") {
+  } else if (method === "جزئي") {
     el("cash_box").style.display = "block";
     el("card_box").style.display = "block";
   }
@@ -171,9 +177,17 @@ async function submitPayment(method) {
   confirmBtn.textContent = "جاري التحديث...";
 
   try {
-    const visitRows = activeVisits.filter(v => v.data[1] == selectedPlate);
+    // نفس المنطق: جلب كل الصفوف الخاصة باللوحة
+    const visitRows = activeVisits.filter(v => {
+      const plateCell = String(v.data[1] || "");
+      return plateCell.startsWith(String(selectedPlate));
+    });
 
-    const totalRequired = visitRows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
+    const totalRequired = visitRows.reduce(
+      (sum, v) => sum + Number(v.data[7] || 0),
+      0
+    );
+
     const totalPaid = cash + card;
 
     if (totalPaid !== totalRequired) {
@@ -186,13 +200,20 @@ async function submitPayment(method) {
     const paymentMethodLabel =
       method === "جزئي" ? "كاش + شبكة" : method;
 
+    // توزيع الدفع على كل خدمة حسب سعرها
     for (const v of visitRows) {
+      const servicePrice = Number(v.data[7] || 0);
+      const ratio = servicePrice / totalRequired;
+
+      const cashForThis = cash * ratio;
+      const cardForThis = card * ratio;
+
       await apiCloseVisit(v.row, {
         payment_status: "مدفوع",
         payment_method: paymentMethodLabel,
-        CASH_AMOUNT: cash,
-        CARD_AMOUNT: card,
-        TOTAL_PAID: totalPaid
+        CASH_AMOUNT: cashForThis,
+        CARD_AMOUNT: cardForThis,
+        TOTAL_PAID: servicePrice
       });
     }
 
