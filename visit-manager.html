@@ -6,7 +6,7 @@
     <title>رغوة الهجين - إدارة الزيارات</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- ربط ملفات CSS و JS -->
+    <!-- CSS + JS -->
     <link rel="stylesheet" href="visit-manager.css">
     <script src="api.js"></script>
     <script src="visit-manager.js" defer></script>
@@ -170,6 +170,30 @@
         </div>
 
         <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
+    </div>
+
+    <!-- مودال الدفع -->
+    <div id="modal" style="display:none;">
+        <div class="modal-box">
+
+            <h3>تحديث الدفع: <span id="modal_method"></span></h3>
+
+            <div id="cash_box" style="margin-top:15px;">
+                <label>مبلغ الكاش</label>
+                <input type="number" id="modal_cash" placeholder="0">
+            </div>
+
+            <div id="card_box" style="margin-top:15px;">
+                <label>مبلغ الشبكة</label>
+                <input type="number" id="modal_card" placeholder="0">
+            </div>
+
+            <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
+                <button id="modal_confirm" class="btn-primary" style="flex:1;">تأكيد</button>
+                <button id="modal_close" class="btn-secondary" style="flex:1; background:#dc2626;">إغلاق</button>
+            </div>
+
+        </div>
     </div>
 
     <!-- Toast -->
