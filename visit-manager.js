@@ -4,6 +4,8 @@ let currentMembership = "";
 let selectedServices = [];
 let carTypesData = [];
 let servicesData = [];
+let activeVisits = [];
+let selectedVisitRow = null;
 
 const el = id => document.getElementById(id);
 
@@ -27,6 +29,7 @@ async function loadActiveVisits() {
   try {
     const res = await apiGetActiveVisits();
     const rows = res.visits || [];
+    activeVisits = rows;
 
     list.innerHTML = "";
 
@@ -35,15 +38,19 @@ async function loadActiveVisits() {
       return;
     }
 
+    // تجميع حسب رقم اللوحة
     const cars = {};
 
     rows.forEach(r => {
-      const membership = r[0];
-      const plate = r[1];
-      const serviceName = r[6];
-      const price = Number(r[7] || 0);
-      const checkIn = r[13];
-      const parking = r[17];
+      const row = r.data;
+      const visitRow = r.row;
+
+      const membership = row[0];
+      const plate = row[1];
+      const serviceName = row[6];
+      const price = Number(row[7] || 0);
+      const checkIn = row[13];
+      const parking = row[17];
 
       if (!cars[plate]) {
         cars[plate] = {
@@ -52,12 +59,14 @@ async function loadActiveVisits() {
           services: [],
           totalPrice: 0,
           checkIn,
-          parking
+          parking,
+          rows: []
         };
       }
 
       cars[plate].services.push({ name: serviceName, price });
       cars[plate].totalPrice += price;
+      cars[plate].rows.push(visitRow);
     });
 
     Object.values(cars).forEach(car => {
@@ -69,21 +78,97 @@ async function loadActiveVisits() {
         .join("");
 
       card.innerHTML = `
-        <h4>لوحة: ${car.plate}</h4>
+        <h4>لوحة: ${car.plate || "-"}</h4>
         <p><b>رقم العضوية:</b> ${car.membership || "-"}</p>
         <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
         <p><b>الدخول:</b> ${car.checkIn || "-"}</p>
         <p><b>رقم الموقف:</b> ${car.parking || "-"}</p>
+
         <p><b>الخدمات:</b></p>
         <ul>${servicesHTML}</ul>
+
+        <div class="dropdown">
+          <button class="btn-pay">تحديث الدفع ▼</button>
+          <div class="dropdown-content">
+            <a href="#" data-method="كاش" data-rows="${car.rows}">دفع كاش</a>
+            <a href="#" data-method="شبكة" data-rows="${car.rows}">دفع شبكة</a>
+            <a href="#" data-method="جزئي" data-rows="${car.rows}">دفع جزئي</a>
+          </div>
+        </div>
       `;
 
       list.appendChild(card);
     });
 
+    // ربط أزرار الدفع
+    document.querySelectorAll(".dropdown-content a").forEach(a => {
+      a.addEventListener("click", () => {
+        const method = a.getAttribute("data-method");
+        const rows = a.getAttribute("data-rows").split(",");
+        selectedVisitRow = rows[rows.length - 1]; // آخر صف هو صف الدفع
+        openPaymentModal(method);
+      });
+    });
+
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل الزيارات", "error");
+  }
+}
+
+/* ===========================
+   مودال الدفع الذكي
+=========================== */
+function openPaymentModal(method) {
+  el("modal").style.display = "block";
+  el("modal_method").textContent = method;
+
+  el("modal_cash").value = "";
+  el("modal_card").value = "";
+
+  // إظهار الحقول حسب نوع الدفع
+  if (method === "كاش") {
+    el("cash_box").style.display = "block";
+    el("card_box").style.display = "none";
+  } else if (method === "شبكة") {
+    el("cash_box").style.display = "none";
+    el("card_box").style.display = "block";
+  } else {
+    el("cash_box").style.display = "block";
+    el("card_box").style.display = "block";
+  }
+
+  el("modal_confirm").onclick = () => submitPayment(method);
+}
+
+function closeModal() {
+  el("modal").style.display = "none";
+}
+
+/* ===========================
+   إرسال الدفع
+=========================== */
+async function submitPayment(method) {
+  const cash = Number(el("modal_cash").value || 0);
+  const card = Number(el("modal_card").value || 0);
+
+  try {
+    await apiPost({
+      action: "closeVisit",
+      row: selectedVisitRow,
+      payment_status: "مدفوع",
+      payment_method: method,
+      cash_amount: cash,
+      card_amount: card
+    });
+
+    showToast("تم تحديث الدفع", "success");
+    closeModal();
+    loadActiveVisits();
+
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحديث الدفع", "error");
   }
 }
 
@@ -140,33 +225,6 @@ async function loadCarTypes() {
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل أنواع السيارات", "error");
-  }
-}
-
-/* ===========================
-   التعرف التلقائي من اللوحة
-=========================== */
-async function autoDetectCar() {
-  const plate = el("plate_numbers").value.trim();
-  if (!plate) return;
-
-  try {
-    const res = await apiPost({
-      action: "detectCarByPlate",
-      plate_numbers: plate
-    });
-
-    if (!res.success) return;
-
-    currentMembership = res.membership || "";
-    el("car_type").value = res.brand || "";
-    el("car_model").value = res.model || "";
-    el("car_size").value = res.size || "";
-
-    showToast("تم التعرف على السيارة", "success");
-
-  } catch (err) {
-    currentMembership = "";
   }
 }
 
@@ -302,42 +360,7 @@ function recalcTotal() {
 }
 
 /* ===========================
-   الدفع الجزئي
-=========================== */
-function setupPaymentStatus() {
-  const statusSel = el("payment_status");
-  const methodSel = el("payment_method");
-  const methodWrapper = el("payment_method_wrapper");
-  const partialBox = el("partial_payment_box");
-
-  statusSel.addEventListener("change", () => {
-    if (statusSel.value === "مدفوع") {
-      methodWrapper.style.display = "block";
-    } else {
-      methodWrapper.style.display = "none";
-      partialBox.style.display = "none";
-    }
-  });
-
-  methodSel.addEventListener("change", () => {
-    if (methodSel.value === "جزئي") {
-      partialBox.style.display = "block";
-    } else {
-      partialBox.style.display = "none";
-    }
-  });
-
-  ["cash_amount", "card_amount"].forEach(id => {
-    el(id).addEventListener("input", () => {
-      const cash = Number(el("cash_amount").value || 0);
-      const card = Number(el("card_amount").value || 0);
-      el("paid_total").textContent = cash + card;
-    });
-  });
-}
-
-/* ===========================
-   إرسال الزيارة (صف لكل خدمة)
+   إرسال الزيارة
 =========================== */
 async function submitVisit() {
   const btn = el("btnSubmitVisit");
@@ -355,7 +378,7 @@ async function submitVisit() {
   const branch = el("branch").value;
   const parking_slot = el("parking_slot").value;
   const payment_status = el("payment_status").value.trim();
-  const payment_method = el("payment_method").value;
+  const payment_method = el("payment_method").value.trim();
 
   if (!plate_numbers) return showToast("أدخل أرقام اللوحة", "error");
   if (!employee_in) return showToast("اختر الموظف", "error");
@@ -458,11 +481,13 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCarTypes();
   loadServices();
   loadEmployees();
-  setupPaymentStatus();
 
   el("btnRefreshActive").addEventListener("click", loadActiveVisits);
   el("btnAddService").addEventListener("click", addServiceToList);
   el("discount").addEventListener("input", recalcTotal);
   el("plate_numbers").addEventListener("blur", autoDetectCar);
   el("btnSubmitVisit").addEventListener("click", submitVisit);
+
+  // إغلاق المودال
+  el("modal_close").addEventListener("click", closeModal);
 });
