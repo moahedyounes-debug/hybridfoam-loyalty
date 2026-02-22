@@ -1,13 +1,19 @@
-// visit-manager.js
+/* ===========================
+   عناصر مساعدة
+=========================== */
 
-let currentMembership = "";
+const el = id => document.getElementById(id);
+
 let selectedServices = [];
 let carTypesData = [];
 let servicesData = [];
 let activeVisits = [];
 let selectedVisitRow = null;
+let currentMembership = "";
 
-const el = id => document.getElementById(id);
+/* ===========================
+   Toast
+=========================== */
 
 function showToast(msg, type = "info") {
   const container = el("toast-container");
@@ -22,6 +28,7 @@ function showToast(msg, type = "info") {
 /* ===========================
    تحميل الزيارات النشطة
 =========================== */
+
 async function loadActiveVisits() {
   const list = el("activeVisitsList");
   list.innerHTML = "جارِ التحميل...";
@@ -38,7 +45,6 @@ async function loadActiveVisits() {
       return;
     }
 
-    // تجميع حسب رقم اللوحة
     const cars = {};
 
     rows.forEach(r => {
@@ -100,20 +106,6 @@ async function loadActiveVisits() {
       list.appendChild(card);
     });
 
-// ربط أزرار الدفع بطريقة صحيحة (Event Delegation)
-document.addEventListener("click", function (e) {
-  if (e.target.matches(".dropdown-content a")) {
-    e.preventDefault();
-
-    const method = e.target.getAttribute("data-method");
-    const rows = e.target.getAttribute("data-rows").split(",");
-
-    selectedVisitRow = rows[rows.length - 1]; // آخر صف هو صف الدفع
-
-    openPaymentModal(method);
-  }
-});
-
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحميل الزيارات", "error");
@@ -121,8 +113,26 @@ document.addEventListener("click", function (e) {
 }
 
 /* ===========================
+   Event Delegation — مهم جدًا
+=========================== */
+
+document.addEventListener("click", function (e) {
+  if (e.target.matches(".dropdown-content a")) {
+    e.preventDefault();
+
+    const method = e.target.getAttribute("data-method");
+    const rows = e.target.getAttribute("data-rows").split(",");
+
+    selectedVisitRow = rows[rows.length - 1];
+
+    openPaymentModal(method);
+  }
+});
+
+/* ===========================
    مودال الدفع الذكي
 =========================== */
+
 function openPaymentModal(method) {
   el("modal").style.display = "block";
   el("modal_method").textContent = method;
@@ -130,7 +140,6 @@ function openPaymentModal(method) {
   el("modal_cash").value = "";
   el("modal_card").value = "";
 
-  // إظهار الحقول حسب نوع الدفع
   if (method === "كاش") {
     el("cash_box").style.display = "block";
     el("card_box").style.display = "none";
@@ -152,6 +161,7 @@ function closeModal() {
 /* ===========================
    إرسال الدفع
 =========================== */
+
 async function submitPayment(method) {
   const cash = Number(el("modal_cash").value || 0);
   const card = Number(el("modal_card").value || 0);
@@ -179,6 +189,7 @@ async function submitPayment(method) {
 /* ===========================
    تحميل أنواع السيارات
 =========================== */
+
 async function loadCarTypes() {
   try {
     const res = await apiGetCarTypes();
@@ -235,6 +246,7 @@ async function loadCarTypes() {
 /* ===========================
    تحميل الخدمات
 =========================== */
+
 async function loadServices() {
   try {
     const res = await apiGetServices();
@@ -286,6 +298,7 @@ async function loadServices() {
 /* ===========================
    تحميل الموظفين
 =========================== */
+
 async function loadEmployees() {
   try {
     const res = await apiGetEmployees();
@@ -310,6 +323,7 @@ async function loadEmployees() {
 /* ===========================
    إضافة خدمة
 =========================== */
+
 function addServiceToList() {
   const detail = el("service_detail").value;
   const price = Number(el("price").value || 0);
@@ -357,6 +371,7 @@ function renderServicesList() {
 /* ===========================
    حساب الإجمالي
 =========================== */
+
 function recalcTotal() {
   const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
   const discount = Number(el("discount").value || 0);
@@ -366,6 +381,7 @@ function recalcTotal() {
 /* ===========================
    إرسال الزيارة
 =========================== */
+
 async function submitVisit() {
   const btn = el("btnSubmitVisit");
 
@@ -454,6 +470,7 @@ async function submitVisit() {
 /* ===========================
    إعادة تعيين النموذج
 =========================== */
+
 function resetForm() {
   el("plate_numbers").value = "";
   el("plate_letters").value = "";
@@ -480,6 +497,7 @@ function resetForm() {
 /* ===========================
    INIT
 =========================== */
+
 document.addEventListener("DOMContentLoaded", () => {
   loadActiveVisits();
   loadCarTypes();
@@ -492,6 +510,5 @@ document.addEventListener("DOMContentLoaded", () => {
   el("plate_numbers").addEventListener("blur", autoDetectCar);
   el("btnSubmitVisit").addEventListener("click", submitVisit);
 
-  // إغلاق المودال
   el("modal_close").addEventListener("click", closeModal);
 });
