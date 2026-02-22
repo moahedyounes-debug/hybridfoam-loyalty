@@ -190,13 +190,12 @@ async function submitPayment(method) {
 
   // 5) إرسال الدفع
   try {
-    await apiPost({
-      action: "closeVisit",
-      row: selectedVisitRow,
+    await apiCloseVisit(selectedVisitRow, {
       payment_status: "مدفوع",
       payment_method: method,
-      cash_amount: cash,
-      card_amount: card
+      CASH_AMOUNT: cash,
+      CARD_AMOUNT: card,
+      TOTAL_PAID: totalPaid
     });
 
     showToast("تم تحديث الدفع", "success");
@@ -361,7 +360,7 @@ function addServiceToList() {
     name: detail,
     price,
     points,
-    commission: points // نستخدم نفس القيمة كعمولة
+    commission: points
   });
 
   renderServicesList();
