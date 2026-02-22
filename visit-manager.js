@@ -165,19 +165,19 @@ function closeModal() {
 }
 
 /* ===========================
-   إرسال الدفع
+   تحديث الدفع
 =========================== */
 
 async function submitPayment(method) {
   const cash = Number(el("modal_cash").value || 0);
   const card = Number(el("modal_card").value || 0);
-
   const confirmBtn = el("modal_confirm");
+
   confirmBtn.disabled = true;
   confirmBtn.textContent = "جاري التحديث...";
 
   try {
-    // نفس المنطق: جلب كل الصفوف الخاصة باللوحة
+    // جلب كل الصفوف الخاصة باللوحة
     const visitRows = activeVisits.filter(v => {
       const plateCell = String(v.data[1] || "");
       return plateCell.startsWith(String(selectedPlate));
@@ -218,12 +218,16 @@ async function submitPayment(method) {
     }
 
     showToast("تم تحديث الدفع", "success");
+
     closeModal();
-    loadActiveVisits();
+
+    // تحديث سريع بدون تعليق
+    setTimeout(loadActiveVisits, 20);
 
   } catch (err) {
     console.error(err);
     showToast("خطأ في تحديث الدفع", "error");
+
   }
 
   confirmBtn.disabled = false;
@@ -372,22 +376,37 @@ function addServiceToList() {
   const detail = el("service_detail").value;
   const price = Number(el("price").value || 0);
   const points = Number(el("points").value || 0);
+  const category = el("service_type").value; // نوع الخدمة
 
   if (!detail) {
     showToast("اختر خدمة", "error");
     return;
   }
 
+  // منع تكرار الغسيل
+  if (category === "غسيل") {
+    const already = selectedServices.some(s => s.category === "غسيل");
+    if (already) {
+      showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس الزيارة", "error");
+      return;
+    }
+  }
+
   selectedServices.push({
     name: detail,
     price,
     points,
-    commission: points
+    commission: points,
+    category
   });
 
   renderServicesList();
   recalcTotal();
 }
+
+/* ===========================
+   عرض قائمة الخدمات
+=========================== */
 
 function renderServicesList() {
   const box = el("servicesList");
@@ -455,11 +474,13 @@ async function submitVisit() {
     resetSubmitButton(btn);
     return;
   }
+
   if (!employee_in) {
     showToast("اختر الموظف", "error");
     resetSubmitButton(btn);
     return;
   }
+
   if (!selectedServices.length) {
     showToast("أضف خدمة واحدة على الأقل", "error");
     resetSubmitButton(btn);
@@ -477,13 +498,16 @@ async function submitVisit() {
     if (payment_method === "جزئي") {
       cash_amount = Number(el("cash_amount").value || 0);
       card_amount = Number(el("card_amount").value || 0);
+
       if (cash_amount + card_amount !== finalTotal) {
         showToast(`المبلغ المدفوع يجب أن يكون ${finalTotal} ريال`, "error");
         resetSubmitButton(btn);
         return;
       }
+
     } else if (payment_method === "كاش") {
       cash_amount = finalTotal;
+
     } else if (payment_method === "شبكة") {
       card_amount = finalTotal;
     }
@@ -520,12 +544,17 @@ async function submitVisit() {
     });
 
     showToast("تم تسجيل الزيارة", "success");
+
+    // تنظيف النموذج بالكامل
     resetForm();
-    loadActiveVisits();
+
+    // تحديث الزيارات بسرعة بدون أخطاء
+    setTimeout(loadActiveVisits, 20);
 
   } catch (err) {
     console.error(err);
     showToast("خطأ في تسجيل الزيارة", "error");
+
   } finally {
     resetSubmitButton(btn);
   }
@@ -536,7 +565,6 @@ function resetSubmitButton(btn) {
   btn.textContent = "تسجيل الزيارة";
   btn.disabled = false;
 }
-
 /* ===========================
    INIT
 =========================== */
