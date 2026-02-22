@@ -216,6 +216,66 @@ async function markPaid(row) {
   loadActiveVisits();
 }
 
+* ============================
+   سيارات اليوم
+============================ */
+
+async function loadTodayVisits() {
+    const res = await apiGetAll("Visits");
+    if (!res.success) {
+        document.getElementById("todayVisitsList").innerHTML =
+            "<div style='color:#D32F2F;'>خطأ في تحميل البيانات</div>";
+        return;
+    }
+
+    const rows = res.rows || [];
+    const today = new Date().toISOString().slice(0, 10);
+
+    const todayVisits = rows.filter(v => {
+        const checkIn = String(v[13] || "").split(" ")[0];
+        return checkIn === today;
+    });
+
+    const box = document.getElementById("todayVisitsList");
+
+    if (!todayVisits.length) {
+        box.innerHTML = `<div style="color:#9CA3AF;text-align:center;">لا توجد زيارات اليوم</div>`;
+        return;
+    }
+
+    box.innerHTML = todayVisits.map(v => {
+        const plate = `${v[1] || ""} ${v[2] || ""}`;
+        const service = v[6] || "—";
+        const price = v[7] || 0;
+        const employee = v[9] || "—";
+        const payStatus = v[15] || "غير مدفوع";
+
+        return `
+            <div style="
+                padding:10px;
+                border-bottom:1px solid #E5E7EB;
+                margin-bottom:8px;
+            ">
+                <div><strong>🚗 السيارة:</strong> ${plate}</div>
+                <div><strong>الخدمة:</strong> ${service}</div>
+                <div><strong>السعر:</strong> ${price} ريال</div>
+                <div><strong>الموظف:</strong> ${employee}</div>
+                <div><strong>حالة الدفع:</strong> 
+                    <span class="tag">${payStatus}</span>
+                </div>
+
+                ${payStatus === "غير مدفوع" ? `
+                    <button class="btn" style="margin-top:6px;"
+                        onclick="openPaymentModal('${v[0]}')">
+                        إتمام الدفع
+                    </button>
+                ` : ""}
+            </div>
+        `;
+    }).join("");
+}
+
+
 /* ============================
    الحجوزات
 ============================ */
