@@ -1,228 +1,421 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+/* ============================================================
+   عناصر مساعدة
+============================================================ */
 
-<head>
-    <meta charset="UTF-8">
-    <title>رغوة الهجين - إدارة الزيارات</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+const el = id => document.getElementById(id);
 
-    <!-- CSS + JS -->
-    <link rel="stylesheet" href="visit-manager.css">
-    <script src="api.js"></script>
-    <script src="RH-visit.js" defer></script>
-</head>
+let carTypes = [];
+let services = [];
+let employees = [];
+let addedServices = [];
+let activeVisits = [];
+let completedVisits = [];
+let selectedPlate = null;
 
-<body>
+/* ============================================================
+   Toast
+============================================================ */
 
-    <!-- العنوان -->
-    <div class="page-title">
-        <h1>رغوة الهجين</h1>
-        <h2>إدارة الزيارات</h2>
-    </div>
+function showToast(msg, type = "info") {
+    const box = el("toast-container");
+    const div = document.createElement("div");
+    div.className = "toast " + type;
+    div.textContent = msg;
+    box.appendChild(div);
+    setTimeout(() => div.classList.add("show"), 10);
+    setTimeout(() => div.remove(), 3000);
+}
 
-    <!-- الملخص -->
-    <div class="section">
-        <div class="summary-box">
-            <p><b>عدد السيارات داخل المغسلة:</b> <span id="sumCars">0</span></p>
-            <p><b>عدد الخدمات المنفذة:</b> <span id="sumServices">0</span></p>
+/* ============================================================
+   تحميل أنواع السيارات
+============================================================ */
+
+async function loadCarTypes() {
+    const res = await apiGetCarTypes();
+    carTypes = res.data || [];
+
+    el("car_type").innerHTML = carTypes
+        .map(c => `<option value="${c.brand}">${c.brand}</option>`)
+        .join("");
+
+    loadModels();
+}
+
+function loadModels() {
+    const brand = el("car_type").value;
+    const models = carTypes.find(c => c.brand === brand)?.models || [];
+
+    el("car_model").innerHTML = models
+        .map(m => `<option value="${m.model}" data-size="${m.size}">${m.model}</option>`)
+        .join("");
+
+    updateCarSize();
+}
+
+function updateCarSize() {
+    const size = el("car_model").selectedOptions[0]?.dataset.size || "";
+    el("car_size").value = size;
+}
+
+/* ============================================================
+   تحميل الخدمات
+============================================================ */
+
+async function loadServices() {
+    const res = await apiGetServices();
+    services = res.data || [];
+
+    const types = [...new Set(services.map(s => s.type))];
+
+    el("service_type").innerHTML = types
+        .map(t => `<option value="${t}">${t}</option>`)
+        .join("");
+
+    loadServiceDetails();
+}
+
+function loadServiceDetails() {
+    const type = el("service_type").value;
+    const filtered = services.filter(s => s.type === type);
+
+    el("service_detail").innerHTML = filtered
+        .map(s => `<option value="${s.name}" data-price="${s.price}" data-points="${s.points}">${s.name}</option>`)
+        .join("");
+
+    updateServicePrice();
+}
+
+function updateServicePrice() {
+    const opt = el("service_detail").selectedOptions[0];
+    el("price").value = opt?.dataset.price || 0;
+    el("points").value = opt?.dataset.points || 0;
+}
+
+/* ============================================================
+   تحميل الموظفين
+============================================================ */
+
+async function loadEmployees() {
+    const res = await apiGetEmployees();
+    employees = res.data || [];
+
+    el("employee_in").innerHTML = employees
+        .map(e => `<option value="${e.name}">${e.name}</option>`)
+        .join("");
+}
+
+/* ============================================================
+   إضافة خدمة
+============================================================ */
+
+function addService() {
+    const name = el("service_detail").value;
+    const price = Number(el("price").value);
+
+    addedServices.push({ name, price });
+
+    renderServices();
+    recalcTotal();
+}
+
+function renderServices() {
+    el("servicesList").innerHTML = addedServices
+        .map((s, i) => `
+            <div class="service-item">
+                ${s.name} — ${s.price} ريال
+                <button onclick="removeService(${i})" class="btn-secondary small">X</button>
+            </div>
+        `)
+        .join("");
+}
+
+function removeService(i) {
+    addedServices.splice(i, 1);
+    renderServices();
+    recalcTotal();
+}
+
+function recalcTotal() {
+    const discount = Number(el("discount").value || 0);
+    const total = addedServices.reduce((a, b) => a + b.price, 0) - discount;
+    el("totalPrice").textContent = total < 0 ? 0 : total;
+}
+
+/* ============================================================
+   تسجيل زيارة
+============================================================ */
+
+async function submitVisit() {
+    if (!addedServices.length) {
+        showToast("أضف خدمة واحدة على الأقل", "error");
+        return;
+    }
+
+    const payload = {
+        plate: el("plate_numbers").value,
+        letters: el("plate_letters").value,
+        brand: el("car_type").value,
+        model: el("car_model").value,
+        size: el("car_size").value,
+        services: addedServices,
+        discount: Number(el("discount").value || 0),
+        total: Number(el("totalPrice").textContent),
+        parking: el("parking_slot").value,
+        employee: el("employee_in").value,
+        branch: el("branch").value,
+        paymentStatus: el("payment_status").value,
+        paymentMethod: el("payment_method").value,
+        cash: Number(el("cash_amount").value || 0),
+        card: Number(el("card_amount").value || 0)
+    };
+
+    await apiAddVisit(payload);
+
+    showToast("تم تسجيل الزيارة", "success");
+
+    addedServices = [];
+    renderServices();
+    recalcTotal();
+
+    loadActiveVisits();
+}
+
+/* ============================================================
+   تحميل السيارات داخل المغسلة
+============================================================ */
+
+async function loadActiveVisits() {
+    const list = el("activeVisitsList");
+    list.innerHTML = "جارِ التحميل...";
+
+    const res = await apiGetActiveVisits();
+    activeVisits = res.visits || [];
+
+    const cars = {};
+
+    activeVisits.forEach(v => {
+        const d = v.data;
+        const plate = d[1];
+        const service = d[6];
+        const price = Number(d[7] || 0);
+        const checkIn = d[13];
+        const parking = d[17];
+        const employee = d[9] || "—";
+
+        if (!cars[plate]) {
+            cars[plate] = {
+                plate,
+                services: [],
+                total: 0,
+                checkIn,
+                parking,
+                employee
+            };
+        }
+
+        cars[plate].services.push({ service, price });
+        cars[plate].total += price;
+    });
+
+    list.innerHTML = "";
+
+    Object.values(cars).forEach(car => {
+        const dt = new Date(car.checkIn);
+        const formatted = `${dt.getMonth()+1}-${dt.getDate()}-${dt.getFullYear()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2,'0')}`;
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <h4>لوحة: ${car.plate}</h4>
+            <p><b>الدخول:</b> ${formatted}</p>
+            <p><b>الموظف:</b> ${car.employee}</p>
+            <p><b>الموقف:</b> ${car.parking}</p>
+
+            <p><b>الخدمات:</b></p>
+            <ul>
+                ${car.services.map(s => `<li>${s.service} — ${s.price} ريال</li>`).join("")}
+            </ul>
+
+            <p><b>الإجمالي:</b> ${car.total} ريال</p>
+
+            <select onchange="handleQuickPay('${car.plate}', this.value)">
+                <option value="">— اختر —</option>
+                <option value="كاش">دفع كاش</option>
+                <option value="شبكة">دفع شبكة</option>
+                <option value="جزئي">دفع جزئي</option>
+            </select>
+
+            <button class="btn-edit full" onclick="editVisit('${car.plate}')">تعديل الخدمات / الموظف</button>
+            <button class="btn-discount full" onclick="addDiscount('${car.plate}')">إضافة خصم</button>
+        `;
+
+        list.appendChild(card);
+    });
+
+    el("sumCars").textContent = Object.keys(cars).length;
+    el("sumServices").textContent = activeVisits.length;
+}
+
+/* ============================================================
+   زيارات اليوم
+============================================================ */
+
+function loadTodayVisits() {
+    const box = el("todayVisitsList");
+    box.innerHTML = "";
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const rows = activeVisits.filter(v => {
+        const date = String(v.data[13]).split(" ")[0];
+        return date === today;
+    });
+
+    if (!rows.length) {
+        box.innerHTML = "<p>لا توجد زيارات اليوم</p>";
+        return;
+    }
+
+    box.innerHTML = rows.map(v => `
+        <div class="card">
+            <p><b>السيارة:</b> ${v.data[1]}</p>
+            <p><b>الخدمة:</b> ${v.data[6]}</p>
+            <p><b>السعر:</b> ${v.data[7]} ريال</p>
+            <p><b>الموظف:</b> ${v.data[9]}</p>
         </div>
-    </div>
+    `).join("");
+}
 
-    <!-- السيارات داخل المغسلة -->
-    <div class="section">
-        <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
+/* ============================================================
+   الزيارات المكتملة
+============================================================ */
 
-        <div id="activeVisitsList" class="cards"></div>
+async function loadCompletedVisits() {
+    const box = el("completedList");
+    box.innerHTML = "جارِ التحميل...";
 
-        <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
-    </div>
+    const res = await apiGetCompletedVisits();
+    completedVisits = res.visits || [];
 
-    <!-- زيارات اليوم -->
-    <div class="section">
-        <h3 class="section-title">📋 زيارات اليوم</h3>
-        <div id="todayVisitsList" class="cards"></div>
-    </div>
+    if (!completedVisits.length) {
+        box.innerHTML = "<p>لا توجد زيارات مكتملة</p>";
+        return;
+    }
 
-    <!-- الزيارات المكتملة -->
-    <div class="section">
-        <h3 class="section-title">✔ الزيارات المكتملة</h3>
-        <div id="completedList" class="cards"></div>
-    </div>
-
-    <!-- تسجيل الزيارة -->
-    <div id="visitBox" class="section">
-        <h3 class="section-title">تسجيل زيارة</h3>
-
-        <!-- بيانات اللوحة -->
-        <div class="row">
-            <div>
-                <label>أرقام اللوحة</label>
-                <input type="text" id="plate_numbers" placeholder="1234">
-            </div>
-            <div>
-                <label>حروف اللوحة (اختياري)</label>
-                <input type="text" id="plate_letters" placeholder="ABC">
-            </div>
+    box.innerHTML = completedVisits.map(v => `
+        <div class="card">
+            <p><b>السيارة:</b> ${v.data[1]}</p>
+            <p><b>الخدمة:</b> ${v.data[6]}</p>
+            <p><b>السعر:</b> ${v.data[7]} ريال</p>
+            <p><b>الموظف:</b> ${v.data[9]}</p>
+            <p><b>طريقة الدفع:</b> ${v.data[14]}</p>
         </div>
+    `).join("");
+}
 
-        <!-- السيارة -->
-        <div class="row">
-            <div>
-                <label>براند السيارة</label>
-                <select id="car_type"></select>
-            </div>
-            <div>
-                <label>موديل السيارة</label>
-                <select id="car_model"></select>
-            </div>
-        </div>
+/* ============================================================
+   الدفع السريع
+============================================================ */
 
-        <div class="row">
-            <div>
-                <label>الحجم</label>
-                <input type="text" id="car_size" readonly>
-            </div>
-        </div>
+function handleQuickPay(plate, method) {
+    if (!method) return;
 
-        <!-- الخدمة -->
-        <div class="row">
-            <div>
-                <label>نوع الخدمة</label>
-                <select id="service_type"></select>
-            </div>
-            <div>
-                <label>تفاصيل الخدمة</label>
-                <select id="service_detail"></select>
-            </div>
-        </div>
+    selectedPlate = plate;
 
-        <!-- السعر والنقاط -->
-        <div class="row">
-            <div>
-                <label>السعر</label>
-                <input type="number" id="price" readonly>
-            </div>
-            <div>
-                <label>النقاط</label>
-                <input type="number" id="points" readonly>
-            </div>
-        </div>
+    const rows = activeVisits.filter(v => v.data[1] === plate);
+    const total = rows.reduce((a, b) => a + Number(b.data[7] || 0), 0);
 
-        <!-- إضافة خدمة -->
-        <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
+    el("modal_method").textContent = method;
+    el("modal_total").textContent = total + " ريال";
 
-        <div id="servicesList" class="services-box"></div>
+    if (method === "جزئي") {
+        el("cash_box").style.display = "block";
+        el("card_box").style.display = "block";
+    } else {
+        el("cash_box").style.display = "none";
+        el("card_box").style.display = "none";
+    }
 
-        <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+    el("modal").style.display = "flex";
 
-        <!-- الخصم والموقف -->
-        <div class="row">
-            <div>
-                <label>الخصم</label>
-                <input type="number" id="discount" placeholder="0">
-            </div>
-            <div>
-                <label>رقم الموقف</label>
-                <select id="parking_slot">
-                    <option value="">— اختر رقم الموقف —</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                </select>
-            </div>
-        </div>
+    el("modal_confirm").onclick = () => submitQuickPayment(method, total);
+}
 
-        <!-- الموظف والفرع -->
-        <div class="row">
-            <div>
-                <label>الموظف</label>
-                <select id="employee_in"></select>
-            </div>
-            <div>
-                <label>الفرع</label>
-                <select id="branch">
-                    <option value="Makkah - مكة">Makkah - مكة</option>
-                </select>
-            </div>
-        </div>
+async function submitQuickPayment(method, total) {
+    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
 
-        <!-- الدفع -->
-        <div class="row">
-            <div>
-                <label>حالة الدفع</label>
-                <select id="payment_status">
-                    <option value="">— اختر حالة الدفع —</option>
-                    <option value="مدفوع">مدفوع</option>
-                    <option value="غير مدفوع">غير مدفوع</option>
-                </select>
-            </div>
+    let cash = 0, card = 0;
 
-            <div id="payment_method_wrapper" style="display:none;">
-                <label>طريقة الدفع</label>
-                <select id="payment_method">
-                    <option value="">— اختر طريقة الدفع —</option>
-                    <option value="كاش">كاش</option>
-                    <option value="شبكة">شبكة</option>
-                    <option value="جزئي">جزئي (كاش + شبكة)</option>
-                </select>
-            </div>
-        </div>
+    if (method === "جزئي") {
+        cash = Number(el("modal_cash").value || 0);
+        card = Number(el("modal_card").value || 0);
 
-        <!-- الدفع الجزئي -->
-        <div id="partial_payment_box" style="display:none; margin-top:10px;">
-            <div class="row">
-                <div>
-                    <label>مبلغ الكاش</label>
-                    <input type="number" id="cash_amount" placeholder="0">
-                </div>
-                <div>
-                    <label>مبلغ الشبكة</label>
-                    <input type="number" id="card_amount" placeholder="0">
-                </div>
-            </div>
+        if (cash + card !== total) {
+            showToast("المبلغ غير مطابق للإجمالي", "error");
+            return;
+        }
+    } else {
+        cash = method === "كاش" ? total : 0;
+        card = method === "شبكة" ? total : 0;
+    }
 
-            <h4 style="margin-top:10px;">
-                المجموع المدفوع: <span id="paid_total">0</span> ريال
-            </h4>
-        </div>
+    for (const v of rows) {
+        await apiCloseVisit(v.row, {
+            payment_status: "مدفوع",
+            payment_method: method,
+            CASH_AMOUNT: cash,
+            CARD_AMOUNT: card,
+            TOTAL_PAID: total
+        });
+    }
 
-        <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
-    </div>
+    showToast("تم الدفع", "success");
+    closeModal();
+    loadActiveVisits();
+    loadCompletedVisits();
+}
 
-    <!-- مودال الدفع -->
-    <div id="modal" style="display:none;">
-        <div class="modal-box">
+/* ============================================================
+   تعديل / خصم
+============================================================ */
 
-            <h3>تحديث الدفع: <span id="modal_method"></span></h3>
+function editVisit(plate) {
+    showToast("ميزة تعديل الخدمات قيد التطوير", "info");
+}
 
-            <p style="margin-top:5px;">
-                الإجمالي المطلوب: <span id="modal_total">0 ريال</span>
-            </p>
+function addDiscount(plate) {
+    showToast("ميزة الخصم قيد التطوير", "info");
+}
 
-            <div id="cash_box" style="margin-top:15px;">
-                <label>مبلغ الكاش</label>
-                <input type="number" id="modal_cash" placeholder="0">
-            </div>
+/* ============================================================
+   إغلاق المودال
+============================================================ */
 
-            <div id="card_box" style="margin-top:15px;">
-                <label>مبلغ الشبكة</label>
-                <input type="number" id="modal_card" placeholder="0">
-            </div>
+function closeModal() {
+    el("modal").style.display = "none";
+}
 
-            <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
-                <button id="modal_confirm" class="btn-primary" style="flex:1;">تأكيد</button>
-                <button id="modal_close" class="btn-secondary" style="flex:1; background:#dc2626;">إغلاق</button>
-            </div>
+/* ============================================================
+   INIT
+============================================================ */
 
-        </div>
-    </div>
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadCarTypes();
+    await loadServices();
+    await loadEmployees();
+    await loadActiveVisits();
+    await loadCompletedVisits();
 
-    <!-- Toast -->
-    <div id="toast-container"></div>
+    el("btnAddService").onclick = addService;
+    el("btnSubmitVisit").onclick = submitVisit;
+    el("btnRefreshActive").onclick = loadActiveVisits;
 
-</body>
+    el("car_type").onchange = loadModels;
+    el("car_model").onchange = updateCarSize;
+    el("service_type").onchange = loadServiceDetails;
+    el("service_detail").onchange = updateServicePrice;
+    el("discount").oninput = recalcTotal;
 
-</html>
+    el("modal_close").onclick = closeModal;
+});
