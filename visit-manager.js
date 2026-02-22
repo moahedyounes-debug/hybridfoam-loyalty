@@ -49,7 +49,7 @@ async function loadActiveVisits() {
 
     rows.forEach(r => {
       const row = r.data;
-      const visitRow = r.row; // رقم الصف الحقيقي في الشيت
+      const visitRow = r.row;
 
       const membership = row[0];
       const plate = row[1];
@@ -66,7 +66,7 @@ async function loadActiveVisits() {
           totalPrice: 0,
           checkIn,
           parking,
-          row: visitRow // نحتفظ برقم الصف الحقيقي
+          row: visitRow
         };
       }
 
@@ -110,6 +110,20 @@ async function loadActiveVisits() {
     showToast("خطأ في تحميل الزيارات", "error");
   }
 }
+
+/* ===========================
+   Event Delegation
+=========================== */
+
+document.addEventListener("click", function (e) {
+  if (e.target.matches(".dropdown-content a")) {
+    e.preventDefault();
+    const method = e.target.getAttribute("data-method");
+    selectedVisitRow = e.target.getAttribute("data-row");
+    openPaymentModal(method);
+  }
+});
+
 /* ===========================
    مودال الدفع
 =========================== */
@@ -140,37 +154,40 @@ function closeModal() {
 }
 
 /* ===========================
-   إرسال الدفع (نهائي)
+   إرسال الدفع
 =========================== */
 
 async function submitPayment(method) {
   const cash = Number(el("modal_cash").value || 0);
   const card = Number(el("modal_card").value || 0);
 
-  // 1) جمع كل الصفوف الخاصة بالزيارة
-  const visitRows = activeVisits.filter(v => v.row === selectedVisitRow);
+  const confirmBtn = el("modal_confirm");
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = "جاري التحديث...";
 
-  if (!visitRows.length) {
-    showToast("تعذر العثور على بيانات الزيارة", "error");
-    return;
-  }
-
-  // 2) حساب إجمالي الزيارة الحقيقي (مجموع الأسعار لكل الخدمات)
-  const totalRequired = visitRows.reduce((sum, v) => {
-    return sum + Number(v.data[7] || 0);
-  }, 0);
-
-  // 3) مجموع الدفع
-  const totalPaid = cash + card;
-
-  // 4) التحقق
-  if (totalPaid !== totalRequired) {
-    showToast(`المبلغ المدفوع يجب أن يكون ${totalRequired} ريال`, "error");
-    return;
-  }
-
-  // 5) إرسال الدفع
   try {
+    const visitRows = activeVisits.filter(v => v.row == selectedVisitRow);
+
+    if (!visitRows.length) {
+      showToast("تعذر العثور على بيانات الزيارة", "error");
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "تأكيد";
+      return;
+    }
+
+    const totalRequired = visitRows.reduce((sum, v) => {
+      return sum + Number(v.data[7] || 0);
+    }, 0);
+
+    const totalPaid = cash + card;
+
+    if (totalPaid !== totalRequired) {
+      showToast(`المبلغ المدفوع يجب أن يكون ${totalRequired} ريال`, "error");
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "تأكيد";
+      return;
+    }
+
     await apiCloseVisit(selectedVisitRow, {
       payment_status: "مدفوع",
       payment_method: method,
@@ -187,6 +204,9 @@ async function submitPayment(method) {
     console.error(err);
     showToast("خطأ في تحديث الدفع", "error");
   }
+
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = "تأكيد";
 }
 
 /* ===========================
@@ -289,7 +309,7 @@ async function loadServices() {
       const row = servicesData.find(s => s.service === name);
 
       el("price").value = row ? row.price : 0;
-      el("points").value = row ? row.commission : 0; // العمولة من الشيت
+      el("points").value = row ? row.commission : 0;
     });
 
   } catch (err) {
@@ -542,7 +562,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   el("modal_close").addEventListener("click", closeModal);
 
-  // إظهار/إخفاء طريقة الدفع + الجزئي
   el("payment_status").addEventListener("change", () => {
     const val = el("payment_status").value;
     if (val === "مدفوع") {
