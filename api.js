@@ -1,9 +1,17 @@
-// api.js – موحد لكل المشروع
+/* ===========================
+   API URL
+=========================== */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxxokzZV8CMZ3waUTbHXc0OZ7oj5pivpX6y0xyNdVM5P_kRdQq8-JWF_dK9LZxsMiPo/exec";
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbxxokzZV8CMZ3waUTbHXc0OZ7oj5pivpX6y0xyNdVM5P_kRdQq8-JWF_dK9LZxsMiPo/exec";
+
+/* ===========================
+   POST Wrapper
+=========================== */
 
 async function apiPost(params) {
   const form = new URLSearchParams();
+
   Object.keys(params).forEach(k => {
     if (params[k] !== undefined && params[k] !== null) {
       form.append(k, params[k]);
@@ -11,79 +19,83 @@ async function apiPost(params) {
   });
 
   const res = await fetch(API_URL, {
-    method: 'POST',
+    method: "POST",
     body: form
   });
 
   return res.json();
 }
 
+/* ===========================
+   Universal Get
+=========================== */
+
 async function apiGetAll(sheet) {
-  return apiPost({ action: 'getAll', sheet });
+  return apiPost({ action: "getAll", sheet });
 }
 
-/* ============================
+/* ===========================
    Supervisors Login
-============================ */
+=========================== */
 
 async function apiLoginSupervisor(username, password) {
   return apiPost({
-    action: 'loginSupervisor',
+    action: "loginSupervisor",
     username,
     password
   });
 }
 
-/* ============================
+/* ===========================
    Customers
-============================ */
+=========================== */
 
 async function apiGetCustomerByPhone(phone) {
   return apiPost({
-    action: 'getCustomerByPhone',
+    action: "getCustomerByPhone",
     phone
   });
 }
 
 async function apiGetCustomerByMembership(membership) {
   return apiPost({
-    action: 'getCustomerByMembership',
+    action: "getCustomerByMembership",
     membership
   });
 }
 
-/* ============================
+/* ===========================
    Cars
-============================ */
+=========================== */
 
 async function apiGetCarsByPhone(phone) {
   return apiPost({
-    action: 'getCarsByPhone',
+    action: "getCarsByPhone",
     phone
   });
 }
 
 async function apiGetCarByMembership(membership) {
   return apiPost({
-    action: 'getCarByMembership',
+    action: "getCarByMembership",
     membership
   });
 }
 
 async function apiAddCar(data) {
   return apiPost({
-    action: 'addCar',
+    action: "addCar",
     ...data
   });
 }
 
-/* ============================
+/* ===========================
    Visits
-============================ */
+=========================== */
 
 async function apiAddVisit(data) {
   return apiPost({
-    action: 'addVisit',
+    action: "addVisit",
     ...data
   });
 }
@@ -98,55 +110,55 @@ async function apiCloseVisit(row, data) {
 
 async function apiGetVisitsByMembership(membership) {
   return apiPost({
-    action: 'getVisitsByMembership',
+    action: "getVisitsByMembership",
     membership
   });
 }
 
 async function apiGetActiveVisits() {
   return apiPost({
-    action: 'getActiveVisits'
+    action: "getActiveVisits"
   });
 }
 
-/* ============================
+/* ===========================
    Bookings
-============================ */
+=========================== */
 
 async function apiGetBookingsByPhone(phone) {
   return apiPost({
-    action: 'getBookingsByPhone',
+    action: "getBookingsByPhone",
     phone
   });
 }
 
 async function apiGetBookingsByDate(date) {
   return apiPost({
-    action: 'getBookingsByDate',
+    action: "getBookingsByDate",
     date
   });
 }
 
 async function apiAddBooking(data) {
   return apiPost({
-    action: 'addBooking',
+    action: "addBooking",
     ...data
   });
 }
 
-/* ============================
+/* ===========================
    Services / Commissions
-============================ */
+=========================== */
 
 async function apiGetServices() {
   return apiPost({
-    action: 'getServices'
+    action: "getServices"
   });
 }
 
 async function apiGetServicesByCategory(category) {
   return apiPost({
-    action: 'getServicesByCategory',
+    action: "getServicesByCategory",
     category
   });
 }
@@ -157,9 +169,9 @@ async function apiGetCarTypes() {
   });
 }
 
-/* ============================
+/* ===========================
    Employees
-============================ */
+=========================== */
 
 async function apiGetEmployees() {
   return apiPost({
@@ -167,9 +179,9 @@ async function apiGetEmployees() {
   });
 }
 
-/* ============================
+/* ===========================
    Branches
-============================ */
+=========================== */
 
 async function apiGetBranches() {
   return apiPost({
@@ -177,9 +189,9 @@ async function apiGetBranches() {
   });
 }
 
-/* ============================
+/* ===========================
    Payroll
-============================ */
+=========================== */
 
 async function apiCalculatePayrollByEmployee(employee, from, to) {
   return apiPost({
@@ -197,9 +209,9 @@ async function apiAddPayroll(data) {
   });
 }
 
-/* ============================
+/* ===========================
    Notifications
-============================ */
+=========================== */
 
 async function apiAddNotification(data) {
   return apiPost({
@@ -222,9 +234,9 @@ async function apiMarkNotificationRead(row) {
   });
 }
 
-/* ============================
-   Levels (NEW)
-============================ */
+/* ===========================
+   Levels
+=========================== */
 
 async function apiGetLevels() {
   return apiPost({
@@ -232,9 +244,9 @@ async function apiGetLevels() {
   });
 }
 
-/* ============================
+/* ===========================
    Universal Row Operations
-============================ */
+=========================== */
 
 async function apiUpdateRow(sheet, row, values) {
   return apiPost({
