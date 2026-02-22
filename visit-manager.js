@@ -139,14 +139,19 @@ function openPaymentModal(method) {
   const totalRequired = visitRows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
   el("modal_total").textContent = totalRequired + " ريال";
 
+  // 🔥 أول شيء: نخفي الخانتين دائمًا
+  el("cash_box").style.display = "none";
+  el("card_box").style.display = "none";
+
+  // 🔥 ثاني شيء: نُظهر المناسب فقط
   if (method === "كاش") {
     el("cash_box").style.display = "block";
-    el("card_box").style.display = "none";
-  } else if (method === "شبكة") {
-    el("cash_box").style.display = "none";
+  } 
+  else if (method === "شبكة") {
     el("card_box").style.display = "block";
-  } else {
-    // جزئي = كاش + شبكة (كامل المبلغ لكن موزع)
+  } 
+  else {
+    // جزئي = كاش + شبكة
     el("cash_box").style.display = "block";
     el("card_box").style.display = "block";
   }
