@@ -4,12 +4,8 @@
 
 const el = id => document.getElementById(id);
 
-let selectedServices = [];
-let carTypesData = [];
-let servicesData = [];
 let activeVisits = [];
 let selectedVisitRow = null;
-let currentMembership = "";
 
 /* ===========================
    Toast
@@ -51,7 +47,6 @@ async function loadActiveVisits() {
       const row = r.data;
       const visitRow = r.row;
 
-      const membership = row[0];
       const plate = row[1];
       const serviceName = row[6];
       const price = Number(row[7] || 0);
@@ -61,7 +56,6 @@ async function loadActiveVisits() {
       if (!cars[plate]) {
         cars[plate] = {
           plate,
-          membership,
           services: [],
           totalPrice: 0,
           checkIn,
@@ -83,10 +77,9 @@ async function loadActiveVisits() {
         .join("");
 
       card.innerHTML = `
-        <h4>لوحة: ${car.plate || "-"}</h4>
-        <p><b>رقم العضوية:</b> ${car.membership || "-"}</p>
-        <p><b>الدخول:</b> ${car.checkIn || "-"}</p>
-        <p><b>رقم الموقف:</b> ${car.parking || "-"}</p>
+        <h4>لوحة: ${car.plate}</h4>
+        <p><b>الدخول:</b> ${car.checkIn}</p>
+        <p><b>رقم الموقف:</b> ${car.parking}</p>
 
         <p><b>الخدمات:</b></p>
         <ul>${servicesHTML}</ul>
@@ -139,11 +132,11 @@ function openPaymentModal(method) {
   const totalRequired = visitRows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
   el("modal_total").textContent = totalRequired + " ريال";
 
-  // 🔥 أول شيء: نخفي الخانتين دائمًا
+  // 🔥 إخفاء كل الصناديق أولاً
   el("cash_box").style.display = "none";
   el("card_box").style.display = "none";
 
-  // 🔥 ثاني شيء: نُظهر المناسب فقط
+  // 🔥 إظهار المناسب فقط
   if (method === "كاش") {
     el("cash_box").style.display = "block";
   } 
@@ -155,70 +148,23 @@ function openPaymentModal(method) {
     el("card_box").style.display = "block";
   }
 
-  // 🔥 مهم جدًا: لازم يكون داخل دالة
+  // زر التأكيد
   el("modal_confirm").onclick = () => submitPayment(method);
 }
 
+function closeModal() {
+  el("modal").style.display = "none";
+  el("cash_box").style.display = "none";
+  el("card_box").style.display = "none";
+}
 /* ===========================
-   إرسال الدفع
+   بيانات تسجيل الزيارة
 =========================== */
 
-async function submitPayment(method) {
-  const cash = Number(el("modal_cash").value || 0);
-  const card = Number(el("modal_card").value || 0);
-
-  const confirmBtn = el("modal_confirm");
-  confirmBtn.disabled = true;
-  confirmBtn.textContent = "جاري التحديث...";
-
-  try {
-    const visitRows = activeVisits.filter(v => v.row == selectedVisitRow);
-
-    if (!visitRows.length) {
-      showToast("تعذر العثور على بيانات الزيارة", "error");
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = "تأكيد";
-      return;
-    }
-
-    const totalRequired = visitRows.reduce((sum, v) => {
-      return sum + Number(v.data[7] || 0);
-    }, 0);
-
-    const totalPaid = cash + card;
-
-    if (totalPaid !== totalRequired) {
-      showToast(`المبلغ المدفوع يجب أن يكون ${totalRequired} ريال`, "error");
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = "تأكيد";
-      return;
-    }
-
-    const paymentMethodLabel =
-      method === "جزئي" ? "كاش + شبكة" : method;
-
-    for (const v of visitRows) {
-      await apiCloseVisit(v.row, {
-        payment_status: "مدفوع",
-        payment_method: paymentMethodLabel,
-        CASH_AMOUNT: cash,
-        CARD_AMOUNT: card,
-        TOTAL_PAID: totalPaid
-      });
-    }
-
-    showToast("تم تحديث الدفع", "success");
-    closeModal();
-    loadActiveVisits();
-
-  } catch (err) {
-    console.error(err);
-    showToast("خطأ في تحديث الدفع", "error");
-  }
-
-  confirmBtn.disabled = false;
-  confirmBtn.textContent = "تأكيد";
-}
+let selectedServices = [];
+let carTypesData = [];
+let servicesData = [];
+let currentMembership = "";
 
 /* ===========================
    تحميل أنواع السيارات
@@ -442,23 +388,17 @@ async function submitVisit() {
 
   if (!plate_numbers) {
     showToast("أدخل أرقام اللوحة", "error");
-    btn.classList.remove("btn-loading");
-    btn.textContent = "تسجيل الزيارة";
-    btn.disabled = false;
+    resetSubmitButton(btn);
     return;
   }
   if (!employee_in) {
     showToast("اختر الموظف", "error");
-    btn.classList.remove("btn-loading");
-    btn.textContent = "تسجيل الزيارة";
-    btn.disabled = false;
+    resetSubmitButton(btn);
     return;
   }
   if (!selectedServices.length) {
     showToast("أضف خدمة واحدة على الأقل", "error");
-    btn.classList.remove("btn-loading");
-    btn.textContent = "تسجيل الزيارة";
-    btn.disabled = false;
+    resetSubmitButton(btn);
     return;
   }
 
@@ -475,9 +415,7 @@ async function submitVisit() {
       card_amount = Number(el("card_amount").value || 0);
       if (cash_amount + card_amount !== finalTotal) {
         showToast(`المبلغ المدفوع يجب أن يكون ${finalTotal} ريال`, "error");
-        btn.classList.remove("btn-loading");
-        btn.textContent = "تسجيل الزيارة";
-        btn.disabled = false;
+        resetSubmitButton(btn);
         return;
       }
     } else if (payment_method === "كاش") {
@@ -525,10 +463,74 @@ async function submitVisit() {
     console.error(err);
     showToast("خطأ في تسجيل الزيارة", "error");
   } finally {
-    btn.classList.remove("btn-loading");
-    btn.textContent = "تسجيل الزيارة";
-    btn.disabled = false;
+    resetSubmitButton(btn);
   }
+}
+
+function resetSubmitButton(btn) {
+  btn.classList.remove("btn-loading");
+  btn.textContent = "تسجيل الزيارة";
+  btn.disabled = false;
+}
+/* ===========================
+   إرسال الدفع (إغلاق الزيارة)
+=========================== */
+
+async function submitPayment(method) {
+  const cash = Number(el("modal_cash").value || 0);
+  const card = Number(el("modal_card").value || 0);
+
+  const confirmBtn = el("modal_confirm");
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = "جاري التحديث...";
+
+  try {
+    const visitRows = activeVisits.filter(v => v.row == selectedVisitRow);
+
+    if (!visitRows.length) {
+      showToast("تعذر العثور على بيانات الزيارة", "error");
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "تأكيد";
+      return;
+    }
+
+    const totalRequired = visitRows.reduce((sum, v) => {
+      return sum + Number(v.data[7] || 0);
+    }, 0);
+
+    const totalPaid = cash + card;
+
+    if (totalPaid !== totalRequired) {
+      showToast(`المبلغ المدفوع يجب أن يكون ${totalRequired} ريال`, "error");
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "تأكيد";
+      return;
+    }
+
+    const paymentMethodLabel =
+      method === "جزئي" ? "كاش + شبكة" : method;
+
+    for (const v of visitRows) {
+      await apiCloseVisit(v.row, {
+        payment_status: "مدفوع",
+        payment_method: paymentMethodLabel,
+        CASH_AMOUNT: cash,
+        CARD_AMOUNT: card,
+        TOTAL_PAID: totalPaid
+      });
+    }
+
+    showToast("تم تحديث الدفع", "success");
+    closeModal();
+    loadActiveVisits();
+
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحديث الدفع", "error");
+  }
+
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = "تأكيد";
 }
 
 /* ===========================
@@ -563,18 +565,28 @@ function resetForm() {
 =========================== */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // تحميل البيانات
   loadActiveVisits();
   loadCarTypes();
   loadServices();
   loadEmployees();
 
+  // تحديث الزيارات
   el("btnRefreshActive").addEventListener("click", loadActiveVisits);
+
+  // إضافة خدمة
   el("btnAddService").addEventListener("click", addServiceToList);
+
+  // تحديث الإجمالي عند تغيير الخصم
   el("discount").addEventListener("input", recalcTotal);
+
+  // تسجيل الزيارة
   el("btnSubmitVisit").addEventListener("click", submitVisit);
 
+  // إغلاق المودال
   el("modal_close").addEventListener("click", closeModal);
 
+  // التحكم في ظهور طريقة الدفع
   el("payment_status").addEventListener("change", () => {
     const val = el("payment_status").value;
     if (val === "مدفوع") {
@@ -585,6 +597,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // التحكم في ظهور حقول الدفع الجزئي
   el("payment_method").addEventListener("change", () => {
     const val = el("payment_method").value;
     if (val === "جزئي") {
