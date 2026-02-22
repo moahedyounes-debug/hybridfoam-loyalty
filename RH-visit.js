@@ -5,27 +5,29 @@
 const el = id => document.getElementById(id);
 
 let activeVisits = [];
-let employeesData = [];
-let servicesData = [];
-let carTypesData = [];
 let selectedPlate = null;
+let selectedServices = [];
+let carTypesData = [];
+let servicesData = [];
+let employeesData = [];
+let currentMembership = "";
 
 /* ===========================
    Toast
 =========================== */
 
 function showToast(msg, type = "info") {
-    const box = el("toast-container");
+    const container = el("toast-container");
     const div = document.createElement("div");
     div.className = "toast " + type;
     div.textContent = msg;
-    box.appendChild(div);
+    container.appendChild(div);
     setTimeout(() => div.classList.add("show"), 10);
     setTimeout(() => div.remove(), 3000);
 }
 
 /* ===========================
-   تحميل الزيارات داخل المغسلة (غير مدفوع)
+   تحميل الزيارات داخل المغسلة
 =========================== */
 
 async function loadActiveVisits() {
@@ -40,69 +42,64 @@ async function loadActiveVisits() {
         list.innerHTML = "";
 
         if (!rows.length) {
-            list.innerHTML = "<p>لا توجد سيارات داخل المغسلة</p>";
+            list.innerHTML = "<p>لا توجد زيارات حالياً.</p>";
             return;
         }
 
         const cars = {};
 
-        rows.forEach(v => {
-            const d = v.data;
-
-            const plate = d[1];
-            const brand = d[3]; // car_type
-            const service = d[6];
-            const price = Number(d[7] || 0);
-            const employee = d[9] || "غير محدد";
-            const checkin = d[13];
-            const status = d[15]; // payment_status
-            const parking = d[17];
-
-            if (status === "مدفوع") return;
+        rows.forEach(r => {
+            const row = r.data;
+            const plate = row[1];
+            const serviceName = row[6];
+            const price = Number(row[7] || 0);
+            const checkIn = row[13];
+            const parking = row[17];
+            const employee = row[9] || "غير محدد";
 
             if (!cars[plate]) {
                 cars[plate] = {
                     plate,
-                    brand,
                     services: [],
-                    total: 0,
-                    employee,
-                    checkin,
-                    parking
+                    totalPrice: 0,
+                    checkIn,
+                    parking,
+                    employee
                 };
             }
 
-            cars[plate].services.push({ service, price });
-            cars[plate].total += price;
+            cars[plate].services.push({ name: serviceName, price });
+            cars[plate].totalPrice += price;
         });
 
         Object.values(cars).forEach(car => {
+            const servicesHTML = car.services
+                .map(s => `<li>${s.name} — ${s.price} ريال</li>`)
+                .join("");
+
             const card = document.createElement("div");
             card.className = "car-card";
 
-            const servicesHTML = car.services
-                .map(s => `<li>${s.service} — ${s.price} ريال</li>`)
-                .join("");
-
             card.innerHTML = `
-                <h4>🚗 ${car.brand} | ${car.plate}</h4>
-                <p><b>الدخول:</b> ${car.checkin}</p>
+                <h4>لوحة: ${car.plate}</h4>
+
+                <p><b>الدخول:</b> ${car.checkIn}</p>
+                <p><b>رقم الموقف:</b> ${car.parking}</p>
                 <p><b>الموظف:</b> ${car.employee}</p>
-                <p><b>الموقف:</b> ${car.parking}</p>
-
-                <p><b>الخدمات:</b></p>
-                <ul>${servicesHTML}</ul>
-
-                <p><b>الإجمالي:</b> ${car.total} ريال</p>
 
                 <button class="btn-edit" data-plate="${car.plate}">تعديل الخدمات</button>
                 <button class="btn-emp" data-plate="${car.plate}">تغيير الموظف</button>
 
+                <p><b>الخدمات:</b></p>
+                <ul>${servicesHTML}</ul>
+
+                <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
+
                 <div class="dropdown">
                     <button class="btn-pay">تحديث الدفع ▼</button>
                     <div class="dropdown-content">
-                        <a href="#" data-method="كاش" data-plate="${car.plate}">دفع كاش (${car.total} ريال)</a>
-                        <a href="#" data-method="شبكة" data-plate="${car.plate}">دفع شبكة (${car.total} ريال)</a>
+                        <a href="#" data-method="كاش" data-plate="${car.plate}">دفع كاش (${car.totalPrice} ريال)</a>
+                        <a href="#" data-method="شبكة" data-plate="${car.plate}">دفع شبكة (${car.totalPrice} ريال)</a>
                         <a href="#" data-method="جزئي" data-plate="${car.plate}">دفع جزئي</a>
                     </div>
                 </div>
@@ -117,50 +114,6 @@ async function loadActiveVisits() {
         console.error(err);
         showToast("خطأ في تحميل الزيارات", "error");
     }
-}
-
-/* ===========================
-   ملخص الموظفين (جدول)
-=========================== */
-
-function loadEmployeeSummary(rows) {
-    const box = el("employeeSummary");
-    if (!box) return;
-
-    const perEmployee = {};
-
-    rows.forEach(v => {
-        const d = v.data;
-        const status = d[15];
-        if (status === "مدفوع") return;
-
-        const emp = d[9] || "غير محدد";
-        const price = Number(d[7] || 0);
-
-        if (!perEmployee[emp]) {
-            perEmployee[emp] = { count: 0, total: 0 };
-        }
-
-        perEmployee[emp].count++;
-        perEmployee[emp].total += price;
-    });
-
-    box.innerHTML = `
-        <table class="summary-table">
-            <tr>
-                <th>الموظف</th>
-                <th>عدد الخدمات</th>
-                <th>إجمالي المبلغ</th>
-            </tr>
-            ${Object.keys(perEmployee).map(emp => `
-                <tr>
-                    <td>${emp}</td>
-                    <td>${perEmployee[emp].count}</td>
-                    <td>${perEmployee[emp].total} ريال</td>
-                </tr>
-            `).join("")}
-        </table>
-    `;
 }
 /* ===========================
    Event Delegation
@@ -190,38 +143,31 @@ document.addEventListener("click", function (e) {
 });
 
 /* ===========================
-   فتح مودال الدفع
+   مودال الدفع
 =========================== */
 
 function openPaymentModal(method) {
-    // افتح المودال
-    el("modal").style.display = "flex";
+    el("modal").style.display = "block";
     el("modal_method").textContent = method;
 
-    // تفريغ الحقول
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
-    // فلترة الزيارات حسب اللوحة (نفس طريقة الدفع)
     const visitRows = activeVisits.filter(v => {
         const plateCell = String(v.data[1] || "");
         return plateCell.startsWith(String(selectedPlate));
     });
 
-    // حساب الإجمالي
     const totalRequired = visitRows.reduce(
         (sum, v) => sum + Number(v.data[7] || 0),
         0
     );
 
-    // عرض الإجمالي
     el("modal_total").textContent = totalRequired + " ريال";
 
-    // إخفاء الحقول
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
 
-    // تعبئة المبلغ تلقائيًا
     if (method === "كاش") {
         el("cash_box").style.display = "block";
         el("modal_cash").value = totalRequired;
@@ -237,25 +183,11 @@ function openPaymentModal(method) {
         el("card_box").style.display = "block";
     }
 
-    // زر التأكيد
     el("modal_confirm").onclick = () => submitPayment(method);
 }
 
 /* ===========================
-   إغلاق مودال الدفع
-=========================== */
-
-function closeModal() {
-    el("modal").style.display = "none";
-    el("modal_cash").value = "";
-    el("modal_card").value = "";
-}
-
-el("modal_close").addEventListener("click", closeModal);
-el("modal_cancel").addEventListener("click", closeModal);
-
-/* ===========================
-   تنفيذ الدفع
+   تحديث الدفع
 =========================== */
 
 async function submitPayment(method) {
@@ -267,7 +199,10 @@ async function submitPayment(method) {
     confirmBtn.textContent = "جاري التحديث...";
 
     try {
-        const visitRows = activeVisits.filter(v => v.data[1] === selectedPlate);
+        const visitRows = activeVisits.filter(v => {
+            const plateCell = String(v.data[1] || "");
+            return plateCell.startsWith(String(selectedPlate));
+        });
 
         const totalRequired = visitRows.reduce(
             (sum, v) => sum + Number(v.data[7] || 0),
@@ -314,6 +249,7 @@ async function submitPayment(method) {
     confirmBtn.disabled = false;
     confirmBtn.textContent = "تأكيد";
 }
+
 /* ===========================
    تعديل الخدمات
 =========================== */
@@ -333,39 +269,33 @@ function openServiceEditor(plate) {
 
     visitRows.forEach((v, i) => {
         html += `
-            <div class="service-edit-item" style="margin-bottom:10px;">
+            <div class="service-edit-item">
                 <label>الخدمة ${i + 1}</label>
-                <input type="text" id="edit_name_${i}" value="${v.data[6]}" class="modal-input">
-                <input type="number" id="edit_price_${i}" value="${v.data[7]}" class="modal-input">
+                <input type="text" value="${v.data[6]}" id="edit_name_${i}">
+                <input type="number" value="${v.data[7]}" id="edit_price_${i}">
             </div>
         `;
     });
 
-    html += `<button id="saveServices" class="btn-primary full">حفظ التعديلات</button>`;
+    html += `<button id="saveServices">حفظ التعديلات</button>`;
 
     el("modal_edit").innerHTML = html;
-    el("modal_edit_container").style.display = "flex";
+    el("modal_edit_container").style.display = "block";
 
     el("saveServices").onclick = async () => {
-        try {
-            for (let i = 0; i < visitRows.length; i++) {
-                const newName = el(`edit_name_${i}`).value;
-                const newPrice = Number(el(`edit_price_${i}`).value);
+        for (let i = 0; i < visitRows.length; i++) {
+            const newName = el(`edit_name_${i}`).value;
+            const newPrice = Number(el(`edit_price_${i}`).value);
 
-                await apiUpdateRow("Visits", visitRows[i].row, {
-                    service_detail: newName,
-                    price: newPrice
-                });
-            }
-
-            showToast("تم تعديل الخدمات", "success");
-            closeEditModal();
-            loadActiveVisits();
-
-        } catch (err) {
-            console.error(err);
-            showToast("خطأ أثناء تعديل الخدمات", "error");
+            await apiUpdateRow("Visits", visitRows[i].row, {
+                service_detail: newName,
+                price: newPrice
+            });
         }
+
+        showToast("تم تعديل الخدمات", "success");
+        el("modal_edit_container").style.display = "none";
+        loadActiveVisits();
     };
 }
 
@@ -386,50 +316,360 @@ function openEmployeeEditor(plate) {
 
     let html = `
         <h3>تغيير الموظف</h3>
-        <label>اختر الموظف الجديد</label>
-        <select id="newEmp" class="modal-input">
+        <select id="newEmp">
             ${employeesData.map(e => `<option value="${e[0]}">${e[0]}</option>`).join("")}
         </select>
-
-        <button id="saveEmp" class="btn-primary full" style="margin-top:15px;">حفظ</button>
+        <button id="saveEmp">حفظ</button>
     `;
 
     el("modal_edit").innerHTML = html;
-    el("modal_edit_container").style.display = "flex";
+    el("modal_edit_container").style.display = "block";
 
     el("saveEmp").onclick = async () => {
         const newEmp = el("newEmp").value;
 
-        try {
-            for (const v of visitRows) {
-                await apiUpdateRow("Visits", v.row, {
-                    employee_in: newEmp
-                });
-            }
-
-            showToast("تم تغيير الموظف", "success");
-            closeEditModal();
-            loadActiveVisits();
-
-        } catch (err) {
-            console.error(err);
-            showToast("خطأ أثناء تغيير الموظف", "error");
+        for (const v of visitRows) {
+            await apiUpdateRow("Visits", v.row, {
+                employee_in: newEmp
+            });
         }
+
+        showToast("تم تغيير الموظف", "success");
+        el("modal_edit_container").style.display = "none";
+        loadActiveVisits();
     };
 }
-
 /* ===========================
-   إغلاق مودال التعديل
+   تحميل أنواع السيارات
 =========================== */
 
-function closeEditModal() {
-    el("modal_edit_container").style.display = "none";
-    el("modal_edit").innerHTML = "";
+async function loadCarTypes() {
+    try {
+        const res = await apiGetCarTypes();
+        carTypesData = res.rows || [];
+
+        const brandSelect = el("car_type");
+        const modelSelect = el("car_model");
+        const sizeInput = el("car_size");
+
+        brandSelect.innerHTML = '<option value="">— اختر البراند —</option>';
+        modelSelect.innerHTML = '<option value="">— اختر الموديل —</option>';
+        sizeInput.value = "";
+
+        const brands = [...new Set(carTypesData.map(r => r[0]))];
+
+        brands.forEach(b => {
+            const opt = document.createElement("option");
+            opt.value = b;
+            opt.textContent = b;
+            brandSelect.appendChild(opt);
+        });
+
+        brandSelect.addEventListener("change", () => {
+            const brand = brandSelect.value;
+            modelSelect.innerHTML = '<option value="">— اختر الموديل —</option>';
+            sizeInput.value = "";
+
+            if (!brand) return;
+
+            const models = carTypesData.filter(r => r[0] === brand);
+            const uniqueModels = [...new Set(models.map(r => r[1]))];
+
+            uniqueModels.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m;
+                opt.textContent = m;
+                modelSelect.appendChild(opt);
+            });
+        });
+
+        modelSelect.addEventListener("change", () => {
+            const brand = brandSelect.value;
+            const model = modelSelect.value;
+
+            const row = carTypesData.find(r => r[0] === brand && r[1] === model);
+            sizeInput.value = row ? row[2] : "";
+        });
+
+    } catch (err) {
+        console.error(err);
+        showToast("خطأ في تحميل أنواع السيارات", "error");
+    }
 }
 
-el("modal_edit_close").addEventListener("click", closeEditModal);
 /* ===========================
-   تحميل الزيارات المكتملة (مدفوع)
+   تحميل الخدمات
+=========================== */
+
+async function loadServices() {
+    try {
+        const res = await apiGetServices();
+        servicesData = res.services || [];
+
+        const typeSelect = el("service_type");
+        const detailSelect = el("service_detail");
+
+        typeSelect.innerHTML = '<option value="">— اختر نوع الخدمة —</option>';
+        detailSelect.innerHTML = '<option value="">— اختر الخدمة —</option>';
+
+        const categories = [...new Set(servicesData.map(s => s.Category || s.category))];
+
+        categories.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c;
+            opt.textContent = c;
+            typeSelect.appendChild(opt);
+        });
+
+        typeSelect.addEventListener("change", () => {
+            const cat = typeSelect.value;
+            detailSelect.innerHTML = '<option value="">— اختر الخدمة —</option>';
+
+            const filtered = servicesData.filter(s => (s.Category || s.category) === cat);
+
+            filtered.forEach(s => {
+                const opt = document.createElement("option");
+                opt.value = s.service;
+                opt.textContent = s.service;
+                detailSelect.appendChild(opt);
+            });
+        });
+
+        detailSelect.addEventListener("change", () => {
+            const name = detailSelect.value;
+            const row = servicesData.find(s => s.service === name);
+
+            el("price").value = row ? row.price : 0;
+            el("points").value = row ? row.commission : 0;
+        });
+
+    } catch (err) {
+        console.error(err);
+        showToast("خطأ في تحميل الخدمات", "error");
+    }
+}
+
+/* ===========================
+   تحميل الموظفين
+=========================== */
+
+async function loadEmployees() {
+    try {
+        const res = await apiGetEmployees();
+        employeesData = res.rows || [];
+
+        const sel = el("employee_in");
+        sel.innerHTML = '<option value="">— اختر الموظف —</option>';
+
+        employeesData.forEach(e => {
+            const opt = document.createElement("option");
+            opt.value = e[0];
+            opt.textContent = e[0];
+            sel.appendChild(opt);
+        });
+
+    } catch (err) {
+        console.error(err);
+        showToast("خطأ في تحميل الموظفين", "error");
+    }
+}
+
+/* ===========================
+   إضافة خدمة للزيارة
+=========================== */
+
+function addServiceToList() {
+    const detail = el("service_detail").value;
+    const price = Number(el("price").value || 0);
+    const points = Number(el("points").value || 0);
+    const category = el("service_type").value;
+
+    if (!detail) {
+        showToast("اختر خدمة", "error");
+        return;
+    }
+
+    // منع تكرار الغسيل
+    if (category === "غسيل") {
+        const already = selectedServices.some(s => s.category === "غسيل");
+        if (already) {
+            showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس الزيارة", "error");
+            return;
+        }
+    }
+
+    selectedServices.push({
+        name: detail,
+        price,
+        points,
+        commission: points,
+        category
+    });
+
+    renderServicesList();
+    recalcTotal();
+}
+
+/* ===========================
+   عرض قائمة الخدمات
+=========================== */
+
+function renderServicesList() {
+    const box = el("servicesList");
+    box.innerHTML = "";
+
+    if (!selectedServices.length) {
+        box.textContent = "لا توجد خدمات مضافة بعد.";
+        return;
+    }
+
+    selectedServices.forEach((s, i) => {
+        const div = document.createElement("div");
+        div.className = "service-item";
+
+        div.innerHTML = `
+            <span>${s.name} - ${s.price} ريال</span>
+            <button class="btn-remove" data-i="${i}">حذف</button>
+        `;
+
+        box.appendChild(div);
+    });
+
+    box.querySelectorAll(".btn-remove").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const i = Number(btn.getAttribute("data-i"));
+            selectedServices.splice(i, 1);
+            renderServicesList();
+            recalcTotal();
+        });
+    });
+}
+
+/* ===========================
+   حساب الإجمالي
+=========================== */
+
+function recalcTotal() {
+    const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
+    const discount = Number(el("discount").value || 0);
+    el("totalPrice").textContent = Math.max(0, total - discount);
+}
+
+/* ===========================
+   تسجيل الزيارة
+=========================== */
+
+async function submitVisit() {
+    const btn = el("btnSubmitVisit");
+    btn.classList.add("btn-loading");
+    btn.textContent = "جاري تسجيل الزيارة...";
+    btn.disabled = true;
+
+    const plate_numbers = el("plate_numbers").value.trim();
+    const plate_letters = el("plate_letters").value.trim();
+    const car_type = el("car_type").value;
+    const car_model = el("car_model").value;
+    const car_size = el("car_size").value;
+    const employee_in = el("employee_in").value;
+    const branch = el("branch").value;
+    const parking_slot = el("parking_slot").value;
+    const payment_status = el("payment_status").value.trim();
+    const payment_method = el("payment_method").value.trim();
+
+    if (!plate_numbers) {
+        showToast("أدخل أرقام اللوحة", "error");
+        resetSubmitButton(btn);
+        return;
+    }
+
+    if (!employee_in) {
+        showToast("اختر الموظف", "error");
+        resetSubmitButton(btn);
+        return;
+    }
+
+    if (!selectedServices.length) {
+        showToast("أضف خدمة واحدة على الأقل", "error");
+        resetSubmitButton(btn);
+        return;
+    }
+
+    const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
+    const discount = Number(el("discount").value || 0);
+    const finalTotal = Math.max(0, total - discount);
+
+    let cash_amount = 0;
+    let card_amount = 0;
+
+    if (payment_status === "مدفوع") {
+        if (payment_method === "جزئي") {
+            cash_amount = Number(el("cash_amount").value || 0);
+            card_amount = Number(el("card_amount").value || 0);
+
+            if (cash_amount + card_amount !== finalTotal) {
+                showToast(`المبلغ المدفوع يجب أن يكون ${finalTotal} ريال`, "error");
+                resetSubmitButton(btn);
+                return;
+            }
+
+        } else if (payment_method === "كاش") {
+            cash_amount = finalTotal;
+
+        } else if (payment_method === "شبكة") {
+            card_amount = finalTotal;
+        }
+    }
+
+    const payload = {
+        membership: currentMembership,
+        plate_numbers,
+        plate_letters,
+        car_type,
+        car_model,
+        car_size,
+        employee_in,
+        employee_out: "",
+        branch,
+        parking_slot,
+        payment_status,
+        payment_method,
+        cash_amount,
+        card_amount,
+        rating: "",
+        services: selectedServices.map(s => ({
+            name: s.name,
+            price: s.price,
+            points: s.points,
+            commission: s.commission
+        }))
+    };
+
+    try {
+        await apiAddVisit({
+            ...payload,
+            services: JSON.stringify(payload.services)
+        });
+
+        showToast("تم تسجيل الزيارة", "success");
+        resetForm();
+        setTimeout(loadActiveVisits, 20);
+
+    } catch (err) {
+        console.error(err);
+        showToast("خطأ في تسجيل الزيارة", "error");
+
+    } finally {
+        resetSubmitButton(btn);
+    }
+}
+
+function resetSubmitButton(btn) {
+    btn.classList.remove("btn-loading");
+    btn.textContent = "تسجيل الزيارة";
+    btn.disabled = false;
+}
+/* ===========================
+   الزيارات المكتملة (مدفوع فقط)
 =========================== */
 
 async function loadCompletedVisits() {
@@ -440,21 +680,24 @@ async function loadCompletedVisits() {
         const res = await apiGetActiveVisits();
         const rows = res.visits || [];
 
-        const paid = rows.filter(v => v.data[15] === "مدفوع");
+        // فلترة المدفوع فقط
+        const paid = rows.filter(v => {
+            const status = v.data[14] || v.data[15] || "";
+            return status === "مدفوع";
+        });
 
         if (!paid.length) {
             box.innerHTML = "<p>لا توجد زيارات مكتملة</p>";
-            el("paidSummary").innerHTML = "";
             return;
         }
 
         box.innerHTML = paid.map(v => `
             <div class="car-card">
-                <h4>✔ ${v.data[3]} | ${v.data[1]}</h4>
+                <h4>لوحة: ${v.data[1]}</h4>
                 <p><b>الخدمة:</b> ${v.data[6]}</p>
                 <p><b>السعر:</b> ${v.data[7]} ريال</p>
                 <p><b>الموظف:</b> ${v.data[9] || "غير محدد"}</p>
-                <p><b>طريقة الدفع:</b> ${v.data[16]}</p>
+                <p><b>طريقة الدفع:</b> ${v.data[14] || "—"}</p>
             </div>
         `).join("");
 
@@ -467,6 +710,40 @@ async function loadCompletedVisits() {
 }
 
 /* ===========================
+   ملخص الموظفين داخل المغسلة
+=========================== */
+
+function loadEmployeeSummary(rows) {
+    const box = el("employeeSummary");
+    if (!box) return;
+
+    const perEmployee = {};
+
+    rows.forEach(v => {
+        const emp = v.data[9] || "غير محدد";
+        const price = Number(v.data[7] || 0);
+
+        if (!perEmployee[emp]) {
+            perEmployee[emp] = { count: 0, total: 0 };
+        }
+
+        perEmployee[emp].count++;
+        perEmployee[emp].total += price;
+    });
+
+    box.innerHTML = `
+        <h3 class="section-title">📌 ملخص الموظفين داخل المغسلة</h3>
+        ${Object.keys(perEmployee).map(emp => `
+            <div class="summary-box">
+                <p><b>الموظف:</b> ${emp}</p>
+                <p><b>عدد الخدمات:</b> ${perEmployee[emp].count}</p>
+                <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].total} ريال</p>
+            </div>
+        `).join("")}
+    `;
+}
+
+/* ===========================
    ملخص المدفوع اليوم
 =========================== */
 
@@ -476,7 +753,6 @@ function loadPaidSummary(paidRows) {
 
     let totalCars = 0;
     let totalAmount = 0;
-
     const perEmployee = {};
 
     paidRows.forEach(v => {
@@ -495,74 +771,55 @@ function loadPaidSummary(paidRows) {
     });
 
     box.innerHTML = `
+        <h3 class="section-title">📌 ملخص المدفوع اليوم</h3>
+
         <div class="summary-box">
             <p><b>عدد السيارات:</b> ${totalCars}</p>
             <p><b>إجمالي المبلغ:</b> ${totalAmount} ريال</p>
         </div>
 
-        <table class="summary-table" style="margin-top:15px;">
-            <tr>
-                <th>الموظف</th>
-                <th>عدد السيارات</th>
-                <th>إجمالي المبلغ</th>
-            </tr>
-            ${Object.keys(perEmployee).map(emp => `
-                <tr>
-                    <td>${emp}</td>
-                    <td>${perEmployee[emp].cars}</td>
-                    <td>${perEmployee[emp].total} ريال</td>
-                </tr>
-            `).join("")}
-        </table>
+        <h4>تفاصيل الموظفين:</h4>
+        ${Object.keys(perEmployee).map(emp => `
+            <div class="summary-box">
+                <p><b>الموظف:</b> ${emp}</p>
+                <p><b>عدد السيارات:</b> ${perEmployee[emp].cars}</p>
+                <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].total} ريال</p>
+            </div>
+        `).join("")}
     `;
 }
 
 /* ===========================
-   INIT — تشغيل كل شيء
+   إغلاق مودال تعديل الخدمات / الموظف
 =========================== */
 
-document.addEventListener("DOMContentLoaded", async () => {
+function closeEditModal() {
+    el("modal_edit_container").style.display = "none";
+}
 
-    // تحميل البيانات الأساسية
-    try {
-        const empRes = await apiGetEmployees();
-        employeesData = empRes.rows || [];
+/* ===========================
+   INIT
+=========================== */
 
-        const carRes = await apiGetCarTypes();
-        carTypesData = carRes.rows || [];
+document.addEventListener("DOMContentLoaded", () => {
 
-        const servRes = await apiGetServices();
-        servicesData = servRes.services || [];
-
-    } catch (err) {
-        console.error(err);
-        showToast("خطأ في تحميل البيانات الأساسية", "error");
-    }
-
-    // تحميل الزيارات
     loadActiveVisits();
     loadCompletedVisits();
 
-    // تحديث القائمة
+    loadCarTypes();
+    loadServices();
+    loadEmployees();
+
     el("btnRefreshActive").addEventListener("click", loadActiveVisits);
+    el("btnRefreshCompleted").addEventListener("click", loadCompletedVisits);
 
-    // إضافة خدمة
     el("btnAddService").addEventListener("click", addServiceToList);
-
-    // الخصم
     el("discount").addEventListener("input", recalcTotal);
-
-    // تسجيل الزيارة
     el("btnSubmitVisit").addEventListener("click", submitVisit);
 
-    // إغلاق مودال الدفع
     el("modal_close").addEventListener("click", closeModal);
-    el("modal_cancel").addEventListener("click", closeModal);
-
-    // إغلاق مودال التعديل
     el("modal_edit_close").addEventListener("click", closeEditModal);
 
-    // الدفع — إظهار طريقة الدفع
     el("payment_status").addEventListener("change", () => {
         const val = el("payment_status").value;
 
@@ -574,7 +831,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // الدفع الجزئي
     el("payment_method").addEventListener("change", () => {
         const val = el("payment_method").value;
 
