@@ -48,7 +48,7 @@ function loadModels() {
         .map(m => `<option value="${m}">${m}</option>`)
         .join("");
 
-    el("car_size").value = ""; // لا يوجد حجم في API
+    el("car_size").value = ""; // API لا يرجع حجم
 }
 
 /* ============================================================
@@ -97,7 +97,6 @@ async function loadEmployees() {
         .map(e => `<option value="${e.name}">${e.name}</option>`)
         .join("");
 }
-
 /* ============================================================
    إضافة خدمة
 ============================================================ */
@@ -141,7 +140,7 @@ function recalcTotal() {
 }
 
 /* ============================================================
-   منطق الدفع في نموذج التسجيل
+   منطق الدفع داخل نموذج التسجيل
 ============================================================ */
 
 function handlePaymentStatusChange() {
@@ -180,7 +179,6 @@ function recalcPartialPaid() {
     const card = Number(el("card_amount").value || 0);
     el("paid_total").textContent = cash + card;
 }
-
 /* ============================================================
    تسجيل زيارة
 ============================================================ */
@@ -321,9 +319,30 @@ async function loadActiveVisits() {
     el("sumCars").textContent = Object.keys(cars).length;
     el("sumServices").textContent = activeVisits.length;
 
+    loadEmployeeSummary(perEmployee);
     loadTodayVisits();
 }
 
+/* ============================================================
+   ملخص الموظفين
+============================================================ */
+
+function loadEmployeeSummary(perEmployee) {
+    const box = document.getElementById("employeeSummary");
+
+    if (!box) return;
+
+    box.innerHTML = `
+        <h3 class="section-title">📌 ملخص الموظفين</h3>
+        ${Object.keys(perEmployee).map(emp => `
+            <div class="summary-box">
+                <p><b>الموظف:</b> ${emp}</p>
+                <p><b>عدد الخدمات:</b> ${perEmployee[emp].services}</p>
+                <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].amount} ريال</p>
+            </div>
+        `).join("")}
+    `;
+}
 /* ============================================================
    زيارات اليوم
 ============================================================ */
@@ -358,15 +377,6 @@ function loadTodayVisits() {
             <p><b>الموظف:</b> ${v.data[9] || "غير محدد"}</p>
         </div>
     `).join("");
-}
-
-/* ============================================================
-   الزيارات المكتملة (Placeholder)
-============================================================ */
-
-async function loadCompletedVisits() {
-    const box = el("completedList");
-    box.innerHTML = "<p>لا توجد زيارات مكتملة (لا يوجد API مخصص)</p>";
 }
 
 /* ============================================================
@@ -469,3 +479,71 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     el("modal_close").onclick = closeModal;
 });
+/* ============================================================
+   الزيارات المكتملة (مدفوع)
+============================================================ */
+
+async function loadCompletedVisits() {
+    const box = el("completedList");
+    box.innerHTML = "جارِ التحميل...";
+
+    // نجلب كل الزيارات (نفس API الزيارات داخل المغسلة)
+    const res = await apiGetActiveVisits();
+    const visits = res.visits || [];
+
+    // فلترة الزيارات المدفوعة فقط
+    const paid = visits.filter(v => {
+        const status = v.data[14] || v.data[15] || ""; 
+        return status === "مدفوع";
+    });
+
+    if (!paid.length) {
+        box.innerHTML = "<p>لا توجد زيارات مكتملة</p>";
+        return;
+    }
+
+    // عرض الزيارات المدفوعة
+    box.innerHTML = paid.map(v => `
+        <div class="card">
+            <p><b>السيارة:</b> ${v.data[1]}</p>
+            <p><b>الخدمة:</b> ${v.data[6]}</p>
+            <p><b>السعر:</b> ${v.data[7]} ريال</p>
+            <p><b>الموظف:</b> ${v.data[9] || "غير محدد"}</p>
+            <p><b>طريقة الدفع:</b> ${v.data[14] || "—"}</p>
+        </div>
+    `).join("");
+}
+/* ============================================================
+   دوال مساعدة إضافية (في حال الحاجة)
+============================================================ */
+
+function formatDateTime(raw) {
+    if (!raw) return "—";
+
+    const dt = new Date(raw);
+    if (isNaN(dt.getTime())) return raw;
+
+    return `${dt.getMonth() + 1}-${dt.getDate()}-${dt.getFullYear()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2, "0")}`;
+}
+
+function clearVisitForm() {
+    el("plate_numbers").value = "";
+    el("plate_letters").value = "";
+    el("discount").value = "";
+    el("parking_slot").value = "";
+    el("payment_status").value = "";
+    el("payment_method").value = "";
+    el("cash_amount").value = "";
+    el("card_amount").value = "";
+    el("paid_total").textContent = "0";
+    el("payment_method_wrapper").style.display = "none";
+    el("partial_payment_box").style.display = "none";
+
+    addedServices = [];
+    renderServices();
+    recalcTotal();
+}
+
+/* ============================================================
+   نهاية الملف
+============================================================ */
