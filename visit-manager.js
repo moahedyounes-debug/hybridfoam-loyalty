@@ -150,17 +150,13 @@ function openPaymentModal(method) {
   else if (method === "شبكة") {
     el("card_box").style.display = "block";
   } 
-  else {
-    // جزئي = كاش + شبكة
+  else if (method === "جزئي") {
     el("cash_box").style.display = "block";
     el("card_box").style.display = "block";
   }
 
+  // 🔥 مهم جدًا: لازم يكون داخل دالة
   el("modal_confirm").onclick = () => submitPayment(method);
-}
-
-function closeModal() {
-  el("modal").style.display = "none";
 }
 
 /* ===========================
