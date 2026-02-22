@@ -166,6 +166,7 @@ async function submitPayment(method) {
   confirmBtn.textContent = "جاري التحديث...";
 
   try {
+    // جميع الصفوف الخاصة بالزيارة
     const visitRows = activeVisits.filter(v => v.row == selectedVisitRow);
 
     if (!visitRows.length) {
@@ -175,6 +176,7 @@ async function submitPayment(method) {
       return;
     }
 
+    // حساب الإجمالي
     const totalRequired = visitRows.reduce((sum, v) => {
       return sum + Number(v.data[7] || 0);
     }, 0);
@@ -188,13 +190,16 @@ async function submitPayment(method) {
       return;
     }
 
-    await apiCloseVisit(selectedVisitRow, {
-      payment_status: "مدفوع",
-      payment_method: method,
-      CASH_AMOUNT: cash,
-      CARD_AMOUNT: card,
-      TOTAL_PAID: totalPaid
-    });
+    // إغلاق كل الصفوف الخاصة بالزيارة
+    for (const v of visitRows) {
+      await apiCloseVisit(v.row, {
+        payment_status: "مدفوع",
+        payment_method: method,
+        CASH_AMOUNT: cash,
+        CARD_AMOUNT: card,
+        TOTAL_PAID: totalPaid
+      });
+    }
 
     showToast("تم تحديث الدفع", "success");
     closeModal();
