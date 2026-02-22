@@ -13,26 +13,31 @@ async function loadTodaySummary() {
   const visitsRes = await apiGetAll("Visits");
   if (!visitsRes.success) return;
 
+  const rows = visitsRes.rows || [];
   const today = new Date().toISOString().slice(0, 10);
-  const todayVisits = visitsRes.rows.filter(v => String(v[8] || "").startsWith(today));
 
   let total = 0, cash = 0, network = 0;
   const serviceCount = {};
 
-  todayVisits.forEach(v => {
-    const price = Number(v[2] || 0);
-    const method = String(v[11] || "");
-    const service = String(v[1] || "غير محدد");
+  rows.forEach(v => {
+    const checkIn = String(v[13] || "");      // CHECK_IN
+    const status  = String(v[15] || "").trim(); // PAY_STATUS
+    if (!checkIn.startsWith(today)) return;
+    if (status !== "مدفوع") return;
 
-    total += price;
-    if (method === "كاش") cash += price;
-    if (method === "شبكة") network += price;
+    const service = String(v[6] || "غير محدد"); // SERVICE
+    const paid    = Number(v[22] || v[7] || 0);  // TOTAL_PAID أو PRICE
+    const method  = String(v[16] || "");         // PAY_METHOD
+
+    total += paid;
+    if (method === "كاش")   cash    += paid;
+    if (method === "شبكة") network += paid;
 
     serviceCount[service] = (serviceCount[service] || 0) + 1;
   });
 
-  document.getElementById("todayTotal").innerText = total + " ريال";
-  document.getElementById("todayCash").innerText = cash + " ريال";
+  document.getElementById("todayTotal").innerText   = total   + " ريال";
+  document.getElementById("todayCash").innerText    = cash    + " ريال";
   document.getElementById("todayNetwork").innerText = network + " ريال";
 
   const servicesBox = document.getElementById("todayServices");
@@ -60,20 +65,20 @@ async function loadCustomers() {
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">جاري التحميل...</td></tr>';
 
   const customersRes = await apiGetAll("Customers");
-  const carsRes = await apiGetAll("Cars");
-  const visitsRes = await apiGetAll("Visits");
+  const carsRes      = await apiGetAll("Cars");
+  const visitsRes    = await apiGetAll("Visits");
 
   if (!customersRes.success) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">خطأ في قراءة البيانات</td></tr>';
     return;
   }
 
-  const customers = customersRes.rows;
+  const customers = customersRes.rows || [];
 
   const carsByMembership = {};
   if (carsRes.success) {
-    carsRes.rows.forEach(c => {
-      const mem = c[0];
+    (carsRes.rows || []).forEach(c => {
+      const mem = c[0]; // membership
       if (!carsByMembership[mem]) carsByMembership[mem] = [];
       carsByMembership[mem].push(c);
     });
@@ -81,17 +86,17 @@ async function loadCustomers() {
 
   const visitsByMembership = {};
   if (visitsRes.success) {
-    visitsRes.rows.forEach(v => {
-      const mem = v[0];
+    (visitsRes.rows || []).forEach(v => {
+      const mem = v[0]; // membership
       if (!visitsByMembership[mem]) visitsByMembership[mem] = [];
       visitsByMembership[mem].push(v);
     });
   }
 
   const filtered = customers.filter(c => {
-    const name = String(c[0] || "").toLowerCase();
-    const phone = String(c[1] || "").toLowerCase();
-    const mem = String(c[8] || "").toLowerCase();
+    const name = String(c[0] || "").toLowerCase(); // NAME
+    const phone = String(c[1] || "").toLowerCase(); // PHONE
+    const mem = String(c[8] || "").toLowerCase();   // MEMBERSHIP
     if (!q) return true;
     return name.includes(q) || phone.includes(q) || mem.includes(q);
   });
@@ -103,10 +108,13 @@ async function loadCustomers() {
 
   tbody.innerHTML = filtered.map(c => {
     const mem = c[8];
-    const cars = carsByMembership[mem] || [];
+    const cars   = carsByMembership[mem]   || [];
     const visits = visitsByMembership[mem] || [];
-    const servicesCount = visits.length;
-    const paidAmount = visits.reduce((sum, v) => sum + Number(v[2] || 0), 0);
+
+    const servicesCount = visits.length; // صف لكل خدمة
+    const paidAmount = visits.reduce((sum, v) => {
+      return sum + Number(v[22] || 0); // TOTAL_PAID (آخر صف لكل زيارة)
+    }, 0);
 
     return `
       <tr>
@@ -135,39 +143,45 @@ async function loadActiveVisits() {
   }
 
   const carsRes = await apiGetAll("Cars");
-  let carMap = {};
+  const carMap = {};
 
   if (carsRes.success) {
-    carsRes.rows.forEach(r => {
-      const mem = r[0];
+    (carsRes.rows || []).forEach(r => {
+      const mem = r[0]; // membership
       carMap[mem] = {
-        car: r[2],
-        letters: r[4],
-        numbers: r[5]
+        car:     r[2], // CAR
+        letters: r[4], // PLATE_LETTERS
+        numbers: r[5]  // PLATE_NUMBERS
       };
     });
   }
 
   box.innerHTML = res.visits.map(v => {
     const row = v.row;
-    const d = v.data;
-    const mem = d[0];
+    const d   = v.data;
+    const mem = d[0]; // membership
 
-    let plate = "غير معروف";
+    let plate   = "غير معروف";
     let carName = "";
 
     if (carMap[mem]) {
-      plate = `${carMap[mem].numbers} ${carMap[mem].letters}`;
+      plate   = `${carMap[mem].numbers} ${carMap[mem].letters}`;
       carName = carMap[mem].car;
     }
+
+    const service = d[6];           // SERVICE
+    const price   = Number(d[7] || 0); // PRICE
+    const parking = d[17] || "—";   // PARKING
+    const checkIn = d[13] || "";    // CHECK_IN
 
     return `
       <div style="border:1px solid #E5E7EB;border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;">
         <b>🚗 اللوحة:</b> ${plate} — ${carName}<br>
         <b>العضوية:</b> ${mem || "—"}<br>
-        <b>الخدمة:</b> ${d[1]}<br>
-        <b>السعر:</b> ${d[2]} ريال<br>
-        <b>الموقف:</b> ${d[12] || "—"}<br>
+        <b>الخدمة:</b> ${service}<br>
+        <b>السعر:</b> ${price} ريال<br>
+        <b>الموقف:</b> ${parking}<br>
+        <b>الدخول:</b> ${checkIn}<br>
 
         <label style="font-size:12px;">طريقة الدفع</label>
         <select id="pay_${row}" style="margin-top:2px;">
@@ -210,18 +224,18 @@ async function loadBookings() {
   box.innerHTML = "جاري التحميل...";
 
   const res = await apiGetAll("Bookings");
-  if (!res.success || !res.rows.length) {
+  if (!res.success || !res.rows || !res.rows.length) {
     box.innerHTML = "لا توجد حجوزات حالياً.";
     return;
   }
 
   box.innerHTML = res.rows.map((b, idx) => {
-    const phone = b[0];
-    const mem = b[1];
-    const service = b[2];
-    const date = b[3];
-    const time = b[4];
-    const status = b[5];
+    const phone   = b[0]; // PHONE
+    const mem     = b[1]; // MEMBERSHIP
+    const service = b[2]; // SERVICE
+    const date    = b[3]; // DATE
+    const time    = b[4]; // TIME
+    const status  = b[5]; // STATUS
 
     return `
       <div style="border:1px solid #E5E7EB;border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;">
@@ -232,22 +246,24 @@ async function loadBookings() {
         <b>الحالة:</b> <span class="tag">${status}</span><br>
 
         <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;"
-          onclick="updateBooking(${idx + 2}, '${phone}', 'مؤكد')">تأكيد</button>
+          onclick="updateBooking(${idx + 2}, 'مؤكد')">تأكيد</button>
 
         <button class="btn-outline" style="margin-top:4px;font-size:11px;padding:4px 8px;"
-          onclick="updateBooking(${idx + 2}, '${phone}', 'ملغي')">إلغاء</button>
+          onclick="updateBooking(${idx + 2}, 'ملغي')">إلغاء</button>
       </div>
     `;
   }).join("");
 }
 
-async function updateBooking(row, phone, status) {
-
-  // 1) قراءة بيانات الحجز الأصلية
+async function updateBooking(row, status) {
   const resOld = await apiGetAll("Bookings");
-  const old = resOld.rows[row - 2]; // الصفوف تبدأ من 2
+  if (!resOld.success || !resOld.rows || !resOld.rows[row - 2]) {
+    alert("خطأ في قراءة بيانات الحجز");
+    return;
+  }
 
-  // 2) بناء الصف الجديد بدون حذف أي بيانات
+  const old = resOld.rows[row - 2];
+
   const newValues = [
     old[0], // phone
     old[1], // membership
@@ -258,7 +274,6 @@ async function updateBooking(row, phone, status) {
     old[6]  // created_at
   ];
 
-  // 3) تحديث الصف
   const res = await apiPost({
     action: "updateRow",
     sheet: "Bookings",
@@ -284,7 +299,7 @@ let INVOICE_STATE = {
 };
 
 async function searchInvoices() {
-  const q = document.getElementById("invoiceSearch").value.trim();
+  const q   = document.getElementById("invoiceSearch").value.trim();
   const box = document.getElementById("invoiceVisits");
 
   box.innerHTML = "جاري البحث...";
@@ -294,8 +309,7 @@ async function searchInvoices() {
     return;
   }
 
-  let custRes = null;
-
+  let custRes;
   if (/^05\d{8}$/.test(q)) {
     custRes = await apiGetCustomerByPhone(q);
   } else {
@@ -310,14 +324,14 @@ async function searchInvoices() {
   const c = custRes.customer;
 
   INVOICE_STATE.customer = {
-    name: c[0],
-    phone: c[1],
-    membership: c[8]
+    name:       c[0], // NAME
+    phone:      c[1], // PHONE
+    membership: c[8]  // MEMBERSHIP
   };
 
   const visitsRes = await apiGetVisitsByMembership(c[8]);
 
-  if (!visitsRes.success || !visitsRes.visits.length) {
+  if (!visitsRes.success || !visitsRes.visits || !visitsRes.visits.length) {
     box.innerHTML = "لا توجد زيارات لهذا العميل.";
     INVOICE_STATE.visits = [];
     return;
@@ -325,11 +339,18 @@ async function searchInvoices() {
 
   INVOICE_STATE.visits = visitsRes.visits.map(v => v.data);
 
-  box.innerHTML = INVOICE_STATE.visits.map((v, idx) => `
-    <div style="border-bottom:1px solid #E5E7EB;padding:4px 0;font-size:13px;">
-      #${idx + 1} — ${v[1]} — ${v[2]} ريال — ${v[8]}
-    </div>
-  `).join("");
+  box.innerHTML = INVOICE_STATE.visits.map((v, idx) => {
+    const service = v[6];           // SERVICE
+    const price   = Number(v[7] || 0); // PRICE
+    const points  = Number(v[8] || 0); // POINTS
+    const date    = String(v[13] || "").split(" ")[0]; // CHECK_IN (تاريخ فقط)
+
+    return `
+      <div style="border-bottom:1px solid #E5E7EB;padding:4px 0;font-size:13px;">
+        #${idx + 1} — ${service} — ${price} ريال — نقاط: ${points} — ${date}
+      </div>
+    `;
+  }).join("");
 }
 
 function sendInvoice(mode) {
@@ -339,7 +360,6 @@ function sendInvoice(mode) {
   }
 
   let selectedVisits = [];
-
   if (mode === "last") {
     selectedVisits = [INVOICE_STATE.visits[INVOICE_STATE.visits.length - 1]];
   } else {
@@ -349,9 +369,15 @@ function sendInvoice(mode) {
   const c = INVOICE_STATE.customer;
 
   let total = 0;
-  let lines = selectedVisits.map((v, idx) => {
-    total += Number(v[2] || 0);
-    return `${idx + 1}- ${v[1]} — ${v[2]} ريال (${v[8]})`;
+  const lines = selectedVisits.map((v, idx) => {
+    const service = v[6]; // SERVICE
+    const price   = Number(v[7] || 0); // PRICE
+    const points  = Number(v[8] || 0); // POINTS
+    const date    = String(v[13] || "").split(" ")[0]; // CHECK_IN
+
+    total += Number(v[22] || price || 0); // TOTAL_PAID أو PRICE
+
+    return `${idx + 1}- ${service} — ${price} ريال (نقاط: ${points}) — ${date}`;
   }).join("\n");
 
   const msg =
