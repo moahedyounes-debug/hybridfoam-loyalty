@@ -9,7 +9,6 @@ let services = [];
 let employees = [];
 let addedServices = [];
 let activeVisits = [];
-let completedVisits = [];
 let selectedPlate = null;
 
 /* ============================================================
@@ -49,11 +48,7 @@ function loadModels() {
         .map(m => `<option value="${m}">${m}</option>`)
         .join("");
 
-    updateCarSize();
-}
-
-function updateCarSize() {
-    el("car_size").value = ""; // لا يوجد حجم في API
+    el("car_size").value = ""; // API لا يرجع حجم
 }
 
 /* ============================================================
@@ -226,7 +221,7 @@ async function loadActiveVisits() {
         card.className = "card";
 
         card.innerHTML = `
-            <h4>لوحة: ${car.plate}</h4>
+            <h4>🚗 ${car.plate}</h4>
             <p><b>الدخول:</b> ${formatted}</p>
             <p><b>الموظف:</b> ${car.employee}</p>
             <p><b>الموقف:</b> ${car.parking}</p>
@@ -244,9 +239,6 @@ async function loadActiveVisits() {
                 <option value="شبكة">دفع شبكة</option>
                 <option value="جزئي">دفع جزئي</option>
             </select>
-
-            <button class="btn-edit full" onclick="editVisit('${car.plate}')">تعديل الخدمات / الموظف</button>
-            <button class="btn-discount full" onclick="addDiscount('${car.plate}')">إضافة خصم</button>
         `;
 
         list.appendChild(card);
@@ -254,144 +246,6 @@ async function loadActiveVisits() {
 
     el("sumCars").textContent = Object.keys(cars).length;
     el("sumServices").textContent = activeVisits.length;
-}
-
-/* ============================================================
-   زيارات اليوم
-============================================================ */
-
-function loadTodayVisits() {
-    const box = el("todayVisitsList");
-    box.innerHTML = "";
-
-    const today = new Date().toISOString().slice(0, 10);
-
-    const rows = activeVisits.filter(v => {
-        const date = String(v.data[13]).split(" ")[0];
-        return date === today;
-    });
-
-    if (!rows.length) {
-        box.innerHTML = "<p>لا توجد زيارات اليوم</p>";
-        return;
-    }
-
-    box.innerHTML = rows.map(v => `
-        <div class="card">
-            <p><b>السيارة:</b> ${v.data[1]}</p>
-            <p><b>الخدمة:</b> ${v.data[6]}</p>
-            <p><b>السعر:</b> ${v.data[7]} ريال</p>
-            <p><b>الموظف:</b> ${v.data[9]}</p>
-        </div>
-    `).join("");
-}
-
-/* ============================================================
-   الزيارات المكتملة
-============================================================ */
-
-async function loadCompletedVisits() {
-    const box = el("completedList");
-    box.innerHTML = "جارِ التحميل...";
-
-    const res = await apiGetVisitsByMembership(""); // لا يوجد API خاص
-    completedVisits = res.visits || [];
-
-    if (!completedVisits.length) {
-        box.innerHTML = "<p>لا توجد زيارات مكتملة</p>";
-        return;
-    }
-
-    box.innerHTML = completedVisits.map(v => `
-        <div class="card">
-            <p><b>السيارة:</b> ${v.data[1]}</p>
-            <p><b>الخدمة:</b> ${v.data[6]}</p>
-            <p><b>السعر:</b> ${v.data[7]} ريال</p>
-            <p><b>الموظف:</b> ${v.data[9]}</p>
-            <p><b>طريقة الدفع:</b> ${v.data[14]}</p>
-        </div>
-    `).join("");
-}
-
-/* ============================================================
-   الدفع السريع
-============================================================ */
-
-function handleQuickPay(plate, method) {
-    if (!method) return;
-
-    selectedPlate = plate;
-
-    const rows = activeVisits.filter(v => v.data[1] === plate);
-    const total = rows.reduce((a, b) => a + Number(b.data[7] || 0), 0);
-
-    el("modal_method").textContent = method;
-    el("modal_total").textContent = total + " ريال";
-
-    if (method === "جزئي") {
-        el("cash_box").style.display = "block";
-        el("card_box").style.display = "block";
-    } else {
-        el("cash_box").style.display = "none";
-        el("card_box").style.display = "none";
-    }
-
-    el("modal").style.display = "flex";
-
-    el("modal_confirm").onclick = () => submitQuickPayment(method, total);
-}
-
-async function submitQuickPayment(method, total) {
-    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
-
-    let cash = 0, card = 0;
-
-    if (method === "جزئي") {
-        cash = Number(el("modal_cash").value || 0);
-        card = Number(el("modal_card").value || 0);
-
-        if (cash + card !== total) {
-            showToast("المبلغ غير مطابق للإجمالي", "error");
-            return;
-        }
-    } else {
-        cash = method === "كاش" ? total : 0;
-        card = method === "شبكة" ? total : 0;
-    }
-
-    for (const v of rows) {
-        await apiCloseVisit(v.row, {
-            payment_status: "مدفوع",
-            payment_method: method,
-            CASH_AMOUNT: cash,
-            CARD_AMOUNT: card,
-            TOTAL_PAID: total
-        });
-    }
-
-    showToast("تم الدفع", "success");
-    closeModal();
-    loadActiveVisits();
-}
-
-/* ============================================================
-   تعديل / خصم
-============================================================ */
-
-function editVisit(plate) {
-    showToast("ميزة تعديل الخدمات قيد التطوير", "info");
-}
-
-function addDiscount(plate) {
-    showToast("ميزة الخصم قيد التطوير", "info");
-}
-
-/* ============================================================
-   إغلاق المودال
-============================================================ */
-
-function closeModal() {
-    el("modal").style.display = "none";
 }
 
 /* ============================================================
@@ -403,17 +257,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadServices();
     await loadEmployees();
     await loadActiveVisits();
-    await loadCompletedVisits();
-
-    el("btnAddService").onclick = addService;
-    el("btnSubmitVisit").onclick = submitVisit;
-    el("btnRefreshActive").onclick = loadActiveVisits;
-
-    el("car_type").onchange = loadModels;
-    el("car_model").onchange = updateCarSize;
-    el("service_type").onchange = loadServiceDetails;
-    el("service_detail").onchange = updateServicePrice;
-    el("discount").oninput = recalcTotal;
-
-    el("modal_close").onclick = closeModal;
 });
