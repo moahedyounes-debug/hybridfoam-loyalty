@@ -5,7 +5,7 @@
 const el = id => document.getElementById(id);
 
 let activeVisits = [];
-let selectedVisitRow = null;
+let selectedPlate = null;
 
 let selectedServices = [];
 let carTypesData = [];
@@ -50,8 +50,6 @@ async function loadActiveVisits() {
 
     rows.forEach(r => {
       const row = r.data;
-      const visitRow = r.row;
-
       const plate = row[1];
       const serviceName = row[6];
       const price = Number(row[7] || 0);
@@ -64,8 +62,7 @@ async function loadActiveVisits() {
           services: [],
           totalPrice: 0,
           checkIn,
-          parking,
-          row: visitRow
+          parking
         };
       }
 
@@ -93,9 +90,9 @@ async function loadActiveVisits() {
         <div class="dropdown">
           <button class="btn-pay">تحديث الدفع ▼</button>
           <div class="dropdown-content">
-            <a href="#" data-method="كاش" data-row="${car.row}">دفع كاش</a>
-            <a href="#" data-method="شبكة" data-row="${car.row}">دفع شبكة</a>
-            <a href="#" data-method="جزئي" data-row="${car.row}">دفع جزئي (كاش + شبكة)</a>
+            <a href="#" data-method="كاش" data-plate="${car.plate}">دفع كاش</a>
+            <a href="#" data-method="شبكة" data-plate="${car.plate}">دفع شبكة</a>
+            <a href="#" data-method="جزئي" data-plate="${car.plate}">دفع جزئي (كاش + شبكة)</a>
           </div>
         </div>
       `;
@@ -117,7 +114,7 @@ document.addEventListener("click", function (e) {
   if (e.target.matches(".dropdown-content a")) {
     e.preventDefault();
     const method = e.target.getAttribute("data-method");
-    selectedVisitRow = e.target.getAttribute("data-row");
+    selectedPlate = e.target.getAttribute("data-plate");
     openPaymentModal(method);
   }
 });
@@ -133,16 +130,14 @@ function openPaymentModal(method) {
   el("modal_cash").value = "";
   el("modal_card").value = "";
 
-  const visitRows = activeVisits.filter(v => v.row == selectedVisitRow);
+  const visitRows = activeVisits.filter(v => v.data[1] == selectedPlate);
   const totalRequired = visitRows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
 
   el("modal_total").textContent = totalRequired + " ريال";
 
-  // إخفاء الكل أولاً
   el("cash_box").style.display = "none";
   el("card_box").style.display = "none";
 
-  // إظهار المناسب فقط
   if (method === "كاش") {
     el("cash_box").style.display = "block";
   } 
@@ -176,7 +171,7 @@ async function submitPayment(method) {
   confirmBtn.textContent = "جاري التحديث...";
 
   try {
-    const visitRows = activeVisits.filter(v => v.row == selectedVisitRow);
+    const visitRows = activeVisits.filter(v => v.data[1] == selectedPlate);
 
     const totalRequired = visitRows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
     const totalPaid = cash + card;
