@@ -801,6 +801,10 @@ function closeEditModal() {
    INIT
 =========================== */
 
+/* ===========================
+   INIT
+=========================== */
+
 document.addEventListener("DOMContentLoaded", () => {
 
     loadActiveVisits();
@@ -811,7 +815,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadEmployees();
 
     el("btnRefreshActive").addEventListener("click", loadActiveVisits);
-    el("btnRefreshCompleted").addEventListener("click", loadCompletedVisits);
 
     el("btnAddService").addEventListener("click", addServiceToList);
     el("discount").addEventListener("input", recalcTotal);
