@@ -48,7 +48,7 @@ function loadModels() {
         .map(m => `<option value="${m}">${m}</option>`)
         .join("");
 
-    el("car_size").value = ""; // API لا يرجع حجم
+    el("car_size").value = ""; // لا يوجد حجم في API
 }
 
 /* ============================================================
@@ -106,6 +106,11 @@ function addService() {
     const name = el("service_detail").value;
     const price = Number(el("price").value);
 
+    if (!name || !price) {
+        showToast("اختر خدمة صحيحة", "error");
+        return;
+    }
+
     addedServices.push({ name, price });
 
     renderServices();
@@ -136,6 +141,47 @@ function recalcTotal() {
 }
 
 /* ============================================================
+   منطق الدفع في نموذج التسجيل
+============================================================ */
+
+function handlePaymentStatusChange() {
+    const status = el("payment_status").value;
+    const wrapper = el("payment_method_wrapper");
+    const partialBox = el("partial_payment_box");
+
+    if (status === "مدفوع") {
+        wrapper.style.display = "block";
+    } else {
+        wrapper.style.display = "none";
+        partialBox.style.display = "none";
+        el("payment_method").value = "";
+        el("cash_amount").value = "";
+        el("card_amount").value = "";
+        el("paid_total").textContent = "0";
+    }
+}
+
+function handlePaymentMethodChange() {
+    const method = el("payment_method").value;
+    const partialBox = el("partial_payment_box");
+
+    if (method === "جزئي") {
+        partialBox.style.display = "block";
+    } else {
+        partialBox.style.display = "none";
+        el("cash_amount").value = "";
+        el("card_amount").value = "";
+        el("paid_total").textContent = "0";
+    }
+}
+
+function recalcPartialPaid() {
+    const cash = Number(el("cash_amount").value || 0);
+    const card = Number(el("card_amount").value || 0);
+    el("paid_total").textContent = cash + card;
+}
+
+/* ============================================================
    تسجيل زيارة
 ============================================================ */
 
@@ -145,9 +191,15 @@ async function submitVisit() {
         return;
     }
 
+    const plate = el("plate_numbers").value.trim();
+    if (!plate) {
+        showToast("أدخل أرقام اللوحة", "error");
+        return;
+    }
+
     const payload = {
-        plate: el("plate_numbers").value,
-        letters: el("plate_letters").value,
+        plate: plate,
+        letters: el("plate_letters").value.trim(),
         brand: el("car_type").value,
         model: el("car_model").value,
         size: el("car_size").value,
@@ -171,7 +223,20 @@ async function submitVisit() {
     renderServices();
     recalcTotal();
 
-    loadActiveVisits();
+    el("plate_numbers").value = "";
+    el("plate_letters").value = "";
+    el("discount").value = "";
+    el("parking_slot").value = "";
+    el("payment_status").value = "";
+    el("payment_method").value = "";
+    el("cash_amount").value = "";
+    el("card_amount").value = "";
+    el("paid_total").textContent = "0";
+    el("payment_method_wrapper").style.display = "none";
+    el("partial_payment_box").style.display = "none";
+
+    await loadActiveVisits();
+    loadTodayVisits();
 }
 
 /* ============================================================
@@ -186,6 +251,7 @@ async function loadActiveVisits() {
     activeVisits = res.visits || [];
 
     const cars = {};
+    const perEmployee = {};
 
     activeVisits.forEach(v => {
         const d = v.data;
@@ -194,7 +260,7 @@ async function loadActiveVisits() {
         const price = Number(d[7] || 0);
         const checkin = d[13];
         const parking = d[17];
-        const employee = d[9] || "—";
+        const employee = d[9] || "غير محدد";
 
         if (!cars[plate]) {
             cars[plate] = {
@@ -209,13 +275,21 @@ async function loadActiveVisits() {
 
         cars[plate].services.push({ service, price });
         cars[plate].total += price;
+
+        if (!perEmployee[employee]) {
+            perEmployee[employee] = { services: 0, amount: 0 };
+        }
+        perEmployee[employee].services += 1;
+        perEmployee[employee].amount += price;
     });
 
     list.innerHTML = "";
 
     Object.values(cars).forEach(car => {
         const dt = new Date(car.checkin);
-        const formatted = `${dt.getMonth()+1}-${dt.getDate()}-${dt.getFullYear()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2,'0')}`;
+        const formatted = isNaN(dt.getTime())
+            ? car.checkin
+            : `${dt.getMonth() + 1}-${dt.getDate()}-${dt.getFullYear()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2, "0")}`;
 
         const card = document.createElement("div");
         card.className = "card";
@@ -246,6 +320,126 @@ async function loadActiveVisits() {
 
     el("sumCars").textContent = Object.keys(cars).length;
     el("sumServices").textContent = activeVisits.length;
+
+    loadTodayVisits();
+}
+
+/* ============================================================
+   زيارات اليوم
+============================================================ */
+
+function loadTodayVisits() {
+    const box = el("todayVisitsList");
+    box.innerHTML = "";
+
+    if (!activeVisits.length) {
+        box.innerHTML = "<p>لا توجد زيارات اليوم</p>";
+        return;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const rows = activeVisits.filter(v => {
+        const raw = String(v.data[13] || "");
+        const date = raw.split(" ")[0];
+        return date === today;
+    });
+
+    if (!rows.length) {
+        box.innerHTML = "<p>لا توجد زيارات اليوم</p>";
+        return;
+    }
+
+    box.innerHTML = rows.map(v => `
+        <div class="card">
+            <p><b>السيارة:</b> ${v.data[1]}</p>
+            <p><b>الخدمة:</b> ${v.data[6]}</p>
+            <p><b>السعر:</b> ${v.data[7]} ريال</p>
+            <p><b>الموظف:</b> ${v.data[9] || "غير محدد"}</p>
+        </div>
+    `).join("");
+}
+
+/* ============================================================
+   الزيارات المكتملة (Placeholder)
+============================================================ */
+
+async function loadCompletedVisits() {
+    const box = el("completedList");
+    box.innerHTML = "<p>لا توجد زيارات مكتملة (لا يوجد API مخصص)</p>";
+}
+
+/* ============================================================
+   الدفع السريع من الكرت
+============================================================ */
+
+function handleQuickPay(plate, method) {
+    if (!method) return;
+
+    selectedPlate = plate;
+
+    const rows = activeVisits.filter(v => v.data[1] === plate);
+    const total = rows.reduce((a, b) => a + Number(b.data[7] || 0), 0);
+
+    el("modal_method").textContent = method;
+    el("modal_total").textContent = total + " ريال";
+
+    if (method === "جزئي") {
+        el("cash_box").style.display = "block";
+        el("card_box").style.display = "block";
+    } else {
+        el("cash_box").style.display = "none";
+        el("card_box").style.display = "none";
+        el("modal_cash").value = "";
+        el("modal_card").value = "";
+    }
+
+    el("modal").style.display = "flex";
+
+    el("modal_confirm").onclick = () => submitQuickPayment(method, total);
+}
+
+async function submitQuickPayment(method, total) {
+    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
+
+    let cash = 0, card = 0;
+
+    if (method === "جزئي") {
+        cash = Number(el("modal_cash").value || 0);
+        card = Number(el("modal_card").value || 0);
+
+        if (cash + card !== total) {
+            showToast("المبلغ غير مطابق للإجمالي", "error");
+            return;
+        }
+    } else {
+        cash = method === "كاش" ? total : 0;
+        card = method === "شبكة" ? total : 0;
+    }
+
+    for (const v of rows) {
+        await apiCloseVisit(v.row, {
+            payment_status: "مدفوع",
+            payment_method: method,
+            CASH_AMOUNT: cash,
+            CARD_AMOUNT: card,
+            TOTAL_PAID: total
+        });
+    }
+
+    showToast("تم الدفع", "success");
+    closeModal();
+    await loadActiveVisits();
+}
+
+/* ============================================================
+   إغلاق المودال
+============================================================ */
+
+function closeModal() {
+    el("modal").style.display = "none";
+    el("modal_cash").value = "";
+    el("modal_card").value = "";
 }
 
 /* ============================================================
@@ -257,4 +451,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadServices();
     await loadEmployees();
     await loadActiveVisits();
+    await loadCompletedVisits();
+
+    el("btnAddService").onclick = addService;
+    el("btnSubmitVisit").onclick = submitVisit;
+    el("btnRefreshActive").onclick = loadActiveVisits;
+
+    el("car_type").onchange = loadModels;
+    el("service_type").onchange = loadServiceDetails;
+    el("service_detail").onchange = updateServicePrice;
+    el("discount").oninput = recalcTotal;
+
+    el("payment_status").onchange = handlePaymentStatusChange;
+    el("payment_method").onchange = handlePaymentMethodChange;
+    el("cash_amount").oninput = recalcPartialPaid;
+    el("card_amount").oninput = recalcPartialPaid;
+
+    el("modal_close").onclick = closeModal;
 });
