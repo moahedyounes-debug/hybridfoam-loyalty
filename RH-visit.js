@@ -817,9 +817,12 @@ document.addEventListener("DOMContentLoaded", () => {
     el("discount").addEventListener("input", recalcTotal);
     el("btnSubmitVisit").addEventListener("click", submitVisit);
 
+    // أزرار إغلاق المودالات
     el("modal_close").addEventListener("click", closeModal);
+    el("modal_cancel").addEventListener("click", closeModal);   // ← هذا السطر المهم
     el("modal_edit_close").addEventListener("click", closeEditModal);
 
+    // الدفع
     el("payment_status").addEventListener("change", () => {
         const val = el("payment_status").value;
 
