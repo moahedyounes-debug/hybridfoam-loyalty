@@ -85,19 +85,19 @@ async function loadActiveVisits() {
       card.innerHTML = `
         <h4>لوحة: ${car.plate || "-"}</h4>
         <p><b>رقم العضوية:</b> ${car.membership || "-"}</p>
-        <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
         <p><b>الدخول:</b> ${car.checkIn || "-"}</p>
         <p><b>رقم الموقف:</b> ${car.parking || "-"}</p>
 
         <p><b>الخدمات:</b></p>
         <ul>${servicesHTML}</ul>
+        <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
 
         <div class="dropdown">
           <button class="btn-pay">تحديث الدفع ▼</button>
           <div class="dropdown-content">
             <a href="#" data-method="كاش" data-row="${car.row}">دفع كاش</a>
             <a href="#" data-method="شبكة" data-row="${car.row}">دفع شبكة</a>
-            <a href="#" data-method="جزئي" data-row="${car.row}">دفع جزئي</a>
+            <a href="#" data-method="جزئي" data-row="${car.row}">دفع جزئي (كاش + شبكة)</a>
           </div>
         </div>
       `;
@@ -135,6 +135,10 @@ function openPaymentModal(method) {
   el("modal_cash").value = "";
   el("modal_card").value = "";
 
+  const visitRows = activeVisits.filter(v => v.row == selectedVisitRow);
+  const totalRequired = visitRows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
+  el("modal_total").textContent = totalRequired + " ريال";
+
   if (method === "كاش") {
     el("cash_box").style.display = "block";
     el("card_box").style.display = "none";
@@ -142,6 +146,7 @@ function openPaymentModal(method) {
     el("cash_box").style.display = "none";
     el("card_box").style.display = "block";
   } else {
+    // جزئي = كاش + شبكة (كامل المبلغ لكن موزع)
     el("cash_box").style.display = "block";
     el("card_box").style.display = "block";
   }
@@ -166,7 +171,6 @@ async function submitPayment(method) {
   confirmBtn.textContent = "جاري التحديث...";
 
   try {
-    // جميع الصفوف الخاصة بالزيارة
     const visitRows = activeVisits.filter(v => v.row == selectedVisitRow);
 
     if (!visitRows.length) {
@@ -176,7 +180,6 @@ async function submitPayment(method) {
       return;
     }
 
-    // حساب الإجمالي
     const totalRequired = visitRows.reduce((sum, v) => {
       return sum + Number(v.data[7] || 0);
     }, 0);
@@ -190,11 +193,13 @@ async function submitPayment(method) {
       return;
     }
 
-    // إغلاق كل الصفوف الخاصة بالزيارة
+    const paymentMethodLabel =
+      method === "جزئي" ? "كاش + شبكة" : method;
+
     for (const v of visitRows) {
       await apiCloseVisit(v.row, {
         payment_status: "مدفوع",
-        payment_method: method,
+        payment_method: paymentMethodLabel,
         CASH_AMOUNT: cash,
         CARD_AMOUNT: card,
         TOTAL_PAID: totalPaid
@@ -460,28 +465,25 @@ async function submitVisit() {
   const discount = Number(el("discount").value || 0);
   const finalTotal = Math.max(0, total - discount);
 
-  let remaining = finalTotal;
-
-  const servicesWithNet = selectedServices.map((s, idx) => {
-    if (idx === selectedServices.length - 1) {
-      return { ...s, price: remaining };
-    }
-    const ratio = total ? s.price / total : 0;
-    const net = Math.round(finalTotal * ratio);
-    remaining -= net;
-    return { ...s, price: net };
-  });
-
   let cash_amount = 0;
   let card_amount = 0;
 
-  if (payment_method === "جزئي") {
-    cash_amount = Number(el("cash_amount").value || 0);
-    card_amount = Number(el("card_amount").value || 0);
-  } else if (payment_method === "كاش") {
-    cash_amount = finalTotal;
-  } else if (payment_method === "شبكة") {
-    card_amount = finalTotal;
+  if (payment_status === "مدفوع") {
+    if (payment_method === "جزئي") {
+      cash_amount = Number(el("cash_amount").value || 0);
+      card_amount = Number(el("card_amount").value || 0);
+      if (cash_amount + card_amount !== finalTotal) {
+        showToast(`المبلغ المدفوع يجب أن يكون ${finalTotal} ريال`, "error");
+        btn.classList.remove("btn-loading");
+        btn.textContent = "تسجيل الزيارة";
+        btn.disabled = false;
+        return;
+      }
+    } else if (payment_method === "كاش") {
+      cash_amount = finalTotal;
+    } else if (payment_method === "شبكة") {
+      card_amount = finalTotal;
+    }
   }
 
   const payload = {
@@ -500,7 +502,12 @@ async function submitVisit() {
     cash_amount,
     card_amount,
     rating: "",
-    services: servicesWithNet
+    services: selectedServices.map(s => ({
+      name: s.name,
+      price: s.price,
+      points: s.points,
+      commission: s.commission
+    }))
   };
 
   try {
