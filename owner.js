@@ -117,35 +117,51 @@ function initTabs() {
 }
 
 // ===========================
-// LOAD ALL DATA
+// LOAD ALL DATA (NEW VERSION)
 // ===========================
+let dailyIncome = []; // جدول الدخل اليومي
+
 async function initData() {
-  const [vRes, cRes, sRes, eRes, bRes, costRes] = await Promise.all([
+
+  const [
+    vRes,      // Visits
+    cRes,      // Customers
+    sRes,      // Commissions
+    eRes,      // Employees
+    bRes,      // Bookings
+    costRes,   // Cost
+    dailyRes   // Daily Income ← الجديد
+  ] = await Promise.all([
     apiGetAll("Visits"),
     apiGetAll("Customers"),
     apiGetAll("Commissions"),
     apiGetAll("Employees"),
     apiGetAll("Bookings"),
-    apiGetAll("Cost")
+    apiGetAll("Cost"),
+    apiGetAll("Daily Income")   // ← جدول الدخل اليومي
   ]);
 
-  if (vRes.success) allVisits = vRes.rows || [];
-  if (cRes.success) allCustomers = cRes.rows || [];
-  if (sRes.success) allServices = sRes.rows || [];
-  if (eRes.success) allEmployees = eRes.rows || [];
-  if (bRes.success) allBookings = bRes.rows || [];
-  if (costRes.success) allCosts = costRes.rows || [];
+  // تخزين البيانات
+  if (vRes.success)    allVisits    = vRes.rows || [];
+  if (cRes.success)    allCustomers = cRes.rows || [];
+  if (sRes.success)    allServices  = sRes.rows || [];
+  if (eRes.success)    allEmployees = eRes.rows || [];
+  if (bRes.success)    allBookings  = bRes.rows || [];
+  if (costRes.success) allCosts     = costRes.rows || [];
+  if (dailyRes.success) dailyIncome = dailyRes.rows || [];
 
+  // تجهيز خريطة العمولات
   commissionMap = {};
   allServices.forEach(r => {
     const service = r[COMM_COL.SERVICE];
-    const comm = Number(r[COMM_COL.COMMISSION] || 0);
+    const comm    = Number(r[COMM_COL.COMMISSION] || 0);
     commissionMap[service] = comm;
   });
 
-  loadDashboard();
-  loadDecisionReports();
-  loadCosts();
+  // تشغيل الصفحة
+  loadDashboard();        // ← الآن يقرأ من Daily Income
+  loadDecisionReports();  // ← ما زال يعتمد على Visits
+  loadCosts();            // ← يعتمد على Cost
 }
 
 // ===========================
@@ -205,168 +221,65 @@ function resetDashboardDates() {
 
 function loadDashboard() {
   const from = document.getElementById("dashFrom").value || null;
-  const to = document.getElementById("dashTo").value || null;
+  const to   = document.getElementById("dashTo").value   || null;
 
-  let visits = allVisits.slice();
+  // Daily Income columns:
+  // 0 Month
+  // 1 Week
+  // 2 Day Name
+  // 3 Day (yyyy-mm-dd)
+  // 4 Amount - المبيعات
+  // 5 Commission - العمولات
+  // 6 Net Profit
+
+  let rows = dailyIncome.slice();
+
   if (from || to) {
-    visits = visits.filter(v => inRange(parseDateFromVisit(v), from, to));
-  }
-
-  let totalRevenue = 0;
-  let cash = 0;
-  let network = 0;
-  let totalCommission = 0;
-  let revenueByDay = {};
-  let profitByDay = {};
-  let commissionByEmployee = {};
-
-  visits.forEach(v => {
-    const price = Number(v[VISIT_COL.PRICE] || 0);
-    const method = String(v[VISIT_COL.PAY_METHOD] || "");
-    const employee = String(v[VISIT_COL.EMP_IN] || "");
-    const service = v[VISIT_COL.SERVICE];
-    const date = parseDateFromVisit(v);
-
-    totalRevenue += price;
-    if (method === "كاش") cash += price;
-    if (method === "شبكة") network += price;
-
-    const comm = commissionMap[service] || 0;
-    totalCommission += comm;
-
-    if (employee) {
-      commissionByEmployee[employee] = (commissionByEmployee[employee] || 0) + comm;
-    }
-
-    if (date) {
-      revenueByDay[date] = (revenueByDay[date] || 0) + price;
-    }
-  });
-
-  let costTotal = 0;
-  const daysSet = new Set(Object.keys(revenueByDay));
-  daysSet.forEach(d => {
-    costTotal += getCostForDate(d);
-  });
-
-  const totalProfit = totalRevenue - (costTotal + totalCommission);
-
-  Object.keys(revenueByDay).forEach(d => {
-    const rev = revenueByDay[d];
-    const cost = getCostForDate(d);
-    const dayShare = rev / (totalRevenue || 1);
-    const dayComm = totalCommission * dayShare;
-    profitByDay[d] = rev - (cost + dayComm);
-  });
-
-  let serviceCount = {};
-  let branchCount = {};
-  let dayCount = {};
-
-  visits.forEach(v => {
-    const s = v[VISIT_COL.SERVICE];
-    const b = v[VISIT_COL.BRANCH];
-    const d = parseDateFromVisit(v);
-    if (s) serviceCount[s] = (serviceCount[s] || 0) + 1;
-    if (b) branchCount[b] = (branchCount[b] || 0) + 1;
-    if (d) dayCount[d] = (dayCount[d] || 0) + 1;
-  });
-
-  function getMaxKey(obj) {
-    let maxK = "-";
-    let maxV = 0;
-    Object.keys(obj).forEach(k => {
-      if (obj[k] > maxV) {
-        maxV = obj[k];
-        maxK = k;
-      }
+    rows = rows.filter(r => {
+      const d = String(r[3] || "");
+      if (!d) return false;
+      if (from && d < from) return false;
+      if (to   && d > to)   return false;
+      return true;
     });
-    return maxK;
   }
 
-  let bestEmployee = "-";
-  let bestEmployeeVal = 0;
-  Object.keys(commissionByEmployee).forEach(e => {
-    if (commissionByEmployee[e] > bestEmployeeVal) {
-      bestEmployeeVal = commissionByEmployee[e];
-      bestEmployee = e;
-    }
-  });
+  // تجميع القيم
+  const labels = rows.map(r => r[3]);
+  const revenueData = rows.map(r => Number(r[4] || 0));
+  const commissionData = rows.map(r => Number(r[5] || 0));
+  const profitData = rows.map(r => Number(r[6] || 0));
 
-  const bestService = getMaxKey(serviceCount);
-  const bestBranch = getMaxKey(branchCount);
-  const bestDay = getMaxKey(dayCount);
-  const avgVisitPrice = visits.length ? (totalRevenue / visits.length) : 0;
+  const totalRevenue = revenueData.reduce((a,b)=>a+b,0);
+  const totalCommission = commissionData.reduce((a,b)=>a+b,0);
+  const totalProfit = profitData.reduce((a,b)=>a+b,0);
 
+  // عرض الـ KPIs
   document.getElementById("dashboardKpis").innerHTML = `
     <div class="grid">
       <div class="kpi">
         <div class="kpi-title">💰 إجمالي الدخل</div>
         <div class="kpi-value">${formatCurrency(totalRevenue)}</div>
-        <div class="kpi-sub">من ${visits.length} زيارة</div>
       </div>
-      <div class="kpi">
-        <div class="kpi-title">💸 إجمالي المصاريف التقديرية</div>
-        <div class="kpi-value">${formatCurrency(costTotal)}</div>
-        <div class="kpi-sub">من شيت Cost</div>
-      </div>
+
       <div class="kpi">
         <div class="kpi-title">💼 إجمالي العمولات</div>
         <div class="kpi-value">${formatCurrency(totalCommission)}</div>
-        <div class="kpi-sub">حسب شيت Commissions</div>
       </div>
+
       <div class="kpi">
-        <div class="kpi-title">📈 صافي الربح التقديري</div>
+        <div class="kpi-title">📈 صافي الربح</div>
         <div class="kpi-value">${formatCurrency(totalProfit)}</div>
-        <div class="kpi-sub">الدخل - (المصاريف + العمولات)</div>
       </div>
+
       <div class="kpi">
-        <div class="kpi-title">💳 شبكة</div>
-        <div class="kpi-value">${formatCurrency(network)}</div>
-        <div class="kpi-sub">إجمالي المدفوع بالشبكة</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-title">💵 كاش</div>
-        <div class="kpi-value">${formatCurrency(cash)}</div>
-        <div class="kpi-sub">إجمالي المدفوع كاش</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-title">🧽 عدد الزيارات</div>
-        <div class="kpi-value">${visits.length}</div>
-        <div class="kpi-sub">في الفترة المحددة</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-title">👥 عدد العملاء</div>
-        <div class="kpi-value">${allCustomers.length}</div>
-        <div class="kpi-sub">إجمالي العملاء المسجلين</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-title">💳 متوسط سعر الزيارة</div>
-        <div class="kpi-value">${formatCurrency(avgVisitPrice)}</div>
-        <div class="kpi-sub">الدخل ÷ عدد الزيارات</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-title">🏅 أفضل موظف (عمولة)</div>
-        <div class="kpi-value">${bestEmployee}</div>
-        <div class="kpi-sub">${formatCurrency(bestEmployeeVal)}</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-title">🧴 أكثر خدمة طلباً</div>
-        <div class="kpi-value">${bestService}</div>
-        <div class="kpi-sub">حسب عدد الزيارات</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-title">🏢 أفضل فرع</div>
-        <div class="kpi-value">${bestBranch}</div>
-        <div class="kpi-sub">حسب عدد الزيارات</div>
+        <div class="kpi-title">📅 عدد الأيام</div>
+        <div class="kpi-value">${rows.length}</div>
       </div>
     </div>
   `;
 
-  const labels = Object.keys(revenueByDay).sort();
-  const revData = labels.map(d => revenueByDay[d]);
-  const profitData = labels.map(d => profitByDay[d] || 0);
-
+  // رسم الشارتات
   clearChart("chartRevenueDaily");
   clearChart("chartProfitDaily");
   clearChart("chartCommissionEmployees");
@@ -377,7 +290,7 @@ function loadDashboard() {
       labels,
       datasets: [{
         label: "الدخل اليومي",
-        data: revData,
+        data: revenueData,
         backgroundColor: "#0D47A1"
       }]
     }
@@ -398,17 +311,14 @@ function loadDashboard() {
     }
   });
 
-  const empLabels = Object.keys(commissionByEmployee);
-  const empData = empLabels.map(e => commissionByEmployee[e]);
-
   charts["chartCommissionEmployees"] = new Chart(document.getElementById("chartCommissionEmployees"), {
     type: "bar",
     data: {
-      labels: empLabels,
+      labels,
       datasets: [{
-        label: "عمولات الموظفين",
-        data: empData,
-        backgroundColor: "#FF8F00"
+        label: "عمولات الموظفين اليومية",
+        data: commissionData,
+        backgroundColor: "#00897B"
       }]
     }
   });
