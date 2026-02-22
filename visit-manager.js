@@ -1,5 +1,5 @@
 /* ===========================
-   عناصر مساعدة
+   أدوات مساعدة
 =========================== */
 
 const el = id => document.getElementById(id);
@@ -113,7 +113,7 @@ async function loadActiveVisits() {
 }
 
 /* ===========================
-   Event Delegation — مهم جدًا
+   Event Delegation للقائمة
 =========================== */
 
 document.addEventListener("click", function (e) {
@@ -130,7 +130,7 @@ document.addEventListener("click", function (e) {
 });
 
 /* ===========================
-   مودال الدفع الذكي
+   مودال الدفع
 =========================== */
 
 function openPaymentModal(method) {
@@ -159,42 +159,36 @@ function closeModal() {
 }
 
 /* ===========================
-   إرسال الدفع (نسخة كاملة)
+   إرسال الدفع (نهائي)
 =========================== */
 
 async function submitPayment(method) {
   const cash = Number(el("modal_cash").value || 0);
   const card = Number(el("modal_card").value || 0);
 
-  // ===========================
-  // 1) الحصول على بيانات الزيارة
-  // ===========================
-  const visit = activeVisits.find(v => v.row == selectedVisitRow);
+  // 1) جمع كل الصفوف الخاصة بالزيارة
+  const visitRows = activeVisits.filter(v => v.row === selectedVisitRow);
 
-  if (!visit) {
+  if (!visitRows.length) {
     showToast("تعذر العثور على بيانات الزيارة", "error");
     return;
   }
 
-  // إجمالي الزيارة من الشيت (مجموع الخدمات)
-  const totalRequired = Number(visit.data[7] || 0);
+  // 2) حساب إجمالي الزيارة الحقيقي (مجموع الأسعار لكل الخدمات)
+  const totalRequired = visitRows.reduce((sum, v) => {
+    return sum + Number(v.data[7] || 0);
+  }, 0);
 
-  // ===========================
-  // 2) حساب مجموع الدفع
-  // ===========================
+  // 3) مجموع الدفع
   const totalPaid = cash + card;
 
-  // ===========================
-  // 3) التحقق من التطابق
-  // ===========================
+  // 4) التحقق
   if (totalPaid !== totalRequired) {
     showToast(`المبلغ المدفوع يجب أن يكون ${totalRequired} ريال`, "error");
     return;
   }
 
-  // ===========================
-  // 4) إرسال الدفع إلى API
-  // ===========================
+  // 5) إرسال الدفع
   try {
     await apiPost({
       action: "closeVisit",
@@ -287,7 +281,7 @@ async function loadServices() {
     typeSelect.innerHTML = '<option value="">— اختر نوع الخدمة —</option>';
     detailSelect.innerHTML = '<option value="">— اختر الخدمة —</option>';
 
-    const categories = [...new Set(servicesData.map(s => s.category))];
+    const categories = [...new Set(servicesData.map(s => s.Category || s.category))];
 
     categories.forEach(c => {
       const opt = document.createElement("option");
@@ -300,7 +294,7 @@ async function loadServices() {
       const cat = typeSelect.value;
       detailSelect.innerHTML = '<option value="">— اختر الخدمة —</option>';
 
-      const filtered = servicesData.filter(s => s.category === cat);
+      const filtered = servicesData.filter(s => (s.Category || s.category) === cat);
 
       filtered.forEach(s => {
         const opt = document.createElement("option");
@@ -315,7 +309,7 @@ async function loadServices() {
       const row = servicesData.find(s => s.service === name);
 
       el("price").value = row ? row.price : 0;
-      el("points").value = row ? row.commission : 0;
+      el("points").value = row ? row.commission : 0; // العمولة من الشيت
     });
 
   } catch (err) {
@@ -363,7 +357,13 @@ function addServiceToList() {
     return;
   }
 
-  selectedServices.push({ name: detail, price, points });
+  selectedServices.push({
+    name: detail,
+    price,
+    points,
+    commission: points // نستخدم نفس القيمة كعمولة
+  });
+
   renderServicesList();
   recalcTotal();
 }
@@ -429,9 +429,27 @@ async function submitVisit() {
   const payment_status = el("payment_status").value.trim();
   const payment_method = el("payment_method").value.trim();
 
-  if (!plate_numbers) return showToast("أدخل أرقام اللوحة", "error");
-  if (!employee_in) return showToast("اختر الموظف", "error");
-  if (!selectedServices.length) return showToast("أضف خدمة واحدة على الأقل", "error");
+  if (!plate_numbers) {
+    showToast("أدخل أرقام اللوحة", "error");
+    btn.classList.remove("btn-loading");
+    btn.textContent = "تسجيل الزيارة";
+    btn.disabled = false;
+    return;
+  }
+  if (!employee_in) {
+    showToast("اختر الموظف", "error");
+    btn.classList.remove("btn-loading");
+    btn.textContent = "تسجيل الزيارة";
+    btn.disabled = false;
+    return;
+  }
+  if (!selectedServices.length) {
+    showToast("أضف خدمة واحدة على الأقل", "error");
+    btn.classList.remove("btn-loading");
+    btn.textContent = "تسجيل الزيارة";
+    btn.disabled = false;
+    return;
+  }
 
   const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
   const discount = Number(el("discount").value || 0);
@@ -455,6 +473,10 @@ async function submitVisit() {
   if (payment_method === "جزئي") {
     cash_amount = Number(el("cash_amount").value || 0);
     card_amount = Number(el("card_amount").value || 0);
+  } else if (payment_method === "كاش") {
+    cash_amount = finalTotal;
+  } else if (payment_method === "شبكة") {
+    card_amount = finalTotal;
   }
 
   const payload = {
@@ -536,8 +558,27 @@ document.addEventListener("DOMContentLoaded", () => {
   el("btnRefreshActive").addEventListener("click", loadActiveVisits);
   el("btnAddService").addEventListener("click", addServiceToList);
   el("discount").addEventListener("input", recalcTotal);
-  el("plate_numbers").addEventListener("blur", autoDetectCar);
   el("btnSubmitVisit").addEventListener("click", submitVisit);
 
   el("modal_close").addEventListener("click", closeModal);
+
+  // إظهار/إخفاء طريقة الدفع + الجزئي
+  el("payment_status").addEventListener("change", () => {
+    const val = el("payment_status").value;
+    if (val === "مدفوع") {
+      el("payment_method_wrapper").style.display = "block";
+    } else {
+      el("payment_method_wrapper").style.display = "none";
+      el("partial_payment_box").style.display = "none";
+    }
+  });
+
+  el("payment_method").addEventListener("change", () => {
+    const val = el("payment_method").value;
+    if (val === "جزئي") {
+      el("partial_payment_box").style.display = "block";
+    } else {
+      el("partial_payment_box").style.display = "none";
+    }
+  });
 });
