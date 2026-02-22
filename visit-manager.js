@@ -495,7 +495,7 @@ async function loadCarTypes() {
 }
 
 /* ===========================
-   تحميل الخدمات
+   تحميل الخدمات (الإصدار الصحيح)
 =========================== */
 
 async function loadServices() {
@@ -509,7 +509,8 @@ async function loadServices() {
     typeSelect.innerHTML = '<option value="">— اختر نوع الخدمة —</option>';
     detailSelect.innerHTML = '<option value="">— اختر الخدمة —</option>';
 
-    const categories = [...new Set(servicesData.map(s => s.Category || s.category))];
+    // 1) جلب الأنواع من عمود Category
+    const categories = [...new Set(servicesData.map(s => s.Category))];
 
     categories.forEach(c => {
       const opt = document.createElement("option");
@@ -518,26 +519,31 @@ async function loadServices() {
       typeSelect.appendChild(opt);
     });
 
+    // 2) عند اختيار نوع الخدمة
     typeSelect.addEventListener("change", () => {
       const cat = typeSelect.value;
+
       detailSelect.innerHTML = '<option value="">— اختر الخدمة —</option>';
 
-      const filtered = servicesData.filter(s => (s.Category || s.category) === cat);
+      // فلترة حسب النوع
+      const filtered = servicesData.filter(s => s.Category === cat);
 
+      // عرض اسم الخدمة الصحيح
       filtered.forEach(s => {
         const opt = document.createElement("option");
-        opt.value = s.service;
-        opt.textContent = s.service;
+        opt.value = s.service;       // اسم الخدمة
+        opt.textContent = s.service; // اسم الخدمة
         detailSelect.appendChild(opt);
       });
     });
 
+    // 3) عند اختيار الخدمة
     detailSelect.addEventListener("change", () => {
       const name = detailSelect.value;
       const row = servicesData.find(s => s.service === name);
 
-      el("price").value = row ? row.price : 0;
-      el("points").value = row ? row.commission : 0;
+      el("price").value = row ? row.price : 0;          // السعر
+      el("points").value = row ? row.commission : 0;    // عمولة الموظف
     });
 
   } catch (err) {
