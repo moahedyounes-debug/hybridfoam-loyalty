@@ -100,15 +100,19 @@ async function loadActiveVisits() {
       list.appendChild(card);
     });
 
-    // ربط أزرار الدفع
-    document.querySelectorAll(".dropdown-content a").forEach(a => {
-      a.addEventListener("click", () => {
-        const method = a.getAttribute("data-method");
-        const rows = a.getAttribute("data-rows").split(",");
-        selectedVisitRow = rows[rows.length - 1]; // آخر صف هو صف الدفع
-        openPaymentModal(method);
-      });
-    });
+// ربط أزرار الدفع بطريقة صحيحة (Event Delegation)
+document.addEventListener("click", function (e) {
+  if (e.target.matches(".dropdown-content a")) {
+    e.preventDefault();
+
+    const method = e.target.getAttribute("data-method");
+    const rows = e.target.getAttribute("data-rows").split(",");
+
+    selectedVisitRow = rows[rows.length - 1]; // آخر صف هو صف الدفع
+
+    openPaymentModal(method);
+  }
+});
 
   } catch (err) {
     console.error(err);
