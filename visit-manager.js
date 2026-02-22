@@ -105,7 +105,6 @@ async function loadActiveVisits() {
     showToast("خطأ في تحميل الزيارات", "error");
   }
 }
-
 /* ===========================
    Event Delegation
 =========================== */
@@ -130,12 +129,13 @@ function openPaymentModal(method) {
   el("modal_cash").value = "";
   el("modal_card").value = "";
 
-  // جلب كل الصفوف الخاصة باللوحة (مو أول صف فقط)
+  // جلب كل الصفوف الخاصة باللوحة
   const visitRows = activeVisits.filter(v => {
     const plateCell = String(v.data[1] || "");
     return plateCell.startsWith(String(selectedPlate));
   });
 
+  // حساب الإجمالي الصحيح
   const totalRequired = visitRows.reduce(
     (sum, v) => sum + Number(v.data[7] || 0),
     0
@@ -163,7 +163,6 @@ function closeModal() {
   el("cash_box").style.display = "none";
   el("card_box").style.display = "none";
 }
-
 /* ===========================
    إرسال الدفع
 =========================== */
@@ -177,12 +176,13 @@ async function submitPayment(method) {
   confirmBtn.textContent = "جاري التحديث...";
 
   try {
-    // نفس المنطق: جلب كل الصفوف الخاصة باللوحة
+    // جلب كل الصفوف الخاصة باللوحة
     const visitRows = activeVisits.filter(v => {
       const plateCell = String(v.data[1] || "");
       return plateCell.startsWith(String(selectedPlate));
     });
 
+    // حساب الإجمالي الصحيح
     const totalRequired = visitRows.reduce(
       (sum, v) => sum + Number(v.data[7] || 0),
       0
@@ -219,7 +219,9 @@ async function submitPayment(method) {
 
     showToast("تم تحديث الدفع", "success");
     closeModal();
-    loadActiveVisits();
+
+    // تسريع التحديث
+    setTimeout(loadActiveVisits, 50);
 
   } catch (err) {
     console.error(err);
@@ -229,7 +231,212 @@ async function submitPayment(method) {
   confirmBtn.disabled = false;
   confirmBtn.textContent = "تأكيد";
 }
+/* ===========================
+   إضافة خدمة
+=========================== */
 
+function addServiceToList() {
+  const detail = el("service_detail").value;
+  const price = Number(el("price").value || 0);
+  const points = Number(el("points").value || 0);
+
+  if (!detail) {
+    showToast("اختر خدمة", "error");
+    return;
+  }
+
+  // منع تكرار الغسيل
+  if (detail.includes("غسيل")) {
+    const already = selectedServices.some(s => s.name.includes("غسيل"));
+    if (already) {
+      showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس الزيارة", "error");
+      return;
+    }
+  }
+
+  selectedServices.push({
+    name: detail,
+    price,
+    points,
+    commission: points
+  });
+
+  renderServicesList();
+  recalcTotal();
+}
+
+function renderServicesList() {
+  const box = el("servicesList");
+  box.innerHTML = "";
+
+  if (!selectedServices.length) {
+    box.textContent = "لا توجد خدمات مضافة بعد.";
+    return;
+  }
+
+  selectedServices.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "service-item";
+    div.innerHTML = `
+      <span>${s.name} - ${s.price} ريال</span>
+      <button class="btn-remove" data-i="${i}">حذف</button>
+    `;
+    box.appendChild(div);
+  });
+
+  box.querySelectorAll(".btn-remove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const i = Number(btn.getAttribute("data-i"));
+      selectedServices.splice(i, 1);
+      renderServicesList();
+      recalcTotal();
+    });
+  });
+}
+/* ===========================
+   إرسال الزيارة
+=========================== */
+
+async function submitVisit() {
+  const btn = el("btnSubmitVisit");
+
+  btn.classList.add("btn-loading");
+  btn.textContent = "جاري تسجيل الزيارة...";
+  btn.disabled = true;
+
+  const plate_numbers = el("plate_numbers").value.trim();
+  const plate_letters = el("plate_letters").value.trim();
+  const car_type = el("car_type").value;
+  const car_model = el("car_model").value;
+  const car_size = el("car_size").value;
+  const employee_in = el("employee_in").value;
+  const branch = el("branch").value;
+  const parking_slot = el("parking_slot").value;
+  const payment_status = el("payment_status").value.trim();
+  const payment_method = el("payment_method").value.trim();
+
+  if (!plate_numbers) {
+    showToast("أدخل أرقام اللوحة", "error");
+    resetSubmitButton(btn);
+    return;
+  }
+
+  if (!employee_in) {
+    showToast("اختر الموظف", "error");
+    resetSubmitButton(btn);
+    return;
+  }
+
+  if (!selectedServices.length) {
+    showToast("أضف خدمة واحدة على الأقل", "error");
+    resetSubmitButton(btn);
+    return;
+  }
+
+  const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const discount = Number(el("discount").value || 0);
+  const finalTotal = Math.max(0, total - discount);
+
+  let cash_amount = 0;
+  let card_amount = 0;
+
+  if (payment_status === "مدفوع") {
+    if (payment_method === "جزئي") {
+      cash_amount = Number(el("cash_amount").value || 0);
+      card_amount = Number(el("card_amount").value || 0);
+
+      if (cash_amount + card_amount !== finalTotal) {
+        showToast(`المبلغ المدفوع يجب أن يكون ${finalTotal} ريال`, "error");
+        resetSubmitButton(btn);
+        return;
+      }
+
+    } else if (payment_method === "كاش") {
+      cash_amount = finalTotal;
+
+    } else if (payment_method === "شبكة") {
+      card_amount = finalTotal;
+    }
+  }
+
+  const payload = {
+    membership: currentMembership,
+    plate_numbers,
+    plate_letters,
+    car_type,
+    car_model,
+    car_size,
+    employee_in,
+    employee_out: "",
+    branch,
+    parking_slot,
+    payment_status,
+    payment_method,
+    cash_amount,
+    card_amount,
+    rating: "",
+    services: selectedServices.map(s => ({
+      name: s.name,
+      price: s.price,
+      points: s.points,
+      commission: s.commission
+    }))
+  };
+
+  try {
+    await apiAddVisit({
+      ...payload,
+      services: JSON.stringify(payload.services)
+    });
+
+    showToast("تم تسجيل الزيارة", "success");
+    resetForm();
+
+    // تسريع التحديث
+    setTimeout(loadActiveVisits, 50);
+
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تسجيل الزيارة", "error");
+
+  } finally {
+    resetSubmitButton(btn);
+  }
+}
+
+/* ===========================
+   تنظيف النموذج بعد التسجيل
+=========================== */
+
+function resetForm() {
+  el("plate_numbers").value = "";
+  el("plate_letters").value = "";
+  el("car_type").value = "";
+  el("car_model").value = "";
+  el("car_size").value = "";
+  el("employee_in").value = "";
+  el("parking_slot").value = "";
+  el("payment_status").value = "";
+  el("payment_method").value = "";
+
+  const cashAmount = el("cash_amount");
+  const cardAmount = el("card_amount");
+
+  if (cashAmount) cashAmount.value = "";
+  if (cardAmount) cardAmount.value = "";
+
+  el("discount").value = "";
+
+  selectedServices = [];
+  renderServicesList();
+  recalcTotal();
+}
+
+function resetSubmitButton(btn) {
+  btn.classList.remove("btn-loading");
+  btn.textContent = "تسجيل الزيارة";
+  btn.disabled = false;
+}
 /* ===========================
    تحميل أنواع السيارات
 =========================== */
@@ -362,179 +569,6 @@ async function loadEmployees() {
     console.error(err);
     showToast("خطأ في تحميل الموظفين", "error");
   }
-}
-
-/* ===========================
-   إضافة خدمة
-=========================== */
-
-function addServiceToList() {
-  const detail = el("service_detail").value;
-  const price = Number(el("price").value || 0);
-  const points = Number(el("points").value || 0);
-
-  if (!detail) {
-    showToast("اختر خدمة", "error");
-    return;
-  }
-
-  selectedServices.push({
-    name: detail,
-    price,
-    points,
-    commission: points
-  });
-
-  renderServicesList();
-  recalcTotal();
-}
-
-function renderServicesList() {
-  const box = el("servicesList");
-  box.innerHTML = "";
-
-  if (!selectedServices.length) {
-    box.textContent = "لا توجد خدمات مضافة بعد.";
-    return;
-  }
-
-  selectedServices.forEach((s, i) => {
-    const div = document.createElement("div");
-    div.className = "service-item";
-    div.innerHTML = `
-      <span>${s.name} - ${s.price} ريال</span>
-      <button class="btn-remove" data-i="${i}">حذف</button>
-    `;
-    box.appendChild(div);
-  });
-
-  box.querySelectorAll(".btn-remove").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const i = Number(btn.getAttribute("data-i"));
-      selectedServices.splice(i, 1);
-      renderServicesList();
-      recalcTotal();
-    });
-  });
-}
-
-/* ===========================
-   حساب الإجمالي
-=========================== */
-
-function recalcTotal() {
-  const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
-  const discount = Number(el("discount").value || 0);
-  el("totalPrice").textContent = Math.max(0, total - discount);
-}
-
-/* ===========================
-   إرسال الزيارة
-=========================== */
-
-async function submitVisit() {
-  const btn = el("btnSubmitVisit");
-
-  btn.classList.add("btn-loading");
-  btn.textContent = "جاري تسجيل الزيارة...";
-  btn.disabled = true;
-
-  const plate_numbers = el("plate_numbers").value.trim();
-  const plate_letters = el("plate_letters").value.trim();
-  const car_type = el("car_type").value;
-  const car_model = el("car_model").value;
-  const car_size = el("car_size").value;
-  const employee_in = el("employee_in").value;
-  const branch = el("branch").value;
-  const parking_slot = el("parking_slot").value;
-  const payment_status = el("payment_status").value.trim();
-  const payment_method = el("payment_method").value.trim();
-
-  if (!plate_numbers) {
-    showToast("أدخل أرقام اللوحة", "error");
-    resetSubmitButton(btn);
-    return;
-  }
-  if (!employee_in) {
-    showToast("اختر الموظف", "error");
-    resetSubmitButton(btn);
-    return;
-  }
-  if (!selectedServices.length) {
-    showToast("أضف خدمة واحدة على الأقل", "error");
-    resetSubmitButton(btn);
-    return;
-  }
-
-  const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
-  const discount = Number(el("discount").value || 0);
-  const finalTotal = Math.max(0, total - discount);
-
-  let cash_amount = 0;
-  let card_amount = 0;
-
-  if (payment_status === "مدفوع") {
-    if (payment_method === "جزئي") {
-      cash_amount = Number(el("cash_amount").value || 0);
-      card_amount = Number(el("card_amount").value || 0);
-      if (cash_amount + card_amount !== finalTotal) {
-        showToast(`المبلغ المدفوع يجب أن يكون ${finalTotal} ريال`, "error");
-        resetSubmitButton(btn);
-        return;
-      }
-    } else if (payment_method === "كاش") {
-      cash_amount = finalTotal;
-    } else if (payment_method === "شبكة") {
-      card_amount = finalTotal;
-    }
-  }
-
-  const payload = {
-    membership: currentMembership,
-    plate_numbers,
-    plate_letters,
-    car_type,
-    car_model,
-    car_size,
-    employee_in,
-    employee_out: "",
-    branch,
-    parking_slot,
-    payment_status,
-    payment_method,
-    cash_amount,
-    card_amount,
-    rating: "",
-    services: selectedServices.map(s => ({
-      name: s.name,
-      price: s.price,
-      points: s.points,
-      commission: s.commission
-    }))
-  };
-
-  try {
-    await apiAddVisit({
-      ...payload,
-      services: JSON.stringify(payload.services)
-    });
-
-    showToast("تم تسجيل الزيارة", "success");
-    resetForm();
-    loadActiveVisits();
-
-  } catch (err) {
-    console.error(err);
-    showToast("خطأ في تسجيل الزيارة", "error");
-  } finally {
-    resetSubmitButton(btn);
-  }
-}
-
-function resetSubmitButton(btn) {
-  btn.classList.remove("btn-loading");
-  btn.textContent = "تسجيل الزيارة";
-  btn.disabled = false;
 }
 
 /* ===========================
