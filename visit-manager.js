@@ -159,13 +159,42 @@ function closeModal() {
 }
 
 /* ===========================
-   إرسال الدفع
+   إرسال الدفع (نسخة كاملة)
 =========================== */
 
 async function submitPayment(method) {
   const cash = Number(el("modal_cash").value || 0);
   const card = Number(el("modal_card").value || 0);
 
+  // ===========================
+  // 1) الحصول على بيانات الزيارة
+  // ===========================
+  const visit = activeVisits.find(v => v.row == selectedVisitRow);
+
+  if (!visit) {
+    showToast("تعذر العثور على بيانات الزيارة", "error");
+    return;
+  }
+
+  // إجمالي الزيارة من الشيت (مجموع الخدمات)
+  const totalRequired = Number(visit.data[7] || 0);
+
+  // ===========================
+  // 2) حساب مجموع الدفع
+  // ===========================
+  const totalPaid = cash + card;
+
+  // ===========================
+  // 3) التحقق من التطابق
+  // ===========================
+  if (totalPaid !== totalRequired) {
+    showToast(`المبلغ المدفوع يجب أن يكون ${totalRequired} ريال`, "error");
+    return;
+  }
+
+  // ===========================
+  // 4) إرسال الدفع إلى API
+  // ===========================
   try {
     await apiPost({
       action: "closeVisit",
