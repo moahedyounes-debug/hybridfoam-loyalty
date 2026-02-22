@@ -129,6 +129,33 @@
         .toast.show {
             opacity: 1;
         }
+
+        /* تسجيل الزيارة */
+        .form-box {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px #0001;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .row div {
+            flex: 1;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 
@@ -139,6 +166,7 @@
         <button id="tab_active" class="tab active" onclick="switchTab('active')">السيارات داخل المغسلة</button>
         <button id="tab_today" class="tab" onclick="switchTab('today')">زيارات اليوم</button>
         <button id="tab_completed" class="tab" onclick="switchTab('completed')">زيارات مكتملة</button>
+        <button id="tab_add" class="tab" onclick="switchTab('add')">تسجيل زيارة</button>
     </div>
 
     <!-- Summary -->
@@ -163,6 +191,136 @@
     <div id="completed_section" class="section-box">
         <h3>✔ الزيارات المكتملة</h3>
         <div id="completedList"></div>
+    </div>
+
+    <!-- ADD VISIT -->
+    <div id="add_section" class="section-box">
+        <h3>➕ تسجيل زيارة جديدة</h3>
+
+        <div class="form-box">
+
+            <div class="row">
+                <div>
+                    <label>أرقام اللوحة</label>
+                    <input id="plate_numbers">
+                </div>
+                <div>
+                    <label>حروف اللوحة</label>
+                    <input id="plate_letters">
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>البراند</label>
+                    <select id="car_type"></select>
+                </div>
+                <div>
+                    <label>الموديل</label>
+                    <select id="car_model"></select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>الحجم</label>
+                    <input id="car_size" readonly>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>نوع الخدمة</label>
+                    <select id="service_type"></select>
+                </div>
+                <div>
+                    <label>الخدمة</label>
+                    <select id="service_detail"></select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>السعر</label>
+                    <input id="price" readonly>
+                </div>
+                <div>
+                    <label>النقاط</label>
+                    <input id="points" readonly>
+                </div>
+            </div>
+
+            <button id="btnAddService" class="btn-secondary">إضافة خدمة</button>
+
+            <div id="servicesList" style="margin-top:10px;"></div>
+
+            <h3>الإجمالي: <span id="totalPrice">0</span> ريال</h3>
+
+            <div class="row">
+                <div>
+                    <label>الخصم</label>
+                    <input id="discount">
+                </div>
+                <div>
+                    <label>رقم الموقف</label>
+                    <select id="parking_slot">
+                        <option value="">اختر</option>
+                        <option>1</option><option>2</option><option>3</option>
+                        <option>4</option><option>5</option><option>6</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>الموظف</label>
+                    <select id="employee_in"></select>
+                </div>
+                <div>
+                    <label>الفرع</label>
+                    <select id="branch">
+                        <option value="Makkah - مكة">Makkah - مكة</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>حالة الدفع</label>
+                    <select id="payment_status">
+                        <option value="">اختر</option>
+                        <option value="مدفوع">مدفوع</option>
+                        <option value="غير مدفوع">غير مدفوع</option>
+                    </select>
+                </div>
+
+                <div id="payment_method_wrapper" style="display:none;">
+                    <label>طريقة الدفع</label>
+                    <select id="payment_method">
+                        <option value="">اختر</option>
+                        <option value="كاش">كاش</option>
+                        <option value="شبكة">شبكة</option>
+                        <option value="جزئي">جزئي</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="partial_payment_box" style="display:none;">
+                <div class="row">
+                    <div>
+                        <label>كاش</label>
+                        <input id="cash_amount">
+                    </div>
+                    <div>
+                        <label>شبكة</label>
+                        <input id="card_amount">
+                    </div>
+                </div>
+            </div>
+
+            <button id="btnSubmitVisit" class="btn-secondary">تسجيل الزيارة</button>
+
+        </div>
     </div>
 
     <!-- Modal -->
