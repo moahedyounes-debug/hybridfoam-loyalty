@@ -275,6 +275,11 @@ async function loadTodayVisits() {
     }).join("");
 }
 
+function openPaymentModal(visitId) {
+    window.currentVisitId = visitId;
+    document.getElementById("modal").style.display = "block";
+}
+
 
 /* ============================
    الحجوزات
