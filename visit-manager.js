@@ -49,7 +49,7 @@ async function loadActiveVisits() {
 
     rows.forEach(r => {
       const row = r.data;
-      const visitRow = r.row;
+      const visitRow = r.row; // رقم الصف الحقيقي في الشيت
 
       const membership = row[0];
       const plate = row[1];
@@ -66,13 +66,12 @@ async function loadActiveVisits() {
           totalPrice: 0,
           checkIn,
           parking,
-          rows: []
+          row: visitRow // نحتفظ برقم الصف الحقيقي
         };
       }
 
       cars[plate].services.push({ name: serviceName, price });
       cars[plate].totalPrice += price;
-      cars[plate].rows.push(visitRow);
     });
 
     Object.values(cars).forEach(car => {
@@ -96,9 +95,9 @@ async function loadActiveVisits() {
         <div class="dropdown">
           <button class="btn-pay">تحديث الدفع ▼</button>
           <div class="dropdown-content">
-            <a href="#" data-method="كاش" data-rows="${car.rows}">دفع كاش</a>
-            <a href="#" data-method="شبكة" data-rows="${car.rows}">دفع شبكة</a>
-            <a href="#" data-method="جزئي" data-rows="${car.rows}">دفع جزئي</a>
+            <a href="#" data-method="كاش" data-row="${car.row}">دفع كاش</a>
+            <a href="#" data-method="شبكة" data-row="${car.row}">دفع شبكة</a>
+            <a href="#" data-method="جزئي" data-row="${car.row}">دفع جزئي</a>
           </div>
         </div>
       `;
@@ -111,24 +110,6 @@ async function loadActiveVisits() {
     showToast("خطأ في تحميل الزيارات", "error");
   }
 }
-
-/* ===========================
-   Event Delegation للقائمة
-=========================== */
-
-document.addEventListener("click", function (e) {
-  if (e.target.matches(".dropdown-content a")) {
-    e.preventDefault();
-
-    const method = e.target.getAttribute("data-method");
-    const rows = e.target.getAttribute("data-rows").split(",");
-
-    selectedVisitRow = rows[rows.length - 1];
-
-    openPaymentModal(method);
-  }
-});
-
 /* ===========================
    مودال الدفع
 =========================== */
