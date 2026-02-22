@@ -3,217 +3,191 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>رغوة الهجين - إدارة الزيارات</title>
+    <title>إدارة الزيارات - رغوة الهجين</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- CSS + JS -->
     <link rel="stylesheet" href="visit-manager.css">
     <script src="api.js"></script>
-    <script src="Rh-visit.js" defer></script>
+    <script src="RH-visit.js" defer></script>
+
+    <style>
+        body {
+            font-family: "Tajawal", sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 15px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            background: #e5e7eb;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .tab.active {
+            background: #0D47A1;
+            color: #fff;
+        }
+
+        .summary-box {
+            background: #fff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px #0001;
+        }
+
+        .section-box {
+            display: none;
+        }
+
+        .car-card,
+        .row-card {
+            background: #fff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px #0001;
+        }
+
+        .btn,
+        .btn-secondary,
+        .btn-edit,
+        .btn-discount {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-top: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .btn-secondary {
+            background: #0D47A1;
+            color: #fff;
+        }
+
+        .btn-edit {
+            background: #4caf50;
+            color: #fff;
+        }
+
+        .btn-discount {
+            background: #ff9800;
+            color: #fff;
+        }
+
+        /* Modal */
+        #modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0005;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: #fff;
+            padding: 20px;
+            width: 90%;
+            max-width: 350px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px #0003;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+
+        .toast {
+            background: #333;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-top: 8px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
 </head>
 
 <body>
 
-    <!-- العنوان -->
-    <div class="page-title">
-        <h1>رغوة الهجين</h1>
-        <h2>إدارة الزيارات</h2>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button id="tab_active" class="tab active" onclick="switchTab('active')">السيارات داخل المغسلة</button>
+        <button id="tab_today" class="tab" onclick="switchTab('today')">زيارات اليوم</button>
+        <button id="tab_completed" class="tab" onclick="switchTab('completed')">زيارات مكتملة</button>
     </div>
 
-    <!-- السيارات داخل المغسلة -->
-    <div class="section">
-        <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
-
-        <div id="activeVisitsList" class="cards"></div>
-
-        <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
+    <!-- Summary -->
+    <div class="summary-box">
+        <div><b>عدد السيارات داخل المغسلة:</b> <span id="sumCars">0</span></div>
+        <div><b>عدد الخدمات المنفذة:</b> <span id="sumServices">0</span></div>
     </div>
 
-    <!-- زيارات اليوم -->
-    <div class="section">
-        <h3 class="section-title">📋 زيارات اليوم</h3>
-        <div class="small">عرض كل الزيارات المسجلة اليوم مع إمكانية إتمام الدفع</div>
-
-        <div id="todayVisitsList" class="cards" style="margin-top:10px;">جاري التحميل...</div>
-
-        <button class="btn-secondary full" onclick="loadTodayVisits()" style="margin-top:10px;">
-            تحديث زيارات اليوم
-        </button>
+    <!-- ACTIVE VISITS -->
+    <div id="active_section" class="section-box" style="display:block;">
+        <h3>🚗 السيارات داخل المغسلة</h3>
+        <div id="activeVisitsList"></div>
     </div>
 
-    <!-- تسجيل الزيارة -->
-    <div id="visitBox" class="section">
-        <h3 class="section-title">تسجيل زيارة</h3>
-
-        <!-- بيانات اللوحة -->
-        <div class="row">
-            <div>
-                <label>أرقام اللوحة</label>
-                <input type="text" id="plate_numbers" placeholder="1234">
-            </div>
-            <div>
-                <label>حروف اللوحة (اختياري)</label>
-                <input type="text" id="plate_letters" placeholder="ABC">
-            </div>
-        </div>
-
-        <!-- السيارة -->
-        <div class="row">
-            <div>
-                <label>براند السيارة</label>
-                <select id="car_type"></select>
-            </div>
-            <div>
-                <label>موديل السيارة</label>
-                <select id="car_model"></select>
-            </div>
-        </div>
-
-        <div class="row">
-            <div>
-                <label>الحجم</label>
-                <input type="text" id="car_size" readonly>
-            </div>
-        </div>
-
-        <!-- الخدمة -->
-        <div class="row">
-            <div>
-                <label>نوع الخدمة</label>
-                <select id="service_type"></select>
-            </div>
-            <div>
-                <label>تفاصيل الخدمة</label>
-                <select id="service_detail"></select>
-            </div>
-        </div>
-
-        <!-- السعر والنقاط -->
-        <div class="row">
-            <div>
-                <label>السعر</label>
-                <input type="number" id="price" readonly>
-            </div>
-            <div>
-                <label>النقاط</label>
-                <input type="number" id="points" readonly>
-            </div>
-        </div>
-
-        <!-- إضافة خدمة -->
-        <button id="btnAddService" class="btn-secondary full">إضافة خدمة +</button>
-
-        <div id="servicesList" class="services-box"></div>
-
-        <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
-
-        <!-- الخصم والموقف -->
-        <div class="row">
-            <div>
-                <label>الخصم</label>
-                <input type="number" id="discount" placeholder="0">
-            </div>
-            <div>
-                <label>رقم الموقف</label>
-                <select id="parking_slot">
-                    <option value="">— اختر رقم الموقف —</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- الموظف والفرع -->
-        <div class="row">
-            <div>
-                <label>الموظف</label>
-                <select id="employee_in"></select>
-            </div>
-            <div>
-                <label>الفرع</label>
-                <select id="branch">
-                    <option value="Makkah - مكة">Makkah - مكة</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- الدفع -->
-        <div class="row">
-            <div>
-                <label>حالة الدفع</label>
-                <select id="payment_status">
-                    <option value="">— اختر حالة الدفع —</option>
-                    <option value="مدفوع">مدفوع</option>
-                    <option value="غير مدفوع">غير مدفوع</option>
-                </select>
-            </div>
-
-            <div id="payment_method_wrapper" style="display:none;">
-                <label>طريقة الدفع</label>
-                <select id="payment_method">
-                    <option value="">— اختر طريقة الدفع —</option>
-                    <option value="كاش">كاش</option>
-                    <option value="شبكة">شبكة</option>
-                    <option value="جزئي">جزئي (كاش + شبكة)</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- الدفع الجزئي -->
-        <div id="partial_payment_box" style="display:none; margin-top:10px;">
-            <div class="row">
-                <div>
-                    <label>مبلغ الكاش</label>
-                    <input type="number" id="cash_amount" placeholder="0">
-                </div>
-                <div>
-                    <label>مبلغ الشبكة</label>
-                    <input type="number" id="card_amount" placeholder="0">
-                </div>
-            </div>
-
-            <h4 style="margin-top:10px;">
-                المجموع المدفوع: <span id="paid_total">0</span> ريال
-            </h4>
-        </div>
-
-        <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
+    <!-- TODAY VISITS -->
+    <div id="today_section" class="section-box">
+        <h3>📋 زيارات اليوم</h3>
+        <div id="todayVisitsList"></div>
     </div>
 
-    <!-- مودال الدفع -->
-    <div id="modal" style="display:none;">
+    <!-- COMPLETED VISITS -->
+    <div id="completed_section" class="section-box">
+        <h3>✔ الزيارات المكتملة</h3>
+        <div id="completedList"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal">
         <div class="modal-box">
+            <h3>الدفع: <span id="modal_method"></span></h3>
+            <p>الإجمالي: <span id="modal_total"></span></p>
 
-            <h3>تحديث الدفع: <span id="modal_method"></span></h3>
-
-            <p style="margin-top:5px;">
-                الإجمالي المطلوب: <span id="modal_total">0 ريال</span>
-            </p>
-
-            <div id="cash_box" style="margin-top:15px;">
+            <div id="cash_box">
                 <label>مبلغ الكاش</label>
                 <input type="number" id="modal_cash" placeholder="0">
             </div>
 
-            <div id="card_box" style="margin-top:15px;">
+            <div id="card_box" style="margin-top:10px;">
                 <label>مبلغ الشبكة</label>
                 <input type="number" id="modal_card" placeholder="0">
             </div>
 
-            <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
-                <button id="modal_confirm" class="btn-primary" style="flex:1;">تأكيد</button>
-                <button id="modal_close" class="btn-secondary" style="flex:1; background:#dc2626;">إغلاق</button>
-            </div>
-
+            <button id="modal_confirm" class="btn-secondary">تأكيد</button>
+            <button onclick="closeModal()" class="btn" style="background:#d32f2f;color:#fff;">إلغاء</button>
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="toast-container"></div>
 
 </body>
+
 </html>
