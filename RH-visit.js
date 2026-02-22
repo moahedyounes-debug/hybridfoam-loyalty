@@ -194,35 +194,50 @@ document.addEventListener("click", function (e) {
 =========================== */
 
 function openPaymentModal(method) {
+    // افتح المودال
     el("modal").style.display = "flex";
     el("modal_method").textContent = method;
 
+    // تفريغ الحقول
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
-    const visitRows = activeVisits.filter(v => v.data[1] === selectedPlate);
+    // فلترة الزيارات حسب اللوحة (نفس طريقة الدفع)
+    const visitRows = activeVisits.filter(v => {
+        const plateCell = String(v.data[1] || "");
+        return plateCell.startsWith(String(selectedPlate));
+    });
 
+    // حساب الإجمالي
     const totalRequired = visitRows.reduce(
         (sum, v) => sum + Number(v.data[7] || 0),
         0
     );
 
+    // عرض الإجمالي
     el("modal_total").textContent = totalRequired + " ريال";
 
+    // إخفاء الحقول
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
 
+    // تعبئة المبلغ تلقائيًا
     if (method === "كاش") {
         el("cash_box").style.display = "block";
         el("modal_cash").value = totalRequired;
-    } else if (method === "شبكة") {
+    }
+
+    if (method === "شبكة") {
         el("card_box").style.display = "block";
         el("modal_card").value = totalRequired;
-    } else if (method === "جزئي") {
+    }
+
+    if (method === "جزئي") {
         el("cash_box").style.display = "block";
         el("card_box").style.display = "block";
     }
 
+    // زر التأكيد
     el("modal_confirm").onclick = () => submitPayment(method);
 }
 
@@ -304,7 +319,10 @@ async function submitPayment(method) {
 =========================== */
 
 function openServiceEditor(plate) {
-    const visitRows = activeVisits.filter(v => v.data[1] === plate);
+    const visitRows = activeVisits.filter(v => {
+        const plateCell = String(v.data[1] || "");
+        return plateCell.startsWith(String(plate));
+    });
 
     if (!visitRows.length) {
         showToast("لا توجد خدمات لهذه السيارة", "error");
@@ -323,9 +341,7 @@ function openServiceEditor(plate) {
         `;
     });
 
-    html += `
-        <button id="saveServices" class="btn-primary full">حفظ التعديلات</button>
-    `;
+    html += `<button id="saveServices" class="btn-primary full">حفظ التعديلات</button>`;
 
     el("modal_edit").innerHTML = html;
     el("modal_edit_container").style.display = "flex";
@@ -358,10 +374,13 @@ function openServiceEditor(plate) {
 =========================== */
 
 function openEmployeeEditor(plate) {
-    const visitRows = activeVisits.filter(v => v.data[1] === plate);
+    const visitRows = activeVisits.filter(v => {
+        const plateCell = String(v.data[1] || "");
+        return plateCell.startsWith(String(plate));
+    });
 
     if (!visitRows.length) {
-        showToast("لا توجد بيانات لهذه السيارة", "error");
+        showToast("لا توجد زيارات لهذه السيارة", "error");
         return;
     }
 
