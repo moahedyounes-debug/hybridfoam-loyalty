@@ -39,6 +39,24 @@ tabs.forEach(t => {
 });
 
 // =========================
+// دالة حساب المبلغ المدفوع
+// =========================
+function getPaidAmount(r) {
+  const price = Number(r[7] || 0);
+  const cash = Number(r[20] || 0);
+  const card = Number(r[21] || 0);
+  const totalPaid = Number(r[22] || 0);
+  const status = String(r[15] || "").trim();
+
+  if (totalPaid > 0) return totalPaid;
+  if (cash > 0) return cash;
+  if (card > 0) return card;
+  if (status === "مدفوع") return price;
+
+  return 0;
+}
+
+// =========================
 // تحميل الملخص
 // =========================
 async function loadSummary() {
@@ -72,24 +90,21 @@ async function loadSummary() {
 
   (visitsRes.rows || []).forEach(r => {
     const checkIn = r[13];
-    const payStatus = String(r[15] || "").trim();
-    if (!checkIn || payStatus !== "مدفوع") return;
+    const status = String(r[15] || "").trim();
+    if (!checkIn || status !== "مدفوع") return;
 
     const day = String(checkIn).split(" ")[0];
     if (day !== today) return;
 
-    const price = Number(r[7] || 0);
-    const cashAmount = Number(r[20] || 0);
-    const cardAmount = Number(r[21] || 0);
-    const totalPaid = Number(r[22] || price);
+    const paid = getPaidAmount(r);
+    total += paid;
 
-    total += totalPaid;
-    cash += cashAmount;
-    card += cardAmount;
+    cash += Number(r[20] || 0);
+    card += Number(r[21] || 0);
+
     visitsCount++;
     servicesCount++;
 
-    // أهم تعديل — قراءة service_detail
     const service = r[6] || "غير محدد";
     byService[service] = (byService[service] || 0) + 1;
   });
@@ -109,6 +124,7 @@ async function loadSummary() {
       .join("");
   }
 }
+
 // =========================
 // زيارات اليوم
 // =========================
@@ -137,7 +153,7 @@ async function loadTodayVisits() {
 
   box.innerHTML = rows.map(r => {
     const plate = `${r[1] || ""} ${r[2] || ""}`;
-    const service = r[6] || "—"; // service_detail
+    const service = r[6] || "—";
     const price = Number(r[7] || 0);
     const emp = r[9] || "—";
     const status = r[15] || "غير مدفوع";
@@ -171,7 +187,7 @@ async function loadActiveVisits() {
     const r = v.data;
 
     const plate = `${r[1] || ""} ${r[2] || ""}`;
-    const service = r[6] || "—"; // service_detail
+    const service = r[6] || "—";
     const price = Number(r[7] || 0);
     const parking = r[17] || "—";
 
@@ -259,7 +275,6 @@ async function searchCustomer() {
 <div><b>النقاط:</b> ${c[11] || 0}</div>
 `;
 
-  // سيارات العميل
   const carsRes = await apiGetCarsByPhone(phone);
   if (!carsRes.success || !carsRes.cars || !carsRes.cars.length) {
     carsBox.innerText = "لا توجد سيارات مسجلة.";
@@ -276,7 +291,6 @@ async function searchCustomer() {
     }).join("");
   }
 
-  // زيارات العميل
   const visitsRes = await apiGetVisitsByMembership(membership);
   if (!visitsRes.success || !visitsRes.visits || !visitsRes.visits.length) {
     visitsBox.innerText = "لا توجد زيارات.";
@@ -284,7 +298,7 @@ async function searchCustomer() {
     visitsBox.innerHTML = visitsRes.visits.map(v => {
       const r = v.data;
       const plate = `${r[1] || ""} ${r[2] || ""}`;
-      const service = r[6] || "—"; // service_detail
+      const service = r[6] || "—";
       const price = Number(r[7] || 0);
       const status = r[15] || "غير مدفوع";
       const checkIn = r[13] || "";
@@ -300,6 +314,7 @@ async function searchCustomer() {
     }).join("");
   }
 }
+
 // =========================
 // الحجوزات
 // =========================
@@ -372,7 +387,7 @@ async function searchInvoices() {
 
   box.innerHTML = matched.map((r, idx) => {
     const plate = `${r[1] || ""} ${r[2] || ""}`;
-    const service = r[6] || "—"; // service_detail
+    const service = r[6] || "—";
     const price = Number(r[7] || 0);
     const points = Number(r[8] || 0);
     const checkIn = r[13] || "";
@@ -406,12 +421,12 @@ function sendInvoice(mode) {
 
   const lines = selected.map((r, idx) => {
     const plate = `${r[1] || ""} ${r[2] || ""}`;
-    const service = r[6] || "—"; // service_detail
+    const service = r[6] || "—";
     const price = Number(r[7] || 0);
     const points = Number(r[8] || 0);
     const checkIn = r[13] || "";
     const day = String(checkIn).split(" ")[0] || "";
-    const paid = Number(r[22] || price);
+    const paid = getPaidAmount(r);
 
     total += paid;
 
