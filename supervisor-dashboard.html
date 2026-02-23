@@ -5,13 +5,8 @@
   <title>لوحة المشرف - نسخة جديدة</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- ملف التنسيق -->
   <link rel="stylesheet" href="dashboard2.css" />
-
-  <!-- ملف API -->
   <script src="api.js"></script>
-
-  <!-- ملف السكربت -->
   <script defer src="dashboard.js"></script>
 </head>
 
@@ -35,20 +30,161 @@
 
   <div class="tab-content">
 
+    <!-- ===================== -->
     <!-- الملخص -->
-    <div id="tab-summary"></div>
+    <!-- ===================== -->
+    <div id="tab-summary">
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">📊 ملخص اليوم</div>
+          <div class="card-sub">الوارد اليومي حسب طرق الدفع والخدمات</div>
 
+          <div class="stat-row">
+            <span class="label">إجمالي المدفوع اليوم</span>
+            <span class="value" id="sumTotal">0 ريال</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="label">كاش اليوم</span>
+            <span class="value" id="sumCash">0 ريال</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="label">شبكة اليوم</span>
+            <span class="value" id="sumCard">0 ريال</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="label">عدد الزيارات المدفوعة</span>
+            <span class="value" id="sumVisits">0</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="label">عدد الخدمات</span>
+            <span class="value" id="sumServices">0</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="label">عدد العملاء</span>
+            <span class="value" id="sumCustomers">0</span>
+          </div>
+
+          <button class="btn" style="margin-top:8px;width:100%;" onclick="loadSummary()">تحديث الملخص</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🧽 عدد الخدمات حسب النوع</div>
+          <div class="card-sub">حسب زيارات اليوم المدفوعة</div>
+          <div id="sumServicesByType" style="font-size:13px;color:#374151;">
+            جاري التحميل...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== -->
     <!-- الزيارات -->
-    <div id="tab-visits" style="display:none;"></div>
+    <!-- ===================== -->
+    <div id="tab-visits" style="display:none;">
+      <div class="grid">
 
+        <div class="card">
+          <div class="card-title">🚗 زيارات اليوم</div>
+          <div class="card-sub">كل الزيارات المسجلة اليوم</div>
+          <div id="todayVisitsBox" style="max-height:260px;overflow:auto;font-size:13px;">
+            جاري التحميل...
+          </div>
+          <button class="btn" style="margin-top:8px;width:100%;" onclick="loadTodayVisits()">تحديث زيارات اليوم</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🚘 زيارات غير مدفوعة</div>
+          <div class="card-sub">كل زيارة حالتها ليست "مدفوع"</div>
+          <div id="activeVisitsBox" style="max-height:260px;overflow:auto;font-size:13px;">
+            جاري التحميل...
+          </div>
+          <button class="btn" style="margin-top:8px;width:100%;" onclick="loadActiveVisits()">تحديث الزيارات النشطة</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===================== -->
     <!-- العملاء -->
-    <div id="tab-customers" style="display:none;"></div>
+    <!-- ===================== -->
+    <div id="tab-customers" style="display:none;">
+      <div class="grid">
 
+        <div class="card">
+          <div class="card-title">🔍 بحث عن عميل</div>
+          <div class="card-sub">بحث برقم الجوال</div>
+          <input id="custPhone" placeholder="رقم الجوال" />
+          <button class="btn" style="width:100%;" onclick="searchCustomer()">بحث</button>
+          <div id="custInfo" style="margin-top:8px;font-size:13px;color:#374151;">
+            لا توجد بيانات بعد.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🚗 سيارات العميل</div>
+          <div id="custCars" style="max-height:260px;overflow:auto;font-size:13px;">
+            لا توجد بيانات.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📋 زيارات العميل</div>
+          <div id="custVisits" style="max-height:260px;overflow:auto;font-size:13px;">
+            لا توجد بيانات.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===================== -->
     <!-- الحجوزات -->
-    <div id="tab-bookings" style="display:none;"></div>
+    <!-- ===================== -->
+    <div id="tab-bookings" style="display:none;">
+      <div class="card">
+        <div class="card-title">📅 الحجوزات</div>
+        <div class="card-sub">كل الحجوزات من شيت Bookings</div>
+        <button class="btn" style="margin-bottom:8px;" onclick="loadBookings()">تحديث الحجوزات</button>
+        <div id="bookingsBox" style="max-height:320px;overflow:auto;font-size:13px;">
+          جاري التحميل...
+        </div>
+      </div>
+    </div>
 
+    <!-- ===================== -->
     <!-- الفواتير -->
-    <div id="tab-invoices" style="display:none;"></div>
+    <!-- ===================== -->
+    <div id="tab-invoices" style="display:none;">
+      <div class="grid">
+
+        <div class="card">
+          <div class="card-title">🧾 بحث عن زيارات سيارة</div>
+          <div class="card-sub">بحث برقم اللوحة</div>
+          <input id="invPlate" placeholder="مثال: 1234 أو أ ب ج" />
+          <button class="btn" style="width:100%;" onclick="searchInvoices()">بحث</button>
+          <div id="invVisits" style="margin-top:8px;max-height:260px;overflow:auto;font-size:13px;">
+            لا توجد زيارات بعد.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📤 إرسال فاتورة واتساب</div>
+          <div class="card-sub">سيتم إنشاء نص بالفواتير وإرساله عبر واتساب</div>
+          <button class="btn-outline" style="width:100%;margin-bottom:6px;" onclick="sendInvoice('last')">
+            إرسال فاتورة آخر زيارة
+          </button>
+          <button class="btn-outline" style="width:100%;" onclick="sendInvoice('all')">
+            إرسال فاتورة كل الزيارات
+          </button>
+        </div>
+
+      </div>
+    </div>
 
   </div>
 
