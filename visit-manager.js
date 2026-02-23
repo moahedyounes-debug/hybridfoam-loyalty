@@ -8,6 +8,7 @@ let selectedPlate = null;
 let selectedServices = [];
 let carTypesData = [];
 let servicesData = [];
+let employeesData = [];
 let currentMembership = "";
 
 /* ===========================
@@ -146,6 +147,7 @@ document.addEventListener("click", function (e) {
         handleEditAction(action, selectedPlate);
     }
 });
+
 /* ===========================
    مودال الدفع
 =========================== */
@@ -231,6 +233,7 @@ async function submitPayment(method) {
     closeModal();
     loadActiveVisits();
 }
+
 /* ===========================
    فتح مودال التعديل
 =========================== */
@@ -249,6 +252,8 @@ function openEditModal() {
     loadDeleteTab();
     loadAddTab();
     loadEmpTab();
+    loadDiscTab();
+    loadTipTab();
 }
 
 /* ===========================
@@ -376,6 +381,7 @@ function loadAddTab() {
         loadActiveVisits();
     };
 }
+
 /* ===========================
    تبويب: تغيير الموظف
 =========================== */
@@ -466,152 +472,7 @@ function loadTipTab() {
         loadActiveVisits();
     };
 }
-/* ===========================
-   تحميل بيانات أنواع السيارات
-=========================== */
-async function loadCarTypes() {
-    try {
-        const res = await apiGetCarTypes();
-        carTypesData = res.types || [];
 
-        const typeSel = el("car_type");
-        typeSel.innerHTML = "";
-
-        carTypesData.forEach(t => {
-            const opt = document.createElement("option");
-            opt.value = t.type;
-            opt.textContent = t.type;
-            typeSel.appendChild(opt);
-        });
-
-        typeSel.onchange = loadCarModels;
-
-        loadCarModels();
-
-    } catch (err) {
-        console.error(err);
-        showToast("خطأ في تحميل أنواع السيارات", "error");
-    }
-}
-
-/* ===========================
-   تحميل موديلات السيارة
-=========================== */
-function loadCarModels() {
-    const selectedType = el("car_type").value;
-    const modelSel = el("car_model");
-    modelSel.innerHTML = "";
-
-    const models = carTypesData.find(t => t.type === selectedType)?.models || [];
-
-    models.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m.model;
-        opt.textContent = m.model;
-        opt.dataset.size = m.size;
-        modelSel.appendChild(opt);
-    });
-
-    modelSel.onchange = () => {
-        const size = modelSel.selectedOptions[0]?.dataset.size || "";
-        el("car_size").value = size;
-    };
-
-    if (models.length) {
-        el("car_size").value = models[0].size;
-    }
-}
-
-/* ===========================
-   تحميل الخدمات
-=========================== */
-async function loadServices() {
-    try {
-        const res = await apiGetServices();
-        servicesData = res.services || [];
-
-        const typeSel = el("service_type");
-        const detailSel = el("service_detail");
-
-        typeSel.innerHTML = "";
-        detailSel.innerHTML = "";
-
-        const types = [...new Set(servicesData.map(s => s.type))];
-
-        types.forEach(t => {
-            const opt = document.createElement("option");
-            opt.value = t;
-            opt.textContent = t;
-            typeSel.appendChild(opt);
-        });
-
-        typeSel.onchange = loadServiceDetails;
-
-        loadServiceDetails();
-
-    } catch (err) {
-        console.error(err);
-        showToast("خطأ في تحميل الخدمات", "error");
-    }
-}
-
-/* ===========================
-   تحميل تفاصيل الخدمة
-=========================== */
-function loadServiceDetails() {
-    const selectedType = el("service_type").value;
-    const detailSel = el("service_detail");
-    detailSel.innerHTML = "";
-
-    const filtered = servicesData.filter(s => s.type === selectedType);
-
-    filtered.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s.service;
-        opt.textContent = `${s.service} — ${s.price} ريال`;
-        opt.dataset.price = s.price;
-        opt.dataset.points = s.points;
-        detailSel.appendChild(opt);
-    });
-
-    detailSel.onchange = () => {
-        const opt = detailSel.selectedOptions[0];
-        el("price").value = opt.dataset.price;
-        el("points").value = opt.dataset.points;
-    };
-
-    if (filtered.length) {
-        const opt = detailSel.selectedOptions[0];
-        el("price").value = opt.dataset.price;
-        el("points").value = opt.dataset.points;
-    }
-}
-
-/* ===========================
-   تحميل الموظفين
-=========================== */
-let employeesData = [];
-
-async function loadEmployees() {
-    try {
-        const res = await apiGetEmployees();
-        employeesData = res.employees || [];
-
-        const sel = el("employee_in");
-        sel.innerHTML = "";
-
-        employeesData.forEach(emp => {
-            const opt = document.createElement("option");
-            opt.value = emp.name;
-            opt.textContent = emp.name;
-            sel.appendChild(opt);
-        });
-
-    } catch (err) {
-        console.error(err);
-        showToast("خطأ في تحميل الموظفين", "error");
-    }
-}
 /* ===========================
    إضافة خدمة إلى قائمة الزيارة
 =========================== */
@@ -776,50 +637,3 @@ function resetVisitForm() {
     renderSelectedServices();
     updateTotalPrice();
 }
-/* ===========================
-   التشغيل النهائي عند فتح الصفحة
-=========================== */
-window.onload = async () => {
-
-    // تحميل البيانات الأساسية
-    await loadCarTypes();
-    await loadServices();
-    await loadEmployees();
-
-    // تحميل الزيارات النشطة
-    await loadActiveVisits();
-
-    // زر تحديث القائمة
-    el("btnRefreshActive").onclick = loadActiveVisits;
-
-    // تغيير حالة الدفع
-    el("payment_status").onchange = () => {
-        const status = el("payment_status").value;
-
-        if (status === "مدفوع") {
-            el("payment_method_wrapper").style.display = "block";
-        } else {
-            el("payment_method_wrapper").style.display = "none";
-            el("partial_payment_box").style.display = "none";
-        }
-    };
-
-    // تغيير طريقة الدفع
-    el("payment_method").onchange = () => {
-        const method = el("payment_method").value;
-
-        if (method === "جزئي") {
-            el("partial_payment_box").style.display = "block";
-        } else {
-            el("partial_payment_box").style.display = "none";
-        }
-    };
-
-    // تحديث مجموع الدفع الجزئي
-    el("cash_amount").oninput =
-    el("card_amount").oninput = () => {
-        const cash = Number(el("cash_amount").value || 0);
-        const card = Number(el("card_amount").value || 0);
-        el("paid_total").textContent = cash + card;
-    };
-};
