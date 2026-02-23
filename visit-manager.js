@@ -24,7 +24,7 @@ function showToast(msg, type = "info") {
 }
 
 /* ===========================
-   تحميل الزيارات النشطة
+   تحميل الزيارات النشطة (نسخة معدلة بالكامل)
 =========================== */
 async function loadActiveVisits() {
     const list = el("activeVisitsList");
@@ -82,7 +82,19 @@ async function loadActiveVisits() {
         <p><b>الموقف:</b> ${car.parking || "-"}</p>
         <p><b>الموظف:</b> ${car.employee}</p>
     </div>
-    <button class="edit-btn" data-edit="${car.plate}">⋮</button>
+
+    <!-- قائمة التعديل -->
+    <div class="dropdown">
+        <button class="edit-btn">⋮ تعديل ▼</button>
+        <div class="dropdown-content edit-menu" data-plate="${car.plate}">
+            <a href="#" data-action="swap">تبديل خدمة</a>
+            <a href="#" data-action="delete">حذف خدمة</a>
+            <a href="#" data-action="add">إضافة خدمة</a>
+            <a href="#" data-action="emp">تغيير الموظف</a>
+            <a href="#" data-action="disc">تغيير الخصم</a>
+            <a href="#" data-action="tip">تغيير الإكرامية</a>
+        </div>
+    </div>
 </div>
 
 <div class="card-body">
@@ -92,9 +104,18 @@ async function loadActiveVisits() {
 </div>
 
 <div class="card-footer">
-    <button class="btn-pay" data-plate="${car.plate}">تحديث الدفع</button>
+    <!-- قائمة الدفع -->
+    <div class="dropdown">
+        <button class="btn-pay">تحديث الدفع ▼</button>
+        <div class="dropdown-content pay-menu" data-plate="${car.plate}">
+            <a href="#" data-method="كاش">دفع كاش</a>
+            <a href="#" data-method="شبكة">دفع شبكة</a>
+            <a href="#" data-method="جزئي">دفع جزئي</a>
+        </div>
+    </div>
 </div>
 `;
+
             list.appendChild(card);
         });
 
