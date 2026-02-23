@@ -335,13 +335,32 @@ function bindCompletedFilters() {
   };
 
   // تصدير Excel (كل البيانات المدفوعة، مو المفلترة فقط)
-  btnExport.onclick = () => {
-    if (!completedVisitsCache.length) {
-      alert("لا توجد بيانات للتصدير");
-      return;
-    }
+btnExport.onclick = () => {
+  const rows = document.querySelectorAll("#completedContent table tr");
+  if (rows.length <= 1) {
+    alert("لا توجد بيانات للتصدير");
+    return;
+  }
 
-    let csv = "اللوحة,الخدمة,السعر,الموظف,طريقة الدفع,الدخول,الخروج\n";
+  // UTF-8 with BOM
+  let csv = "\ufeff";
+
+  rows.forEach((row, i) => {
+    const cols = row.querySelectorAll("td, th");
+    const line = [...cols].map(c => `"${c.innerText}"`).join(",");
+    csv += line + "\n";
+  });
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "filtered_visits.csv";
+  a.click();
+};
+
+    let csv = "\ufeffاللوحة,الخدمة,السعر,الموظف,الدفع,الدخول,الخروج\n";
 
     completedVisitsCache.forEach(v => {
       const plate = `${v[1]} ${v[2]}`;
