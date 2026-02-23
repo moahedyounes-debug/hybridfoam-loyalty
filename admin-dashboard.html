@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة المشرف</title>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Dashboard CSS -->
+    <link rel="stylesheet" href="admin-dashboard.css">
+</head>
+
+<body>
+
+    <!-- ====== HEADER SUMMARY ====== -->
+    <div class="top-summary">
+        <div class="summary-box">
+            <span class="material-icons">payments</span>
+            <p>إجمالي الكاش</p>
+            <h3 id="sumCash">0 ريال</h3>
+        </div>
+
+        <div class="summary-box">
+            <span class="material-icons">credit_card</span>
+            <p>إجمالي الشبكة</p>
+            <h3 id="sumCard">0 ريال</h3>
+        </div>
+
+        <div class="summary-box">
+            <span class="material-icons">account_balance_wallet</span>
+            <p>إجمالي المبلغ</p>
+            <h3 id="sumTotal">0 ريال</h3>
+        </div>
+
+        <div class="summary-box">
+            <span class="material-icons">cleaning_services</span>
+            <p>عدد الخدمات</p>
+            <h3 id="sumServices">0</h3>
+        </div>
+    </div>
+
+    <!-- ====== TABS ====== -->
+    <div class="tabs-container">
+        <button class="tab-btn active" data-tab="employees">
+            <span class="material-icons">person</span> ملخص الموظفين
+        </button>
+
+        <button class="tab-btn" data-tab="completed">
+            <span class="material-icons">directions_car</span> الزيارات المكتملة
+        </button>
+
+        <button class="tab-btn" data-tab="services">
+            <span class="material-icons">cleaning_services</span> ملخص الخدمات
+        </button>
+
+        <button class="tab-btn" data-tab="bookings">
+            <span class="material-icons">event</span> الحجوزات
+        </button>
+
+        <button class="tab-btn" data-tab="notifications">
+            <span class="material-icons">notifications</span> الإشعارات
+        </button>
+
+        <button class="tab-btn" data-tab="invoices">
+            <span class="material-icons">receipt_long</span> الفواتير
+        </button>
+    </div>
+
+    <!-- ====== TAB CONTENT ====== -->
+    <div id="tab-employees" class="tab-content active"></div>
+    <div id="tab-completed" class="tab-content"></div>
+    <div id="tab-services" class="tab-content"></div>
+    <div id="tab-bookings" class="tab-content"></div>
+    <div id="tab-notifications" class="tab-content"></div>
+    <div id="tab-invoices" class="tab-content"></div>
+
+    <!-- ====== DETAILS MODAL ====== -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="material-icons close-btn">close</span>
+            <h2>تفاصيل الزيارة</h2>
+            <div id="detailsBody"></div>
+
+            <div class="modal-actions">
+                <button id="downloadCSV" class="btn-primary">تحميل CSV</button>
+                <button id="downloadPDF" class="btn-secondary">تحميل PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="admin-dashboard.js"></script>
+
+</body>
+</html>
