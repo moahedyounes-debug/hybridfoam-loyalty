@@ -895,6 +895,52 @@ function loadPaidSummary(paidRows) {
 }
 
 /* ===========================
+   ملخص الموظفين (الزيارات المكتملة)
+=========================== */
+
+function loadEmployeeSummaryCompleted(paidRows) {
+  const box = el("employeeSummary");
+  if (!box) return;
+
+  const perEmployee = {};
+
+  paidRows.forEach(v => {
+    const emp = v[9] || "غير محدد";
+    const price = Number(v[7] || 0);
+
+    if (!perEmployee[emp]) {
+      perEmployee[emp] = { cars: 0, total: 0 };
+    }
+
+    perEmployee[emp].cars++;
+    perEmployee[emp].total += price;
+  });
+
+  let html = `
+  <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+    <tr style="background:#0d47a1; color:white;">
+      <th style="padding:8px; border:1px solid #e5e7eb;">الموظف</th>
+      <th style="padding:8px; border:1px solid #e5e7eb;">عدد السيارات</th>
+      <th style="padding:8px; border:1px solid #e5e7eb;">إجمالي المبلغ</th>
+    </tr>
+  `;
+
+  Object.keys(perEmployee).forEach(emp => {
+    html += `
+    <tr>
+      <td style="padding:8px; border:1px solid #e5e7eb;">${emp}</td>
+      <td style="padding:8px; border:1px solid #e5e7eb;">${perEmployee[emp].cars}</td>
+      <td style="padding:8px; border:1px solid #e5e7eb;">${perEmployee[emp].total} ريال</td>
+    </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  box.innerHTML = html;
+}
+
+/* ===========================
    INIT
 =========================== */
 
