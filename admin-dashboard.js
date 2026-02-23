@@ -3,6 +3,12 @@
 =========================== */
 const el = id => document.getElementById(id);
 
+function getDateOnly(value) {
+  if (!value) return "";
+  // يدعم "YYYY-MM-DD" أو "YYYY-MM-DD HH:MM"
+  return String(value).split("T")[0].split(" ")[0];
+}
+
 /* ===========================
    Tabs switching
 =========================== */
@@ -22,7 +28,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 async function loadTopSummary() {
   try {
     const res = await apiGetAll("Visits");
-    if (!res.success || !res.rows) return;
+    if (!res || !res.rows) return;
 
     let cash = 0, card = 0, total = 0, services = 0;
 
@@ -48,7 +54,7 @@ async function loadTopSummary() {
 }
 
 /* ===========================
-   Employees Summary
+   Employees Summary + Total
 =========================== */
 async function loadEmployeesSummary() {
   const box = el("tab-employees");
@@ -56,12 +62,13 @@ async function loadEmployeesSummary() {
 
   try {
     const res = await apiGetAll("Visits");
-    if (!res.success || !res.rows.length) {
+    if (!res || !res.rows || !res.rows.length) {
       box.innerHTML = "<p>لا توجد بيانات.</p>";
       return;
     }
 
     const perEmp = {};
+    let grandTotal = 0;
 
     res.rows.forEach(v => {
       const emp = v[9] || "غير محدد";
@@ -70,6 +77,7 @@ async function loadEmployeesSummary() {
       if (!perEmp[emp]) perEmp[emp] = { cars: 0, total: 0 };
       perEmp[emp].cars++;
       perEmp[emp].total += price;
+      grandTotal += price;
     });
 
     let html = `
@@ -92,6 +100,7 @@ async function loadEmployeesSummary() {
     });
 
     html += `</table>`;
+    html += `<div class="table-total"><b>الإجمالي الكلي: ${grandTotal} ريال</b></div>`;
     box.innerHTML = html;
 
   } catch (err) {
@@ -101,76 +110,7 @@ async function loadEmployeesSummary() {
 }
 
 /* ===========================
-   Completed Visits
-=========================== */
-async function loadCompletedVisits() {
-  const box = el("tab-completed");
-  box.innerHTML = "جارِ التحميل...";
-
-  try {
-    const res = await apiGetAll("Visits");
-    if (!res.success || !res.rows.length) {
-      box.innerHTML = "<p>لا توجد زيارات.</p>";
-      return;
-    }
-
-    const paid = res.rows.filter(v => String(v[15] || "").trim() === "مدفوع");
-
-    if (!paid.length) {
-      box.innerHTML = "<p>لا توجد زيارات مكتملة.</p>";
-      return;
-    }
-
-    let html = `
-      <table>
-        <tr>
-          <th>اللوحة</th>
-          <th>الخدمة</th>
-          <th>السعر</th>
-          <th>الموظف</th>
-          <th>طريقة الدفع</th>
-          <th>تفاصيل</th>
-        </tr>
-    `;
-
-    paid.forEach(v => {
-      const visitObj = {
-        plate: `${v[1] || ""} ${v[2] || ""}`,
-        service: v[6] || "",
-        price: Number(v[22] || v[7] || 0),
-        employee: v[9] || "غير محدد",
-        payment: v[16] || "—",
-        check_in: v[13] || "",
-        check_out: v[14] || ""
-      };
-
-      html += `
-        <tr>
-          <td>${visitObj.plate}</td>
-          <td>${visitObj.service}</td>
-          <td>${visitObj.price}</td>
-          <td>${visitObj.employee}</td>
-          <td>${visitObj.payment}</td>
-          <td>
-            <button class="btn-primary" onclick='openDetails(${JSON.stringify(visitObj)})'>
-              عرض
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-
-    html += `</table>`;
-    box.innerHTML = html;
-
-  } catch (err) {
-    console.error("Error loading completed visits:", err);
-    box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
-  }
-}
-
-/* ===========================
-   Services Summary
+   Services Summary + Total
 =========================== */
 async function loadServicesSummary() {
   const box = el("tab-services");
@@ -178,12 +118,13 @@ async function loadServicesSummary() {
 
   try {
     const res = await apiGetAll("Visits");
-    if (!res.success || !res.rows.length) {
+    if (!res || !res.rows || !res.rows.length) {
       box.innerHTML = "<p>لا توجد بيانات.</p>";
       return;
     }
 
     const perService = {};
+    let grandTotal = 0;
 
     res.rows.forEach(v => {
       const service = v[6] || "غير محدد";
@@ -194,6 +135,7 @@ async function loadServicesSummary() {
 
       perService[service].count++;
       perService[service].total += price;
+      grandTotal += price;
 
       if (method === "كاش") perService[service].cash += price;
       if (method === "شبكة") perService[service].card += price;
@@ -224,12 +166,203 @@ async function loadServicesSummary() {
     });
 
     html += `</table>`;
+    html += `<div class="table-total"><b>الإجمالي الكلي: ${grandTotal} ريال</b></div>`;
     box.innerHTML = html;
 
   } catch (err) {
     console.error("Error loading services summary:", err);
     box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
   }
+}
+
+/* ===========================
+   Completed Visits + Filters + Total + Excel
+=========================== */
+let completedVisitsCache = [];
+
+async function loadCompletedVisits() {
+  const box = document.getElementById("completedContent");
+  box.innerHTML = "جارِ التحميل...";
+
+  try {
+    const res = await apiGetAll("Visits");
+    if (!res || !res.rows || !res.rows.length) {
+      box.innerHTML = "<p>لا توجد زيارات.</p>";
+      el("completedTotal").innerHTML = "";
+      return;
+    }
+
+    completedVisitsCache = res.rows.filter(v => String(v[15] || "").trim() === "مدفوع");
+    renderCompletedVisits(completedVisitsCache);
+
+  } catch (err) {
+    console.error("Error loading completed visits:", err);
+    box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
+    el("completedTotal").innerHTML = "";
+  }
+}
+
+function renderCompletedVisits(list) {
+  const box = document.getElementById("completedContent");
+  const totalBox = document.getElementById("completedTotal");
+
+  if (!list.length) {
+    box.innerHTML = "<p>لا توجد نتائج.</p>";
+    totalBox.innerHTML = "";
+    return;
+  }
+
+  let total = 0;
+
+  let html = `
+    <table>
+      <tr>
+        <th>اللوحة</th>
+        <th>الخدمة</th>
+        <th>السعر</th>
+        <th>الموظف</th>
+        <th>طريقة الدفع</th>
+        <th>الدخول</th>
+        <th>الخروج</th>
+      </tr>
+  `;
+
+  list.forEach(v => {
+    const price = Number(v[22] || v[7] || 0);
+    total += price;
+
+    html += `
+      <tr>
+        <td>${v[1]} ${v[2]}</td>
+        <td>${v[6]}</td>
+        <td>${price}</td>
+        <td>${v[9] || "غير محدد"}</td>
+        <td>${v[16] || "—"}</td>
+        <td>${v[13] || "—"}</td>
+        <td>${v[14] || "—"}</td>
+      </tr>
+    `;
+  });
+
+  html += `</table>`;
+  box.innerHTML = html;
+  totalBox.innerHTML = `<b>الإجمالي: ${total} ريال</b>`;
+}
+
+/* ===== فلاتر التاريخ للزيارات المكتملة ===== */
+function bindCompletedFilters() {
+  const btnToday = el("filterToday");
+  const btnWeek = el("filterWeek");
+  const btnMonth = el("filterMonth");
+  const btnYear = el("filterYear");
+  const btnCustom = el("filterCustom");
+  const inputFrom = el("filterFrom");
+  const inputTo = el("filterTo");
+  const btnExport = el("exportExcel");
+
+  if (!btnToday) return; // لو التاب مو موجود لسبب ما
+
+  // اليوم
+  btnToday.onclick = () => {
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+    const filtered = completedVisitsCache.filter(v => getDateOnly(v[13]) === todayStr);
+    renderCompletedVisits(filtered);
+  };
+
+  // هذا الأسبوع (من الاثنين إلى اليوم)
+  btnWeek.onclick = () => {
+    const now = new Date();
+    const day = now.getDay(); // 0 أحد - 6 سبت
+    const diffToMonday = (day === 0 ? -6 : 1 - day); // نخلي الاثنين بداية
+    const start = new Date(now);
+    start.setDate(now.getDate() + diffToMonday);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const filtered = completedVisitsCache.filter(v => {
+      const d = new Date(v[13]);
+      return d >= start && d <= end;
+    });
+
+    renderCompletedVisits(filtered);
+  };
+
+  // هذا الشهر
+  btnMonth.onclick = () => {
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+
+    const filtered = completedVisitsCache.filter(v => {
+      const d = new Date(v[13]);
+      return d.getMonth() === month && d.getFullYear() === year;
+    });
+
+    renderCompletedVisits(filtered);
+  };
+
+  // هذه السنة
+  btnYear.onclick = () => {
+    const year = new Date().getFullYear();
+
+    const filtered = completedVisitsCache.filter(v => {
+      const d = new Date(v[13]);
+      return d.getFullYear() === year;
+    });
+
+    renderCompletedVisits(filtered);
+  };
+
+  // مخصص
+  btnCustom.onclick = () => {
+    const from = inputFrom.value;
+    const to = inputTo.value;
+
+    if (!from || !to) {
+      alert("اختر التاريخين أولاً");
+      return;
+    }
+
+    const filtered = completedVisitsCache.filter(v => {
+      const d = getDateOnly(v[13]);
+      return d >= from && d <= to;
+    });
+
+    renderCompletedVisits(filtered);
+  };
+
+  // تصدير Excel (كل البيانات المدفوعة، مو المفلترة فقط)
+  btnExport.onclick = () => {
+    if (!completedVisitsCache.length) {
+      alert("لا توجد بيانات للتصدير");
+      return;
+    }
+
+    let csv = "اللوحة,الخدمة,السعر,الموظف,طريقة الدفع,الدخول,الخروج\n";
+
+    completedVisitsCache.forEach(v => {
+      const plate = `${v[1]} ${v[2]}`;
+      const service = v[6] || "";
+      const price = Number(v[22] || v[7] || 0);
+      const emp = v[9] || "";
+      const pay = v[16] || "";
+      const inTime = v[13] || "";
+      const outTime = v[14] || "";
+
+      csv += `${plate},${service},${price},${emp},${pay},${inTime},${outTime}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "completed_visits.csv";
+    a.click();
+  };
 }
 
 /* ===========================
@@ -241,7 +374,7 @@ async function loadBookings() {
 
   try {
     const res = await apiGetAll("Bookings");
-    if (!res.success || !res.rows.length) {
+    if (!res || !res.rows || !res.rows.length) {
       box.innerHTML = "<p>لا توجد حجوزات.</p>";
       return;
     }
@@ -296,12 +429,13 @@ async function loadInvoices() {
 
   try {
     const res = await apiGetAll("Visits");
-    if (!res.success || !res.rows.length) {
+    if (!res || !res.rows || !res.rows.length) {
       box.innerHTML = "<p>لا توجد بيانات.</p>";
       return;
     }
 
     const perMember = {};
+    let grandTotal = 0;
 
     res.rows.forEach(v => {
       const mem = v[0] || "بدون عضوية";
@@ -310,6 +444,7 @@ async function loadInvoices() {
       if (!perMember[mem]) perMember[mem] = { visits: 0, total: 0 };
       perMember[mem].visits++;
       perMember[mem].total += price;
+      grandTotal += price;
     });
 
     let html = `
@@ -332,10 +467,11 @@ async function loadInvoices() {
     });
 
     html += `</table>`;
+    html += `<div class="table-total"><b>الإجمالي الكلي: ${grandTotal} ريال</b></div>`;
     box.innerHTML = html;
 
   } catch (err) {
-    console.error("Error loading invoices:", err);
+    console.error("Error loading invoices summary:", err);
     box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
   }
 }
@@ -374,4 +510,5 @@ document.addEventListener("DOMContentLoaded", () => {
   loadBookings();
   loadNotifications();
   loadInvoices();
+  bindCompletedFilters();
 });
