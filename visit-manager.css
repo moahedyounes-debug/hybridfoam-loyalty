@@ -153,18 +153,10 @@ select:focus {
 }
 
 @keyframes dots {
-  0% {
-    content: " .";
-  }
-  33% {
-    content: " ..";
-  }
-  66% {
-    content: " ...";
-  }
-  100% {
-    content: " .";
-  }
+  0% { content: " ."; }
+  33% { content: " .."; }
+  66% { content: " ..."; }
+  100% { content: " ."; }
 }
 
 /* ============================
@@ -288,15 +280,9 @@ select:focus {
   transform: translateY(0);
 }
 
-.toast.success {
-  background: #16a34a;
-}
-.toast.error {
-  background: #dc2626;
-}
-.toast.info {
-  background: #2563eb;
-}
+.toast.success { background: #16a34a; }
+.toast.error { background: #dc2626; }
+.toast.info { background: #2563eb; }
 
 /* ============================
    صفوف الإدخال
@@ -314,48 +300,22 @@ select:focus {
    Responsive
 ============================ */
 @media (max-width: 768px) {
-  .row {
-    flex-direction: column;
-  }
-
-  .section {
-    padding: 14px;
-  }
-
-  .car-card {
-    font-size: 14px;
-  }
-
-  body::before {
-    background-size: 300px;
-  }
+  .row { flex-direction: column; }
+  .section { padding: 14px; }
+  .car-card { font-size: 14px; }
+  body::before { background-size: 300px; }
 }
 
 @media (max-width: 480px) {
-  .page-title h1 {
-    font-size: 22px;
-  }
-
-  .page-title h2 {
-    font-size: 16px;
-  }
-
-  input,
-  select {
-    font-size: 14px;
-    padding: 10px;
-  }
-
-  .btn-primary,
-  .btn-secondary {
-    font-size: 15px;
-    padding: 12px;
-  }
+  .page-title h1 { font-size: 22px; }
+  .page-title h2 { font-size: 16px; }
+  input, select { font-size: 14px; padding: 10px; }
+  .btn-primary, .btn-secondary { font-size: 15px; padding: 12px; }
 }
+
 /* ===========================
    زر تحديث الدفع + القائمة
 =========================== */
-
 .dropdown {
   position: relative;
   display: inline-block;
@@ -411,7 +371,6 @@ select:focus {
 /* ===========================
    مودال الدفع الذكي
 =========================== */
-
 #modal {
   display: none;
   position: fixed;
@@ -498,4 +457,67 @@ select:focus {
 
 #modal_close:hover {
   background: #b91c1c;
+}
+
+/* ===========================
+   مودال تعديل الخدمات / الموظف
+=========================== */
+#modal_edit_container {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(3px);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+#modal_edit_container .modal-box {
+  background: white;
+  width: 90%;
+  max-width: 420px;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  animation: fadeIn 0.25s ease;
+}
+
+#modal_edit_container h3 {
+  margin-top: 0;
+  font-size: 20px;
+  text-align: center;
+  color: #0d47a1;
+  font-weight: 700;
+}
+
+#modal_edit_container label {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #374151;
+  font-weight: 600;
+}
+
+#modal_edit_container input,
+#modal_edit_container select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  background: #f9fafb;
+}
+
+#modal_edit_close {
+  background: #dc2626;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  float: left;
 }
