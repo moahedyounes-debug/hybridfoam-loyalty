@@ -23,9 +23,7 @@
     <!-- السيارات داخل المغسلة -->
     <div class="section">
         <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
-
         <div id="activeVisitsList" class="cards"></div>
-
         <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
     </div>
 
@@ -95,12 +93,19 @@
 
         <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
 
-        <!-- الخصم والموقف -->
+        <!-- الخصم / الإكرامية / الموقف -->
         <div class="row">
             <div>
                 <label>الخصم</label>
                 <input type="number" id="discount" placeholder="0">
             </div>
+            <div>
+                <label>الإكرامية (اختياري)</label>
+                <input type="number" id="tip" placeholder="0">
+            </div>
+        </div>
+
+        <div class="row">
             <div>
                 <label>رقم الموقف</label>
                 <select id="parking_slot">
@@ -139,7 +144,6 @@
                     <option value="غير مدفوع">غير مدفوع</option>
                 </select>
             </div>
-
             <div id="payment_method_wrapper" style="display:none;">
                 <label>طريقة الدفع</label>
                 <select id="payment_method">
@@ -175,9 +179,7 @@
     <!-- مودال الدفع -->
     <div id="modal" style="display:none;">
         <div class="modal-box">
-
             <h3>تحديث الدفع: <span id="modal_method"></span></h3>
-
             <p style="margin-top:5px;">
                 الإجمالي المطلوب: <span id="modal_total">0 ريال</span>
             </p>
@@ -196,7 +198,6 @@
                 <button id="modal_confirm" class="btn-primary" style="flex:1;">تأكيد</button>
                 <button id="modal_close" class="btn-secondary" style="flex:1; background:#dc2626;">إغلاق</button>
             </div>
-
         </div>
     </div>
 
@@ -204,4 +205,5 @@
     <div id="toast-container"></div>
 
 </body>
+
 </html>
