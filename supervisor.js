@@ -15,7 +15,7 @@ function toDayString(dateLike) {
   if (!dateLike) return "";
   const d = new Date(dateLike);
   if (isNaN(d)) return "";
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+  return d.toISOString().slice(0, 10);
 }
 
 /* ============================
@@ -179,15 +179,10 @@ function exportTodayDetailsToExcel() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
 /* ============================
    بيانات العملاء (تعتمد على carKey)
 ============================ */
-
-function getCarKeyFromRow(row) {
-  const num = row[1] || "";
-  const letters = row[2] || "NULL";
-  return `${num}-${letters}`;
-}
 
 async function loadCustomers() {
   const q = document.getElementById("customerSearch").value.trim().toLowerCase();
@@ -196,7 +191,6 @@ async function loadCustomers() {
   tbody.innerHTML =
     '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">جاري التحميل...</td></tr>';
 
-  // قراءة البيانات
   const customersRes = await apiGetAll("Customers");
   const carsRes = await apiGetAll("Cars");
   const visitsRes = await apiGetAll("Visits");
@@ -209,73 +203,46 @@ async function loadCustomers() {
 
   const customers = customersRes.rows || [];
 
-  /* ============================
-     ربط السيارات بالعميل عبر carKey
-  ============================ */
-
   const carsByKey = {};
-
   if (carsRes.success) {
     (carsRes.rows || []).forEach(c => {
-      const num = c[5] || "";        // plate_numbers
-      const letters = c[4] || "NULL"; // plate_letters
+      const num = c[5] || "";
+      const letters = c[4] || "NULL";
       const carKey = `${num}-${letters}`;
-
       if (!carsByKey[carKey]) carsByKey[carKey] = [];
       carsByKey[carKey].push(c);
     });
   }
 
-  /* ============================
-     ربط الزيارات بالعميل عبر carKey
-  ============================ */
-
   const visitsByKey = {};
-
   if (visitsRes.success) {
     (visitsRes.rows || []).forEach(v => {
-      const carKey = getCarKeyFromRow(v);
+      const carKey = getCarKey(v);
       if (!visitsByKey[carKey]) visitsByKey[carKey] = [];
       visitsByKey[carKey].push(v);
     });
   }
 
-  /* ============================
-     فلترة العملاء
-  ============================ */
-
   const filtered = customers.filter(c => {
-    const name = String(c[0] || "").toLowerCase();  // NAME
-    const phone = String(c[1] || "").toLowerCase(); // PHONE
-    const car = String(c[2] || "").toLowerCase();   // CAR (اختياري)
-
+    const name = String(c[0] || "").toLowerCase();
+    const phone = String(c[1] || "").toLowerCase();
+    const car = String(c[2] || "").toLowerCase();
     if (!q) return true;
-
-    return (
-      name.includes(q) ||
-      phone.includes(q) ||
-      car.includes(q)
-    );
+    return name.includes(q) || phone.includes(q) || car.includes(q);
   });
 
-  if (filtered.length === 0) {
+  if (!filtered.length) {
     tbody.innerHTML =
       '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">لا توجد نتائج</td></tr>';
     return;
   }
-
-  /* ============================
-     بناء جدول العملاء
-  ============================ */
 
   tbody.innerHTML = filtered
     .map(c => {
       const phone = c[1];
       const car = c[2] || "—";
 
-      // إيجاد carKey من جدول Cars
       let carKey = null;
-
       if (carsRes.success) {
         const match = (carsRes.rows || []).find(r => r[1] === phone);
         if (match) {
@@ -304,13 +271,10 @@ async function loadCustomers() {
     })
     .join("");
 }
-/* ============================
-   السيارات غير المدفوعة (تعتمد على carKey)
-============================ */
 
-function buildCarKey(num, letters) {
-  return `${num || ""}-${letters || "NULL"}`;
-}
+/* ============================
+   السيارات غير المدفوعة
+============================ */
 
 async function loadActiveVisits() {
   const box = document.getElementById("activeVisitsList");
@@ -318,24 +282,19 @@ async function loadActiveVisits() {
 
   const res = await apiGetActiveVisits();
 
-  if (!res.success || !res.visits || res.visits.length === 0) {
+  if (!res.success || !res.visits || !res.visits.length) {
     box.innerHTML = "لا توجد سيارات غير مدفوعة حالياً.";
     return;
   }
-
-  /* ============================
-     قراءة بيانات السيارات
-  ============================= */
 
   const carsRes = await apiGetAll("Cars");
   const carMap = {};
 
   if (carsRes.success) {
     (carsRes.rows || []).forEach(r => {
-      const num = r[5] || "";        // plate_numbers
-      const letters = r[4] || "NULL"; // plate_letters
-      const carKey = buildCarKey(num, letters);
-
+      const num = r[5] || "";
+      const letters = r[4] || "NULL";
+      const carKey = `${num}-${letters}`;
       carMap[carKey] = {
         car: r[2] || "",
         size: r[3] || "",
@@ -345,10 +304,6 @@ async function loadActiveVisits() {
     });
   }
 
-  /* ============================
-     بناء قائمة السيارات داخل المغسلة
-  ============================= */
-
   box.innerHTML = res.visits
     .map(v => {
       const row = v.row;
@@ -356,7 +311,7 @@ async function loadActiveVisits() {
 
       const num = d[1] || "";
       const letters = d[2] || "NULL";
-      const carKey = buildCarKey(num, letters);
+      const carKey = `${num}-${letters}`;
 
       let plate = `${num} ${letters}`;
       let carName = carMap[carKey]?.car || "غير معروف";
@@ -390,10 +345,6 @@ async function loadActiveVisits() {
     .join("");
 }
 
-/* ============================
-   تحديث حالة الدفع
-============================ */
-
 async function markPaid(row) {
   const method = document.getElementById(`pay_${row}`).value;
 
@@ -412,8 +363,9 @@ async function markPaid(row) {
   alert("تم تحديث حالة الدفع");
   loadActiveVisits();
 }
+
 /* ============================
-   زيارات اليوم (تعتمد على carKey)
+   زيارات اليوم
 ============================ */
 
 async function loadTodayVisits() {
@@ -468,7 +420,7 @@ async function loadTodayVisits() {
 }
 
 /* ============================
-   الفواتير (تعتمد على carKey)
+   الفواتير
 ============================ */
 
 let INVOICE_STATE = {
@@ -496,7 +448,6 @@ async function searchInvoices() {
 
   const rows = visitsRes.rows || [];
 
-  // البحث باللوحة
   const matched = rows.filter(v => {
     const plate = `${v[1] || ""} ${v[2] || ""}`.toLowerCase();
     return plate.includes(q.toLowerCase());
@@ -566,14 +517,67 @@ function sendInvoice(mode) {
 }
 
 /* ============================
-   التشغيل الأولي
+   الحجوزات
 ============================ */
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadTodaySummary();
-  loadCustomers();
-  loadActiveVisits();
-  loadBookings();
-  loadTodayVisits();
-});
+async function loadBookings() {
+  const box = document.getElementById("bookingsList");
+  box.innerHTML = "جاري التحميل...";
 
+  const res = await apiGetAll("Bookings");
+
+  if (!res.success || !res.rows || !res.rows.length) {
+    box.innerHTML = "لا توجد حجوزات حالياً.";
+    return;
+  }
+
+  box.innerHTML = res.rows
+    .map((b, idx) => {
+      const phone = b[0];
+      const mem = b[1];
+      const service = b[2];
+      const date = b[3];
+      const time = b[4];
+      const status = b[5];
+
+      return `
+<div style="border:1px solid #E5E7EB;border-radius:10px;padding:8px;margin-bottom:8px;font-size:13px;">
+  <b>الخدمة:</b> ${service}<br>
+  <b>التاريخ:</b> ${date} ${time}<br>
+  <b>الجوال:</b> ${phone}<br>
+  <b>الحالة:</b> <span class="tag">${status}</span><br>
+
+  <button class="btn" style="margin-top:6px;width:100%;"
+    onclick="updateBookingStatus(${idx}, 'مؤكد')">
+    ✔ تأكيد الحجز
+  </button>
+
+  <button class="btn-outline" style="margin-top:6px;width:100%;"
+    onclick="updateBookingStatus(${idx}, 'ملغي')">
+    ✖ إلغاء الحجز
+  </button>
+</div>
+`;
+    })
+    .join("");
+}
+
+/* ============================
+   تحديث حالة الحجز
+============================ */
+
+async function updateBookingStatus(row, newStatus) {
+  const res = await apiPost({
+    action: "updateBooking",
+    row,
+    status: newStatus
+  });
+
+  if (!res.success) {
+    alert("حدث خطأ أثناء تحديث الحجز");
+    return;
+  }
+
+  alert("تم تحديث حالة الحجز");
+  loadBookings();
+}
