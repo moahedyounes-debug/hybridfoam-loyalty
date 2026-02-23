@@ -790,6 +790,7 @@ async function loadCompletedVisits() {
 
     loadPaidSummary(paid);
     loadEmployeeSummaryCompleted(paid);
+    loadServiceSummaryCompleted(paid) 
 
   } catch (err) {
     console.error(err);
@@ -798,43 +799,51 @@ async function loadCompletedVisits() {
 }
 
 /* ===========================
-   ملخص الموظفين للزيارات المكتملة (جدول)
+   ملخص الخدمات (الزيارات المكتملة)
 =========================== */
 
-function loadEmployeeSummaryCompleted(paidRows) {
-  const box = el("employeeSummary");
+function loadServiceSummaryCompleted(paidRows) {
+  const box = el("serviceSummary");
   if (!box) return;
 
-  const perEmployee = {};
+  const perService = {};
 
   paidRows.forEach(v => {
-    const emp = v[9] || "غير محدد";   // ← employee_in الصحيح
-    const price = Number(v[7] || 0);  // ← price الصحيح
+    const service = v[6] || "غير محدد";     // service_detail
+    const price = Number(v[7] || 0);        // price
+    const cash = Number(v[20] || 0);        // CASH_AMOUNT
+    const card = Number(v[21] || 0);        // CARD_AMOUNT
 
-    if (!perEmployee[emp]) {
-      perEmployee[emp] = { cars: 0, total: 0 };
+    if (!perService[service]) {
+      perService[service] = { count: 0, total: 0, cash: 0, card: 0 };
     }
 
-    perEmployee[emp].cars++;
-    perEmployee[emp].total += price;
+    perService[service].count++;
+    perService[service].total += price;
+    perService[service].cash += cash;
+    perService[service].card += card;
   });
 
   let html = `
-<h3 class="section-title">📌 ملخص الموظفين (الزيارات المكتملة)</h3>
+<h3 class="section-title">📌 ملخص الخدمات (الزيارات المكتملة)</h3>
 <table style="width:100%; border-collapse: collapse; margin-top:10px;">
   <tr style="background:#0d47a1; color:white;">
-    <th style="padding:8px; border:1px solid #e5e7eb;">الموظف</th>
-    <th style="padding:8px; border:1px solid #e5e7eb;">عدد السيارات</th>
-    <th style="padding:8px; border:1px solid #e5e7eb;">إجمالي المبلغ</th>
+    <th style="padding:8px; border:1px solid #e5e7eb;">الخدمة</th>
+    <th style="padding:8px; border:1px solid #e5e7eb;">عدد المرات</th>
+    <th style="padding:8px; border:1px solid #e5e7eb;">الكاش</th>
+    <th style="padding:8px; border:1px solid #e5e7eb;">الشبكة</th>
+    <th style="padding:8px; border:1px solid #e5e7eb;">الإجمالي</th>
   </tr>
 `;
 
-  Object.keys(perEmployee).forEach(emp => {
+  Object.keys(perService).forEach(service => {
     html += `
   <tr>
-    <td style="padding:8px; border:1px solid #e5e7eb;">${emp}</td>
-    <td style="padding:8px; border:1px solid #e5e7eb;">${perEmployee[emp].cars}</td>
-    <td style="padding:8px; border:1px solid #e5e7eb;">${perEmployee[emp].total} ريال</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">${service}</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].count}</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].cash} ريال</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].card} ريال</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].total} ريال</td>
   </tr>
 `;
   });
