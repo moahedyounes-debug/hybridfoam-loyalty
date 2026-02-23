@@ -1,422 +1,299 @@
-/* ============================
-   RESET + الخط
-============================ */
+/* ===========================
+   RESET
+=========================== */
 * {
-  box-sizing: border-box;
-  font-family: "Tajawal", sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Tajawal", sans-serif;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  background: #f3f6fa;
-  min-height: 100vh;
-  overflow-x: hidden;
+    background: #f5f5f5;
+    padding: 20px;
+    color: #222;
 }
 
-/* خلفية الشعار */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: url("logo.png") no-repeat center center;
-  background-size: 420px;
-  opacity: 0.05;
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* ============================
-   العنوان
-============================ */
+/* ===========================
+   PAGE TITLE
+=========================== */
 .page-title {
-  text-align: center;
-  padding: 20px 10px 10px;
+    text-align: center;
+    margin-bottom: 25px;
 }
 
 .page-title h1 {
-  margin: 0;
-  font-size: 28px;
-  color: #0d47a1;
-  font-weight: 700;
+    font-size: 32px;
+    font-weight: bold;
 }
 
 .page-title h2 {
-  margin: 0;
-  font-size: 18px;
-  color: #374151;
+    font-size: 20px;
+    color: #444;
+    margin-top: 5px;
 }
 
-/* ============================
-   الأقسام
-============================ */
+/* ===========================
+   SECTIONS
+=========================== */
 .section {
-  background: white;
-  margin: 14px;
-  padding: 18px;
-  border-radius: 14px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 6px #0001;
 }
 
 .section-title {
-  margin: 0 0 14px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #0d47a1;
+    margin-bottom: 15px;
+    font-size: 20px;
+    font-weight: bold;
 }
 
-/* ============================
-   الإدخالات
-============================ */
-label {
-  font-size: 14px;
-  color: #374151;
-  font-weight: 600;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 12px;
-  margin-top: 4px;
-  margin-bottom: 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  font-size: 15px;
-  background: #f9fafb;
-  transition: 0.2s;
-}
-
-input:focus,
-select:focus {
-  border-color: #0d47a1;
-  background: #fff;
-}
-
-/* ============================
-   الأزرار
-============================ */
-.btn-primary {
-  background: #0d47a1;
-  color: white;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  font-size: 17px;
-  width: 100%;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-.btn-primary:hover {
-  background: #09367a;
-}
-
-.btn-primary:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: #f97316;
-  color: white;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  font-size: 17px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #dd5f0b;
-}
-
-.full {
-  width: 100%;
-}
-
-/* زر التحميل */
-.btn-loading {
-  opacity: 0.7;
-  pointer-events: none;
-  position: relative;
-}
-
-.btn-loading::after {
-  content: " ...";
-  animation: dots 1s infinite;
-}
-
-@keyframes dots {
-  0% { content: " ."; }
-  33% { content: " .."; }
-  66% { content: " ..."; }
-  100% { content: " ."; }
-}
-
-/* ============================
-   بطاقات السيارات (جديدة)
-============================ */
-.cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.car-card {
-  width: 260px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 14px;
-  font-size: 14px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-  transition: 0.2s;
-}
-
-.car-card:hover {
-  transform: scale(1.02);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.card-header h4 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: #0d47a1;
-}
-
-.card-header p {
-  margin: 2px 0;
-  font-size: 13px;
-}
-
-.edit-btn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  padding: 0 4px;
-  color: #374151;
-}
-
-.card-body ul {
-  margin: 6px 0;
-  padding-left: 18px;
-}
-
-.card-body ul li {
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-
-.card-footer {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-}
-
-/* زر الدفع */
-.btn-pay {
-  background: #f97316;
-  color: white;
-  padding: 10px 12px;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-.btn-pay:hover {
-  background: #dd5f0b;
-}
-
-/* ============================
-   الخدمات المختارة
-============================ */
-.services-box {
-  background: #f3f4f6;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 14px;
-}
-
-.service-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px dashed #d1d5db;
-}
-
-.service-item:last-child {
-  border-bottom: none;
-}
-
-.btn-remove {
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-remove:hover {
-  background: #b91c1c;
-}
-
-.total {
-  font-size: 20px;
-  font-weight: 700;
-  color: #0d47a1;
-  margin-top: 10px;
-}
-
-/* ============================
-   Toast
-============================ */
-#toast-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 99999;
-}
-
-.toast {
-  background: #333;
-  color: white;
-  padding: 14px 20px;
-  border-radius: 12px;
-  margin-top: 12px;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: 0.3s;
-  font-size: 15px;
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.toast.success { background: #16a34a; }
-.toast.error { background: #dc2626; }
-.toast.info { background: #2563eb; }
-
-/* ============================
-   صفوف الإدخال
-============================ */
+/* ===========================
+   ROWS
+=========================== */
 .row {
-  display: flex;
-  gap: 14px;
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
 .row > div {
-  flex: 1;
+    flex: 1;
 }
 
-/* ============================
-   Responsive
-============================ */
-@media (max-width: 768px) {
-  .cards { flex-direction: column; }
-  .car-card { width: 100%; }
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
 }
 
-/* ============================
-   مودال الدفع
-============================ */
-#modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(3px);
-  z-index: 9999;
+input, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+button {
+    cursor: pointer;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: #fff;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: #fff;
+}
+
+.full {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* ===========================
+   SERVICES LIST
+=========================== */
+.services-box {
+    background: #fafafa;
+    padding: 10px;
+    border-radius: 8px;
+    min-height: 50px;
+    margin-top: 10px;
+}
+
+.service-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background: #fff;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border: 1px solid #ddd;
+}
+
+.btn-remove {
+    background: #dc2626;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 6px;
+}
+
+/* ===========================
+   CAR CARDS
+=========================== */
+.cards {
+    display: grid;
+    gap: 15px;
+}
+
+.car-card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px #0001;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.card-body ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.card-footer {
+    margin-top: 10px;
+}
+
+/* ===========================
+   DROPDOWNS
+=========================== */
+.dropdown {
+    position: relative;
+}
+
+.dropdown button {
+    background: #2563eb;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px #0002;
+    min-width: 150px;
+    z-index: 10;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 10px;
+    color: #222;
+    text-decoration: none;
+}
+
+.dropdown-content a:hover {
+    background: #f0f0f0;
+}
+
+/* ===========================
+   MODALS
+=========================== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: #0005;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
 }
 
 .modal-box {
-  background: white;
-  width: 90%;
-  max-width: 380px;
-  margin: 80px auto;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-
-.modal-box h3 {
-  margin: 0 0 10px;
-  text-align: center;
-  color: #0d47a1;
-  font-size: 20px;
-  font-weight: 700;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
 }
 
 .modal-actions {
-  margin-top: 18px;
-  display: flex;
-  gap: 10px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
 
-#modal_confirm {
-  background: #16a34a;
-  color: white;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  font-size: 15px;
-  cursor: pointer;
+/* ===========================
+   EDIT MODAL (TABS)
+=========================== */
+.tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
 }
 
-#modal_close {
-  background: #dc2626;
-  color: white;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  font-size: 15px;
-  cursor: pointer;
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: #e5e7eb;
+    border-radius: 6px;
 }
 
-/* ============================
-   مودال التعديل
-============================ */
-#editModal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(3px);
-  z-index: 9999;
-  justify-content: center;
-  align-items: center;
+.tab-btn.active {
+    background: #2563eb;
+    color: #fff;
 }
 
-#editModal .modal-box {
-  background: white;
-  width: 90%;
-  max-width: 420px;
-  padding: 20px;
-  border-radius: 14px;
+.tab-pane {
+    display: none;
 }
 
-#editClose {
-  float: left;
-  background: #dc2626;
-  color: white;
-  padding: 8px 14px;
-  border-radius: 10px;
-  cursor: pointer;
+.tab-pane.active {
+    display: block;
+}
+
+/* ===========================
+   TOAST
+=========================== */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.toast {
+    background: #333;
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-top: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: 0.3s;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.error {
+    background: #dc2626;
+}
+
+.toast.success {
+    background: #16a34a;
+}
+
+.toast.info {
+    background: #2563eb;
 }
