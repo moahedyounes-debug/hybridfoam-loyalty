@@ -46,6 +46,8 @@ async function loadActiveVisits() {
         rows.forEach(r => {
             const row = r.data;
             const plate = row[1];
+            const brand = row[3] || "";
+            const employee = row[9] || "غير محدد";
             const serviceName = row[6];
             const price = Number(row[7] || 0);
             const checkIn = row[13];
@@ -54,6 +56,8 @@ async function loadActiveVisits() {
             if (!cars[plate]) {
                 cars[plate] = {
                     plate,
+                    brand,
+                    employee,
                     services: [],
                     totalPrice: 0,
                     checkIn,
@@ -74,19 +78,23 @@ async function loadActiveVisits() {
                 .join("");
 
             card.innerHTML = `
-<h4>لوحة: ${car.plate}</h4>
-<p><b>الدخول:</b> ${car.checkIn}</p>
-<p><b>رقم الموقف:</b> ${car.parking}</p>
-<p><b>الخدمات:</b></p>
-<ul>${servicesHTML}</ul>
-<p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
-<div class="dropdown">
-    <button class="btn-pay">تحديث الدفع ▼</button>
-    <div class="dropdown-content">
-        <a href="#" data-method="كاش" data-plate="${car.plate}">دفع كاش</a>
-        <a href="#" data-method="شبكة" data-plate="${car.plate}">دفع شبكة</a>
-        <a href="#" data-method="جزئي" data-plate="${car.plate}">دفع جزئي (كاش + شبكة)</a>
+<div class="card-header">
+    <div>
+        <h4>لوحة: ${car.plate} — ${car.brand}</h4>
+        <p><b>الموقف:</b> ${car.parking || "-"}</p>
+        <p><b>الموظف:</b> ${car.employee}</p>
     </div>
+    <button class="edit-btn" data-edit="${car.plate}">⋮</button>
+</div>
+
+<div class="card-body">
+    <p><b>الخدمات:</b></p>
+    <ul>${servicesHTML}</ul>
+    <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
+</div>
+
+<div class="card-footer">
+    <button class="btn-pay" data-plate="${car.plate}">تحديث الدفع ▼</button>
 </div>
 `;
             list.appendChild(card);
@@ -102,11 +110,25 @@ async function loadActiveVisits() {
 Event Delegation
 =========================== */
 document.addEventListener("click", function (e) {
+    // تحديث الدفع
+    if (e.target.matches(".btn-pay")) {
+        const plate = e.target.getAttribute("data-plate");
+        selectedPlate = plate;
+        openPaymentModal("auto"); // نحدد الطريقة من المودال
+    }
+
+    // من القائمة القديمة (لو استخدمت dropdown-content)
     if (e.target.matches(".dropdown-content a")) {
         e.preventDefault();
         const method = e.target.getAttribute("data-method");
         selectedPlate = e.target.getAttribute("data-plate");
         openPaymentModal(method);
+    }
+
+    // زر التعديل
+    if (e.target.matches(".edit-btn")) {
+        const plate = e.target.getAttribute("data-edit");
+        openEditModal(plate);
     }
 });
 
@@ -115,11 +137,9 @@ document.addEventListener("click", function (e) {
 =========================== */
 function openPaymentModal(method) {
     el("modal").style.display = "block";
-    el("modal_method").textContent = method;
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
-    // جلب كل الصفوف الخاصة باللوحة (مو أول صف فقط)
     const visitRows = activeVisits.filter(v => {
         const plateCell = String(v.data[1] || "");
         return plateCell.startsWith(String(selectedPlate));
@@ -135,16 +155,35 @@ function openPaymentModal(method) {
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
 
-    if (method === "كاش") {
-        el("cash_box").style.display = "block";
-    } else if (method === "شبكة") {
-        el("card_box").style.display = "block";
-    } else if (method === "جزئي") {
-        el("cash_box").style.display = "block";
-        el("card_box").style.display = "block";
+    // لو جاي من زر "تحديث الدفع" العادي نخليه يختار من داخل المودال
+    let payMethod = method;
+    if (method === "auto") {
+        // افتراضيًا نخليه كاش، وتقدر تغيره لاحقًا لقائمة لو حبيت
+        payMethod = "كاش";
     }
 
-    el("modal_confirm").onclick = () => submitPayment(method);
+    el("modal_method").textContent = payMethod;
+
+    if (payMethod === "كاش") {
+        el("cash_box").style.display = "block";
+        el("modal_cash").value = totalRequired;
+        el("modal_cash").readOnly = true;
+        el("card_box").style.display = "none";
+    } else if (payMethod === "شبكة") {
+        el("card_box").style.display = "block";
+        el("modal_card").value = totalRequired;
+        el("modal_card").readOnly = true;
+        el("cash_box").style.display = "none";
+    } else if (payMethod === "جزئي") {
+        el("cash_box").style.display = "block";
+        el("card_box").style.display = "block";
+        el("modal_cash").value = "";
+        el("modal_card").value = "";
+        el("modal_cash").readOnly = false;
+        el("modal_card").readOnly = false;
+    }
+
+    el("modal_confirm").onclick = () => submitPayment(payMethod);
 }
 
 function closeModal() {
@@ -165,7 +204,6 @@ async function submitPayment(method) {
     confirmBtn.textContent = "جاري التحديث...";
 
     try {
-        // جلب كل الصفوف الخاصة باللوحة
         const visitRows = activeVisits.filter(v => {
             const plateCell = String(v.data[1] || "");
             return plateCell.startsWith(String(selectedPlate));
@@ -176,7 +214,15 @@ async function submitPayment(method) {
             0
         );
 
-        const totalPaid = cash + card;
+        let totalPaid = 0;
+
+        if (method === "كاش") {
+            totalPaid = cash;
+        } else if (method === "شبكة") {
+            totalPaid = card;
+        } else {
+            totalPaid = cash + card;
+        }
 
         if (totalPaid !== totalRequired) {
             showToast(`المبلغ المدفوع يجب أن يكون ${totalRequired} ريال`, "error");
@@ -188,12 +234,21 @@ async function submitPayment(method) {
         const paymentMethodLabel =
             method === "جزئي" ? "كاش + شبكة" : method;
 
-        // توزيع الدفع على كل خدمة حسب سعرها
         for (const v of visitRows) {
             const servicePrice = Number(v.data[7] || 0);
             const ratio = servicePrice / totalRequired;
-            const cashForThis = cash * ratio;
-            const cardForThis = card * ratio;
+
+            let cashForThis = 0;
+            let cardForThis = 0;
+
+            if (method === "كاش") {
+                cashForThis = servicePrice;
+            } else if (method === "شبكة") {
+                cardForThis = servicePrice;
+            } else {
+                cashForThis = cash * ratio;
+                cardForThis = card * ratio;
+            }
 
             await apiCloseVisit(v.row, {
                 payment_status: "مدفوع",
@@ -206,8 +261,6 @@ async function submitPayment(method) {
 
         showToast("تم تحديث الدفع", "success");
         closeModal();
-
-        // تحديث سريع بدون تعليق
         setTimeout(loadActiveVisits, 20);
     } catch (err) {
         console.error(err);
@@ -217,6 +270,30 @@ async function submitPayment(method) {
     confirmBtn.disabled = false;
     confirmBtn.textContent = "تأكيد";
 }
+
+/* ===========================
+مودال التعديل (مبدئيًا placeholder)
+=========================== */
+function openEditModal(plate) {
+    const visitRows = activeVisits.filter(v => v.data[1] === plate);
+
+    if (!visitRows.length) {
+        showToast("لا توجد خدمات لهذه السيارة", "error");
+        return;
+    }
+
+    let html = `
+        <h3>التعديل (قيد التطوير)</h3>
+        <p>سيتم لاحقًا إضافة: تبديل خدمة، حذف خدمة، إضافة خدمة، تعديل خصم وإكرامية.</p>
+    `;
+
+    el("editContent").innerHTML = html;
+    el("editModal").style.display = "flex";
+}
+
+el("editClose").onclick = () => {
+    el("editModal").style.display = "none";
+};
 
 /* ===========================
 تحميل أنواع السيارات
@@ -354,14 +431,13 @@ function addServiceToList() {
     const detail = el("service_detail").value;
     const price = Number(el("price").value || 0);
     const points = Number(el("points").value || 0);
-    const category = el("service_type").value; // نوع الخدمة
+    const category = el("service_type").value;
 
     if (!detail) {
         showToast("اختر خدمة", "error");
         return;
     }
 
-    // منع تكرار الغسيل
     if (category === "غسيل") {
         const already = selectedServices.some(s => s.category === "غسيل");
         if (already) {
@@ -445,7 +521,6 @@ async function submitVisit() {
     const discountVal = el("discount").value.trim();
     const tipVal = el("tip").value.trim();
 
-    // التحقق من رقم اللوحة (أرقام فقط)
     if (!plate_numbers) {
         showToast("أدخل أرقام اللوحة", "error");
         resetSubmitButton(btn);
@@ -457,7 +532,6 @@ async function submitVisit() {
         return;
     }
 
-    // براند + موديل
     if (!car_type) {
         showToast("اختر براند السيارة", "error");
         resetSubmitButton(btn);
@@ -469,28 +543,24 @@ async function submitVisit() {
         return;
     }
 
-    // الموظف
     if (!employee_in) {
         showToast("اختر الموظف", "error");
         resetSubmitButton(btn);
         return;
     }
 
-    // خدمات
     if (!selectedServices.length) {
         showToast("أضف خدمة واحدة على الأقل", "error");
         resetSubmitButton(btn);
         return;
     }
 
-    // حالة الدفع
     if (!payment_status) {
         showToast("اختر حالة الدفع", "error");
         resetSubmitButton(btn);
         return;
     }
 
-    // شرط رقم الموقف لو فيه خدمة غسيل
     const hasWash = selectedServices.some(s => s.category === "غسيل");
     if (hasWash && !parking_slot) {
         showToast("رقم الموقف مطلوب لخدمات الغسيل", "error");
@@ -538,7 +608,6 @@ async function submitVisit() {
         cash_amount,
         card_amount,
         rating: "",
-        // الخصم والإكرامية على مستوى الزيارة (يروحوا للشيت كقيمة واحدة)
         discount: discountVal || "",
         tip: tipVal || "",
         services: selectedServices.map(s => ({
@@ -557,11 +626,7 @@ async function submitVisit() {
         });
 
         showToast("تم تسجيل الزيارة", "success");
-
-        // تنظيف النموذج بالكامل
         resetForm();
-
-        // تحديث الزيارات بسرعة بدون أخطاء
         setTimeout(loadActiveVisits, 20);
     } catch (err) {
         console.error(err);
