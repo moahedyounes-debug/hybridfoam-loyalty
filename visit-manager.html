@@ -6,10 +6,8 @@
     <title>رغوة الهجين - إدارة الزيارات</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- CSS -->
+    <!-- CSS + JS -->
     <link rel="stylesheet" href="visit-manager.css">
-
-    <!-- API + JS -->
     <script src="api.js"></script>
     <script src="visit-manager.js" defer></script>
 </head>
@@ -25,9 +23,7 @@
     <!-- السيارات داخل المغسلة -->
     <div class="section">
         <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
-
         <div id="activeVisitsList" class="cards"></div>
-
         <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
     </div>
 
@@ -97,19 +93,18 @@
 
         <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
 
-        <!-- الخصم / الإكرامية -->
+        <!-- الخصم / الإكرامية / الموقف -->
         <div class="row">
             <div>
                 <label>الخصم</label>
                 <input type="number" id="discount" placeholder="0">
             </div>
             <div>
-                <label>الإكرامية</label>
+                <label>الإكرامية (اختياري)</label>
                 <input type="number" id="tip" placeholder="0">
             </div>
         </div>
 
-        <!-- رقم الموقف -->
         <div class="row">
             <div>
                 <label>رقم الموقف</label>
@@ -149,7 +144,6 @@
                     <option value="غير مدفوع">غير مدفوع</option>
                 </select>
             </div>
-
             <div id="payment_method_wrapper" style="display:none;">
                 <label>طريقة الدفع</label>
                 <select id="payment_method">
@@ -183,10 +177,9 @@
     </div>
 
     <!-- مودال الدفع -->
-    <div id="modal">
+    <div id="modal" style="display:none;">
         <div class="modal-box">
             <h3>تحديث الدفع: <span id="modal_method"></span></h3>
-
             <p style="margin-top:5px;">
                 الإجمالي المطلوب: <span id="modal_total">0 ريال</span>
             </p>
@@ -201,76 +194,10 @@
                 <input type="number" id="modal_card" placeholder="0">
             </div>
 
-            <div class="modal-actions">
-                <button id="modal_confirm">تأكيد</button>
-                <button id="modal_close">إغلاق</button>
+            <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
+                <button id="modal_confirm" class="btn-primary" style="flex:1;">تأكيد</button>
+                <button id="modal_close" class="btn-secondary" style="flex:1; background:#dc2626;">إغلاق</button>
             </div>
-        </div>
-    </div>
-
-    <!-- مودال التعديل الكامل -->
-    <div id="editModal" class="modal" style="display:none;">
-        <div class="modal-box" style="max-width:600px;">
-            <h3 style="margin-bottom:15px;">التعديل</h3>
-
-            <!-- التبويبات -->
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="tab-swap">تبديل خدمة</button>
-                <button class="tab-btn" data-tab="tab-delete">حذف خدمة</button>
-                <button class="tab-btn" data-tab="tab-add">إضافة خدمة</button>
-                <button class="tab-btn" data-tab="tab-emp">تغيير الموظف</button>
-                <button class="tab-btn" data-tab="tab-disc">تغيير الخصم</button>
-                <button class="tab-btn" data-tab="tab-tip">تغيير الإكرامية</button>
-            </div>
-
-            <!-- محتوى التبويبات -->
-            <div class="tab-content">
-
-                <!-- تبديل خدمة -->
-                <div id="tab-swap" class="tab-pane active">
-                    <label>اختر الخدمة الجديدة</label>
-                    <select id="swapServiceSelect"></select>
-                    <button id="swapConfirm" class="btn-primary full" style="margin-top:15px;">تأكيد التبديل</button>
-                </div>
-
-                <!-- حذف خدمة -->
-                <div id="tab-delete" class="tab-pane">
-                    <label>اختر الخدمة المراد حذفها</label>
-                    <select id="deleteServiceSelect"></select>
-                    <button id="deleteConfirm" class="btn-danger full" style="margin-top:15px;">حذف الخدمة</button>
-                </div>
-
-                <!-- إضافة خدمة -->
-                <div id="tab-add" class="tab-pane">
-                    <label>اختر خدمة جديدة</label>
-                    <select id="addServiceSelect"></select>
-                    <button id="addConfirm" class="btn-primary full" style="margin-top:15px;">إضافة الخدمة</button>
-                </div>
-
-                <!-- تغيير الموظف -->
-                <div id="tab-emp" class="tab-pane">
-                    <label>اختر الموظف الجديد</label>
-                    <select id="empSelect"></select>
-                    <button id="empConfirm" class="btn-primary full" style="margin-top:15px;">تحديث الموظف</button>
-                </div>
-
-                <!-- تغيير الخصم -->
-                <div id="tab-disc" class="tab-pane">
-                    <label>الخصم الجديد</label>
-                    <input type="number" id="discInput" placeholder="0">
-                    <button id="discConfirm" class="btn-primary full" style="margin-top:15px;">تحديث الخصم</button>
-                </div>
-
-                <!-- تغيير الإكرامية -->
-                <div id="tab-tip" class="tab-pane">
-                    <label>الإكرامية الجديدة</label>
-                    <input type="number" id="tipInput" placeholder="0">
-                    <button id="tipConfirm" class="btn-primary full" style="margin-top:15px;">تحديث الإكرامية</button>
-                </div>
-
-            </div>
-
-            <button id="editClose" class="btn-secondary full" style="margin-top:20px;">إغلاق</button>
         </div>
     </div>
 
