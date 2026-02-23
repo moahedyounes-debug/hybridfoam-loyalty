@@ -11,7 +11,6 @@ body {
   padding: 0;
   background: #f3f6fa;
   min-height: 100vh;
-  position: relative;
   overflow-x: hidden;
 }
 
@@ -91,7 +90,6 @@ select {
 input:focus,
 select:focus {
   border-color: #0d47a1;
-  outline: none;
   background: #fff;
 }
 
@@ -160,49 +158,87 @@ select:focus {
 }
 
 /* ============================
-   بطاقات السيارات
+   بطاقات السيارات (جديدة)
 ============================ */
 .cards {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .car-card {
+  width: 260px;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
-  padding: 16px;
-  font-size: 15px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-  line-height: 1.7;
+  padding: 14px;
+  font-size: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
   transition: 0.2s;
 }
 
 .car-card:hover {
-  transform: scale(1.01);
+  transform: scale(1.02);
 }
 
-.car-card h4 {
-  margin: 0 0 10px;
-  font-size: 20px;
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-header h4 {
+  margin: 0;
+  font-size: 16px;
   font-weight: 700;
   color: #0d47a1;
 }
 
-.car-card p {
-  margin: 4px 0;
-  font-size: 15px;
+.card-header p {
+  margin: 2px 0;
+  font-size: 13px;
 }
 
-.car-card ul {
-  margin: 10px 0 0;
-  padding-left: 20px;
+.edit-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 4px;
+  color: #374151;
 }
 
-.car-card ul li {
-  margin-bottom: 5px;
+.card-body ul {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+
+.card-body ul li {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.card-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* زر الدفع */
+.btn-pay {
+  background: #f97316;
+  color: white;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
   font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-pay:hover {
+  background: #dd5f0b;
 }
 
 /* ============================
@@ -218,7 +254,6 @@ select:focus {
 .service-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 6px 0;
   border-bottom: 1px dashed #d1d5db;
 }
@@ -227,13 +262,9 @@ select:focus {
   border-bottom: none;
 }
 
-.service-item span {
-  font-size: 14px;
-}
-
 .btn-remove {
   background: #dc2626;
-  color: #fff;
+  color: white;
   border: none;
   border-radius: 8px;
   padding: 4px 10px;
@@ -253,7 +284,7 @@ select:focus {
 }
 
 /* ============================
-   Toast Notifications
+   Toast
 ============================ */
 #toast-container {
   position: fixed;
@@ -272,7 +303,6 @@ select:focus {
   transform: translateY(20px);
   transition: 0.3s;
   font-size: 15px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .toast.show {
@@ -300,84 +330,20 @@ select:focus {
    Responsive
 ============================ */
 @media (max-width: 768px) {
-  .row { flex-direction: column; }
-  .section { padding: 14px; }
-  .car-card { font-size: 14px; }
-  body::before { background-size: 300px; }
+  .cards { flex-direction: column; }
+  .car-card { width: 100%; }
 }
 
-@media (max-width: 480px) {
-  .page-title h1 { font-size: 22px; }
-  .page-title h2 { font-size: 16px; }
-  input, select { font-size: 14px; padding: 10px; }
-  .btn-primary, .btn-secondary { font-size: 15px; padding: 12px; }
-}
-
-/* ===========================
-   زر تحديث الدفع + القائمة
-=========================== */
-.dropdown {
-  position: relative;
-  display: inline-block;
-  margin-top: 12px;
-}
-
-.btn-pay {
-  background: #f97316;
-  color: white;
-  padding: 12px 14px;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  cursor: pointer;
-  width: 160px;
-  text-align: center;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-.btn-pay:hover {
-  background: #dd5f0b;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background: white;
-  min-width: 160px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-  z-index: 20;
-  overflow: hidden;
-}
-
-.dropdown-content a {
-  display: block;
-  padding: 10px;
-  font-size: 14px;
-  color: #333;
-  text-decoration: none;
-  border-bottom: 1px solid #eee;
-}
-
-.dropdown-content a:hover {
-  background: #f3f4f6;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-/* ===========================
-   مودال الدفع الذكي
-=========================== */
+/* ============================
+   مودال الدفع
+============================ */
 #modal {
   display: none;
   position: fixed;
-  z-index: 9999;
   inset: 0;
   background: rgba(0,0,0,0.45);
   backdrop-filter: blur(3px);
+  z-index: 9999;
 }
 
 .modal-box {
@@ -388,81 +354,46 @@ select:focus {
   padding: 20px;
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  animation: fadeIn 0.25s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
 }
 
 .modal-box h3 {
-  margin-top: 0;
-  font-size: 20px;
+  margin: 0 0 10px;
   text-align: center;
   color: #0d47a1;
+  font-size: 20px;
   font-weight: 700;
-}
-
-.modal-box label {
-  display: block;
-  margin-top: 12px;
-  font-size: 14px;
-  color: #374151;
-  font-weight: 600;
-}
-
-.modal-box input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 6px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 15px;
-  background: #f9fafb;
 }
 
 .modal-actions {
   margin-top: 18px;
   display: flex;
-  justify-content: space-between;
   gap: 10px;
 }
 
 #modal_confirm {
   background: #16a34a;
   color: white;
-  padding: 12px 18px;
-  border: none;
+  padding: 12px;
   border-radius: 10px;
+  border: none;
   font-size: 15px;
   cursor: pointer;
-  font-weight: 600;
-}
-
-#modal_confirm:hover {
-  background: #128a3e;
 }
 
 #modal_close {
   background: #dc2626;
   color: white;
-  padding: 12px 18px;
-  border: none;
+  padding: 12px;
   border-radius: 10px;
+  border: none;
   font-size: 15px;
   cursor: pointer;
-  font-weight: 600;
 }
 
-#modal_close:hover {
-  background: #b91c1c;
-}
-
-/* ===========================
-   مودال تعديل الخدمات / الموظف
-=========================== */
-#modal_edit_container {
+/* ============================
+   مودال التعديل
+============================ */
+#editModal {
   display: none;
   position: fixed;
   inset: 0;
@@ -473,51 +404,19 @@ select:focus {
   align-items: center;
 }
 
-#modal_edit_container .modal-box {
+#editModal .modal-box {
   background: white;
   width: 90%;
   max-width: 420px;
   padding: 20px;
   border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  animation: fadeIn 0.25s ease;
 }
 
-#modal_edit_container h3 {
-  margin-top: 0;
-  font-size: 20px;
-  text-align: center;
-  color: #0d47a1;
-  font-weight: 700;
-}
-
-#modal_edit_container label {
-  display: block;
-  margin-top: 12px;
-  font-size: 14px;
-  color: #374151;
-  font-weight: 600;
-}
-
-#modal_edit_container input,
-#modal_edit_container select {
-  width: 100%;
-  padding: 12px;
-  margin-top: 6px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 15px;
-  background: #f9fafb;
-}
-
-#modal_edit_close {
+#editClose {
+  float: left;
   background: #dc2626;
   color: white;
-  padding: 10px 16px;
-  border: none;
+  padding: 8px 14px;
   border-radius: 10px;
-  font-size: 14px;
   cursor: pointer;
-  font-weight: 600;
-  float: left;
 }
