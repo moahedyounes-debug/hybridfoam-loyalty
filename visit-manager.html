@@ -226,6 +226,73 @@
     <!-- Toast -->
     <div id="toast-container"></div>
 
+<!-- مودال التعديل الكامل -->
+<div id="editModal" class="modal" style="display:none;">
+    <div class="modal-box" style="max-width:600px;">
+        <h3 style="margin-bottom:15px;">التعديل</h3>
+
+        <!-- التبويبات -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab-swap">تبديل خدمة</button>
+            <button class="tab-btn" data-tab="tab-delete">حذف خدمة</button>
+            <button class="tab-btn" data-tab="tab-add">إضافة خدمة</button>
+            <button class="tab-btn" data-tab="tab-emp">تغيير الموظف</button>
+            <button class="tab-btn" data-tab="tab-disc">تغيير الخصم</button>
+            <button class="tab-btn" data-tab="tab-tip">تغيير الإكرامية</button>
+        </div>
+
+        <!-- محتوى التبويبات -->
+        <div class="tab-content">
+
+            <!-- تبديل خدمة -->
+            <div id="tab-swap" class="tab-pane active">
+                <label>اختر الخدمة الجديدة</label>
+                <select id="swapServiceSelect"></select>
+                <button id="swapConfirm" class="btn-primary full" style="margin-top:15px;">تأكيد التبديل</button>
+            </div>
+
+            <!-- حذف خدمة -->
+            <div id="tab-delete" class="tab-pane">
+                <label>اختر الخدمة المراد حذفها</label>
+                <select id="deleteServiceSelect"></select>
+                <button id="deleteConfirm" class="btn-danger full" style="margin-top:15px;">حذف الخدمة</button>
+            </div>
+
+            <!-- إضافة خدمة -->
+            <div id="tab-add" class="tab-pane">
+                <label>اختر خدمة جديدة</label>
+                <select id="addServiceSelect"></select>
+                <button id="addConfirm" class="btn-primary full" style="margin-top:15px;">إضافة الخدمة</button>
+            </div>
+
+            <!-- تغيير الموظف -->
+            <div id="tab-emp" class="tab-pane">
+                <label>اختر الموظف الجديد</label>
+                <select id="empSelect"></select>
+                <button id="empConfirm" class="btn-primary full" style="margin-top:15px;">تحديث الموظف</button>
+            </div>
+
+            <!-- تغيير الخصم -->
+            <div id="tab-disc" class="tab-pane">
+                <label>الخصم الجديد</label>
+                <input type="number" id="discInput" placeholder="0">
+                <button id="discConfirm" class="btn-primary full" style="margin-top:15px;">تحديث الخصم</button>
+            </div>
+
+            <!-- تغيير الإكرامية -->
+            <div id="tab-tip" class="tab-pane">
+                <label>الإكرامية الجديدة</label>
+                <input type="number" id="tipInput" placeholder="0">
+                <button id="tipConfirm" class="btn-primary full" style="margin-top:15px;">تحديث الإكرامية</button>
+            </div>
+
+        </div>
+
+        <button id="editClose" class="btn-secondary full" style="margin-top:20px;">إغلاق</button>
+    </div>
+</div>
+
+    
 </body>
 
 </html>
