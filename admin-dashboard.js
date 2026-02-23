@@ -145,7 +145,7 @@ function renderEmployeesSummary(list) {
 
   let html = `
     <table>
-      <tr><th>الموظف</th><th>السيارات</th><th>الإجمالي</th></tr>
+      <tr><th>الموظف</th><th>الخدمات</th><th>الإجمالي</th></tr>
   `;
 
   Object.keys(emp).forEach(e => {
