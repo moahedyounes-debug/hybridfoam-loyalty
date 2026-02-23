@@ -1,44 +1,66 @@
 /* ============================
    تسجيل خروج
 ============================ */
+
 function logout() {
   localStorage.removeItem("supervisor");
   window.location.href = "index.html";
 }
 
 /* ============================
+   أداة مساعدة للتاريخ (يوم فقط)
+============================ */
+
+function toDayString(dateLike) {
+  if (!dateLike) return "";
+  const d = new Date(dateLike);
+  if (isNaN(d)) return "";
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+/* ============================
    ملخص اليوم
 ============================ */
+
+let TODAY_PAID_ROWS = []; // نخزن زيارات اليوم المدفوعة لإعادة استخدامها في الجدول والتصدير
+
 async function loadTodaySummary() {
   const visitsRes = await apiGetAll("Visits");
   if (!visitsRes.success) return;
 
   const rows = visitsRes.rows || [];
-  const today = new Date().toISOString().slice(0, 10);
+  const todayStr = toDayString(new Date());
 
-  let total = 0, cash = 0, network = 0;
+  let total = 0, cash = 0, network = 0, totalServices = 0;
   const serviceCount = {};
+  TODAY_PAID_ROWS = [];
 
   rows.forEach(v => {
-    const checkIn = String(v[13] || "");      // CHECK_IN
-    const status  = String(v[15] || "").trim(); // PAY_STATUS
-    if (!checkIn.startsWith(today)) return;
+    const checkInDay = toDayString(v[13]); // CHECK_IN
+    const status = String(v[15] || "").trim(); // PAY_STATUS
+
+    if (checkInDay !== todayStr) return;
     if (status !== "مدفوع") return;
 
     const service = String(v[6] || "غير محدد"); // SERVICE
-    const paid    = Number(v[22] || v[7] || 0);  // TOTAL_PAID أو PRICE
-    const method  = String(v[16] || "");         // PAY_METHOD
+    const paid = Number(v[22] || v[7] || 0);     // TOTAL_PAID أو PRICE
+    const method = String(v[16] || "");          // PAY_METHOD
 
     total += paid;
-    if (method === "كاش")   cash    += paid;
+    totalServices++;
+
+    if (method === "كاش") cash += paid;
     if (method === "شبكة") network += paid;
 
     serviceCount[service] = (serviceCount[service] || 0) + 1;
+
+    TODAY_PAID_ROWS.push(v);
   });
 
-  document.getElementById("todayTotal").innerText   = total   + " ريال";
-  document.getElementById("todayCash").innerText    = cash    + " ريال";
+  document.getElementById("todayTotal").innerText = total + " ريال";
+  document.getElementById("todayCash").innerText = cash + " ريال";
   document.getElementById("todayNetwork").innerText = network + " ريال";
+  document.getElementById("todayServicesCount").innerText = totalServices + " خدمة";
 
   const servicesBox = document.getElementById("todayServices");
   if (Object.keys(serviceCount).length === 0) {
@@ -53,11 +75,109 @@ async function loadTodaySummary() {
   if (customersRes.success) {
     document.getElementById("totalMembers").innerText = customersRes.rows.length;
   }
+
+  // بناء جدول تفاصيل اليوم
+  renderTodayDetailsTable(TODAY_PAID_ROWS);
+}
+
+/* ============================
+   جدول تفاصيل زيارات اليوم
+============================ */
+
+function renderTodayDetailsTable(rows) {
+  const tbody = document.getElementById("todayDetailsBody");
+  if (!tbody) return;
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#9CA3AF;">لا توجد بيانات</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(v => {
+    const employee = v[9] || "غير محدد";      // employee_in
+    const parking = v[17] || "—";             // parking_slot
+    const service = v[6] || "—";              // service_detail
+    const price = Number(v[7] || 0);          // price
+    const cash = Number(v[20] || 0);          // CASH_AMOUNT
+    const card = Number(v[21] || 0);          // CARD_AMOUNT
+    const totalPaid = Number(v[22] || price); // TOTAL_PAID أو السعر
+    const discount = Math.max(0, price - totalPaid); // خصم بسيط إن وجد
+
+    return `
+<tr>
+  <td>${employee}</td>
+  <td>${parking}</td>
+  <td>${service}</td>
+  <td>${price}</td>
+  <td>${cash}</td>
+  <td>${card}</td>
+  <td>${totalPaid}</td>
+  <td>${discount}</td>
+</tr>
+`;
+  }).join("");
+}
+
+/* ============================
+   تصدير تفاصيل اليوم إلى إكسل (CSV)
+============================ */
+
+function exportTodayDetailsToExcel() {
+  if (!TODAY_PAID_ROWS.length) {
+    alert("لا توجد بيانات لتصديرها.");
+    return;
+  }
+
+  const header = [
+    "الموظف",
+    "الموقف",
+    "الخدمة",
+    "السعر",
+    "كاش",
+    "شبكة",
+    "الإجمالي",
+    "الخصم"
+  ];
+
+  const lines = TODAY_PAID_ROWS.map(v => {
+    const employee = v[9] || "غير محدد";
+    const parking = v[17] || "—";
+    const service = v[6] || "—";
+    const price = Number(v[7] || 0);
+    const cash = Number(v[20] || 0);
+    const card = Number(v[21] || 0);
+    const totalPaid = Number(v[22] || price);
+    const discount = Math.max(0, price - totalPaid);
+
+    return [
+      employee,
+      parking,
+      service,
+      price,
+      cash,
+      card,
+      totalPaid,
+      discount
+    ].join(",");
+  });
+
+  const csv = [header.join(","), ...lines].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "today-details.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /* ============================
    بيانات العملاء
 ============================ */
+
 async function loadCustomers() {
   const q = document.getElementById("customerSearch").value.trim().toLowerCase();
   const tbody = document.getElementById("customersTable");
@@ -65,8 +185,8 @@ async function loadCustomers() {
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">جاري التحميل...</td></tr>';
 
   const customersRes = await apiGetAll("Customers");
-  const carsRes      = await apiGetAll("Cars");
-  const visitsRes    = await apiGetAll("Visits");
+  const carsRes = await apiGetAll("Cars");
+  const visitsRes = await apiGetAll("Visits");
 
   if (!customersRes.success) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;">خطأ في قراءة البيانات</td></tr>';
@@ -96,7 +216,7 @@ async function loadCustomers() {
   const filtered = customers.filter(c => {
     const name = String(c[0] || "").toLowerCase(); // NAME
     const phone = String(c[1] || "").toLowerCase(); // PHONE
-    const mem = String(c[8] || "").toLowerCase();   // MEMBERSHIP
+    const mem = String(c[8] || "").toLowerCase(); // MEMBERSHIP
     if (!q) return true;
     return name.includes(q) || phone.includes(q) || mem.includes(q);
   });
@@ -108,35 +228,37 @@ async function loadCustomers() {
 
   tbody.innerHTML = filtered.map(c => {
     const mem = c[8];
-    const cars   = carsByMembership[mem]   || [];
+    const cars = carsByMembership[mem] || [];
     const visits = visitsByMembership[mem] || [];
 
     const servicesCount = visits.length; // صف لكل خدمة
     const paidAmount = visits.reduce((sum, v) => {
-      return sum + Number(v[22] || 0); // TOTAL_PAID (آخر صف لكل زيارة)
+      return sum + Number(v[22] || 0); // TOTAL_PAID
     }, 0);
 
     return `
-      <tr>
-        <td>${c[0]}</td>
-        <td>${mem || "—"}</td>
-        <td>${cars.length}</td>
-        <td>${visits.length}</td>
-        <td>${servicesCount}</td>
-        <td>${paidAmount} ريال</td>
-      </tr>
-    `;
+<tr>
+  <td>${c[0]}</td>
+  <td>${mem || "—"}</td>
+  <td>${cars.length}</td>
+  <td>${visits.length}</td>
+  <td>${servicesCount}</td>
+  <td>${paidAmount} ريال</td>
+</tr>
+`;
   }).join("");
 }
 
 /* ============================
    السيارات غير المدفوعة
 ============================ */
+
 async function loadActiveVisits() {
   const box = document.getElementById("activeVisitsList");
   box.innerHTML = "جاري التحميل...";
 
   const res = await apiGetActiveVisits();
+
   if (!res.success || !res.visits || res.visits.length === 0) {
     box.innerHTML = "لا توجد سيارات غير مدفوعة حالياً.";
     return;
@@ -149,51 +271,49 @@ async function loadActiveVisits() {
     (carsRes.rows || []).forEach(r => {
       const mem = r[0]; // membership
       carMap[mem] = {
-        car:     r[2], // CAR
-        letters: r[4], // PLATE_LETTERS
-        numbers: r[5]  // PLATE_NUMBERS
+        car: r[2],        // CAR
+        letters: r[4],    // PLATE_LETTERS
+        numbers: r[5]     // PLATE_NUMBERS
       };
     });
   }
 
   box.innerHTML = res.visits.map(v => {
     const row = v.row;
-    const d   = v.data;
+    const d = v.data;
     const mem = d[0]; // membership
 
-    let plate   = "غير معروف";
+    let plate = "غير معروف";
     let carName = "";
 
     if (carMap[mem]) {
-      plate   = `${carMap[mem].numbers} ${carMap[mem].letters}`;
+      plate = `${carMap[mem].numbers} ${carMap[mem].letters}`;
       carName = carMap[mem].car;
     }
 
-    const service = d[6];           // SERVICE
-    const price   = Number(d[7] || 0); // PRICE
-    const parking = d[17] || "—";   // PARKING
-    const checkIn = d[13] || "";    // CHECK_IN
+    const service = d[6]; // SERVICE
+    const price = Number(d[7] || 0); // PRICE
+    const parking = d[17] || "—"; // PARKING
+    const checkIn = d[13] || ""; // CHECK_IN
 
     return `
-      <div style="border:1px solid #E5E7EB;border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;">
-        <b>🚗 اللوحة:</b> ${plate} — ${carName}<br>
-        <b>العضوية:</b> ${mem || "—"}<br>
-        <b>الخدمة:</b> ${service}<br>
-        <b>السعر:</b> ${price} ريال<br>
-        <b>الموقف:</b> ${parking}<br>
-        <b>الدخول:</b> ${checkIn}<br>
-
-        <label style="font-size:12px;">طريقة الدفع</label>
-        <select id="pay_${row}" style="margin-top:2px;">
-          <option value="كاش">كاش</option>
-          <option value="شبكة">شبكة</option>
-        </select>
-
-        <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;" onclick="markPaid(${row})">
-          تحديث حالة الدفع
-        </button>
-      </div>
-    `;
+<div style="border:1px solid #E5E7EB;border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;">
+  <b>🚗 اللوحة:</b> ${plate} — ${carName}<br>
+  <b>العضوية:</b> ${mem || "—"}<br>
+  <b>الخدمة:</b> ${service}<br>
+  <b>السعر:</b> ${price} ريال<br>
+  <b>الموقف:</b> ${parking}<br>
+  <b>الدخول:</b> ${checkIn}<br>
+  <label style="font-size:12px;">طريقة الدفع</label>
+  <select id="pay_${row}" style="margin-top:2px;">
+    <option value="كاش">كاش</option>
+    <option value="شبكة">شبكة</option>
+  </select>
+  <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;" onclick="markPaid(${row})">
+    تحديث حالة الدفع
+  </button>
+</div>
+`;
   }).join("");
 }
 
@@ -216,112 +336,101 @@ async function markPaid(row) {
   loadActiveVisits();
 }
 
-* ============================
-   سيارات اليوم
+/* ============================
+   زيارات اليوم (مطابقة لإدارة الزيارات قدر الإمكان)
 ============================ */
 
 async function loadTodayVisits() {
-    const res = await apiGetAll("Visits");
-    if (!res.success) {
-        document.getElementById("todayVisitsList").innerHTML =
-            "<div style='color:#D32F2F;'>خطأ في تحميل البيانات</div>";
-        return;
-    }
+  const res = await apiGetAll("Visits");
 
-    const rows = res.rows || [];
-    const today = new Date().toISOString().slice(0, 10);
+  if (!res.success) {
+    document.getElementById("todayVisitsList").innerHTML =
+      "<div style='color:#D32F2F;'>خطأ في تحميل البيانات</div>";
+    return;
+  }
 
-    const todayVisits = rows.filter(v => {
-        const checkIn = String(v[13] || "").split(" ")[0];
-        return checkIn === today;
-    });
+  const rows = res.rows || [];
+  const todayStr = toDayString(new Date());
 
-    const box = document.getElementById("todayVisitsList");
+  const todayVisits = rows.filter(v => {
+    const checkInDay = toDayString(v[13]);
+    return checkInDay === todayStr;
+  });
 
-    if (!todayVisits.length) {
-        box.innerHTML = `<div style="color:#9CA3AF;text-align:center;">لا توجد زيارات اليوم</div>`;
-        return;
-    }
+  const box = document.getElementById("todayVisitsList");
 
-    box.innerHTML = todayVisits.map(v => {
-        const plate = `${v[1] || ""} ${v[2] || ""}`;
-        const service = v[6] || "—";
-        const price = v[7] || 0;
-        const employee = v[9] || "—";
-        const payStatus = v[15] || "غير مدفوع";
+  if (!todayVisits.length) {
+    box.innerHTML = `<div style="color:#9CA3AF;text-align:center;">لا توجد زيارات اليوم</div>`;
+    return;
+  }
 
-        return `
-            <div style="
-                padding:10px;
-                border-bottom:1px solid #E5E7EB;
-                margin-bottom:8px;
-            ">
-                <div><strong>🚗 السيارة:</strong> ${plate}</div>
-                <div><strong>الخدمة:</strong> ${service}</div>
-                <div><strong>السعر:</strong> ${price} ريال</div>
-                <div><strong>الموظف:</strong> ${employee}</div>
-                <div><strong>حالة الدفع:</strong> 
-                    <span class="tag">${payStatus}</span>
-                </div>
+  box.innerHTML = todayVisits.map(v => {
+    const plate = `${v[1] || ""} ${v[2] || ""}`;
+    const service = v[6] || "—";
+    const price = v[7] || 0;
+    const employee = v[9] || "—";
+    const payStatus = v[15] || "غير مدفوع";
 
-                ${payStatus === "غير مدفوع" ? `
-                    <button class="btn" style="margin-top:6px;"
-                        onclick="openPaymentModal('${v[0]}')">
-                        إتمام الدفع
-                    </button>
-                ` : ""}
-            </div>
-        `;
-    }).join("");
+    return `
+<div style="
+  padding:10px;
+  border-bottom:1px solid #E5E7EB;
+  margin-bottom:8px;
+">
+  <div><strong>🚗 السيارة:</strong> ${plate}</div>
+  <div><strong>الخدمة:</strong> ${service}</div>
+  <div><strong>السعر:</strong> ${price} ريال</div>
+  <div><strong>الموظف:</strong> ${employee}</div>
+  <div><strong>حالة الدفع:</strong>
+    <span class="tag">${payStatus}</span>
+  </div>
+</div>
+`;
+  }).join("");
 }
-
-function openPaymentModal(visitId) {
-    window.currentVisitId = visitId;
-    document.getElementById("modal").style.display = "block";
-}
-
 
 /* ============================
    الحجوزات
 ============================ */
+
 async function loadBookings() {
   const box = document.getElementById("bookingsList");
   box.innerHTML = "جاري التحميل...";
 
   const res = await apiGetAll("Bookings");
+
   if (!res.success || !res.rows || !res.rows.length) {
     box.innerHTML = "لا توجد حجوزات حالياً.";
     return;
   }
 
   box.innerHTML = res.rows.map((b, idx) => {
-    const phone   = b[0]; // PHONE
-    const mem     = b[1]; // MEMBERSHIP
+    const phone = b[0]; // PHONE
+    const mem = b[1];   // MEMBERSHIP
     const service = b[2]; // SERVICE
-    const date    = b[3]; // DATE
-    const time    = b[4]; // TIME
-    const status  = b[5]; // STATUS
+    const date = b[3];  // DATE
+    const time = b[4];  // TIME
+    const status = b[5]; // STATUS
 
     return `
-      <div style="border:1px solid #E5E7EB;border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;">
-        <b>الخدمة:</b> ${service}<br>
-        <b>التاريخ:</b> ${date} ${time}<br>
-        <b>الجوال:</b> ${phone}<br>
-        <b>العضوية:</b> ${mem || "—"}<br>
-        <b>الحالة:</b> <span class="tag">${status}</span><br>
-
-        <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;"
-          onclick="updateBooking(${idx + 2}, 'مؤكد')">تأكيد</button>
-
-        <button class="btn-outline" style="margin-top:4px;font-size:11px;padding:4px 8px;"
-          onclick="updateBooking(${idx + 2}, 'ملغي')">إلغاء</button>
-      </div>
-    `;
+<div style="border:1px solid #E5E7EB;border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;">
+  <b>الخدمة:</b> ${service}<br>
+  <b>التاريخ:</b> ${date} ${time}<br>
+  <b>الجوال:</b> ${phone}<br>
+  <b>العضوية:</b> ${mem || "—"}<br>
+  <b>الحالة:</b> <span class="tag">${status}</span><br>
+  <button class="btn" style="margin-top:4px;font-size:11px;padding:4px 8px;"
+    onclick="updateBooking(${idx + 2}, 'مؤكد')">تأكيد</button>
+  <button class="btn-outline" style="margin-top:4px;font-size:11px;padding:4px 8px;"
+    onclick="updateBooking(${idx + 2}, 'ملغي')">إلغاء</button>
+</div>
+`;
   }).join("");
 }
 
 async function updateBooking(row, status) {
   const resOld = await apiGetAll("Bookings");
+
   if (!resOld.success || !resOld.rows || !resOld.rows[row - 2]) {
     alert("خطأ في قراءة بيانات الحجز");
     return;
@@ -358,15 +467,15 @@ async function updateBooking(row, status) {
 /* ============================
    الفواتير
 ============================ */
+
 let INVOICE_STATE = {
   customer: null,
   visits: []
 };
 
 async function searchInvoices() {
-  const q   = document.getElementById("invoiceSearch").value.trim();
+  const q = document.getElementById("invoiceSearch").value.trim();
   const box = document.getElementById("invoiceVisits");
-
   box.innerHTML = "جاري البحث...";
 
   if (!q) {
@@ -387,11 +496,10 @@ async function searchInvoices() {
   }
 
   const c = custRes.customer;
-
   INVOICE_STATE.customer = {
-    name:       c[0], // NAME
-    phone:      c[1], // PHONE
-    membership: c[8]  // MEMBERSHIP
+    name: c[0],      // NAME
+    phone: c[1],     // PHONE
+    membership: c[8] // MEMBERSHIP
   };
 
   const visitsRes = await apiGetVisitsByMembership(c[8]);
@@ -405,16 +513,16 @@ async function searchInvoices() {
   INVOICE_STATE.visits = visitsRes.visits.map(v => v.data);
 
   box.innerHTML = INVOICE_STATE.visits.map((v, idx) => {
-    const service = v[6];           // SERVICE
-    const price   = Number(v[7] || 0); // PRICE
-    const points  = Number(v[8] || 0); // POINTS
-    const date    = String(v[13] || "").split(" ")[0]; // CHECK_IN (تاريخ فقط)
+    const service = v[6]; // SERVICE
+    const price = Number(v[7] || 0); // PRICE
+    const points = Number(v[8] || 0); // POINTS
+    const date = String(v[13] || "").split(" ")[0]; // CHECK_IN (تاريخ فقط)
 
     return `
-      <div style="border-bottom:1px solid #E5E7EB;padding:4px 0;font-size:13px;">
-        #${idx + 1} — ${service} — ${price} ريال — نقاط: ${points} — ${date}
-      </div>
-    `;
+<div style="border-bottom:1px solid #E5E7EB;padding:4px 0;font-size:13px;">
+  #${idx + 1} — ${service} — ${price} ريال — نقاط: ${points} — ${date}
+</div>
+`;
   }).join("");
 }
 
@@ -425,6 +533,7 @@ function sendInvoice(mode) {
   }
 
   let selectedVisits = [];
+
   if (mode === "last") {
     selectedVisits = [INVOICE_STATE.visits[INVOICE_STATE.visits.length - 1]];
   } else {
@@ -432,14 +541,13 @@ function sendInvoice(mode) {
   }
 
   const c = INVOICE_STATE.customer;
-
   let total = 0;
+
   const lines = selectedVisits.map((v, idx) => {
     const service = v[6]; // SERVICE
-    const price   = Number(v[7] || 0); // PRICE
-    const points  = Number(v[8] || 0); // POINTS
-    const date    = String(v[13] || "").split(" ")[0]; // CHECK_IN
-
+    const price = Number(v[7] || 0); // PRICE
+    const points = Number(v[8] || 0); // POINTS
+    const date = String(v[13] || "").split(" ")[0]; // CHECK_IN
     total += Number(v[22] || price || 0); // TOTAL_PAID أو PRICE
 
     return `${idx + 1}- ${service} — ${price} ريال (نقاط: ${points}) — ${date}`;
@@ -460,7 +568,9 @@ function sendInvoice(mode) {
 /* ============================
    تشغيل أولي
 ============================ */
+
 loadTodaySummary();
 loadCustomers();
 loadActiveVisits();
 loadBookings();
+loadTodayVisits();
