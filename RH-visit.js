@@ -799,12 +799,23 @@ async function loadCompletedVisits() {
 }
 
 /* ===========================
-   ملخص الخدمات (الزيارات المكتملة)
+   ملخص الخدمات (أعمدة + صفوف)
 =========================== */
 
 function loadServiceSummaryCompleted(paidRows) {
-  const box = el("serviceSummary");
-  if (!box) return;
+  const table = el("serviceSummary");
+  if (!table) return;
+
+  // مسح الصفوف القديمة (مع الإبقاء على العنوان)
+  table.innerHTML = `
+    <tr style="background:#0d47a1; color:white;">
+        <th style="padding:8px; border:1px solid #e5e7eb;">الخدمة</th>
+        <th style="padding:8px; border:1px solid #e5e7eb;">العدد</th>
+        <th style="padding:8px; border:1px solid #e5e7eb;">الكاش</th>
+        <th style="padding:8px; border:1px solid #e5e7eb;">الشبكة</th>
+        <th style="padding:8px; border:1px solid #e5e7eb;">الإجمالي</th>
+    </tr>
+  `;
 
   const perService = {};
 
@@ -824,33 +835,19 @@ function loadServiceSummaryCompleted(paidRows) {
     perService[service].card += card;
   });
 
-  let html = `
-<h3 class="section-title">📌 ملخص الخدمات (الزيارات المكتملة)</h3>
-<table style="width:100%; border-collapse: collapse; margin-top:10px;">
-  <tr style="background:#0d47a1; color:white;">
-    <th style="padding:8px; border:1px solid #e5e7eb;">الخدمة</th>
-    <th style="padding:8px; border:1px solid #e5e7eb;">عدد المرات</th>
-    <th style="padding:8px; border:1px solid #e5e7eb;">الكاش</th>
-    <th style="padding:8px; border:1px solid #e5e7eb;">الشبكة</th>
-    <th style="padding:8px; border:1px solid #e5e7eb;">الإجمالي</th>
-  </tr>
-`;
-
   Object.keys(perService).forEach(service => {
-    html += `
-  <tr>
-    <td style="padding:8px; border:1px solid #e5e7eb;">${service}</td>
-    <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].count}</td>
-    <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].cash} ريال</td>
-    <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].card} ريال</td>
-    <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].total} ريال</td>
-  </tr>
-`;
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td style="padding:8px; border:1px solid #e5e7eb;">${service}</td>
+      <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].count}</td>
+      <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].cash} ريال</td>
+      <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].card} ريال</td>
+      <td style="padding:8px; border:1px solid #e5e7eb;">${perService[service].total} ريال</td>
+    `;
+
+    table.appendChild(row);
   });
-
-  html += "</table>";
-
-  box.innerHTML = html;
 }
 
 /* ===========================
