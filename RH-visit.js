@@ -1,4 +1,37 @@
 /* ===========================
+   دوال أساسية مضافة
+=========================== */
+
+function closeModal() {
+    el("modal").style.display = "none";
+    el("cash_box").style.display = "none";
+    el("card_box").style.display = "none";
+
+    if (el("modal_cash")) el("modal_cash").value = "";
+    if (el("modal_card")) el("modal_card").value = "";
+}
+
+function closeEditModal() {
+    el("modal_edit_container").style.display = "none";
+    el("modal_edit").innerHTML = "";
+}
+
+function resetForm() {
+    selectedServices = [];
+    el("servicesList").innerHTML = "";
+
+    el("plate_numbers").value = "";
+    el("plate_letters").value = "";
+    el("car_type").value = "";
+    el("car_model").value = "";
+    el("car_size").value = "";
+    el("employee_in").value = "";
+    el("discount").value = "";
+    el("totalPrice").textContent = "0";
+}
+
+
+/* ===========================
    أدوات مساعدة
 =========================== */
 
@@ -801,10 +834,6 @@ function closeEditModal() {
    INIT
 =========================== */
 
-/* ===========================
-   INIT
-=========================== */
-
 document.addEventListener("DOMContentLoaded", () => {
 
     loadActiveVisits();
@@ -818,11 +847,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     el("btnAddService").addEventListener("click", addServiceToList);
     el("discount").addEventListener("input", recalcTotal);
+    el("btnSetDiscount").addEventListener("click", recalcTotal);
+
     el("btnSubmitVisit").addEventListener("click", submitVisit);
 
-    // أزرار إغلاق المودالات
+    // إغلاق مودال الدفع
     el("modal_close").addEventListener("click", closeModal);
-    el("modal_cancel").addEventListener("click", closeModal);   // ← هذا السطر المهم
+    el("modal_cancel").addEventListener("click", closeModal);
+
+    // إغلاق مودال التعديل
     el("modal_edit_close").addEventListener("click", closeEditModal);
 
     // الدفع
