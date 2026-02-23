@@ -1,12 +1,11 @@
-// =========================
-//  Helpers
-// =========================
-
+/* ===========================
+   Helpers
+=========================== */
 const el = id => document.getElementById(id);
 
-// =========================
-//  Tabs switching
-// =========================
+/* ===========================
+   Tabs switching
+=========================== */
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -17,24 +16,22 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
   });
 });
 
-// =========================
-//  Top summary (Visits)
-// =========================
+/* ===========================
+   Top Summary
+=========================== */
 async function loadTopSummary() {
   try {
     const res = await apiGetAll("Visits");
-    if (!res || !res.rows) return;
+    if (!res.success || !res.rows) return;
 
-    let cash = 0;
-    let card = 0;
-    let total = 0;
-    let servicesCount = 0;
+    let cash = 0, card = 0, total = 0, services = 0;
 
     res.rows.forEach(v => {
-      const price = Number(v[22] || v[7] || 0);      // TOTAL_PAID أو السعر
-      const method = String(v[16] || "").trim();     // payment_method
+      const price = Number(v[22] || v[7] || 0);
+      const method = String(v[16] || "").trim();
+
       total += price;
-      servicesCount++;
+      services++;
 
       if (method === "كاش") cash += price;
       if (method === "شبكة") card += price;
@@ -43,34 +40,36 @@ async function loadTopSummary() {
     el("sumCash").innerText = cash + " ريال";
     el("sumCard").innerText = card + " ريال";
     el("sumTotal").innerText = total + " ريال";
-    el("sumServices").innerText = servicesCount;
+    el("sumServices").innerText = services;
+
   } catch (err) {
     console.error("Error loading top summary:", err);
   }
 }
 
-// =========================
-//  Employees summary tab
-// =========================
+/* ===========================
+   Employees Summary
+=========================== */
 async function loadEmployeesSummary() {
   const box = el("tab-employees");
   box.innerHTML = "جارِ التحميل...";
 
   try {
     const res = await apiGetAll("Visits");
-    if (!res || !res.rows || !res.rows.length) {
-      box.innerHTML = "<p>لا توجد بيانات زيارات.</p>";
+    if (!res.success || !res.rows.length) {
+      box.innerHTML = "<p>لا توجد بيانات.</p>";
       return;
     }
 
-    const perEmployee = {};
+    const perEmp = {};
 
     res.rows.forEach(v => {
-      const emp = String(v[9] || "غير محدد");          // employee_in
-      const price = Number(v[22] || v[7] || 0);         // TOTAL_PAID أو السعر
-      if (!perEmployee[emp]) perEmployee[emp] = { cars: 0, total: 0 };
-      perEmployee[emp].cars++;
-      perEmployee[emp].total += price;
+      const emp = v[9] || "غير محدد";
+      const price = Number(v[22] || v[7] || 0);
+
+      if (!perEmp[emp]) perEmp[emp] = { cars: 0, total: 0 };
+      perEmp[emp].cars++;
+      perEmp[emp].total += price;
     });
 
     let html = `
@@ -82,39 +81,40 @@ async function loadEmployeesSummary() {
         </tr>
     `;
 
-    Object.keys(perEmployee).forEach(emp => {
+    Object.keys(perEmp).forEach(emp => {
       html += `
         <tr>
           <td>${emp}</td>
-          <td>${perEmployee[emp].cars}</td>
-          <td>${perEmployee[emp].total} ريال</td>
+          <td>${perEmp[emp].cars}</td>
+          <td>${perEmp[emp].total} ريال</td>
         </tr>
       `;
     });
 
     html += `</table>`;
     box.innerHTML = html;
+
   } catch (err) {
     console.error("Error loading employees summary:", err);
-    box.innerHTML = "<p>خطأ في تحميل ملخص الموظفين.</p>";
+    box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
   }
 }
 
-// =========================
-//  Completed visits tab
-// =========================
+/* ===========================
+   Completed Visits
+=========================== */
 async function loadCompletedVisits() {
   const box = el("tab-completed");
   box.innerHTML = "جارِ التحميل...";
 
   try {
     const res = await apiGetAll("Visits");
-    if (!res || !res.rows || !res.rows.length) {
+    if (!res.success || !res.rows.length) {
       box.innerHTML = "<p>لا توجد زيارات.</p>";
       return;
     }
 
-    const paid = res.rows.filter(v => String(v[15] || "").trim() === "مدفوع"); // payment_status
+    const paid = res.rows.filter(v => String(v[15] || "").trim() === "مدفوع");
 
     if (!paid.length) {
       box.innerHTML = "<p>لا توجد زيارات مكتملة.</p>";
@@ -134,29 +134,23 @@ async function loadCompletedVisits() {
     `;
 
     paid.forEach(v => {
-      const plate = `${v[1] || ""} ${v[2] || ""}`;   // أرقام + حروف
-      const service = v[6] || "";                    // service_detail
-      const price = Number(v[22] || v[7] || 0);
-      const emp = v[9] || "غير محدد";
-      const method = v[16] || "—";
-
       const visitObj = {
-        plate,
-        service,
-        price,
-        employee: emp,
-        payment: method,
+        plate: `${v[1] || ""} ${v[2] || ""}`,
+        service: v[6] || "",
+        price: Number(v[22] || v[7] || 0),
+        employee: v[9] || "غير محدد",
+        payment: v[16] || "—",
         check_in: v[13] || "",
         check_out: v[14] || ""
       };
 
       html += `
         <tr>
-          <td>${plate}</td>
-          <td>${service}</td>
-          <td>${price}</td>
-          <td>${emp}</td>
-          <td>${method}</td>
+          <td>${visitObj.plate}</td>
+          <td>${visitObj.service}</td>
+          <td>${visitObj.price}</td>
+          <td>${visitObj.employee}</td>
+          <td>${visitObj.payment}</td>
           <td>
             <button class="btn-primary" onclick='openDetails(${JSON.stringify(visitObj)})'>
               عرض
@@ -168,39 +162,39 @@ async function loadCompletedVisits() {
 
     html += `</table>`;
     box.innerHTML = html;
+
   } catch (err) {
     console.error("Error loading completed visits:", err);
-    box.innerHTML = "<p>خطأ في تحميل الزيارات المكتملة.</p>";
+    box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
   }
 }
 
-// =========================
-//  Services summary tab
-// =========================
+/* ===========================
+   Services Summary
+=========================== */
 async function loadServicesSummary() {
   const box = el("tab-services");
   box.innerHTML = "جارِ التحميل...";
 
   try {
     const res = await apiGetAll("Visits");
-    if (!res || !res.rows || !res.rows.length) {
-      box.innerHTML = "<p>لا توجد بيانات زيارات.</p>";
+    if (!res.success || !res.rows.length) {
+      box.innerHTML = "<p>لا توجد بيانات.</p>";
       return;
     }
 
     const perService = {};
 
     res.rows.forEach(v => {
-      const service = String(v[6] || "غير محدد");      // service_detail
+      const service = v[6] || "غير محدد";
       const price = Number(v[22] || v[7] || 0);
-      const method = String(v[16] || "").trim();
+      const method = v[16] || "";
 
-      if (!perService[service]) {
-        perService[service] = { count: 0, cash: 0, card: 0, total: 0 };
-      }
+      if (!perService[service]) perService[service] = { count: 0, cash: 0, card: 0, total: 0 };
 
       perService[service].count++;
       perService[service].total += price;
+
       if (method === "كاش") perService[service].cash += price;
       if (method === "شبكة") perService[service].card += price;
     });
@@ -231,23 +225,24 @@ async function loadServicesSummary() {
 
     html += `</table>`;
     box.innerHTML = html;
+
   } catch (err) {
     console.error("Error loading services summary:", err);
-    box.innerHTML = "<p>خطأ في تحميل ملخص الخدمات.</p>";
+    box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
   }
 }
 
-// =========================
-//  Bookings tab
-// =========================
+/* ===========================
+   Bookings
+=========================== */
 async function loadBookings() {
   const box = el("tab-bookings");
   box.innerHTML = "جارِ التحميل...";
 
   try {
     const res = await apiGetAll("Bookings");
-    if (!res || !res.rows || !res.rows.length) {
-      box.innerHTML = "<p>لا توجد حجوزات حالياً.</p>";
+    if (!res.success || !res.rows.length) {
+      box.innerHTML = "<p>لا توجد حجوزات.</p>";
       return;
     }
 
@@ -263,62 +258,55 @@ async function loadBookings() {
     `;
 
     res.rows.forEach(b => {
-      const phone = b[0];
-      const mem = b[1];
-      const service = b[2];
-      const date = b[3];
-      const time = b[4];
-      const status = b[5];
-
       html += `
         <tr>
-          <td>${service}</td>
-          <td>${date || ""} ${time || ""}</td>
-          <td>${phone}</td>
-          <td>${mem || "—"}</td>
-          <td>${status}</td>
+          <td>${b[2]}</td>
+          <td>${b[3]} ${b[4]}</td>
+          <td>${b[0]}</td>
+          <td>${b[1] || "—"}</td>
+          <td>${b[5]}</td>
         </tr>
       `;
     });
 
     html += `</table>`;
     box.innerHTML = html;
+
   } catch (err) {
     console.error("Error loading bookings:", err);
-    box.innerHTML = "<p>خطأ في تحميل الحجوزات.</p>";
+    box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
   }
 }
 
-// =========================
-//  Notifications tab (placeholder)
-// =========================
+/* ===========================
+   Notifications
+=========================== */
 async function loadNotifications() {
-  const box = el("tab-notifications");
-  box.innerHTML = `
-    <p>عرض الإشعارات العامة من لوحة المشرف غير مفعّل حالياً.</p>
-    <p>يمكنك استخدام نظام الإشعارات من واجهات أخرى (العملاء / الموظفين).</p>
+  el("tab-notifications").innerHTML = `
+    <p>عرض الإشعارات من لوحة المشرف غير مفعّل حالياً.</p>
   `;
 }
 
-// =========================
-//  Invoices tab (simple summary)
-// =========================
+/* ===========================
+   Invoices Summary
+=========================== */
 async function loadInvoices() {
   const box = el("tab-invoices");
   box.innerHTML = "جارِ التحميل...";
 
   try {
     const res = await apiGetAll("Visits");
-    if (!res || !res.rows || !res.rows.length) {
-      box.innerHTML = "<p>لا توجد زيارات لعرض الفواتير.</p>";
+    if (!res.success || !res.rows.length) {
+      box.innerHTML = "<p>لا توجد بيانات.</p>";
       return;
     }
 
     const perMember = {};
 
     res.rows.forEach(v => {
-      const mem = v[0] || "بدون عضوية";          // membership
+      const mem = v[0] || "بدون عضوية";
       const price = Number(v[22] || v[7] || 0);
+
       if (!perMember[mem]) perMember[mem] = { visits: 0, total: 0 };
       perMember[mem].visits++;
       perMember[mem].total += price;
@@ -345,15 +333,16 @@ async function loadInvoices() {
 
     html += `</table>`;
     box.innerHTML = html;
+
   } catch (err) {
-    console.error("Error loading invoices summary:", err);
-    box.innerHTML = "<p>خطأ في تحميل الفواتير.</p>";
+    console.error("Error loading invoices:", err);
+    box.innerHTML = "<p>خطأ في تحميل البيانات.</p>";
   }
 }
 
-// =========================
-//  Details modal
-// =========================
+/* ===========================
+   Details Modal
+=========================== */
 function openDetails(v) {
   el("detailsBody").innerHTML = `
     <p><b>اللوحة:</b> ${v.plate}</p>
@@ -371,17 +360,12 @@ el("closeModal").onclick = () => {
   el("detailsModal").style.display = "none";
 };
 
-// أزرار التحميل (مكانها جاهز لو حبيت تفعلها لاحقاً)
-el("downloadCSV").onclick = () => {
-  alert("تحميل CSV غير مفعّل حالياً.");
-};
-el("downloadPDF").onclick = () => {
-  alert("تحميل PDF غير مفعّل حالياً.");
-};
+el("downloadCSV").onclick = () => alert("تحميل CSV غير مفعّل حالياً.");
+el("downloadPDF").onclick = () => alert("تحميل PDF غير مفعّل حالياً.");
 
-// =========================
-//  Init
-// =========================
+/* ===========================
+   Init
+=========================== */
 document.addEventListener("DOMContentLoaded", () => {
   loadTopSummary();
   loadEmployeesSummary();
