@@ -638,7 +638,7 @@ function recalcTotal() {
 }
 
 /* ===========================
-   تسجيل الزيارة
+   تسجيل الزيارة (نسخة صحيحة)
 =========================== */
 
 async function submitVisit() {
@@ -700,42 +700,46 @@ async function submitVisit() {
     }
   }
 
-  const payload = {
-    membership: currentMembership,
-    plate_numbers,
-    plate_letters,
-    car_type,
-    car_model,
-    car_size,
-    employee_in,
-    employee_out: "",
-    branch,
-    parking_slot,
-    payment_status,
-    payment_method,
-    cash_amount,
-    card_amount,
-    rating: "",
-    services: selectedServices.map(s => ({
-      name: s.name,
-      price: s.price,
-      points: s.points,
-      commission: s.commission
-    }))
-  };
+  // تجهيز الصفوف حسب ترتيب الأعمدة الصحيح
+  const rowsToAdd = selectedServices.map(s => ([
+    currentMembership,          // 0 membership
+    plate_numbers,              // 1 plate_numbers
+    plate_letters,              // 2 plate_letters
+    car_type,                   // 3 car_type
+    car_model,                  // 4 car_model
+    car_size,                   // 5 car_size
+    s.name,                     // 6 service_detail
+    s.price,                    // 7 price
+    s.points,                   // 8 points
+    employee_in,                // 9 employee_in
+    "",                         // 10 employee_out
+    branch,                     // 11 branch
+    s.commission,               // 12 commission
+    new Date().toISOString(),   // 13 check_in
+    "",                         // 14 check_out
+    payment_status,             // 15 payment_status
+    payment_method,             // 16 payment_method
+    parking_slot,               // 17 parking_slot
+    "",                         // 18 rating
+    payment_method,             // 19 payment_method_copy
+    cash_amount,                // 20 CASH_AMOUNT
+    card_amount,                // 21 CARD_AMOUNT
+    s.price                     // 22 TOTAL_PAID
+  ]));
 
   try {
-    await apiAddVisit({
-      ...payload,
-      services: JSON.stringify(payload.services)
-    });
+    for (const row of rowsToAdd) {
+      await apiAddVisit(row);
+    }
 
     showToast("تم تسجيل الزيارة", "success");
     resetForm();
+
     setTimeout(() => {
       loadActiveVisits();
       loadCompletedVisits();
     }, 20);
+
   } catch (err) {
     console.error(err);
     showToast("خطأ في تسجيل الزيارة", "error");
