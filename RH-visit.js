@@ -808,8 +808,8 @@ function loadEmployeeSummaryCompleted(paidRows) {
   const perEmployee = {};
 
   paidRows.forEach(v => {
-    const emp = v.data[9] || "غير محدد"; // employee_in
-    const price = Number(v.data[7] || 0); // price
+    const emp = v[9] || "غير محدد";   // ← employee_in الصحيح
+    const price = Number(v[7] || 0);  // ← price الصحيح
 
     if (!perEmployee[emp]) {
       perEmployee[emp] = { cars: 0, total: 0 };
@@ -849,43 +849,43 @@ function loadEmployeeSummaryCompleted(paidRows) {
 =========================== */
 
 function loadPaidSummary(paidRows) {
-  const box = el("paidSummary");
-  if (!box) return;
+    const box = el("paidSummary");
+    if (!box) return;
 
-  let totalCars = 0;
-  let totalAmount = 0;
-  const perEmployee = {};
+    let totalCars = 0;
+    let totalAmount = 0;
+    const perEmployee = {};
 
-  paidRows.forEach(v => {
-    const emp = v.data[9] || "غير محدد";
-    const price = Number(v.data[7] || 0);
+    paidRows.forEach(v => {
+        const emp = v[9] || "غير محدد";   // ← تعديل مهم
+        const price = Number(v[7] || 0);  // ← تعديل مهم
 
-    totalCars++;
-    totalAmount += price;
+        totalCars++;
+        totalAmount += price;
 
-    if (!perEmployee[emp]) {
-      perEmployee[emp] = { cars: 0, total: 0 };
-    }
+        if (!perEmployee[emp]) {
+            perEmployee[emp] = { cars: 0, total: 0 };
+        }
 
-    perEmployee[emp].cars++;
-    perEmployee[emp].total += price;
-  });
+        perEmployee[emp].cars++;
+        perEmployee[emp].total += price;
+    });
 
-  box.innerHTML = `
-<h3 class="section-title">📌 ملخص المدفوع اليوم</h3>
-<div class="summary-box">
-  <p><b>عدد السيارات:</b> ${totalCars}</p>
-  <p><b>إجمالي المبلغ:</b> ${totalAmount} ريال</p>
-</div>
-<h4>تفاصيل الموظفين:</h4>
-${Object.keys(perEmployee).map(emp => `
-<div class="summary-box">
-  <p><b>الموظف:</b> ${emp}</p>
-  <p><b>عدد السيارات:</b> ${perEmployee[emp].cars}</p>
-  <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].total} ريال</p>
-</div>
-`).join("")}
-`;
+    box.innerHTML = `
+        <h3 class="section-title">📌 ملخص المدفوع اليوم</h3>
+        <div class="summary-box">
+            <p><b>عدد السيارات:</b> ${totalCars}</p>
+            <p><b>إجمالي المبلغ:</b> ${totalAmount} ريال</p>
+        </div>
+        <h4>تفاصيل الموظفين:</h4>
+        ${Object.keys(perEmployee).map(emp => `
+            <div class="summary-box">
+                <p><b>الموظف:</b> ${emp}</p>
+                <p><b>عدد السيارات:</b> ${perEmployee[emp].cars}</p>
+                <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].total} ريال</p>
+            </div>
+        `).join("")}
+    `;
 }
 
 /* ===========================
