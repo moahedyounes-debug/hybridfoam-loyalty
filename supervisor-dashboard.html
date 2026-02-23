@@ -203,7 +203,7 @@
           </div>
           <div class="stat-row">
             <span class="label">عدد الخدمات</span>
-            <span class="value" id="sumServices">0</span>
+            <span class="value" id="sumservice_details">0</span>
           </div>
           <div class="stat-row">
             <span class="label">عدد العملاء</span>
@@ -215,7 +215,7 @@
         <div class="card">
           <div class="card-title">🧽 عدد الخدمات حسب النوع</div>
           <div class="card-sub">حسب زيارات اليوم المدفوعة</div>
-          <div id="sumServicesByType" style="font-size:13px;color:#374151;">
+          <div id="sumservice_detailsByType" style="font-size:13px;color:#374151;">
             جاري التحميل...
           </div>
         </div>
@@ -356,17 +356,17 @@
       const sumCash = document.getElementById("sumCash");
       const sumCard = document.getElementById("sumCard");
       const sumVisits = document.getElementById("sumVisits");
-      const sumServices = document.getElementById("sumServices");
+      const sumservice_details = document.getElementById("sumservice_details");
       const sumCustomers = document.getElementById("sumCustomers");
-      const sumServicesByType = document.getElementById("sumServicesByType");
+      const sumservice_detailsByType = document.getElementById("sumservice_detailsByType");
 
       sumTotal.innerText = "جاري التحميل...";
       sumCash.innerText = "...";
       sumCard.innerText = "...";
       sumVisits.innerText = "...";
-      sumServices.innerText = "...";
+      sumservice_details.innerText = "...";
       sumCustomers.innerText = "...";
-      sumServicesByType.innerText = "جاري التحميل...";
+      sumservice_detailsByType.innerText = "جاري التحميل...";
 
       const visitsRes = await apiGetAll("Visits");
       const custRes = await apiGetAll("Customers");
@@ -377,8 +377,8 @@
       }
 
       const today = toDayString(new Date());
-      let total = 0, cash = 0, card = 0, visitsCount = 0, servicesCount = 0;
-      const byService = {};
+      let total = 0, cash = 0, card = 0, visitsCount = 0, service_detailsCount = 0;
+      const byservice_detail = {};
 
       (visitsRes.rows || []).forEach(r => {
         const checkIn = r[13];
@@ -396,24 +396,24 @@
         cash += cashAmount;
         card += cardAmount;
         visitsCount++;
-        servicesCount++;
+        service_detailsCount++;
 
-        const service = r[6] || "غير محدد";
-        byService[service] = (byService[service] || 0) + 1;
+        const service_detail = r[6] || "غير محدد";
+        byservice_detail[service_detail] = (byservice_detail[service_detail] || 0) + 1;
       });
 
       sumTotal.innerText = total + " ريال";
       sumCash.innerText = cash + " ريال";
       sumCard.innerText = card + " ريال";
       sumVisits.innerText = visitsCount;
-      sumServices.innerText = servicesCount;
+      sumservice_details.innerText = service_detailsCount;
       sumCustomers.innerText = custRes.success && custRes.rows ? custRes.rows.length : 0;
 
-      if (!Object.keys(byService).length) {
-        sumServicesByType.innerText = "لا توجد خدمات اليوم.";
+      if (!Object.keys(byservice_detail).length) {
+        sumservice_detailsByType.innerText = "لا توجد خدمات اليوم.";
       } else {
-        sumServicesByType.innerHTML = Object.keys(byService)
-          .map(s => `<div>${s}: <span class="tag">${byService[s]}</span></div>`)
+        sumservice_detailsByType.innerHTML = Object.keys(byservice_detail)
+          .map(s => `<div>${s}: <span class="tag">${byservice_detail[s]}</span></div>`)
           .join("");
       }
     }
@@ -440,14 +440,14 @@
       }
       box.innerHTML = rows.map(r => {
         const plate = `${r[1] || ""} ${r[2] || ""}`;
-        const service = r[6] || "—";
+        const service_detail = r[6] || "—";
         const price = Number(r[7] || 0);
         const emp = r[9] || "—";
         const status = r[15] || "غير مدفوع";
         return `
 <div style="border-bottom:1px solid #e5e7eb;padding:6px 0;">
   <div><b>🚗 السيارة:</b> ${plate}</div>
-  <div><b>الخدمة:</b> ${service}</div>
+  <div><b>الخدمة:</b> ${service_detail}</div>
   <div><b>السعر:</b> ${price} ريال</div>
   <div><b>الموظف:</b> ${emp}</div>
   <div><b>حالة الدفع:</b> <span class="tag">${status}</span></div>
@@ -467,13 +467,13 @@
         const row = v.row;
         const r = v.data;
         const plate = `${r[1] || ""} ${r[2] || ""}`;
-        const service = r[6] || "—";
+        const service_detail = r[6] || "—";
         const price = Number(r[7] || 0);
         const parking = r[17] || "—";
         return `
 <div style="border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;margin-bottom:6px;">
   <div><b>🚗 السيارة:</b> ${plate}</div>
-  <div><b>الخدمة:</b> ${service}</div>
+  <div><b>الخدمة:</b> ${service_detail}</div>
   <div><b>السعر:</b> ${price} ريال</div>
   <div><b>الموقف:</b> ${parking}</div>
   <label style="font-size:12px;">طريقة الدفع</label>
@@ -567,14 +567,14 @@
         visitsBox.innerHTML = visitsRes.visits.map(v => {
           const r = v.data;
           const plate = `${r[1] || ""} ${r[2] || ""}`;
-          const service = r[6] || "—";
+          const service_detail = r[6] || "—";
           const price = Number(r[7] || 0);
           const status = r[15] || "غير مدفوع";
           const checkIn = r[13] || "";
           return `
 <div style="border-bottom:1px solid #e5e7eb;padding:4px 0;">
   <div><b>🚗 السيارة:</b> ${plate}</div>
-  <div><b>الخدمة:</b> ${service}</div>
+  <div><b>الخدمة:</b> ${service_detail}</div>
   <div><b>السعر:</b> ${price} ريال</div>
   <div><b>الحالة:</b> <span class="tag">${status}</span></div>
   <div><b>الدخول:</b> ${checkIn}</div>
@@ -595,13 +595,13 @@
       box.innerHTML = res.rows.map((b, idx) => {
         const phone = b[0];
         const mem = b[1];
-        const service = b[2];
+        const service_detail = b[2];
         const date = b[3];
         const time = b[4];
         const status = b[5];
         return `
 <div style="border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;margin-bottom:6px;">
-  <div><b>الخدمة:</b> ${service}</div>
+  <div><b>الخدمة:</b> ${service_detail}</div>
   <div><b>التاريخ:</b> ${date} ${time}</div>
   <div><b>الجوال:</b> ${phone}</div>
   <div><b>العضوية:</b> ${mem || "—"}</div>
@@ -641,14 +641,14 @@
       INVOICE_STATE.visits = matched;
       box.innerHTML = matched.map((r, idx) => {
         const plate = `${r[1] || ""} ${r[2] || ""}`;
-        const service = r[6] || "—";
+        const service_detail = r[6] || "—";
         const price = Number(r[7] || 0);
         const points = Number(r[8] || 0);
         const checkIn = r[13] || "";
         const day = String(checkIn).split(" ")[0] || "";
         return `
 <div style="border-bottom:1px solid #e5e7eb;padding:4px 0;">
-  #${idx + 1} - ${plate} - ${service} - ${price} ريال - نقاط: ${points} - ${day}
+  #${idx + 1} - ${plate} - ${service_detail} - ${price} ريال - نقاط: ${points} - ${day}
 </div>`;
       }).join("");
     }
@@ -667,14 +667,14 @@
       let total = 0;
       const lines = selected.map((r, idx) => {
         const plate = `${r[1] || ""} ${r[2] || ""}`;
-        const service = r[6] || "—";
+        const service_detail = r[6] || "—";
         const price = Number(r[7] || 0);
         const points = Number(r[8] || 0);
         const checkIn = r[13] || "";
         const day = String(checkIn).split(" ")[0] || "";
         const paid = Number(r[22] || price);
         total += paid;
-        return `${idx + 1}- ${plate} - ${service} - ${price} ريال (مدفوع: ${paid}) - نقاط: ${points} - ${day}`;
+        return `${idx + 1}- ${plate} - ${service_detail} - ${price} ريال (مدفوع: ${paid}) - نقاط: ${points} - ${day}`;
       }).join("\n");
       const msg =
         "فاتورة زيارات مغسلة رغوة الهجين\n\n" +
