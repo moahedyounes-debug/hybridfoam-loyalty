@@ -576,3 +576,4 @@ document.addEventListener("DOMContentLoaded", () => {
   loadBookings();
   loadTodayVisits();
 });
+
