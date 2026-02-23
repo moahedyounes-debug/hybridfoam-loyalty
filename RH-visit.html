@@ -20,46 +20,11 @@
         <h2>إدارة الزيارات</h2>
     </div>
 
-    <!-- الملخص -->
-    <div class="section">
-        <div class="summary-box">
-            <p><b>عدد السيارات داخل المغسلة:</b> <span id="sumCars">0</span></p>
-            <p><b>عدد الخدمات المنفذة:</b> <span id="sumServices">0</span></p>
-        </div>
-    </div>
-
     <!-- السيارات داخل المغسلة -->
     <div class="section">
         <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
-
         <div id="activeVisitsList" class="cards"></div>
-
         <button id="btnRefreshActive" class="btn-secondary full">تحديث القائمة</button>
-
-        <h3 class="section-title">📌 ملخص الموظفين</h3>
-        <div id="employeeSummary"></div>
-    </div>
-
-    <!-- الزيارات المكتملة -->
-    <div class="section">
-        <h3 class="section-title">✔ الزيارات المكتملة</h3>
-        <div id="completedList" class="cards"></div>
-
-        <h3 class="section-title">📌 ملخص المدفوع اليوم</h3>
-        <div id="paidSummary"></div>
-
-        <!-- ملخص الخدمات (جدول) -->
-        <h3 class="section-title">📌 ملخص الخدمات</h3>
-
-        <table id="serviceSummary" style="width:100%; border-collapse: collapse; margin-top:10px;">
-            <tr style="background:#0d47a1; color:white;">
-                <th style="padding:8px; border:1px solid #e5e7eb;">الخدمة</th>
-                <th style="padding:8px; border:1px solid #e5e7eb;">العدد</th>
-                <th style="padding:8px; border:1px solid #e5e7eb;">الكاش</th>
-                <th style="padding:8px; border:1px solid #e5e7eb;">الشبكة</th>
-                <th style="padding:8px; border:1px solid #e5e7eb;">الإجمالي</th>
-            </tr>
-        </table>
     </div>
 
     <!-- تسجيل الزيارة -->
@@ -128,13 +93,19 @@
 
         <h3 class="total">الإجمالي: <span id="totalPrice">0</span> ريال</h3>
 
-        <!-- الخصم والموقف -->
+        <!-- الخصم / الإكرامية / الموقف -->
         <div class="row">
             <div>
                 <label>الخصم</label>
                 <input type="number" id="discount" placeholder="0">
-                <button id="btnSetDiscount" class="btn-secondary" style="margin-top:5px;">إضافة خصم</button>
             </div>
+            <div>
+                <label>الإكرامية (اختياري)</label>
+                <input type="number" id="tip" placeholder="0">
+            </div>
+        </div>
+
+        <div class="row">
             <div>
                 <label>رقم الموقف</label>
                 <select id="parking_slot">
@@ -227,6 +198,17 @@
                 <input type="number" id="modal_card" placeholder="0">
             </div>
 
+            <div class="row" style="margin-top:15px;">
+                <div>
+                    <label>الخصم</label>
+                    <input type="number" id="modal_discount" placeholder="0">
+                </div>
+                <div>
+                    <label>الإكرامية</label>
+                    <input type="number" id="modal_tip" placeholder="0">
+                </div>
+            </div>
+
             <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
                 <button id="modal_confirm" class="btn-primary" style="flex:1;">تأكيد</button>
                 <button id="modal_cancel" class="btn-secondary" style="flex:1; background:#dc2626;">إلغاء</button>
@@ -234,7 +216,7 @@
         </div>
     </div>
 
-    <!-- مودال تعديل الخدمات / الموظف -->
+    <!-- مودال تعديل الخدمات / الموظف / الإكرامية / الخصم -->
     <div id="modal_edit_container" class="modal" style="display:none;">
         <div class="modal-box">
             <span id="modal_edit_close" class="close">&times;</span>
@@ -246,5 +228,4 @@
     <div id="toast-container"></div>
 
 </body>
-
 </html>
