@@ -69,7 +69,25 @@
 
     <!-- ====== TAB CONTENT ====== -->
     <div id="tab-employees" class="tab-content active"></div>
-    <div id="tab-completed" class="tab-content"></div>
+
+    <div id="tab-completed" class="tab-content">
+        <div class="filter-box">
+            <button class="btn-primary" id="filterToday">اليوم</button>
+            <button class="btn-primary" id="filterWeek">هذا الأسبوع</button>
+            <button class="btn-primary" id="filterMonth">هذا الشهر</button>
+            <button class="btn-primary" id="filterYear">هذه السنة</button>
+
+            <input type="date" id="filterFrom">
+            <input type="date" id="filterTo">
+            <button class="btn-secondary" id="filterCustom">تطبيق</button>
+
+            <button class="btn-export" id="exportExcel">تصدير Excel</button>
+        </div>
+
+        <div id="completedContent"></div>
+        <div id="completedTotal" class="table-total"></div>
+    </div>
+
     <div id="tab-services" class="tab-content"></div>
     <div id="tab-bookings" class="tab-content"></div>
     <div id="tab-notifications" class="tab-content"></div>
