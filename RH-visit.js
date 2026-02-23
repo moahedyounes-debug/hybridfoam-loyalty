@@ -759,11 +759,11 @@ async function loadCompletedVisits() {
   box.innerHTML = "جارِ التحميل...";
 
   try {
-    const res = await apiGetActiveVisits();
-    const rows = res.visits || [];
+    const res = await apiGetAll("Visits");   // ← التعديل المهم
+    const rows = res.rows || [];
 
     const paid = rows.filter(v => {
-      const status = v.data[15] || ""; // payment_status
+      const status = v[15] || ""; // payment_status
       return status === "مدفوع";
     });
 
@@ -776,16 +776,17 @@ async function loadCompletedVisits() {
 
     box.innerHTML = paid.map(v => `
 <div class="car-card">
-  <h4>لوحة: ${v.data[1]}</h4>
-  <p><b>الخدمة:</b> ${v.data[6]}</p>
-  <p><b>السعر:</b> ${v.data[7]} ريال</p>
-  <p><b>الموظف:</b> ${v.data[9] || "غير محدد"}</p>
-  <p><b>طريقة الدفع:</b> ${v.data[16] || "—"}</p>
+  <h4>لوحة: ${v[1]}</h4>
+  <p><b>الخدمة:</b> ${v[6]}</p>
+  <p><b>السعر:</b> ${v[7]} ريال</p>
+  <p><b>الموظف:</b> ${v[9] || "غير محدد"}</p>
+  <p><b>طريقة الدفع:</b> ${v[16] || "—"}</p>
 </div>
 `).join("");
 
     loadPaidSummary(paid);
     loadEmployeeSummaryCompleted(paid);
+
   } catch (err) {
     console.error(err);
     box.innerHTML = "<p>خطأ في تحميل الزيارات المكتملة</p>";
