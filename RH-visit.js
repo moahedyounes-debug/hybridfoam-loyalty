@@ -30,7 +30,6 @@ function resetForm() {
     el("totalPrice").textContent = "0";
 }
 
-
 /* ===========================
    أدوات مساعدة
 =========================== */
@@ -71,7 +70,6 @@ async function loadActiveVisits() {
         const res = await apiGetActiveVisits();
         const rows = res.visits || [];
         activeVisits = rows;
-
         list.innerHTML = "";
 
         if (!rows.length) {
@@ -112,48 +110,40 @@ async function loadActiveVisits() {
 
             const card = document.createElement("div");
             card.className = "car-card";
-
             card.innerHTML = `
-                <h4>لوحة: ${car.plate}</h4>
-
-                <p><b>الدخول:</b> ${car.checkIn}</p>
-                <p><b>رقم الموقف:</b> ${car.parking}</p>
-                <p><b>الموظف:</b> ${car.employee}</p>
-
-                <button class="btn-edit" data-plate="${car.plate}">تعديل الخدمات</button>
-                <button class="btn-emp" data-plate="${car.plate}">تغيير الموظف</button>
-
-                <p><b>الخدمات:</b></p>
-                <ul>${servicesHTML}</ul>
-
-                <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
-
-                <div class="dropdown">
-                    <button class="btn-pay">تحديث الدفع ▼</button>
-                    <div class="dropdown-content">
-                        <a href="#" data-method="كاش" data-plate="${car.plate}">دفع كاش (${car.totalPrice} ريال)</a>
-                        <a href="#" data-method="شبكة" data-plate="${car.plate}">دفع شبكة (${car.totalPrice} ريال)</a>
-                        <a href="#" data-method="جزئي" data-plate="${car.plate}">دفع جزئي</a>
-                    </div>
-                </div>
-            `;
-
+<h4>لوحة: ${car.plate}</h4>
+<p><b>الدخول:</b> ${car.checkIn}</p>
+<p><b>رقم الموقف:</b> ${car.parking}</p>
+<p><b>الموظف:</b> ${car.employee}</p>
+<button class="btn-edit" data-plate="${car.plate}">تعديل الخدمات</button>
+<button class="btn-emp" data-plate="${car.plate}">تغيير الموظف</button>
+<p><b>الخدمات:</b></p>
+<ul>${servicesHTML}</ul>
+<p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
+<div class="dropdown">
+  <button class="btn-pay">تحديث الدفع ▼</button>
+  <div class="dropdown-content">
+    <a href="#" data-method="كاش" data-plate="${car.plate}">دفع كاش (${car.totalPrice} ريال)</a>
+    <a href="#" data-method="شبكة" data-plate="${car.plate}">دفع شبكة (${car.totalPrice} ريال)</a>
+    <a href="#" data-method="جزئي" data-plate="${car.plate}">دفع جزئي</a>
+  </div>
+</div>
+`;
             list.appendChild(card);
         });
 
         loadEmployeeSummary(rows);
-
     } catch (err) {
         console.error(err);
         showToast("خطأ في تحميل الزيارات", "error");
     }
 }
+
 /* ===========================
    Event Delegation
 =========================== */
 
 document.addEventListener("click", function (e) {
-
     /* فتح مودال الدفع */
     if (e.target.matches(".dropdown-content a")) {
         e.preventDefault();
@@ -182,7 +172,6 @@ document.addEventListener("click", function (e) {
 function openPaymentModal(method) {
     el("modal").style.display = "block";
     el("modal_method").textContent = method;
-
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
@@ -226,8 +215,8 @@ function openPaymentModal(method) {
 async function submitPayment(method) {
     const cash = Number(el("modal_cash").value || 0);
     const card = Number(el("modal_card").value || 0);
-
     const confirmBtn = el("modal_confirm");
+
     confirmBtn.disabled = true;
     confirmBtn.textContent = "جاري التحديث...";
 
@@ -257,7 +246,6 @@ async function submitPayment(method) {
         for (const v of visitRows) {
             const servicePrice = Number(v.data[7] || 0);
             const ratio = servicePrice / totalRequired;
-
             const cashForThis = cash * ratio;
             const cardForThis = card * ratio;
 
@@ -273,7 +261,6 @@ async function submitPayment(method) {
         showToast("تم تحديث الدفع", "success");
         closeModal();
         setTimeout(loadActiveVisits, 20);
-
     } catch (err) {
         console.error(err);
         showToast("خطأ في تحديث الدفع", "error");
@@ -302,18 +289,18 @@ function openServiceEditor(plate) {
 
     visitRows.forEach((v, i) => {
         html += `
-            <div class="service-edit-item">
-                <label>الخدمة ${i + 1}</label>
-                <input type="text" value="${v.data[6]}" id="edit_name_${i}">
-                <input type="number" value="${v.data[7]}" id="edit_price_${i}">
-            </div>
-        `;
+<div class="service-edit-item">
+  <label>الخدمة ${i + 1}</label>
+  <input type="text" value="${v.data[6]}" id="edit_name_${i}">
+  <input type="number" value="${v.data[7]}" id="edit_price_${i}">
+</div>
+`;
     });
 
-    html += `<button id="saveServices">حفظ التعديلات</button>`;
+    html += `<button id="saveServices" class="btn-primary" style="margin-top:10px;">حفظ التعديلات</button>`;
 
     el("modal_edit").innerHTML = html;
-    el("modal_edit_container").style.display = "block";
+    el("modal_edit_container").style.display = "flex";
 
     el("saveServices").onclick = async () => {
         for (let i = 0; i < visitRows.length; i++) {
@@ -327,7 +314,7 @@ function openServiceEditor(plate) {
         }
 
         showToast("تم تعديل الخدمات", "success");
-        el("modal_edit_container").style.display = "none";
+        closeEditModal();
         loadActiveVisits();
     };
 }
@@ -348,15 +335,16 @@ function openEmployeeEditor(plate) {
     }
 
     let html = `
-        <h3>تغيير الموظف</h3>
-        <select id="newEmp">
-            ${employeesData.map(e => `<option value="${e[0]}">${e[0]}</option>`).join("")}
-        </select>
-        <button id="saveEmp">حفظ</button>
-    `;
+<h3>تغيير الموظف</h3>
+<label>اختر الموظف الجديد</label>
+<select id="newEmp">
+  ${employeesData.map(e => `<option value="${e[0]}">${e[0]}</option>`).join("")}
+</select>
+<button id="saveEmp" class="btn-primary" style="margin-top:10px;">حفظ</button>
+`;
 
     el("modal_edit").innerHTML = html;
-    el("modal_edit_container").style.display = "block";
+    el("modal_edit_container").style.display = "flex";
 
     el("saveEmp").onclick = async () => {
         const newEmp = el("newEmp").value;
@@ -368,10 +356,11 @@ function openEmployeeEditor(plate) {
         }
 
         showToast("تم تغيير الموظف", "success");
-        el("modal_edit_container").style.display = "none";
+        closeEditModal();
         loadActiveVisits();
     };
 }
+
 /* ===========================
    تحميل أنواع السيارات
 =========================== */
@@ -419,11 +408,9 @@ async function loadCarTypes() {
         modelSelect.addEventListener("change", () => {
             const brand = brandSelect.value;
             const model = modelSelect.value;
-
             const row = carTypesData.find(r => r[0] === brand && r[1] === model);
             sizeInput.value = row ? row[2] : "";
         });
-
     } catch (err) {
         console.error(err);
         showToast("خطأ في تحميل أنواع السيارات", "error");
@@ -471,11 +458,9 @@ async function loadServices() {
         detailSelect.addEventListener("change", () => {
             const name = detailSelect.value;
             const row = servicesData.find(s => s.service === name);
-
             el("price").value = row ? row.price : 0;
             el("points").value = row ? row.commission : 0;
         });
-
     } catch (err) {
         console.error(err);
         showToast("خطأ في تحميل الخدمات", "error");
@@ -500,7 +485,6 @@ async function loadEmployees() {
             opt.textContent = e[0];
             sel.appendChild(opt);
         });
-
     } catch (err) {
         console.error(err);
         showToast("خطأ في تحميل الموظفين", "error");
@@ -559,12 +543,10 @@ function renderServicesList() {
     selectedServices.forEach((s, i) => {
         const div = document.createElement("div");
         div.className = "service-item";
-
         div.innerHTML = `
-            <span>${s.name} - ${s.price} ريال</span>
-            <button class="btn-remove" data-i="${i}">حذف</button>
-        `;
-
+<span>${s.name} - ${s.price} ريال</span>
+<button class="btn-remove" data-i="${i}">حذف</button>
+`;
         box.appendChild(div);
     });
 
@@ -644,10 +626,8 @@ async function submitVisit() {
                 resetSubmitButton(btn);
                 return;
             }
-
         } else if (payment_method === "كاش") {
             cash_amount = finalTotal;
-
         } else if (payment_method === "شبكة") {
             card_amount = finalTotal;
         }
@@ -686,11 +666,9 @@ async function submitVisit() {
         showToast("تم تسجيل الزيارة", "success");
         resetForm();
         setTimeout(loadActiveVisits, 20);
-
     } catch (err) {
         console.error(err);
         showToast("خطأ في تسجيل الزيارة", "error");
-
     } finally {
         resetSubmitButton(btn);
     }
@@ -701,6 +679,7 @@ function resetSubmitButton(btn) {
     btn.textContent = "تسجيل الزيارة";
     btn.disabled = false;
 }
+
 /* ===========================
    الزيارات المكتملة (مدفوع فقط)
 =========================== */
@@ -713,7 +692,6 @@ async function loadCompletedVisits() {
         const res = await apiGetActiveVisits();
         const rows = res.visits || [];
 
-        // فلترة المدفوع فقط
         const paid = rows.filter(v => {
             const status = v.data[14] || v.data[15] || "";
             return status === "مدفوع";
@@ -725,17 +703,16 @@ async function loadCompletedVisits() {
         }
 
         box.innerHTML = paid.map(v => `
-            <div class="car-card">
-                <h4>لوحة: ${v.data[1]}</h4>
-                <p><b>الخدمة:</b> ${v.data[6]}</p>
-                <p><b>السعر:</b> ${v.data[7]} ريال</p>
-                <p><b>الموظف:</b> ${v.data[9] || "غير محدد"}</p>
-                <p><b>طريقة الدفع:</b> ${v.data[14] || "—"}</p>
-            </div>
-        `).join("");
+<div class="car-card">
+  <h4>لوحة: ${v.data[1]}</h4>
+  <p><b>الخدمة:</b> ${v.data[6]}</p>
+  <p><b>السعر:</b> ${v.data[7]} ريال</p>
+  <p><b>الموظف:</b> ${v.data[9] || "غير محدد"}</p>
+  <p><b>طريقة الدفع:</b> ${v.data[14] || "—"}</p>
+</div>
+`).join("");
 
         loadPaidSummary(paid);
-
     } catch (err) {
         console.error(err);
         box.innerHTML = "<p>خطأ في تحميل الزيارات المكتملة</p>";
@@ -765,15 +742,15 @@ function loadEmployeeSummary(rows) {
     });
 
     box.innerHTML = `
-        <h3 class="section-title">📌 ملخص الموظفين داخل المغسلة</h3>
-        ${Object.keys(perEmployee).map(emp => `
-            <div class="summary-box">
-                <p><b>الموظف:</b> ${emp}</p>
-                <p><b>عدد الخدمات:</b> ${perEmployee[emp].count}</p>
-                <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].total} ريال</p>
-            </div>
-        `).join("")}
-    `;
+<h3 class="section-title">📌 ملخص الموظفين داخل المغسلة</h3>
+${Object.keys(perEmployee).map(emp => `
+<div class="summary-box">
+  <p><b>الموظف:</b> ${emp}</p>
+  <p><b>عدد الخدمات:</b> ${perEmployee[emp].count}</p>
+  <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].total} ريال</p>
+</div>
+`).join("")}
+`;
 }
 
 /* ===========================
@@ -804,30 +781,20 @@ function loadPaidSummary(paidRows) {
     });
 
     box.innerHTML = `
-        <h3 class="section-title">📌 ملخص المدفوع اليوم</h3>
-
-        <div class="summary-box">
-            <p><b>عدد السيارات:</b> ${totalCars}</p>
-            <p><b>إجمالي المبلغ:</b> ${totalAmount} ريال</p>
-        </div>
-
-        <h4>تفاصيل الموظفين:</h4>
-        ${Object.keys(perEmployee).map(emp => `
-            <div class="summary-box">
-                <p><b>الموظف:</b> ${emp}</p>
-                <p><b>عدد السيارات:</b> ${perEmployee[emp].cars}</p>
-                <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].total} ريال</p>
-            </div>
-        `).join("")}
-    `;
-}
-
-/* ===========================
-   إغلاق مودال تعديل الخدمات / الموظف
-=========================== */
-
-function closeEditModal() {
-    el("modal_edit_container").style.display = "none";
+<h3 class="section-title">📌 ملخص المدفوع اليوم</h3>
+<div class="summary-box">
+  <p><b>عدد السيارات:</b> ${totalCars}</p>
+  <p><b>إجمالي المبلغ:</b> ${totalAmount} ريال</p>
+</div>
+<h4>تفاصيل الموظفين:</h4>
+${Object.keys(perEmployee).map(emp => `
+<div class="summary-box">
+  <p><b>الموظف:</b> ${emp}</p>
+  <p><b>عدد السيارات:</b> ${perEmployee[emp].cars}</p>
+  <p><b>إجمالي المبلغ:</b> ${perEmployee[emp].total} ريال</p>
+</div>
+`).join("")}
+`;
 }
 
 /* ===========================
@@ -835,20 +802,16 @@ function closeEditModal() {
 =========================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-
     loadActiveVisits();
     loadCompletedVisits();
-
     loadCarTypes();
     loadServices();
     loadEmployees();
 
     el("btnRefreshActive").addEventListener("click", loadActiveVisits);
-
     el("btnAddService").addEventListener("click", addServiceToList);
     el("discount").addEventListener("input", recalcTotal);
     el("btnSetDiscount").addEventListener("click", recalcTotal);
-
     el("btnSubmitVisit").addEventListener("click", submitVisit);
 
     // إغلاق مودال الدفع
