@@ -41,31 +41,42 @@ async function loadActiveVisits() {
             return;
         }
 
-        // 2) تجميع السيارات
-        const cars = {};
-        for (const v of rows) {
-            const r = v.data;
-            const plate = r[1];
-            const brand = r[3] || "";
-            const service = r[6];
-            const price = Number(r[7] || 0);
-            const emp = r[9] || "غير محدد";
-            const parking = r[17];
+// 2) تجميع السيارات
+const cars = {};
 
-            if (!cars[plate]) {
-                cars[plate] = {
-                    plate,
-                    brand,
-                    employee: emp,
-                    parking,
-                    services: [],
-                    total: 0
-                };
-            }
+for (const v of rows) {
+    const r = v.data;
 
-            cars[plate].services.push({ name: service, price });
-            cars[plate].total += price;
-        }
+    const plate   = r[1];
+    const brand   = r[3] || "";
+    const service = r[6];
+    const price   = Number(r[7] || 0);
+    const emp     = r[9] || "غير محدد";
+    const parking = r[17];
+
+    // الخصم موجود في العمود 24 حسب الشيت
+    const discount = Number(r[24] || 0);
+
+    if (!cars[plate]) {
+        cars[plate] = {
+            plate,
+            brand,
+            employee: emp,
+            parking,
+            services: [],
+            total: 0,
+            discount: discount
+        };
+    }
+
+    cars[plate].services.push({ name: service, price });
+    cars[plate].total += price;
+}
+
+// حساب الإجمالي بعد الخصم
+Object.values(cars).forEach(car => {
+    car.totalAfterDiscount = car.total - car.discount;
+});
 
         // 3) استخدام DocumentFragment لتسريع DOM
         const fragment = document.createDocumentFragment();
@@ -198,7 +209,7 @@ function closeModal() { el("modal").style.display = "none"; }
 el("modal_close").onclick = closeModal;
 
 /* ===========================
-   تنفيذ الدفع (نسخة احترافية)
+   تنفيذ الدفع (نسخة نهائية)
 =========================== */
 async function submitPayment(method, total) {
 
@@ -233,25 +244,22 @@ async function submitPayment(method, total) {
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    // 4) جلب الخصم والإكرامية من أول صف
-    const discount = Number(rows[0].data[25] || 0);
-    const tip = Number(rows[0].data[26] || 0);
+    // 4) جلب الخصم والإكرامية من أول صف (حسب ترتيب الأعمدة)
+    const discount = Number(rows[0].data[24] || 0); // discount
+    const tip      = Number(rows[0].data[23] || 0); // tip
 
-    // 5) حساب الإجمالي بعد الخصم
-    const totalAfterDiscount = totalBeforeDiscount - discount;
-
-    // 6) توزيع الخصم على الخدمات بنسبة السعر
+    // 5) توزيع الخصم على الخدمات
     const distributedDiscount = prices.map(price => {
         const ratio = price / totalBeforeDiscount;
         return Math.round(ratio * discount);
     });
 
-    // 7) توزيع المبلغ بعد الخصم
+    // 6) السعر بعد الخصم لكل خدمة
     const distributedPaid = prices.map((price, i) => {
         return price - distributedDiscount[i];
     });
 
-    // 8) تحديث كل صف بخدمته
+    // 7) تحديث كل صف بخدمته
     for (let i = 0; i < rows.length; i++) {
         const v = rows[i];
 
@@ -259,12 +267,11 @@ async function submitPayment(method, total) {
             payment_status: "مدفوع",
             payment_method: method,
 
-            cash_amount: method === "كاش" ? distributedPaid[i] : 0,
-            card_amount: method === "شبكة" ? distributedPaid[i] : 0,
+            CASH_AMOUNT: method === "كاش"   ? distributedPaid[i] : 0,
+            CARD_AMOUNT: method === "شبكة" ? distributedPaid[i] : 0,
+            TOTAL_PAID:  distributedPaid[i],
 
-            total_paid: distributedPaid[i],
             discount: distributedDiscount[i],
-
             tip: i === 0 ? tip : 0 // الإكرامية لأول خدمة فقط
         });
     }
@@ -379,6 +386,7 @@ function loadAddTab() {
     const sel = el("addServiceSelect");
     sel.innerHTML = "";
 
+    // تحميل قائمة الخدمات
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
@@ -389,10 +397,27 @@ function loadAddTab() {
     });
 
     el("addConfirm").onclick = async () => {
+
         const service = sel.value;
         const price = Number(sel.selectedOptions[0].dataset.price);
         const points = Number(sel.selectedOptions[0].dataset.points);
 
+        /* ===========================
+           🔥 منع تكرار الخدمة
+        ============================ */
+        const exists = activeVisits.some(v =>
+            v.data[1] === selectedPlate &&   // نفس اللوحة
+            v.data[6] === service            // نفس الخدمة
+        );
+
+        if (exists) {
+            showToast("الخدمة مضافة مسبقاً", "error");
+            return;
+        }
+
+        /* ===========================
+           إضافة الخدمة فعليًا
+        ============================ */
         await apiAddVisit({
             services: [{ name: service, price, points }],
             plate_numbers: selectedPlate,
