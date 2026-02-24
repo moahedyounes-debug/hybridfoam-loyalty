@@ -609,8 +609,12 @@ async function submitVisit() {
         }
     }
 
+    // 🔥🔥 أهم تعديل — إضافة العضوية
+    const membership = plate_numbers;
+
     try {
         await apiAddVisit({
+            membership,            // ← تمت إضافتها
             plate_numbers,
             plate_letters,
             car_type,
