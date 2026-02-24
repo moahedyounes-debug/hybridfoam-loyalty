@@ -197,42 +197,57 @@
         </div>
     </div>
 
-    <!-- مودال الدفع -->
-    <div id="paymentModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>💳 تحديث الدفع</h3>
-                <button id="closePaymentModal" class="btn-danger small">✕</button>
-            </div>
-            
-            <label>طريقة الدفع</label>
-            <select id="modal_method_select">
-                <option value="كاش">كاش</option>
-                <option value="شبكة">شبكة</option>
-                <option value="جزئي">جزئي (كاش + شبكة)</option>
-            </select>
+   <!-- مودال الدفع -->
+<div id="paymentModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>💳 تحديث الدفع</h3>
+            <button id="closePaymentModal" class="btn-danger small">✕</button>
+        </div>
+        
+        <label>طريقة الدفع</label>
+        <select id="modal_method_select">
+            <option value="كاش">كاش</option>
+            <option value="شبكة">شبكة</option>
+            <option value="جزئي">جزئي (كاش + شبكة)</option>
+        </select>
 
-            <p><b>الإجمالي قبل الخصم:</b> <span id="modal_total_before">0 ريال</span></p>
-            <p><b>الخصم:</b> <span id="modal_discount">0 ريال</span></p>
-            <p><b>الإجمالي بعد الخصم:</b> <span id="modal_total_after">0 ريال</span></p>
-            <p><b>الإكرامية:</b> <span id="modal_tip">0 ريال</span></p>
+        <p><b>الإجمالي قبل الخصم:</b> <span id="modal_total_before">0 ريال</span></p>
 
-            <div id="cash_box" style="display:none; margin-top:15px;">
-                <label>مبلغ الكاش</label>
-                <input type="number" id="modal_cash" placeholder="0">
-            </div>
+        <!-- 🔥 حقل الخصم الجديد -->
+        <div style="margin-top:15px;">
+            <label>الخصم</label>
+            <input type="number" id="modal_discount_input" placeholder="0">
+        </div>
 
-            <div id="card_box" style="display:none; margin-top:15px;">
-                <label>مبلغ الشبكة</label>
-                <input type="number" id="modal_card" placeholder="0">
-            </div>
+        <p><b>الخصم الحالي:</b> <span id="modal_discount">0 ريال</span></p>
 
-            <div class="modal-actions">
-                <button id="modal_confirm" class="btn-primary">✅ تأكيد</button>
-                <button id="modal_close" class="btn-secondary">إغلاق</button>
-            </div>
+        <p><b>الإجمالي بعد الخصم:</b> <span id="modal_total_after">0 ريال</span></p>
+
+        <!-- 🔥 حقل الإكرامية الجديد -->
+        <div style="margin-top:15px;">
+            <label>الإكرامية</label>
+            <input type="number" id="modal_tip_input" placeholder="0">
+        </div>
+
+        <p><b>الإكرامية الحالية:</b> <span id="modal_tip">0 ريال</span></p>
+
+        <div id="cash_box" style="display:none; margin-top:15px;">
+            <label>مبلغ الكاش</label>
+            <input type="number" id="modal_cash" placeholder="0">
+        </div>
+
+        <div id="card_box" style="display:none; margin-top:15px;">
+            <label>مبلغ الشبكة</label>
+            <input type="number" id="modal_card" placeholder="0">
+        </div>
+
+        <div class="modal-actions">
+            <button id="modal_confirm" class="btn-primary">✅ تأكيد</button>
+            <button id="modal_close" class="btn-secondary">إغلاق</button>
         </div>
     </div>
+</div>
 
     <!-- مودال التعديل -->
     <div id="editModal" class="modal-overlay">
