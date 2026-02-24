@@ -180,7 +180,7 @@ function updateSummary(rows) {
 function openPaymentModal(plate) {
     selectedPlate = plate;
 
-    const rows = activeVisits.filter(v => v.data && v.data[1] === plate);
+    const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
 
     if (!rows.length) {
         closePaymentModal();
