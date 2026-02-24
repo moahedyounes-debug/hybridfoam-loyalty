@@ -188,6 +188,9 @@ function openPaymentModal(method) {
     el("modal_confirm").onclick = () => submitPayment(method, total);
 }
 
+function closeModal() { el("modal").style.display = "none"; }
+el("modal_close").onclick = closeModal;
+
 /* ===========================
    تنفيذ الدفع (الإصدار النهائي)
 =========================== */
