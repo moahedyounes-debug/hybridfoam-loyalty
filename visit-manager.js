@@ -154,33 +154,44 @@ function updateSummary(rows) {
     el("summaryCars").textContent = uniquePlates;
     el("summaryTotal").textContent = totalAmount + " ريال";
 }
+
 // ===========================
-// مودال الدفع
+// مودال الدفع - نسخة محدثة مع فحص حماية للأخطاء
 // ===========================
 function openPaymentModal(plate) {
     selectedPlate = plate;
-    const rows = activeVisits.filter(v => v.data[1] === plate);
+    // تأكد من أن كل عنصر لديه خاصية data قبل فلترة اللوحة
+    const rows = activeVisits.filter(v => v.data && v.data[1] === plate);
+
+    if (!rows.length) {
+        showToast("خطأ: لا توجد بيانات مطابقة للوحة المختارة", "error");
+        return;
+    }
+
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
-    const discount = Number(rows[0].data[24] || 0);
-    const tip = Number(rows[0].data[23] || 0);
+
+    // تحقق من وجود بيانات للصف الأول لتجنب الأخطاء
+    const discount = rows[0].data && rows[0].data[24] ? Number(rows[0].data[24]) : 0;
+    const tip = rows[0].data && rows[0].data[23] ? Number(rows[0].data[23]) : 0;
+
     const totalAfterDiscount = totalBeforeDiscount - discount;
-    
+
     el("modal_total_before").textContent = totalBeforeDiscount + " ريال";
     el("modal_discount").textContent = discount + " ريال";
     el("modal_total_after").textContent = totalAfterDiscount + " ريال";
     el("modal_tip").textContent = tip + " ريال";
-    
+
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
     el("modal_cash").value = "";
     el("modal_card").value = "";
-    
+
     el("paymentModal").classList.add("show");
-    
+
     el("modal_confirm").onclick = () => {
         const method = el("modal_method_select").value;
-        
+
         if (method === "جزئي") {
             el("cash_box").style.display = "block";
             el("card_box").style.display = "block";
@@ -199,16 +210,14 @@ async function submitPayment(method, total) {
     const btn = el("modal_confirm");
     btn.disabled = true;
     btn.textContent = "جاري المعالجة...";
-    
+
     let cash = 0, card = 0;
-    
+
     if (method === "كاش") cash = total;
-    if (method === "شبكة") card = total;
-    
-    if (method === "جزئي") {
+    else if (method === "شبكة") card = total;
+    else if (method === "جزئي") {
         cash = Number(el("modal_cash").value || 0);
         card = Number(el("modal_card").value || 0);
-        
         if (cash + card !== total) {
             showToast(`المبلغ يجب أن يكون ${total} ريال`, "error");
             btn.disabled = false;
@@ -216,20 +225,27 @@ async function submitPayment(method, total) {
             return;
         }
     }
-    
-    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
+
+    const rows = activeVisits.filter(v => v.data && v.data[1] === selectedPlate);
+    if (!rows.length) {
+        showToast("خطأ: بيانات الزيارة غير موجودة", "error");
+        btn.disabled = false;
+        btn.textContent = "تأكيد";
+        return;
+    }
+
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
-    const discount = Number(rows[0].data[24] || 0);
-    const tip = Number(rows[0].data[23] || 0);
-    
+    const discount = rows[0].data && rows[0].data[24] ? Number(rows[0].data[24]) : 0;
+    const tip = rows[0].data && rows[0].data[23] ? Number(rows[0].data[23]) : 0;
+
     const distributedDiscount = prices.map(price => {
-        const ratio = price / totalBeforeDiscount;
+        const ratio = totalBeforeDiscount ? (price / totalBeforeDiscount) : 0;
         return Math.round(ratio * discount);
     });
-    
-    const distributedPaid = prices.map((price, i) => price - distributedDiscount[i]);
-    
+
+    const distributedPaid = prices.map((price, i) => price - (distributedDiscount[i] || 0));
+
     for (let i = 0; i < rows.length; i++) {
         const v = rows[i];
         await apiCloseVisit(v.row, {
@@ -242,11 +258,11 @@ async function submitPayment(method, total) {
             tip: i === 0 ? tip : 0
         });
     }
-    
+
     showToast("✅ تم تحديث الدفع بنجاح", "success");
     closePaymentModal();
     loadActiveVisits();
-    
+
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
