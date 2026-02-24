@@ -581,6 +581,7 @@ function recalcTotal() {
     const discount = Number(el("discount").value || 0);
     el("totalPrice").textContent = Math.max(0, total - discount);
 }
+
 /* ===========================
    تسجيل الزيارة
 =========================== */
@@ -629,12 +630,12 @@ async function submitVisit() {
         }
     }
 
-    // 🔥🔥 أهم تعديل — إضافة العضوية
+    // 🔥 العضوية = رقم اللوحة
     const membership = plate_numbers;
 
     try {
         await apiAddVisit({
-            membership,            // ← تمت إضافتها
+            membership,
             plate_numbers,
             plate_letters,
             car_type,
@@ -649,12 +650,16 @@ async function submitVisit() {
             tip,
             cash_amount: cash,
             card_amount: card,
-            services: selectedServices.map(s => ({
-                name: s.name,
-                price: s.price,
-                points: s.points,
-                commission: s.points
-            }))
+
+            // 🔥🔥 أهم تعديل — إرسال الخدمات كـ JSON string
+            services: JSON.stringify(
+                selectedServices.map(s => ({
+                    name: s.name,
+                    price: s.price,
+                    points: s.points,
+                    commission: s.points
+                }))
+            )
         });
 
         showToast("تم تسجيل الزيارة بنجاح", "success");
