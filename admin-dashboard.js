@@ -159,14 +159,16 @@ function renderEmployeesSummary(list) {
         const employee = v[9] || "غير محدد";
 
         const price = Number(v[22] || v[7] || 0);   // total_paid
-        const tip = Number(v[25] || 0);        // discount
-        cconst discount = Number(v[26] || 0);             // tip
+        const tip = Number(v[25] || 0);            // tip
+        const discount = Number(v[26] || 0);       // discount
         const service = v[6] || "";
 
         // جلب العمولة من شيت الكوميشن
         const commission = commissions[service] || 0;
 
-        if (!emp[employee]) emp[employee] = { cars: 0, total: 0, commission: 0 };
+        if (!emp[employee]) {
+            emp[employee] = { cars: 0, total: 0, commission: 0 };
+        }
 
         emp[employee].cars++;
         emp[employee].total += price;
