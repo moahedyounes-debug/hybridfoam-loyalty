@@ -454,3 +454,157 @@ window.onload = async function () {
     showToast("❌ فشل في تحميل البيانات", "error");
   }
 };
+// ===========================
+// تحميل أنواع السيارات
+// ===========================
+async function loadCarTypes() {
+  try {
+    const res = await apiGetCarTypes();
+    carTypesData = res.rows || [];
+
+    const brandSel = el("car_type");
+    const modelSel = el("car_model");
+    const sizeInput = el("car_size");
+
+    brandSel.innerHTML = '<option value="">— اختر البراند —</option>';
+    modelSel.innerHTML = '<option value="">— اختر الموديل —</option>';
+    sizeInput.value = "";
+
+    const brands = [...new Set(carTypesData.map(r => r[0]))];
+
+    brands.forEach(b => {
+      const opt = document.createElement("option");
+      opt.value = b;
+      opt.textContent = b;
+      brandSel.appendChild(opt);
+    });
+
+    brandSel.onchange = () => {
+      const brand = brandSel.value;
+      modelSel.innerHTML = '<option value="">— اختر الموديل —</option>';
+
+      const models = carTypesData.filter(r => r[0] === brand);
+      const uniqueModels = [...new Set(models.map(r => r[1]))];
+
+      uniqueModels.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        modelSel.appendChild(opt);
+      });
+    };
+
+    modelSel.onchange = () => {
+      const brand = brandSel.value;
+      const model = modelSel.value;
+      const row = carTypesData.find(r => r[0] === brand && r[1] === model);
+      sizeInput.value = row ? row[2] : "";
+    };
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل أنواع السيارات", "error");
+  }
+}
+
+// ===========================
+// تحميل الخدمات
+// ===========================
+async function loadServices() {
+  try {
+    const res = await apiGetServices();
+    servicesData = res.services || [];
+
+    const typeSel = el("service_type");
+    const detailSel = el("service_detail");
+
+    typeSel.innerHTML = '<option value="">— اختر النوع —</option>';
+    detailSel.innerHTML = '<option value="">— اختر الخدمة —</option>';
+
+    const cats = [...new Set(servicesData.map(s => s.category))];
+
+    cats.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      typeSel.appendChild(opt);
+    });
+
+    typeSel.onchange = () => {
+      const cat = typeSel.value;
+      detailSel.innerHTML = '<option value="">— اختر الخدمة —</option>';
+
+      const filtered = servicesData.filter(s => s.category === cat);
+
+      filtered.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.service;
+        opt.textContent = s.service;
+        opt.dataset.price = s.price;
+        opt.dataset.points = s.commission;
+        detailSel.appendChild(opt);
+      });
+    };
+
+    detailSel.onchange = () => {
+      const opt = detailSel.selectedOptions[0];
+      if (opt) {
+        el("price").value = opt.dataset.price || "";
+        el("points").value = opt.dataset.points || "";
+      }
+    };
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل الخدمات", "error");
+  }
+}
+
+// ===========================
+// تحميل الفروع مع تعيين القيمة الافتراضية "مكة"
+// ===========================
+async function loadBranches() {
+  try {
+    const res = await apiGetBranches();
+    const rows = res.rows || [];
+    const sel = el("branch");
+
+    sel.innerHTML = '<option value="">— اختر الفرع —</option>';
+
+    rows.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r[0];
+      opt.textContent = r[0];
+      sel.appendChild(opt);
+    });
+
+    const defaultValue = "مكة";
+    if ([...sel.options].some(opt => opt.value === defaultValue)) {
+      sel.value = defaultValue;
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل الفروع", "error");
+  }
+}
+
+// ===========================
+// تحميل الموظفين
+// ===========================
+async function loadEmployees() {
+  try {
+    const res = await apiGetEmployees();
+    employeesData = res.rows || [];
+
+    const sel = el("employee_in");
+    sel.innerHTML = '<option value="">— اختر الموظف —</option>';
+
+    employeesData.forEach(e => {
+      const opt = document.createElement("option");
+      opt.value = e[0];
+      opt.textContent = e[0];
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل الموظفين", "error");
+  }
+}
