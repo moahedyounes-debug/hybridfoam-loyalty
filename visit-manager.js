@@ -178,12 +178,12 @@ function updateSummary(rows) {
    مودال الدفع
 =========================== */
 function openPaymentModal(plate) {
+
     selectedPlate = plate;
 
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
 
     if (!rows.length) {
-        closePaymentModal();
         showToast("لا توجد بيانات لهذه اللوحة", "error");
         return;
     }
@@ -191,20 +191,28 @@ function openPaymentModal(plate) {
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    const discount = Number(rows[0].data[24] || 0);
-    const tip = Number(rows[0].data[23] || 0);
+    const oldDiscount = Number(rows[0].data[24] || 0);
+    const oldTip = Number(rows[0].data[23] || 0);
 
-    const totalAfterDiscount = totalBeforeDiscount - discount;
-
+    // تعبئة الحقول
     el("modal_total_before").textContent = totalBeforeDiscount + " ريال";
-    el("modal_discount").textContent = discount + " ريال";
-    el("modal_total_after").textContent = totalAfterDiscount + " ريال";
-    el("modal_tip").textContent = tip + " ريال";
+    el("modal_discount").textContent = oldDiscount + " ريال";
+    el("modal_tip").textContent = oldTip + " ريال";
 
-    // 🔥 تعبئة الحقول الجديدة
-    el("modal_discount_input").value = discount;
-    el("modal_tip_input").value = tip;
+    el("modal_discount_input").value = oldDiscount;
+    el("modal_tip_input").value = oldTip;
 
+    // حساب الإجمالي بعد الخصم
+    const updateTotals = () => {
+        const d = Number(el("modal_discount_input").value || 0);
+        el("modal_total_after").textContent = (totalBeforeDiscount - d) + " ريال";
+    };
+
+    updateTotals();
+
+    el("modal_discount_input").oninput = updateTotals;
+
+    // إخفاء حقول الدفع الجزئي
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
 
@@ -213,22 +221,21 @@ function openPaymentModal(plate) {
 
     el("paymentModal").classList.add("show");
 
-    const confirmBtn = el("modal_confirm");
-
-    confirmBtn.onclick = () => {
+    el("modal_confirm").onclick = () => {
         const method = el("modal_method_select").value;
 
         if (method === "جزئي") {
             el("cash_box").style.display = "block";
             el("card_box").style.display = "block";
 
-            confirmBtn.onclick = () => submitPayment(method, totalAfterDiscount);
+            el("modal_confirm").onclick = () =>
+                submitPayment(method, totalBeforeDiscount - Number(el("modal_discount_input").value || 0));
+
         } else {
-            submitPayment(method, totalAfterDiscount);
+            submitPayment(method, totalBeforeDiscount - Number(el("modal_discount_input").value || 0));
         }
     };
 }
-
 function closePaymentModal() {
     el("paymentModal").classList.remove("show");
 }
@@ -237,6 +244,7 @@ function closePaymentModal() {
    تنفيذ الدفع
 =========================== */
 async function submitPayment(method, total) {
+
     const btn = el("modal_confirm");
     btn.disabled = true;
     btn.textContent = "جاري المعالجة...";
@@ -246,6 +254,7 @@ async function submitPayment(method, total) {
     if (method === "كاش") cash = total;
     else if (method === "شبكة") card = total;
     else if (method === "جزئي") {
+
         cash = Number(el("modal_cash").value || 0);
         card = Number(el("modal_card").value || 0);
 
@@ -257,7 +266,7 @@ async function submitPayment(method, total) {
         }
     }
 
-    const rows = activeVisits.filter(v => v.data && v.data[1] === selectedPlate);
+    const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(selectedPlate));
 
     if (!rows.length) {
         showToast("خطأ: لا توجد بيانات", "error");
@@ -269,7 +278,6 @@ async function submitPayment(method, total) {
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    // 🔥 أخذ الخصم والإكرامية من المودال
     const discount = Number(el("modal_discount_input").value || 0);
     const tip = Number(el("modal_tip_input").value || 0);
 
@@ -281,6 +289,7 @@ async function submitPayment(method, total) {
     const distributedPaid = prices.map((price, i) => price - distributedDiscount[i]);
 
     for (let i = 0; i < rows.length; i++) {
+
         const v = rows[i];
 
         await apiCloseVisit(v.row, {
