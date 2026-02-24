@@ -833,7 +833,7 @@ document.addEventListener("click", function(e) {
             menu.classList.remove("show");
         });
     }
-    
+
     // فتح قائمة التعديل
     if (e.target.classList.contains("edit-btn")) {
         const dropdown = e.target.nextElementSibling;
@@ -843,7 +843,7 @@ document.addEventListener("click", function(e) {
         dropdown.classList.toggle("show");
         return;
     }
-    
+
     // فتح قائمة الدفع
     if (e.target.classList.contains("btn-pay")) {
         const dropdown = e.target.nextElementSibling;
@@ -853,35 +853,34 @@ document.addEventListener("click", function(e) {
         dropdown.classList.toggle("show");
         return;
     }
-    
+
     // اختيار طريقة الدفع
     if (e.target.matches(".pay-menu a")) {
-        e.preventDefault();
+        e.preventDefault();  // مهم لمنع إعادة تحميل الصفحة
         const plate = e.target.parentElement.dataset.plate;
         const method = e.target.dataset.method;
-        
+
         selectedPlate = plate;
         openPaymentModal(plate);
         el("modal_method_select").value = method;
-        
+
         e.target.parentElement.classList.remove("show");
         return;
     }
-    
+
     // اختيار إجراء التعديل
     if (e.target.matches(".edit-menu a")) {
-        e.preventDefault();
+        e.preventDefault();  // مهم لمنع إعادة تحميل الصفحة
         const plate = e.target.parentElement.dataset.plate;
         const action = e.target.dataset.action;
-        
+
         selectedPlate = plate;
         openEditModal(action);
-        
+
         e.target.parentElement.classList.remove("show");
         return;
     }
 });
-
 // ===========================
 // تشغيل النظام عند التحميل
 // ===========================
