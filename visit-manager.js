@@ -99,44 +99,58 @@ async function loadActiveVisits() {
                 .map(s => `<li><span>${s.name}</span><span>${s.price} ريال</span></li>`)
                 .join("");
 
-            card.innerHTML = `
-                <div class="card-header">
-                    <div>
-                        <h4>🚗 لوحة: ${car.plate} — ${car.brand}</h4>
-                        <p>👤 الموظف: ${car.employee} | 🅿️ الموقف: ${car.parking || "-"}</p>
-                    </div>
+card.innerHTML = `
+<div class="card">
 
-                    <div class="dropdown">
-                        <button class="edit-btn" type="button">⋮ تعديل ▼</button>
-                        <div class="dropdown-content edit-menu" data-plate="${car.plate}">
-                            <button data-action="swap" type="button">🔄 تبديل خدمة</button>
-                            <button data-action="delete" type="button">🗑️ حذف خدمة</button>
-                            <button data-action="add" type="button">➕ إضافة خدمة</button>
-                            <button data-action="emp" type="button">👤 تغيير الموظف</button>
-                            <button data-action="disc" type="button">💰 تغيير الخصم</button>
-                            <button data-action="tip" type="button">🎁 تغيير الإكرامية</button>
-                        </div>
-                    </div>
-                </div>
+    <div class="card-header">
+        <h4>لوحة: ${car.plate_numbers} — ${car.car_type}</h4>
+    </div>
 
-                <div class="card-body">
-                    <ul>${servicesHTML}</ul>
-                    <p><b>الإجمالي قبل الخصم:</b> <span>${car.total} ريال</span></p>
-                    <p><b>الخصم:</b> <span>${car.discount} ريال</span></p>
-                    <p><b>الإجمالي بعد الخصم:</b> <span>${car.totalAfterDiscount} ريال</span></p>
-                </div>
+    <div class="card-body">
+        <p>الموظف: ${car.employee_in}</p>
+        <p>الموقف: ${car.parking_slot}</p>
 
-                <div class="card-footer">
-                    <div class="dropdown">
-                        <button class="btn-pay" type="button">💳 تحديث الدفع ▼</button>
-                        <div class="dropdown-content pay-menu" data-plate="${car.plate}">
-                            <button data-method="كاش" type="button">💵 دفع كاش</button>
-                            <button data-method="شبكة" type="button">💳 دفع شبكة</button>
-                            <button data-method="جزئي" type="button">💰 دفع جزئي</button>
-                        </div>
-                    </div>
-                </div>
-            `;
+        <ul class="service-list">
+            ${servicesHTML}
+        </ul>
+
+        <p><b>الإجمالي قبل الخصم:</b> ${car.total} ريال</p>
+        <p><b>الخصم:</b> ${car.discount} ريال</p>
+        <p><b>الإجمالي بعد الخصم:</b> ${car.totalAfterDiscount} ريال</p>
+    </div>
+
+    <div class="card-footer">
+
+        <!-- قائمة الدفع -->
+        <div class="dropdown">
+            <button class="btn-pay" type="button">💳 تحديث الدفع ▼</button>
+
+            <div class="dropdown-content pay-menu" data-plate="${car.plate_numbers}">
+                <button data-method="كاش" type="button">💵 دفع كاش</button>
+                <button data-method="شبكة" type="button">💳 دفع شبكة</button>
+                <button data-method="جزئي" type="button">💰 دفع جزئي</button>
+            </div>
+        </div>
+
+        <!-- قائمة التعديل -->
+        <div class="dropdown">
+            <button class="edit-btn" type="button">✏️ تعديل ▼</button>
+
+            <div class="dropdown-content edit-menu" data-plate="${car.plate_numbers}">
+                <button data-action="swap">🔄 تبديل خدمة</button>
+                <button data-action="delete">🗑️ حذف خدمة</button>
+                <button data-action="add">➕ إضافة خدمة</button>
+                <button data-action="emp">👤 تغيير الموظف</button>
+                <button data-action="disc">💰 تغيير الخصم</button>
+                <button data-action="tip">🎁 تغيير الإكرامية</button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+`;
+
 
             fragment.appendChild(card);
         }
@@ -187,6 +201,10 @@ function openPaymentModal(plate) {
     el("modal_discount").textContent = discount + " ريال";
     el("modal_total_after").textContent = totalAfterDiscount + " ريال";
     el("modal_tip").textContent = tip + " ريال";
+
+    // 🔥 تعبئة الحقول الجديدة
+    el("modal_discount_input").value = discount;
+    el("modal_tip_input").value = tip;
 
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
@@ -252,8 +270,9 @@ async function submitPayment(method, total) {
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    const discount = Number(rows[0].data[24] || 0);
-    const tip = Number(rows[0].data[23] || 0);
+    // 🔥 أخذ الخصم والإكرامية من المودال
+    const discount = Number(el("modal_discount_input").value || 0);
+    const tip = Number(el("modal_tip_input").value || 0);
 
     const distributedDiscount = prices.map(price => {
         const ratio = totalBeforeDiscount ? (price / totalBeforeDiscount) : 0;
@@ -283,7 +302,6 @@ async function submitPayment(method, total) {
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
-
 /* ===========================
    مودال التعديل
 =========================== */
