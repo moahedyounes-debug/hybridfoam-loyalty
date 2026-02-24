@@ -23,7 +23,7 @@ function showToast(msg, type = "info") {
     div.className = `toast ${type}`;
     div.textContent = msg;
     box.appendChild(div);
-    
+
     setTimeout(() => div.classList.add("show"), 10);
     setTimeout(() => {
         div.classList.remove("show");
@@ -37,20 +37,20 @@ function showToast(msg, type = "info") {
 async function loadActiveVisits() {
     const list = el("activeVisitsList");
     list.innerHTML = '<div class="loading">جارِ التحميل...</div>';
-    
+
     try {
         const res = await apiGetActiveVisits();
         const rows = res.visits || [];
         activeVisits = rows;
-        
+
         // تحديث الملخص
         updateSummary(rows);
-        
+
         if (!rows.length) {
             list.innerHTML = '<p style="text-align:center;padding:40px;color:#6b7280;">لا توجد زيارات حالياً</p>';
             return;
         }
-        
+
         // تجميع السيارات حسب اللوحة
         const cars = {};
         for (const v of rows) {
@@ -62,7 +62,7 @@ async function loadActiveVisits() {
             const emp = r[9] || "غير محدد";
             const parking = r[17];
             const discount = Number(r[24] || 0);
-            
+
             if (!cars[plate]) {
                 cars[plate] = {
                     plate,
@@ -74,27 +74,27 @@ async function loadActiveVisits() {
                     discount: discount
                 };
             }
-            
+
             cars[plate].services.push({ name: service, price });
             cars[plate].total += price;
         }
-        
+
         // حساب الإجمالي بعد الخصم
         Object.values(cars).forEach(car => {
             car.totalAfterDiscount = car.total - car.discount;
         });
-        
+
         // بناء البطاقات
         const fragment = document.createDocumentFragment();
-        
+
         for (const car of Object.values(cars)) {
             const card = document.createElement("div");
             card.className = "car-card";
-            
+
             const servicesHTML = car.services
                 .map(s => `<li><span>${s.name}</span><span>${s.price} ريال</span></li>`)
                 .join("");
-            
+
             card.innerHTML = `
                 <div class="card-header">
                     <div>
@@ -102,14 +102,14 @@ async function loadActiveVisits() {
                         <p>👤 الموظف: ${car.employee} | 🅿️ الموقف: ${car.parking || "-"}</p>
                     </div>
                     <div class="dropdown">
-                        <button class="edit-btn">⋮ تعديل ▼</button>
+                        <button class="edit-btn" type="button">⋮ تعديل ▼</button>
                         <div class="dropdown-content edit-menu" data-plate="${car.plate}">
-                            <a href="#" data-action="swap">🔄 تبديل خدمة</a>
-                            <a href="#" data-action="delete">🗑️ حذف خدمة</a>
-                            <a href="#" data-action="add">➕ إضافة خدمة</a>
-                            <a href="#" data-action="emp">👤 تغيير الموظف</a>
-                            <a href="#" data-action="disc">💰 تغيير الخصم</a>
-                            <a href="#" data-action="tip">🎁 تغيير الإكرامية</a>
+                            <button data-action="swap" type="button">🔄 تبديل خدمة</button>
+                            <button data-action="delete" type="button">🗑️ حذف خدمة</button>
+                            <button data-action="add" type="button">➕ إضافة خدمة</button>
+                            <button data-action="emp" type="button">👤 تغيير الموظف</button>
+                            <button data-action="disc" type="button">💰 تغيير الخصم</button>
+                            <button data-action="tip" type="button">🎁 تغيير الإكرامية</button>
                         </div>
                     </div>
                 </div>
@@ -121,22 +121,22 @@ async function loadActiveVisits() {
                 </div>
                 <div class="card-footer">
                     <div class="dropdown">
-                        <button class="btn-pay">💳 تحديث الدفع ▼</button>
+                        <button class="btn-pay" type="button">💳 تحديث الدفع ▼</button>
                         <div class="dropdown-content pay-menu" data-plate="${car.plate}">
-                            <a href="#" data-method="كاش">💵 دفع كاش</a>
-                            <a href="#" data-method="شبكة">💳 دفع شبكة</a>
-                            <a href="#" data-method="جزئي">💰 دفع جزئي</a>
+                            <button data-method="كاش" type="button">💵 دفع كاش</button>
+                            <button data-method="شبكة" type="button">💳 دفع شبكة</button>
+                            <button data-method="جزئي" type="button">💰 دفع جزئي</button>
                         </div>
                     </div>
                 </div>
             `;
-            
+
             fragment.appendChild(card);
         }
-        
+
         list.innerHTML = "";
         list.appendChild(fragment);
-        
+
     } catch (err) {
         console.error(err);
         showToast("خطأ في تحميل الزيارات", "error");
@@ -149,31 +149,30 @@ async function loadActiveVisits() {
 function updateSummary(rows) {
     const uniquePlates = new Set(rows.map(v => v.data[1])).size;
     const totalAmount = rows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
-    
+
     el("summaryActive").textContent = rows.length;
     el("summaryCars").textContent = uniquePlates;
     el("summaryTotal").textContent = totalAmount + " ريال";
 }
 
 // ===========================
-// مودال الدفع - نسخة محدثة مع فحص حماية للأخطاء
+// مودال الدفع
 // ===========================
 function openPaymentModal(plate) {
     selectedPlate = plate;
-    // تأكد من أن كل عنصر لديه خاصية data قبل فلترة اللوحة
-    const rows = activeVisits.filter(v => v.data && v.data[1] === plate);
+
+    const rows = activeVisits.filter(v => v.data && Array.isArray(v.data) && v.data.length > 1 && v.data[1] === plate);
 
     if (!rows.length) {
-        showToast("خطأ: لا توجد بيانات مطابقة للوحة المختارة", "error");
+        closePaymentModal();
         return;
     }
 
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    // تحقق من وجود بيانات للصف الأول لتجنب الأخطاء
-    const discount = rows[0].data && rows[0].data[24] ? Number(rows[0].data[24]) : 0;
-    const tip = rows[0].data && rows[0].data[23] ? Number(rows[0].data[23]) : 0;
+    const discount = rows[0].data[24] !== undefined ? Number(rows[0].data[24]) : 0;
+    const tip = rows[0].data[23] !== undefined ? Number(rows[0].data[23]) : 0;
 
     const totalAfterDiscount = totalBeforeDiscount - discount;
 
@@ -189,13 +188,14 @@ function openPaymentModal(plate) {
 
     el("paymentModal").classList.add("show");
 
-    el("modal_confirm").onclick = () => {
+    const modalConfirm = el("modal_confirm");
+    modalConfirm.onclick = () => {
         const method = el("modal_method_select").value;
 
         if (method === "جزئي") {
             el("cash_box").style.display = "block";
             el("card_box").style.display = "block";
-            el("modal_confirm").onclick = () => submitPayment(method, totalAfterDiscount);
+            modalConfirm.onclick = () => submitPayment(method, totalAfterDiscount);
         } else {
             submitPayment(method, totalAfterDiscount);
         }
@@ -206,13 +206,15 @@ function closePaymentModal() {
     el("paymentModal").classList.remove("show");
 }
 
+// ===========================
+// إرسال بيانات الدفع وتحديث الزيارات
+// ===========================
 async function submitPayment(method, total) {
     const btn = el("modal_confirm");
     btn.disabled = true;
     btn.textContent = "جاري المعالجة...";
 
     let cash = 0, card = 0;
-
     if (method === "كاش") cash = total;
     else if (method === "شبكة") card = total;
     else if (method === "جزئي") {
@@ -226,18 +228,19 @@ async function submitPayment(method, total) {
         }
     }
 
-    const rows = activeVisits.filter(v => v.data && v.data[1] === selectedPlate);
+    const rows = activeVisits.filter(v => v.data && Array.isArray(v.data) && v.data.length > 1 && v.data[1] === selectedPlate);
     if (!rows.length) {
         showToast("خطأ: بيانات الزيارة غير موجودة", "error");
         btn.disabled = false;
         btn.textContent = "تأكيد";
+        closePaymentModal();
         return;
     }
 
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
-    const discount = rows[0].data && rows[0].data[24] ? Number(rows[0].data[24]) : 0;
-    const tip = rows[0].data && rows[0].data[23] ? Number(rows[0].data[23]) : 0;
+    const discount = rows[0].data[24] !== undefined ? Number(rows[0].data[24]) : 0;
+    const tip = rows[0].data[23] !== undefined ? Number(rows[0].data[23]) : 0;
 
     const distributedDiscount = prices.map(price => {
         const ratio = totalBeforeDiscount ? (price / totalBeforeDiscount) : 0;
@@ -251,8 +254,8 @@ async function submitPayment(method, total) {
         await apiCloseVisit(v.row, {
             payment_status: "مدفوع",
             payment_method: method,
-            cash_amount: method === "كاش" ? distributedPaid[i] : 0,
-            card_amount: method === "شبكة" ? distributedPaid[i] : 0,
+            cash_amount: method === "كاش" ? distributedPaid[i] : (method === "جزئي" ? cash : 0),
+            card_amount: method === "شبكة" ? distributedPaid[i] : (method === "جزئي" ? card : 0),
             total_paid: distributedPaid[i],
             discount: distributedDiscount[i],
             tip: i === 0 ? tip : 0
@@ -266,7 +269,6 @@ async function submitPayment(method, total) {
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
-
 // ===========================
 // مودال التعديل
 // ===========================
