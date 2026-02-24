@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -21,7 +20,7 @@
         <h2>إدارة الزيارات</h2>
     </div>
 
-    <!-- شريط الملخص (اختياري – تقدر تستخدمه لاحقاً) -->
+    <!-- شريط الملخص -->
     <div id="summaryBar" class="summary-bar"></div>
 
     <!-- السيارات داخل المغسلة -->
@@ -178,12 +177,37 @@
         <button id="btnSubmitVisit" class="btn-primary full">تسجيل الزيارة</button>
     </div>
 
-    <!-- مودال الدفع -->
+    <!-- مودال الدفع (الإصدار النهائي) -->
     <div id="modal" class="modal" style="display:none;">
         <div class="modal-box">
-            <h3>تحديث الدفع: <span id="modal_method"></span></h3>
-            <p style="margin-top:5px;">
-                الإجمالي المطلوب: <span id="modal_total">0 ريال</span>
+
+            <h3>تحديث الدفع</h3>
+
+            <label>طريقة الدفع</label>
+            <select id="modal_method_select" class="full">
+                <option value="كاش">كاش</option>
+                <option value="شبكة">شبكة</option>
+                <option value="جزئي">جزئي (كاش + شبكة)</option>
+            </select>
+
+            <p style="margin-top:15px;">
+                <b>الإجمالي قبل الخصم:</b>
+                <span id="modal_total_before">0 ريال</span>
+            </p>
+
+            <p>
+                <b>الخصم:</b>
+                <span id="modal_discount">0 ريال</span>
+            </p>
+
+            <p>
+                <b>الإجمالي بعد الخصم:</b>
+                <span id="modal_total_after">0 ريال</span>
+            </p>
+
+            <p>
+                <b>الإكرامية:</b>
+                <span id="modal_tip">0 ريال</span>
             </p>
 
             <div id="cash_box" style="margin-top:15px; display:none;">
@@ -200,6 +224,7 @@
                 <button id="modal_confirm" class="btn-primary" style="flex:1;">تأكيد</button>
                 <button id="modal_close" class="btn-secondary btn-danger" style="flex:1;">إغلاق</button>
             </div>
+
         </div>
     </div>
 
@@ -211,7 +236,6 @@
                 <button id="editClose" class="btn-secondary btn-danger small">X</button>
             </div>
 
-            <!-- التبويبات -->
             <div class="tabs">
                 <button class="tab-btn active" data-tab="tab-swap">تبديل خدمة</button>
                 <button class="tab-btn" data-tab="tab-delete">حذف خدمة</button>
@@ -222,54 +246,52 @@
             </div>
 
             <div class="tab-content">
-                <!-- تبديل خدمة -->
+
                 <div id="tab-swap" class="tab-pane active">
                     <label>اختر الخدمة الجديدة</label>
                     <select id="swapServiceSelect"></select>
                     <button id="swapConfirm" class="btn-primary full" style="margin-top:10px;">تأكيد التبديل</button>
                 </div>
 
-                <!-- حذف خدمة -->
                 <div id="tab-delete" class="tab-pane">
                     <label>اختر الخدمة المراد حذفها</label>
                     <select id="deleteServiceSelect"></select>
                     <button id="deleteConfirm" class="btn-primary full" style="margin-top:10px;">حذف الخدمة</button>
                 </div>
 
-                <!-- إضافة خدمة -->
                 <div id="tab-add" class="tab-pane">
                     <label>اختر خدمة للإضافة</label>
                     <select id="addServiceSelect"></select>
                     <button id="addConfirm" class="btn-primary full" style="margin-top:10px;">إضافة الخدمة</button>
                 </div>
 
-                <!-- تغيير الموظف -->
                 <div id="tab-emp" class="tab-pane">
                     <label>اختر الموظف الجديد</label>
                     <select id="empSelect"></select>
                     <button id="empConfirm" class="btn-primary full" style="margin-top:10px;">تحديث الموظف</button>
                 </div>
 
-                <!-- تغيير الخصم -->
                 <div id="tab-disc" class="tab-pane">
                     <label>الخصم الجديد</label>
                     <input type="number" id="discInput" placeholder="0">
                     <button id="discConfirm" class="btn-primary full" style="margin-top:10px;">تحديث الخصم</button>
                 </div>
 
-                <!-- تغيير الإكرامية -->
                 <div id="tab-tip" class="tab-pane">
                     <label>الإكرامية الجديدة</label>
                     <input type="number" id="tipInput" placeholder="0">
                     <button id="tipConfirm" class="btn-primary full" style="margin-top:10px;">تحديث الإكرامية</button>
                 </div>
+
             </div>
         </div>
     </div>
 
     <!-- Toast -->
     <div id="toast-container"></div>
-     <script src="events.js"></script>
+
+    <!-- Event Delegation -->
+    <script src="events.js"></script>
 
 </body>
 </html>
