@@ -16,6 +16,7 @@ document.addEventListener("click", e => {
        2) فتح قائمة التعديل أو الدفع
     ============================ */
     if (e.target.classList.contains("edit-btn") || e.target.classList.contains("btn-pay")) {
+
         const dropdown = e.target.nextElementSibling;
 
         // إغلاق كل القوائم الأخرى
@@ -23,7 +24,7 @@ document.addEventListener("click", e => {
             if (menu !== dropdown) menu.style.display = "none";
         });
 
-        // تبديل القائمة الحالية
+        // فتح/إغلاق القائمة الحالية
         dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
         return;
     }
@@ -61,6 +62,7 @@ document.addEventListener("click", e => {
 
         selectedPlate = plate;
 
+        // فتح مودال التعديل
         openEditModal(action);
 
         // إغلاق القائمة
