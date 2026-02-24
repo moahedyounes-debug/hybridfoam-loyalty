@@ -24,14 +24,15 @@ function showToast(msg, type = "info") {
 }
 
 /* ===========================
-   تحميل الزيارات النشطة (نسخة سريعة)
+   تحميل الزيارات النشطة (نسخة نهائية)
 =========================== */
 async function loadActiveVisits() {
+
     const list = el("activeVisitsList");
     list.innerHTML = "جارِ التحميل...";
 
     try {
-        // 1) تحميل البيانات مرة واحدة فقط
+        // 1) تحميل البيانات
         const res = await apiGetActiveVisits();
         const rows = res.visits || [];
         activeVisits = rows;
@@ -41,47 +42,51 @@ async function loadActiveVisits() {
             return;
         }
 
-// 2) تجميع السيارات
-const cars = {};
+        /* ===========================
+           2) تجميع السيارات حسب اللوحة
+        ============================ */
+        const cars = {};
 
-for (const v of rows) {
-    const r = v.data;
+        for (const v of rows) {
+            const r = v.data;
 
-    const plate   = r[1];
-    const brand   = r[3] || "";
-    const service = r[6];
-    const price   = Number(r[7] || 0);
-    const emp     = r[9] || "غير محدد";
-    const parking = r[17];
+            const plate   = r[1];
+            const brand   = r[3] || "";
+            const service = r[6];
+            const price   = Number(r[7] || 0);
+            const emp     = r[9] || "غير محدد";
+            const parking = r[17];
 
-    // الخصم موجود في العمود 24 حسب الشيت
-    const discount = Number(r[24] || 0);
+            const discount = Number(r[24] || 0); // discount
 
-    if (!cars[plate]) {
-        cars[plate] = {
-            plate,
-            brand,
-            employee: emp,
-            parking,
-            services: [],
-            total: 0,
-            discount: discount
-        };
-    }
+            if (!cars[plate]) {
+                cars[plate] = {
+                    plate,
+                    brand,
+                    employee: emp,
+                    parking,
+                    services: [],
+                    total: 0,
+                    discount: discount
+                };
+            }
 
-    cars[plate].services.push({ name: service, price });
-    cars[plate].total += price;
-}
+            cars[plate].services.push({ name: service, price });
+            cars[plate].total += price;
+        }
 
-// حساب الإجمالي بعد الخصم
-Object.values(cars).forEach(car => {
-    car.totalAfterDiscount = car.total - car.discount;
-});
+        // حساب الإجمالي بعد الخصم
+        Object.values(cars).forEach(car => {
+            car.totalAfterDiscount = car.total - car.discount;
+        });
 
-        // 3) استخدام DocumentFragment لتسريع DOM
+        /* ===========================
+           3) بناء البطاقات بسرعة
+        ============================ */
         const fragment = document.createDocumentFragment();
 
         for (const car of Object.values(cars)) {
+
             const card = document.createElement("div");
             card.className = "car-card";
 
@@ -113,7 +118,10 @@ Object.values(cars).forEach(car => {
                 <div class="card-body">
                     <p><b>الخدمات:</b></p>
                     <ul>${servicesHTML}</ul>
-                    <p><b>الإجمالي:</b> ${car.total} ريال</p>
+
+                    <p><b>الإجمالي قبل الخصم:</b> ${car.total} ريال</p>
+                    <p><b>الخصم:</b> ${car.discount} ريال</p>
+                    <p><b>الإجمالي بعد الخصم:</b> ${car.totalAfterDiscount} ريال</p>
                 </div>
 
                 <div class="card-footer">
@@ -131,7 +139,9 @@ Object.values(cars).forEach(car => {
             fragment.appendChild(card);
         }
 
-        // 4) إضافة كل شيء دفعة واحدة
+        /* ===========================
+           4) إضافة البطاقات دفعة واحدة
+        ============================ */
         list.innerHTML = "";
         list.appendChild(fragment);
 
@@ -142,72 +152,64 @@ Object.values(cars).forEach(car => {
 }
 
 /* ===========================
-   Event Delegation (دفع + تعديل)
-=========================== */
-document.addEventListener("click", e => {
-    // الدفع
-    if (e.target.matches(".pay-menu a")) {
-        e.preventDefault();
-        selectedPlate = e.target.parentElement.dataset.plate;
-        openPaymentModal(e.target.dataset.method);
-    }
-
-    // التعديل
-    if (e.target.matches(".edit-menu a")) {
-        e.preventDefault();
-        selectedPlate = e.target.parentElement.dataset.plate;
-        openEditModal(e.target.dataset.action);
-    }
-});
-
-/* ===========================
    مودال الدفع (الإصدار النهائي)
 =========================== */
-function openPaymentModal(method) {
-    el("modal").style.display = "flex";
+function openPaymentModal(plate) {
 
-    // حساب الإجمالي الصحيح
-    const carTotals = activeVisits.reduce((acc, v) => {
-        const r = v.data;
-        const plate = r[1];
-        const price = Number(r[7] || 0);
+    selectedPlate = plate;
 
-        if (!acc[plate]) acc[plate] = { plate, total: 0 };
-        acc[plate].total += price;
+    // جلب كل الصفوف الخاصة باللوحة
+    const rows = activeVisits.filter(v => v.data[1] === plate);
 
-        return acc;
-    }, {});
+    // حساب أسعار الخدمات
+    const prices = rows.map(v => Number(v.data[7] || 0));
+    const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    const car = carTotals[selectedPlate];
-    const total = car ? car.total : 0;
+    // الخصم والإكرامية من أول صف
+    const discount = Number(rows[0].data[24] || 0);
+    const tip      = Number(rows[0].data[23] || 0);
+
+    const totalAfterDiscount = totalBeforeDiscount - discount;
 
     // تعبئة المودال
-    el("modal_method").textContent = method;
-    el("modal_total").textContent = total + " ريال";
+    el("modal_total_before").textContent = totalBeforeDiscount + " ريال";
+    el("modal_discount").textContent = discount + " ريال";
+    el("modal_total_after").textContent = totalAfterDiscount + " ريال";
+    el("modal_tip").textContent = tip + " ريال";
 
-    // إخفاء الحقول في الكاش والشبكة
-    if (method === "كاش" || method === "شبكة") {
-        el("cash_box").style.display = "none";
-        el("card_box").style.display = "none";
-    }
-
-    // إظهار الحقول فقط في الدفع الجزئي
-    if (method === "جزئي") {
-        el("cash_box").style.display = "block";
-        el("card_box").style.display = "block";
-    }
+    // إخفاء حقول الدفع الجزئي
+    el("cash_box").style.display = "none";
+    el("card_box").style.display = "none";
 
     // تفريغ الحقول
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
-    // زر التأكيد
-    el("modal_confirm").onclick = () => submitPayment(method, total);
+    // فتح المودال
+    el("modal").style.display = "flex";
+
+    // زر الدفع
+    el("modal_confirm").onclick = () => {
+
+        const method = el("modal_method_select").value;
+
+        // لو الدفع جزئي → فقط نفتح الحقول
+        if (method === "جزئي") {
+            el("cash_box").style.display = "block";
+            el("card_box").style.display = "block";
+
+            // تغيير الزر ليصبح "تأكيد الدفع"
+            el("modal_confirm").onclick = () => {
+                submitPayment(method, totalAfterDiscount);
+            };
+
+            return; // مهم جدًا
+        }
+
+        // لو كاش أو شبكة → ندفع مباشرة
+        submitPayment(method, totalAfterDiscount);
+    };
 }
-
-function closeModal() { el("modal").style.display = "none"; }
-el("modal_close").onclick = closeModal;
-
 /* ===========================
    تنفيذ الدفع (نسخة نهائية)
 =========================== */
@@ -244,7 +246,7 @@ async function submitPayment(method, total) {
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    // 4) جلب الخصم والإكرامية من أول صف (حسب ترتيب الأعمدة)
+    // 4) جلب الخصم والإكرامية من أول صف
     const discount = Number(rows[0].data[24] || 0); // discount
     const tip      = Number(rows[0].data[23] || 0); // tip
 
@@ -267,9 +269,10 @@ async function submitPayment(method, total) {
             payment_status: "مدفوع",
             payment_method: method,
 
-            CASH_AMOUNT: method === "كاش"   ? distributedPaid[i] : 0,
-            CARD_AMOUNT: method === "شبكة" ? distributedPaid[i] : 0,
-            TOTAL_PAID:  distributedPaid[i],
+            // 🔥 أسماء صحيحة 100% حسب الـ API
+            cash_amount: method === "كاش"   ? distributedPaid[i] : 0,
+            card_amount: method === "شبكة" ? distributedPaid[i] : 0,
+            total_paid:  distributedPaid[i],
 
             discount: distributedDiscount[i],
             tip: i === 0 ? tip : 0 // الإكرامية لأول خدمة فقط
