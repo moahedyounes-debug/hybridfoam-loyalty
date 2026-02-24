@@ -59,13 +59,14 @@ async function loadActiveVisits() {
 
         for (const v of rows) {
             const r = v.data;
-            const plate = r[1];
-            const brand = r[3] || "";
-            const service = r[6];
-            const price = Number(r[7] || 0);
-            const emp = r[9] || "غير محدد";
-            const parking = r[17];
-            const discount = Number(r[24] || 0);
+
+            const plate = r[1];              // رقم اللوحة
+            const brand = r[3] || "";        // نوع السيارة
+            const service = r[6];            // الخدمة
+            const price = Number(r[7] || 0); // السعر
+            const emp = r[9] || "غير محدد";  // الموظف
+            const parking = r[17];           // الموقف
+            const discount = Number(r[24] || 0); // الخصم
 
             if (!cars[plate]) {
                 cars[plate] = {
@@ -99,16 +100,16 @@ async function loadActiveVisits() {
                 .map(s => `<li><span>${s.name}</span><span>${s.price} ريال</span></li>`)
                 .join("");
 
-card.innerHTML = `
+            card.innerHTML = `
 <div class="card">
 
     <div class="card-header">
-        <h4>لوحة: ${car.plate_numbers} — ${car.car_type}</h4>
+        <h4>لوحة: ${car.plate} — ${car.brand}</h4>
     </div>
 
     <div class="card-body">
-        <p>الموظف: ${car.employee_in}</p>
-        <p>الموقف: ${car.parking_slot}</p>
+        <p>الموظف: ${car.employee}</p>
+        <p>الموقف: ${car.parking}</p>
 
         <ul class="service-list">
             ${servicesHTML}
@@ -125,7 +126,7 @@ card.innerHTML = `
         <div class="dropdown">
             <button class="btn-pay" type="button">💳 تحديث الدفع ▼</button>
 
-            <div class="dropdown-content pay-menu" data-plate="${car.plate_numbers}">
+            <div class="dropdown-content pay-menu" data-plate="${car.plate}">
                 <button data-method="كاش" type="button">💵 دفع كاش</button>
                 <button data-method="شبكة" type="button">💳 دفع شبكة</button>
                 <button data-method="جزئي" type="button">💰 دفع جزئي</button>
@@ -136,7 +137,7 @@ card.innerHTML = `
         <div class="dropdown">
             <button class="edit-btn" type="button">✏️ تعديل ▼</button>
 
-            <div class="dropdown-content edit-menu" data-plate="${car.plate_numbers}">
+            <div class="dropdown-content edit-menu" data-plate="${car.plate}">
                 <button data-action="swap">🔄 تبديل خدمة</button>
                 <button data-action="delete">🗑️ حذف خدمة</button>
                 <button data-action="add">➕ إضافة خدمة</button>
@@ -162,7 +163,6 @@ card.innerHTML = `
         showToast("خطأ في تحميل الزيارات", "error");
     }
 }
-
 /* ===========================
    تحديث شريط الملخص
 =========================== */
