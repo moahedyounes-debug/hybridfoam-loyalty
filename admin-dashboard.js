@@ -141,16 +141,16 @@ function renderTopSummary(list) {
 }
 
 /* ===========================
-   Commisiion Summary
+   Commission Summary (Disabled)
 =========================== */
 async function loadCommissions() {
-    const res = await apiGetServices(); // هذا يرجع نفس شيت الكوميشن
+    const res = await apiGetServices();
     if (!res.success) return;
 
+    // فقط نحفظ أسماء الخدمات لو احتجناها
     res.rows.forEach(r => {
         const service = r[0];
-        const commission = Number(r[1] || 0);
-        commissions[service] = commission;
+        commissions[service] = 0; // ما نستخدم العمولة من هنا
     });
 }
 
