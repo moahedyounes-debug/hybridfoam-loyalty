@@ -185,6 +185,7 @@ function closeModal() {
 
 el("modal_close").onclick = closeModal;
 
+
 /* ===========================
    تنفيذ الدفع (الإصدار النهائي)
 =========================== */
@@ -229,6 +230,8 @@ async function submitPayment(method, total) {
     closeModal();
     loadActiveVisits();
 }
+
+
 /* ===========================
    فتح مودال التعديل
 =========================== */
