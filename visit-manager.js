@@ -192,23 +192,17 @@ function closeModal() { el("modal").style.display = "none"; }
 el("modal_close").onclick = closeModal;
 
 /* ===========================
-   تنفيذ الدفع (الإصدار النهائي)
+   تنفيذ الدفع (نسخة احترافية)
 =========================== */
 async function submitPayment(method, total) {
 
+    // 1) تحديد نوع الدفع
     let cash = 0;
     let card = 0;
 
-    // الدفع الكامل (كاش أو شبكة)
-    if (method === "كاش") {
-        cash = total;   // الموظف ما يدخل شيء
-    }
+    if (method === "كاش") cash = total;
+    if (method === "شبكة") card = total;
 
-    if (method === "شبكة") {
-        card = total;   // الموظف ما يدخل شيء
-    }
-
-    // الدفع الجزئي فقط يحتاج إدخال
     if (method === "جزئي") {
         cash = Number(el("modal_cash").value || 0);
         card = Number(el("modal_card").value || 0);
@@ -219,15 +213,37 @@ async function submitPayment(method, total) {
         }
     }
 
-    // نجيب كل الصفوف الخاصة بنفس اللوحة
+    // 2) جلب كل الصفوف الخاصة باللوحة
     const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
 
-    for (const v of rows) {
+    // 3) استخراج أسعار الخدمات
+    const prices = rows.map(v => Number(v.data[7] || 0));
+    const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
+
+    // 4) جلب الخصم من أول صف
+    const discount = Number(rows[0].data[25] || 0);
+
+    // 5) حساب الإجمالي بعد الخصم
+    const totalAfterDiscount = totalBeforeDiscount - discount;
+
+    // 6) توزيع الخصم على الخدمات بشكل نسبي
+    const distributed = prices.map(price => {
+        const ratio = price / totalBeforeDiscount;
+        return Math.round(ratio * totalAfterDiscount);
+    });
+
+    // 7) تحديث كل صف بخدمته
+    for (let i = 0; i < rows.length; i++) {
+        const v = rows[i];
+
         await apiCloseVisit(v.row, {
             payment_status: "مدفوع",
             payment_method: method,
-            cash_amount: cash,
-            card_amount: card
+
+            cash_amount: method === "كاش" ? distributed[i] : 0,
+            card_amount: method === "شبكة" ? distributed[i] : 0,
+
+            total_paid: distributed[i]
         });
     }
 
