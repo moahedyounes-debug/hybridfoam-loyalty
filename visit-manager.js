@@ -1,16 +1,8 @@
-/* ===========================
-   Helpers
-=========================== */
-
 const el = id => document.getElementById(id);
 
 let activeVisits = [];
 let selectedServices = [];
 let selectedPlate = null;
-
-/* ===========================
-   Toast
-=========================== */
 
 function showToast(msg, type = "info") {
   const container = el("toast-container");
@@ -22,25 +14,9 @@ function showToast(msg, type = "info") {
   setTimeout(() => div.remove(), 3000);
 }
 
-/* ===========================
-   Date helper (للاستخدام في الإغلاق فقط)
-=========================== */
-
-function formatNow() {
-  const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  const hh = String(d.getHours()).padStart(2, "0");
-  const min = String(d.getMinutes()).padStart(2, "0");
-  return `${mm}/${dd}/${yyyy} ${hh}:${min}`;
-}
-
-/* ===========================
-   Load car types
-=========================== */
-
 let carTypesData = [];
+let servicesData = [];
+let employeesData = [];
 
 async function loadCarTypes() {
   try {
@@ -89,12 +65,6 @@ async function loadCarTypes() {
   }
 }
 
-/* ===========================
-   Load services
-=========================== */
-
-let servicesData = [];
-
 async function loadServices() {
   try {
     const res = await apiGetServices();
@@ -138,12 +108,6 @@ async function loadServices() {
   }
 }
 
-/* ===========================
-   Load employees
-=========================== */
-
-let employeesData = [];
-
 async function loadEmployees() {
   try {
     const res = await apiGetEmployees();
@@ -161,10 +125,6 @@ async function loadEmployees() {
     showToast("خطأ في تحميل الموظفين", "error");
   }
 }
-
-/* ===========================
-   Load branches
-=========================== */
 
 async function loadBranches() {
   try {
@@ -185,10 +145,6 @@ async function loadBranches() {
   }
 }
 
-/* ===========================
-   Add service to visit
-=========================== */
-
 function addServiceToList() {
   const detail = el("service_detail").value;
   const price = Number(el("price").value || 0);
@@ -200,7 +156,6 @@ function addServiceToList() {
     return;
   }
 
-  // منع تكرار الغسيل
   if (category === "غسيل") {
     const already = selectedServices.some(s => s.category === "غسيل");
     if (already) {
@@ -249,10 +204,6 @@ function recalcTotal() {
   el("totalPrice").textContent = Math.max(0, total - discount);
 }
 
-/* ===========================
-   Submit visit (متوافق مع api_addVisit)
-=========================== */
-
 async function submitVisit() {
   const plate_numbers = el("plate_numbers").value.trim();
   const plate_letters = el("plate_letters").value.trim();
@@ -270,29 +221,23 @@ async function submitVisit() {
   if (!plate_numbers) return showToast("أدخل أرقام اللوحة", "error");
   if (!employee_in) return showToast("اختر الموظف", "error");
   if (!selectedServices.length) return showToast("أضف خدمة واحدة على الأقل", "error");
+  if (!payment_status) return showToast("اختر حالة الدفع", "error");
 
-  // شرط الموقف فقط لو فيه غسيل
   const hasWash = selectedServices.some(s => s.category === "غسيل");
   if (hasWash && !parking_slot) {
     return showToast("رقم الموقف مطلوب لخدمة الغسيل", "error");
   }
 
-  // منع تكرار الغسيل (احتياط إضافي)
   const washCount = selectedServices.filter(s => s.category === "غسيل").length;
   if (washCount > 1) {
     return showToast("لا يمكن إضافة أكثر من خدمة غسيل", "error");
   }
 
-  // حساب الإجمالي
   const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
   const finalTotal = Math.max(0, total - discount);
 
   let cash_amount = 0;
   let card_amount = 0;
-
-  if (!payment_status) {
-    return showToast("اختر حالة الدفع", "error");
-  }
 
   if (payment_status === "مدفوع") {
     if (!payment_method) return showToast("اختر طريقة الدفع", "error");
@@ -308,10 +253,6 @@ async function submitVisit() {
     } else if (payment_method === "شبكة") {
       card_amount = finalTotal;
     }
-  } else {
-    // غير مدفوع
-    cash_amount = 0;
-    card_amount = 0;
   }
 
   const employee_out = employee_in;
@@ -351,10 +292,9 @@ async function submitVisit() {
   btn.textContent = "جاري التسجيل...";
 
   try {
-    const res = await apiAddVisit(payload);
+    await apiAddVisit(payload);
     showToast("تم تسجيل الزيارة", "success");
 
-    // إعادة ضبط
     selectedServices = [];
     renderServicesList();
     recalcTotal();
@@ -387,10 +327,6 @@ async function submitVisit() {
   btn.disabled = false;
   btn.textContent = "تسجيل الزيارة";
 }
-
-/* ===========================
-   Load active (unpaid) visits
-=========================== */
 
 async function loadActiveVisits() {
   const list = el("activeVisitsList");
@@ -452,6 +388,17 @@ async function loadActiveVisits() {
         <ul>${servicesHTML}</ul>
         <p><b>الإجمالي:</b> ${car.totalPrice} ريال</p>
         <div class="card-actions">
+
+          <div class="dropdown">
+            <button class="btn-secondary btn-small">تعديل ▼</button>
+            <div class="dropdown-content">
+              <a href="#" class="edit-services" data-plate="${car.plate}">تعديل الخدمات</a>
+              <a href="#" class="edit-employee" data-plate="${car.plate}">تعديل الموظف</a>
+              <a href="#" class="edit-parking" data-plate="${car.plate}">تعديل الموقف</a>
+              <a href="#" class="edit-tip" data-plate="${car.plate}">إضافة إكرامية</a>
+            </div>
+          </div>
+
           <div class="dropdown">
             <button class="btn-secondary btn-small">تحديث الدفع ▼</button>
             <div class="dropdown-content">
@@ -460,6 +407,7 @@ async function loadActiveVisits() {
               <a href="#" data-method="جزئي" data-plate="${car.plate}">دفع جزئي</a>
             </div>
           </div>
+
         </div>
       `;
       list.appendChild(card);
@@ -469,10 +417,6 @@ async function loadActiveVisits() {
     showToast("خطأ في تحميل الزيارات", "error");
   }
 }
-
-/* ===========================
-   Payment modal
-=========================== */
 
 function openPaymentModal(method) {
   el("modal").style.display = "block";
@@ -500,10 +444,6 @@ function openPaymentModal(method) {
 function closeModal() {
   el("modal").style.display = "none";
 }
-
-/* ===========================
-   Submit payment (update visit)
-=========================== */
 
 async function submitPayment(method) {
   const cash = Number(el("modal_cash").value || 0);
@@ -550,10 +490,6 @@ async function submitPayment(method) {
   }
 }
 
-/* ===========================
-   Summary (today completed + inside)
-=========================== */
-
 async function loadSummary() {
   try {
     const activeRes = await apiGetActiveVisits();
@@ -587,9 +523,166 @@ async function loadSummary() {
   }
 }
 
-/* ===========================
-   Events
-=========================== */
+/* ====== تعديل من الكرت (C) ====== */
+
+function openEditServices(plate) {
+  const visitRows = activeVisits.filter(v => v.data[1] === plate);
+
+  if (!visitRows.length) {
+    showToast("لا توجد خدمات لهذه السيارة", "error");
+    return;
+  }
+
+  let html = "";
+  visitRows.forEach((v, i) => {
+    html += `
+      <div class="service-edit-item">
+        <label>الخدمة ${i + 1}</label>
+        <input type="text" id="edit_name_${i}" value="${v.data[6]}">
+        <input type="number" id="edit_price_${i}" value="${v.data[7]}">
+        <button class="btn-remove-service" data-row="${v.row}">حذف</button>
+      </div>
+    `;
+  });
+
+  el("modal_edit_title").textContent = "تعديل الخدمات";
+  el("modal_edit").innerHTML = html;
+  el("modal_edit_container").style.display = "block";
+
+  el("modal_edit_save").onclick = () => saveEditServices(plate, visitRows);
+}
+
+async function saveEditServices(plate, visitRows) {
+  try {
+    for (let i = 0; i < visitRows.length; i++) {
+      const row = visitRows[i].row;
+      const name = el(`edit_name_${i}`).value;
+      const price = Number(el(`edit_price_${i}`).value);
+
+      await apiCloseVisit(row, {
+        service_detail: name,
+        price: price
+      });
+    }
+
+    showToast("تم حفظ التعديلات", "success");
+    el("modal_edit_container").style.display = "none";
+    await loadActiveVisits();
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تعديل الخدمات", "error");
+  }
+}
+
+function openEditEmployee(plate) {
+  const visit = activeVisits.find(v => v.data[1] === plate).data;
+
+  const html = `
+    <label>اختر الموظف</label>
+    <select id="edit_employee_select">
+      ${employeesData.map(e => `
+        <option value="${e[0]}" ${e[0] === visit[9] ? "selected" : ""}>${e[0]}</option>
+      `).join("")}
+    </select>
+  `;
+
+  el("modal_edit_title").textContent = "تعديل الموظف";
+  el("modal_edit").innerHTML = html;
+  el("modal_edit_container").style.display = "block";
+
+  el("modal_edit_save").onclick = () => saveEditEmployee(plate);
+}
+
+async function saveEditEmployee(plate) {
+  const newEmp = el("edit_employee_select").value;
+  const visitRows = activeVisits.filter(v => v.data[1] === plate);
+
+  try {
+    for (const v of visitRows) {
+      await apiCloseVisit(v.row, {
+        employee_in: newEmp,
+        employee_out: newEmp
+      });
+    }
+
+    showToast("تم تعديل الموظف", "success");
+    el("modal_edit_container").style.display = "none";
+    await loadActiveVisits();
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تعديل الموظف", "error");
+  }
+}
+
+function openEditParking(plate) {
+  const visit = activeVisits.find(v => v.data[1] === plate).data;
+
+  const html = `
+    <label>رقم الموقف</label>
+    <input type="number" id="edit_parking_input" value="${visit[17]}">
+  `;
+
+  el("modal_edit_title").textContent = "تعديل رقم الموقف";
+  el("modal_edit").innerHTML = html;
+  el("modal_edit_container").style.display = "block";
+
+  el("modal_edit_save").onclick = () => saveEditParking(plate);
+}
+
+async function saveEditParking(plate) {
+  const newParking = el("edit_parking_input").value;
+  const visitRows = activeVisits.filter(v => v.data[1] === plate);
+
+  try {
+    for (const v of visitRows) {
+      await apiCloseVisit(v.row, {
+        parking_slot: newParking
+      });
+    }
+
+    showToast("تم تعديل رقم الموقف", "success");
+    el("modal_edit_container").style.display = "none";
+    await loadActiveVisits();
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تعديل رقم الموقف", "error");
+  }
+}
+
+function openEditTip(plate) {
+  const visitRows = activeVisits.filter(v => v.data[1] === plate);
+  const last = visitRows[visitRows.length - 1].data;
+
+  const html = `
+    <label>الإكرامية</label>
+    <input type="number" id="edit_tip_input" value="${last[23] || 0}">
+  `;
+
+  el("modal_edit_title").textContent = "إضافة إكرامية";
+  el("modal_edit").innerHTML = html;
+  el("modal_edit_container").style.display = "block";
+
+  el("modal_edit_save").onclick = () => saveEditTip(plate);
+}
+
+async function saveEditTip(plate) {
+  const newTip = Number(el("edit_tip_input").value);
+  const visitRows = activeVisits.filter(v => v.data[1] === plate);
+  const last = visitRows[visitRows.length - 1];
+
+  try {
+    await apiCloseVisit(last.row, {
+      tip: newTip
+    });
+
+    showToast("تم تعديل الإكرامية", "success");
+    el("modal_edit_container").style.display = "none";
+    await loadActiveVisits();
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في تعديل الإكرامية", "error");
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   loadCarTypes();
@@ -632,11 +725,35 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("click", e => {
-    if (e.target.matches(".dropdown-content a")) {
+    if (e.target.matches(".dropdown-content a[data-method]")) {
       e.preventDefault();
       selectedPlate = e.target.getAttribute("data-plate");
       const method = e.target.getAttribute("data-method");
       openPaymentModal(method);
     }
+
+    if (e.target.matches(".edit-services")) {
+      e.preventDefault();
+      openEditServices(e.target.dataset.plate);
+    }
+
+    if (e.target.matches(".edit-employee")) {
+      e.preventDefault();
+      openEditEmployee(e.target.dataset.plate);
+    }
+
+    if (e.target.matches(".edit-parking")) {
+      e.preventDefault();
+      openEditParking(e.target.dataset.plate);
+    }
+
+    if (e.target.matches(".edit-tip")) {
+      e.preventDefault();
+      openEditTip(e.target.dataset.plate);
+    }
+  });
+
+  el("modal_edit_close") && (el("modal_edit_close").onclick = () => {
+    el("modal_edit_container").style.display = "none";
   });
 });
