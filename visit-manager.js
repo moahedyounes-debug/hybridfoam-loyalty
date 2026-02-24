@@ -568,7 +568,7 @@ async function loadServices() {
 }
 
 // ===========================
-// تحميل الفروع
+// تحميل الفروع مع تعيين القيمة الافتراضية "مكة"
 // ===========================
 async function loadBranches() {
     try {
@@ -584,6 +584,12 @@ async function loadBranches() {
             opt.textContent = r[0];
             sel.appendChild(opt);
         });
+
+        // تعيين القيمة الافتراضية "مكة" اذا موجودة في القائمة وإلا تُترك فارغة
+        const defaultValue = "مكة";
+        if ([...sel.options].some(opt => opt.value === defaultValue)) {
+            sel.value = defaultValue;
+        }
         
     } catch (err) {
         console.error(err);
