@@ -144,14 +144,28 @@ document.addEventListener("click", e => {
 });
 
 /* ===========================
-   مودال الدفع
+   مودال الدفع (الإصدار الصحيح)
 =========================== */
 function openPaymentModal(method) {
     el("modal").style.display = "flex";
 
-    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
-    const total = rows.reduce((s, v) => s + Number(v.data[7] || 0), 0);
+    // نجمع الأسعار لكل زيارة لنفس اللوحة
+    const carTotals = activeVisits.reduce((acc, v) => {
+        const r = v.data;
+        const plate = r[1];
+        const price = Number(r[7] || 0);
 
+        if (!acc[plate]) acc[plate] = { plate, total: 0 };
+        acc[plate].total += price;
+
+        return acc;
+    }, {});
+
+    // نجيب السيارة المطلوبة
+    const car = carTotals[selectedPlate];
+    const total = car ? car.total : 0;
+
+    // تعبئة المودال
     el("modal_method").textContent = method;
     el("modal_total").textContent = total + " ريال";
 
@@ -161,6 +175,7 @@ function openPaymentModal(method) {
     el("cash_box").style.display = (method === "كاش" || method === "جزئي") ? "block" : "none";
     el("card_box").style.display = (method === "شبكة" || method === "جزئي") ? "block" : "none";
 
+    // زر التأكيد
     el("modal_confirm").onclick = () => submitPayment(method, total);
 }
 
@@ -171,32 +186,46 @@ function closeModal() {
 el("modal_close").onclick = closeModal;
 
 /* ===========================
-   تنفيذ الدفع
+   تنفيذ الدفع (الإصدار الصحيح)
 =========================== */
 async function submitPayment(method, total) {
     const cash = Number(el("modal_cash").value || 0);
     const card = Number(el("modal_card").value || 0);
 
     let paid = 0;
+
     if (method === "كاش") paid = cash;
     if (method === "شبكة") paid = card;
     if (method === "جزئي") paid = cash + card;
 
+    // التحقق من صحة المبلغ
     if (paid !== total) {
         showToast(`المبلغ يجب أن يكون ${total} ريال`, "error");
         return;
     }
 
+    // نجيب كل الصفوف الخاصة بنفس اللوحة
     const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
 
     for (const v of rows) {
-        const price = Number(v.data[7] || 0);
-
         await apiCloseVisit(v.row, {
             payment_status: "مدفوع",
             payment_method: method,
-            cash_amount: method === "كاش" ? price : (method === "جزئي" ? cash : 0),
-            card_amount: method === "شبكة" ? price : (method === "جزئي" ? card : 0)
+
+            // توزيع المبلغ الصحيح
+            cash_amount:
+                method === "كاش"
+                    ? total
+                    : method === "جزئي"
+                        ? cash
+                        : 0,
+
+            card_amount:
+                method === "شبكة"
+                    ? total
+                    : method === "جزئي"
+                        ? card
+                        : 0
         });
     }
 
