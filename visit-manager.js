@@ -151,7 +151,6 @@ card.innerHTML = `
 </div>
 `;
 
-
             fragment.appendChild(card);
         }
 
