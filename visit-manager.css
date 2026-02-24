@@ -15,7 +15,7 @@ body {
 }
 
 /* ===========================
-   PAGE TITLE
+   TITLES
 =========================== */
 .page-title {
     text-align: center;
@@ -23,14 +23,13 @@ body {
 }
 
 .page-title h1 {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: bold;
 }
 
 .page-title h2 {
     font-size: 20px;
-    color: #444;
-    margin-top: 5px;
+    color: #555;
 }
 
 /* ===========================
@@ -41,7 +40,7 @@ body {
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 25px;
-    box-shadow: 0 2px 6px #0001;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .section-title {
@@ -72,8 +71,8 @@ label {
 input, select {
     width: 100%;
     padding: 10px;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    border: 1px solid #ccc;
     font-size: 15px;
 }
 
@@ -83,9 +82,10 @@ input, select {
 button {
     cursor: pointer;
     border: none;
-    padding: 12px;
     border-radius: 8px;
+    padding: 12px;
     font-size: 16px;
+    font-weight: bold;
 }
 
 .btn-primary {
@@ -95,11 +95,12 @@ button {
 
 .btn-secondary {
     background: #e5e7eb;
+    color: #111;
 }
 
 .btn-danger {
-    background: #dc2626;
-    color: #fff;
+    background: #dc2626 !important;
+    color: #fff !important;
 }
 
 .full {
@@ -107,28 +108,32 @@ button {
     margin-top: 10px;
 }
 
+.btn-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
 /* ===========================
    SERVICES LIST
 =========================== */
 .services-box {
     background: #fafafa;
-    padding: 10px;
-    border-radius: 8px;
-    min-height: 50px;
+    padding: 15px;
+    border-radius: 10px;
     margin-top: 10px;
 }
 
 .service-item {
     display: flex;
     justify-content: space-between;
-    padding: 8px;
     background: #fff;
-    border-radius: 6px;
-    margin-bottom: 6px;
-    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #eee;
 }
 
-.btn-remove {
+.service-item button {
     background: #dc2626;
     color: #fff;
     padding: 5px 10px;
@@ -147,7 +152,7 @@ button {
     background: #fff;
     padding: 15px;
     border-radius: 12px;
-    box-shadow: 0 2px 6px #0001;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .card-header {
@@ -166,26 +171,19 @@ button {
 }
 
 /* ===========================
-   DROPDOWNS
+   DROPDOWN
 =========================== */
 .dropdown {
     position: relative;
-}
-
-.dropdown button {
-    background: #2563eb;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 6px;
 }
 
 .dropdown-content {
     display: none;
     position: absolute;
     background: #fff;
+    min-width: 160px;
     border-radius: 8px;
-    box-shadow: 0 2px 6px #0002;
-    min-width: 150px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     z-index: 10;
 }
 
@@ -196,12 +194,12 @@ button {
 .dropdown-content a {
     display: block;
     padding: 10px;
-    color: #222;
     text-decoration: none;
+    color: #111;
 }
 
 .dropdown-content a:hover {
-    background: #f0f0f0;
+    background: #f3f4f6;
 }
 
 /* ===========================
@@ -209,8 +207,11 @@ button {
 =========================== */
 .modal {
     position: fixed;
-    inset: 0;
-    background: #0005;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -222,21 +223,25 @@ button {
     padding: 20px;
     border-radius: 12px;
     width: 90%;
-    max-width: 400px;
+    max-width: 450px;
 }
 
-.modal-actions {
+.modal-box.large {
+    max-width: 650px;
+}
+
+.modal-header {
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
+    align-items: center;
 }
 
 /* ===========================
-   EDIT MODAL (TABS)
+   TABS
 =========================== */
 .tabs {
     display: flex;
-    gap: 5px;
+    gap: 10px;
     margin-bottom: 15px;
 }
 
@@ -244,7 +249,8 @@ button {
     flex: 1;
     padding: 10px;
     background: #e5e7eb;
-    border-radius: 6px;
+    border-radius: 8px;
+    text-align: center;
 }
 
 .tab-btn.active {
@@ -267,7 +273,7 @@ button {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 100;
+    z-index: 200;
 }
 
 .toast {
@@ -292,8 +298,4 @@ button {
 
 .toast.success {
     background: #16a34a;
-}
-
-.toast.info {
-    background: #2563eb;
 }
