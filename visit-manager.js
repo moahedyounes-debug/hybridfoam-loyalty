@@ -840,12 +840,14 @@ function resetForm() {
 =========================== */
 document.addEventListener("click", function (e) {
 
+    /* إغلاق أي قائمة مفتوحة عند الضغط خارجها */
     if (!e.target.closest(".dropdown")) {
         document.querySelectorAll(".dropdown-content").forEach(menu => {
             menu.classList.remove("show");
         });
     }
 
+    /* فتح قائمة التعديل */
     if (e.target.classList.contains("edit-btn")) {
         const dropdown = e.target.nextElementSibling;
 
@@ -857,6 +859,7 @@ document.addEventListener("click", function (e) {
         return;
     }
 
+    /* فتح قائمة الدفع */
     if (e.target.classList.contains("btn-pay")) {
         const dropdown = e.target.nextElementSibling;
 
@@ -868,11 +871,14 @@ document.addEventListener("click", function (e) {
         return;
     }
 
+    /* اختيار طريقة الدفع (زر داخل pay-menu) */
     if (e.target.matches(".pay-menu button")) {
+
         const plate = e.target.parentElement.dataset.plate;
         const method = e.target.dataset.method;
 
         selectedPlate = plate;
+
         openPaymentModal(plate);
 
         el("modal_method_select").value = method;
@@ -881,11 +887,14 @@ document.addEventListener("click", function (e) {
         return;
     }
 
+    /* اختيار إجراء التعديل (زر داخل edit-menu) */
     if (e.target.matches(".edit-menu button")) {
+
         const plate = e.target.parentElement.dataset.plate;
         const action = e.target.dataset.action;
 
         selectedPlate = plate;
+
         openEditModal(action);
 
         e.target.parentElement.classList.remove("show");
