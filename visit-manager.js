@@ -186,22 +186,31 @@ function closeModal() {
 el("modal_close").onclick = closeModal;
 
 /* ===========================
-   تنفيذ الدفع (الإصدار الصحيح)
+   تنفيذ الدفع (الإصدار النهائي)
 =========================== */
 async function submitPayment(method, total) {
-    const cash = Number(el("modal_cash").value || 0);
-    const card = Number(el("modal_card").value || 0);
 
-    let paid = 0;
+    let cash = 0;
+    let card = 0;
 
-    if (method === "كاش") paid = cash;
-    if (method === "شبكة") paid = card;
-    if (method === "جزئي") paid = cash + card;
+    // الدفع الكامل (كاش أو شبكة)
+    if (method === "كاش") {
+        cash = total;   // الموظف ما يدخل شيء
+    }
 
-    // التحقق من صحة المبلغ
-    if (paid !== total) {
-        showToast(`المبلغ يجب أن يكون ${total} ريال`, "error");
-        return;
+    if (method === "شبكة") {
+        card = total;   // الموظف ما يدخل شيء
+    }
+
+    // الدفع الجزئي فقط يحتاج إدخال
+    if (method === "جزئي") {
+        cash = Number(el("modal_cash").value || 0);
+        card = Number(el("modal_card").value || 0);
+
+        if (cash + card !== total) {
+            showToast(`المبلغ يجب أن يكون ${total} ريال`, "error");
+            return;
+        }
     }
 
     // نجيب كل الصفوف الخاصة بنفس اللوحة
@@ -211,21 +220,8 @@ async function submitPayment(method, total) {
         await apiCloseVisit(v.row, {
             payment_status: "مدفوع",
             payment_method: method,
-
-            // توزيع المبلغ الصحيح
-            cash_amount:
-                method === "كاش"
-                    ? total
-                    : method === "جزئي"
-                        ? cash
-                        : 0,
-
-            card_amount:
-                method === "شبكة"
-                    ? total
-                    : method === "جزئي"
-                        ? card
-                        : 0
+            cash_amount: cash,
+            card_amount: card
         });
     }
 
