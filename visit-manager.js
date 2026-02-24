@@ -302,17 +302,31 @@ function loadDeleteTab() {
     const sel = el("deleteServiceSelect");
     sel.innerHTML = "";
 
+    // نجيب كل الخدمات الخاصة بنفس اللوحة
     const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
 
     rows.forEach(v => {
+        const serviceName = v.data[6];   // تأكد أنه عمود الخدمة الصحيح
+        const price = Number(v.data[7] || 0); // تأكد أنه عمود السعر الصحيح
+
         const opt = document.createElement("option");
         opt.value = v.row;
-        opt.textContent = `${v.data[6]} — ${v.data[7]} ريال`;
+        opt.textContent = `${serviceName} — ${price} ريال`;
         sel.appendChild(opt);
     });
 
     el("deleteConfirm").onclick = async () => {
+
+        // منع الضغط المزدوج
+        el("deleteConfirm").disabled = true;
+        el("deleteConfirm").textContent = "جارٍ الحذف...";
+
         await apiDeleteRow("Visits", sel.value);
+
+        // إعادة الزر لوضعه الطبيعي
+        el("deleteConfirm").disabled = false;
+        el("deleteConfirm").textContent = "حذف الخدمة";
+
         showToast("تم حذف الخدمة", "success");
         loadActiveVisits();
     };
