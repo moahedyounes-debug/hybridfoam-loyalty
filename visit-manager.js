@@ -220,8 +220,6 @@ async function submitPayment(method, total) {
 
         if (cash + card !== total) {
             showToast(`المبلغ يجب أن يكون ${total} ريال`, "error");
-
-            // إعادة تفعيل الزر
             btn.disabled = false;
             btn.textContent = "تأكيد";
             return;
@@ -235,19 +233,25 @@ async function submitPayment(method, total) {
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    // 4) جلب الخصم من أول صف
+    // 4) جلب الخصم والإكرامية من أول صف
     const discount = Number(rows[0].data[25] || 0);
+    const tip = Number(rows[0].data[26] || 0);
 
     // 5) حساب الإجمالي بعد الخصم
     const totalAfterDiscount = totalBeforeDiscount - discount;
 
-    // 6) توزيع الخصم على الخدمات بشكل نسبي
-    const distributed = prices.map(price => {
+    // 6) توزيع الخصم على الخدمات بنسبة السعر
+    const distributedDiscount = prices.map(price => {
         const ratio = price / totalBeforeDiscount;
-        return Math.round(ratio * totalAfterDiscount);
+        return Math.round(ratio * discount);
     });
 
-    // 7) تحديث كل صف بخدمته
+    // 7) توزيع المبلغ بعد الخصم
+    const distributedPaid = prices.map((price, i) => {
+        return price - distributedDiscount[i];
+    });
+
+    // 8) تحديث كل صف بخدمته
     for (let i = 0; i < rows.length; i++) {
         const v = rows[i];
 
@@ -255,10 +259,13 @@ async function submitPayment(method, total) {
             payment_status: "مدفوع",
             payment_method: method,
 
-            cash_amount: method === "كاش" ? distributed[i] : 0,
-            card_amount: method === "شبكة" ? distributed[i] : 0,
+            cash_amount: method === "كاش" ? distributedPaid[i] : 0,
+            card_amount: method === "شبكة" ? distributedPaid[i] : 0,
 
-            total_paid: distributed[i]
+            total_paid: distributedPaid[i],
+            discount: distributedDiscount[i],
+
+            tip: i === 0 ? tip : 0 // الإكرامية لأول خدمة فقط
         });
     }
 
@@ -266,10 +273,10 @@ async function submitPayment(method, total) {
     closeModal();
     loadActiveVisits();
 
-    // إعادة الزر لوضعه الطبيعي
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
+
 /* ===========================
    فتح مودال التعديل
 =========================== */
