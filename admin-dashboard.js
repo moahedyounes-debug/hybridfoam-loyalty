@@ -112,20 +112,32 @@ function applyGlobalFilter(type) {
    Top Summary
 =========================== */
 function renderTopSummary(list) {
-  let cash = 0, card = 0, total = 0;
 
-  list.forEach(v => {
-    const price = Number(v[22] || v[7] || 0);
-    const method = v[16];
-    total += price;
-    if (method === "كاش") cash += price;
-    if (method === "شبكة") card += price;
-  });
+    let cash = 0, card = 0, total = 0, tips = 0, discount = 0;
 
-  el("sumCash").innerText = cash + " ريال";
-  el("sumCard").innerText = card + " ريال";
-  el("sumTotal").innerText = total + " ريال";
-  el("sumServices").innerText = list.length;
+    list.forEach(v => {
+        const price = Number(v[22] || v[7] || 0);
+        const method = v[16];
+        const tip = Number(v[25] || 0);
+        const disc = Number(v[26] || 0);
+
+        total += price;
+        tips += tip;
+        discount += disc;
+
+        if (method === "كاش") cash += price;
+        if (method === "شبكة") card += price;
+    });
+
+    const net = total - discount;
+
+    el("sumCash").innerText = cash + " ريال";
+    el("sumCard").innerText = card + " ريال";
+    el("sumTotal").innerText = total + " ريال";
+    el("sumServices").innerText = list.length;
+    el("sumTips").innerText = tips + " ريال";
+    el("sumDiscount").innerText = discount + " ريال";
+    el("sumNet").innerText = net + " ريال";
 }
 
 /* ===========================
@@ -161,10 +173,9 @@ function renderEmployeesSummary(list) {
         const price = Number(v[22] || v[7] || 0);   // total_paid
         const tip = Number(v[25] || 0);            // tip
         const discount = Number(v[26] || 0);       // discount
-        const service = v[6] || "";
 
-        // جلب العمولة من شيت الكوميشن
-        const commission = commissions[service] || 0;
+        // 🔥 العمولة من شيت الزيارات (العمود 12)
+        const commission = Number(v[12] || 0);
 
         if (!emp[employee]) {
             emp[employee] = { cars: 0, total: 0, commission: 0 };
@@ -184,26 +195,6 @@ function renderEmployeesSummary(list) {
     const sorted = Object.entries(emp).sort((a, b) => b[1].total - a[1].total);
 
     let html = `
-        <div class="top-summary">
-            <div class="summary-box">
-                <span class="material-icons">money_off</span>
-                <p>إجمالي الخصومات</p>
-                <h3>${totalDiscount} ريال</h3>
-            </div>
-
-            <div class="summary-box">
-                <span class="material-icons">card_giftcard</span>
-                <p>إجمالي الإكراميات</p>
-                <h3>${totalTips} ريال</h3>
-            </div>
-
-            <div class="summary-box">
-                <span class="material-icons">account_balance_wallet</span>
-                <p>إجمالي المبلغ (بعد الخصم)</p>
-                <h3>${totalAfterDiscount} ريال</h3>
-            </div>
-        </div>
-
         <table>
             <tr>
                 <th>الموظف</th>
@@ -301,28 +292,47 @@ function renderServicesSummary(list) {
    Export Services PDF
 =========================== */
 function exportServicesPDF() {
-  const { jsPDF } = window.jspdf;
+    const { jsPDF } = window.jspdf;
 
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "pt",
-    format: "a4"
-  });
+    const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4"
+    });
 
-  const table = document.getElementById("servicesTable");
+    const table = document.querySelector("#servicesTable");
 
-  if (!table) {
-    alert("لا توجد بيانات للتصدير");
-    return;
-  }
+    if (!table) {
+        alert("لا توجد بيانات للتصدير");
+        return;
+    }
 
-  doc.html(table, {
-    callback: function (doc) {
-      doc.save("services-summary.pdf");
-    },
-    x: 20,
-    y: 20
-  });
+    // استخراج رؤوس الأعمدة
+    const headers = [];
+    table.querySelectorAll("thead tr th").forEach(th => {
+        headers.push(th.innerText);
+    });
+
+    // استخراج الصفوف
+    const rows = [];
+    table.querySelectorAll("tbody tr").forEach(tr => {
+        const row = [];
+        tr.querySelectorAll("td").forEach(td => {
+            row.push(td.innerText);
+        });
+        rows.push(row);
+    });
+
+    // إنشاء الجدول داخل PDF
+    doc.autoTable({
+        head: [headers],
+        body: rows,
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [13, 71, 161] }, // نفس لون الهيدر
+        margin: { top: 40 }
+    });
+
+    doc.save("services-summary.pdf");
 }
 /* ===========================
    Completed Visits
