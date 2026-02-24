@@ -104,7 +104,16 @@ async function apiCloseVisit(row, data) {
   return apiPost({
     action: "closeVisit",
     row,
-    ...data
+
+    payment_status: data.payment_status,
+    payment_method: data.payment_method,
+
+    cash_amount: data.cash_amount,
+    card_amount: data.card_amount,
+    total_paid: data.total_paid,
+
+    tip: data.tip,
+    discount: data.discount
   });
 }
 
