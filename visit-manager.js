@@ -196,6 +196,11 @@ el("modal_close").onclick = closeModal;
 =========================== */
 async function submitPayment(method, total) {
 
+    // حماية زر التأكيد
+    const btn = el("modal_confirm");
+    btn.disabled = true;
+    btn.textContent = "جاري المعالجة...";
+
     // 1) تحديد نوع الدفع
     let cash = 0;
     let card = 0;
@@ -209,6 +214,10 @@ async function submitPayment(method, total) {
 
         if (cash + card !== total) {
             showToast(`المبلغ يجب أن يكون ${total} ريال`, "error");
+
+            // إعادة تفعيل الزر
+            btn.disabled = false;
+            btn.textContent = "تأكيد";
             return;
         }
     }
@@ -250,9 +259,11 @@ async function submitPayment(method, total) {
     showToast("تم تحديث الدفع", "success");
     closeModal();
     loadActiveVisits();
+
+    // إعادة الزر لوضعه الطبيعي
+    btn.disabled = false;
+    btn.textContent = "تأكيد";
 }
-
-
 /* ===========================
    فتح مودال التعديل
 =========================== */
