@@ -175,12 +175,13 @@ function updateSummary(rows) {
     el("summaryTotal").textContent = totalAmount + " ريال";
 }
 /* ===========================
-   مودال الدفع
+   مودال الدفع (النسخة النهائية)
 =========================== */
 function openPaymentModal(plate) {
 
     selectedPlate = plate;
 
+    // جلب الصفوف الخاصة بهذه اللوحة
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
 
     if (!rows.length) {
@@ -188,13 +189,17 @@ function openPaymentModal(plate) {
         return;
     }
 
+    // استخراج الأسعار
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    const oldDiscount = Number(rows[0].data[24] || 0);
-    const oldTip = Number(rows[0].data[23] || 0);
+    // الأعمدة الصحيحة:
+    // tip = col 24
+    // discount = col 25
+    const oldTip = Number(rows[0].data[24] || 0);
+    const oldDiscount = Number(rows[0].data[25] || 0);
 
-    // تعبئة الحقول
+    // تعبئة القيم في المودال
     el("modal_total_before").textContent = totalBeforeDiscount + " ريال";
     el("modal_discount").textContent = oldDiscount + " ريال";
     el("modal_tip").textContent = oldTip + " ريال";
@@ -202,14 +207,13 @@ function openPaymentModal(plate) {
     el("modal_discount_input").value = oldDiscount;
     el("modal_tip_input").value = oldTip;
 
-    // حساب الإجمالي بعد الخصم
+    // تحديث الإجمالي بعد الخصم
     const updateTotals = () => {
         const d = Number(el("modal_discount_input").value || 0);
         el("modal_total_after").textContent = (totalBeforeDiscount - d) + " ريال";
     };
 
     updateTotals();
-
     el("modal_discount_input").oninput = updateTotals;
 
     // إخفاء حقول الدفع الجزئي
@@ -219,21 +223,28 @@ function openPaymentModal(plate) {
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
-    el("paymentModal").classList.add("show");
-
-    el("modal_confirm").onclick = () => {
+    // مراقبة اختيار طريقة الدفع
+    el("modal_method_select").onchange = () => {
         const method = el("modal_method_select").value;
 
         if (method === "جزئي") {
             el("cash_box").style.display = "block";
             el("card_box").style.display = "block";
-
-            el("modal_confirm").onclick = () =>
-                submitPayment(method, totalBeforeDiscount - Number(el("modal_discount_input").value || 0));
-
         } else {
-            submitPayment(method, totalBeforeDiscount - Number(el("modal_discount_input").value || 0));
+            el("cash_box").style.display = "none";
+            el("card_box").style.display = "none";
         }
+    };
+
+    // فتح المودال
+    el("paymentModal").classList.add("show");
+
+    // زر التأكيد
+    el("modal_confirm").onclick = () => {
+        const method = el("modal_method_select").value;
+        const totalAfter = totalBeforeDiscount - Number(el("modal_discount_input").value || 0);
+
+        submitPayment(method, totalAfter);
     };
 }
 function closePaymentModal() {
