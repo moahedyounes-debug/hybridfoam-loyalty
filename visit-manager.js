@@ -488,6 +488,26 @@ async function loadServices() {
 }
 
 /* ===========================
+   تحميل الفروع
+=========================== */
+async function loadBranches() {
+    const res = await apiGetBranches();
+    const rows = res.rows || [];
+    const sel = el("branch");
+
+    sel.innerHTML = '<option value="">— اختر الفرع —</option>';
+
+    rows.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r[0]; // اسم الفرع
+        opt.textContent = r[0];
+        sel.appendChild(opt);
+    });
+}
+
+
+
+/* ===========================
    تحميل الموظفين
 =========================== */
 async function loadEmployees() {
@@ -685,7 +705,8 @@ window.onload = async () => {
     await loadCarTypes();
     await loadServices();
     await loadEmployees();
-    await loadActiveVisits();
+    await loadBranches();     // ← لازم يكون قبل تسجيل الزيارة
+    await loadActiveVisits(); // ← هذا آخر شيء
 
     el("btnAddService").onclick = addServiceToList;
     el("btnSubmitVisit").onclick = submitVisit;
