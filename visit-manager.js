@@ -161,15 +161,21 @@ function updateSummary(rows) {
 function openPaymentModal(plate) {
     selectedPlate = plate;
 
-    const rows = activeVisits.filter(v => v.data && Array.isArray(v.data) && v.data.length > 1 && v.data[1] === plate);
+    // تحقق من صلاحية البيانات وأداء فلترة سليمة
+    const rows = activeVisits.filter(v => {
+        return v && v.data && Array.isArray(v.data) && (v.data[1] === plate);
+    });
 
     if (!rows.length) {
+        // لا توجد سجلات مطابقة → أغلق المودال بهدوء
         closePaymentModal();
+        console.warn("لم يتم العثور على بيانات للوحة:", plate, activeVisits);
         return;
     }
 
+    // متابعة الحسابات بعد التأكد من وجود البيانات:
     const prices = rows.map(v => Number(v.data[7] || 0));
-    const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
+    const totalBeforeDiscount = prices.reduce((a,b) => a + b, 0);
 
     const discount = rows[0].data[24] !== undefined ? Number(rows[0].data[24]) : 0;
     const tip = rows[0].data[23] !== undefined ? Number(rows[0].data[23]) : 0;
@@ -191,7 +197,6 @@ function openPaymentModal(plate) {
     const modalConfirm = el("modal_confirm");
     modalConfirm.onclick = () => {
         const method = el("modal_method_select").value;
-
         if (method === "جزئي") {
             el("cash_box").style.display = "block";
             el("card_box").style.display = "block";
