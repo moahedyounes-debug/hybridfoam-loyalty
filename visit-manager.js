@@ -144,12 +144,12 @@ document.addEventListener("click", e => {
 });
 
 /* ===========================
-   مودال الدفع (الإصدار الصحيح)
+   مودال الدفع (الإصدار النهائي)
 =========================== */
 function openPaymentModal(method) {
     el("modal").style.display = "flex";
 
-    // نجمع الأسعار لكل زيارة لنفس اللوحة
+    // حساب الإجمالي الصحيح
     const carTotals = activeVisits.reduce((acc, v) => {
         const r = v.data;
         const plate = r[1];
@@ -161,7 +161,6 @@ function openPaymentModal(method) {
         return acc;
     }, {});
 
-    // نجيب السيارة المطلوبة
     const car = carTotals[selectedPlate];
     const total = car ? car.total : 0;
 
@@ -169,22 +168,25 @@ function openPaymentModal(method) {
     el("modal_method").textContent = method;
     el("modal_total").textContent = total + " ريال";
 
+    // إخفاء الحقول في الكاش والشبكة
+    if (method === "كاش" || method === "شبكة") {
+        el("cash_box").style.display = "none";
+        el("card_box").style.display = "none";
+    }
+
+    // إظهار الحقول فقط في الدفع الجزئي
+    if (method === "جزئي") {
+        el("cash_box").style.display = "block";
+        el("card_box").style.display = "block";
+    }
+
+    // تفريغ الحقول
     el("modal_cash").value = "";
     el("modal_card").value = "";
-
-    el("cash_box").style.display = (method === "كاش" || method === "جزئي") ? "block" : "none";
-    el("card_box").style.display = (method === "شبكة" || method === "جزئي") ? "block" : "none";
 
     // زر التأكيد
     el("modal_confirm").onclick = () => submitPayment(method, total);
 }
-
-function closeModal() {
-    el("modal").style.display = "none";
-}
-
-el("modal_close").onclick = closeModal;
-
 
 /* ===========================
    تنفيذ الدفع (الإصدار النهائي)
