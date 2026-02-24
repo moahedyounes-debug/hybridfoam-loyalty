@@ -24,34 +24,33 @@ function showToast(msg, type = "info") {
 }
 
 /* ===========================
-   تحميل الزيارات النشطة
+   تحميل الزيارات النشطة (نسخة سريعة)
 =========================== */
 async function loadActiveVisits() {
     const list = el("activeVisitsList");
     list.innerHTML = "جارِ التحميل...";
 
     try {
+        // 1) تحميل البيانات مرة واحدة فقط
         const res = await apiGetActiveVisits();
         const rows = res.visits || [];
         activeVisits = rows;
-
-        list.innerHTML = "";
 
         if (!rows.length) {
             list.innerHTML = "<p>لا توجد زيارات حالياً.</p>";
             return;
         }
 
+        // 2) تجميع السيارات
         const cars = {};
-
-        rows.forEach(v => {
+        for (const v of rows) {
             const r = v.data;
-            const plate = r[1];              // PLATE_NUMBERS
-            const brand = r[3] || "";        // CAR_TYPE
-            const service = r[6];            // SERVICE
-            const price = Number(r[7] || 0); // PRICE
-            const emp = r[9] || "غير محدد"; // EMP_IN
-            const parking = r[17];           // PARKING
+            const plate = r[1];
+            const brand = r[3] || "";
+            const service = r[6];
+            const price = Number(r[7] || 0);
+            const emp = r[9] || "غير محدد";
+            const parking = r[17];
 
             if (!cars[plate]) {
                 cars[plate] = {
@@ -66,9 +65,12 @@ async function loadActiveVisits() {
 
             cars[plate].services.push({ name: service, price });
             cars[plate].total += price;
-        });
+        }
 
-        Object.values(cars).forEach(car => {
+        // 3) استخدام DocumentFragment لتسريع DOM
+        const fragment = document.createDocumentFragment();
+
+        for (const car of Object.values(cars)) {
             const card = document.createElement("div");
             card.className = "car-card";
 
@@ -115,8 +117,12 @@ async function loadActiveVisits() {
                 </div>
             `;
 
-            list.appendChild(card);
-        });
+            fragment.appendChild(card);
+        }
+
+        // 4) إضافة كل شيء دفعة واحدة
+        list.innerHTML = "";
+        list.appendChild(fragment);
 
     } catch (err) {
         console.error(err);
