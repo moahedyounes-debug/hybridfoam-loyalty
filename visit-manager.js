@@ -405,25 +405,32 @@ function loadSwapTab() {
         newSel.appendChild(opt);
     });
 
-    el("swapConfirm").onclick = async () => {
+el("swapConfirm").onclick = async () => {
 
-        if (!oldSel.value) {
-            showToast("اختر الخدمة المراد تبديلها", "warning");
-            return;
-        }
+    const btn = el("swapConfirm");
+    btn.disabled = true;
+    btn.textContent = "جاري التبديل...";
 
-        const newService = newSel.value;
-        const newPrice = Number(newSel.selectedOptions[0].dataset.price);
+    const oldRow = oldSel.value;
+    const newService = newSel.value;
+    const newPrice = Number(newSel.selectedOptions[0].dataset.price);
 
-        await apiUpdateRow("Visits", oldSel.value, {
-            service_detail: newService,
-            price: newPrice
-        });
+    const res = await apiUpdateRow("Visits", oldRow, {
+        service_detail: newService,
+        price: newPrice
+    });
 
-        showToast("تم تبديل الخدمة", "success");
-        loadActiveVisits();
-    };
-}
+    btn.disabled = false;
+    btn.textContent = "تأكيد التبديل";
+
+    if (!res || res.success !== true) {
+        showToast("فشل التبديل — تحقق من الاتصال", "error");
+        return;
+    }
+
+    showToast("تم تبديل الخدمة", "success");
+    loadActiveVisits();
+};
 
 /* ===========================
    تبويب: حذف خدمة
@@ -485,53 +492,53 @@ function loadAddTab() {
 
     el("addConfirm").onclick = async () => {
 
-        const service = sel.value;
-        const price = Number(sel.selectedOptions[0].dataset.price);
-        const points = Number(sel.selectedOptions[0].dataset.points);
+    const btn = el("addConfirm");
+    btn.disabled = true;
+    btn.textContent = "جاري الإضافة...";
 
-        const exists = activeVisits.some(v =>
-            String(v.data[1]).replace(/\s+/g, "").trim() ===
-            String(selectedPlate).replace(/\s+/g, "").trim() &&
-            v.data[6] === service
-        );
+    const service = sel.value;
+    const price = Number(sel.selectedOptions[0].dataset.price);
+    const points = Number(sel.selectedOptions[0].dataset.points);
 
-        if (exists) {
-            showToast("الخدمة مضافة مسبقاً", "warning");
-            return;
-        }
+    const res = await apiAddRow("Visits", {
+        membership: "",
+        plate_numbers: selectedPlate,
+        plate_letters: "",
+        car_type: "",
+        car_model: "",
+        car_size: "",
+        service_detail: service,
+        price: price,
+        points: points,
+        employee_in: "",
+        employee_out: "",
+        branch: "",
+        commission: "",
+        check_in: "",
+        check_out: "",
+        payment_status: "غير مدفوع",
+        payment_method: "",
+        parking_slot: "",
+        rating: "",
+        payment_method_copy: "",
+        CASH_AMOUNT: "",
+        CARD_AMOUNT: "",
+        TOTAL_PAID: "",
+        tip: "",
+        discount: ""
+    });
 
-        await apiAddRow("Visits", {
-            membership: "",
-            plate_numbers: selectedPlate,
-            plate_letters: "",
-            car_type: "",
-            car_model: "",
-            car_size: "",
-            service_detail: service,
-            price: price,
-            points: points,
-            employee_in: "",
-            employee_out: "",
-            branch: "",
-            commission: "",
-            check_in: "",
-            check_out: "",
-            payment_status: "غير مدفوع",
-            payment_method: "",
-            parking_slot: "",
-            rating: "",
-            payment_method_copy: "",
-            CASH_AMOUNT: "",
-            CARD_AMOUNT: "",
-            TOTAL_PAID: "",
-            tip: "",
-            discount: ""
-        });
+    btn.disabled = false;
+    btn.textContent = "إضافة الخدمة";
 
-        showToast("تم إضافة الخدمة", "success");
-        loadActiveVisits();
-    };
-}
+    if (!res || res.success !== true) {
+        showToast("فشل إضافة الخدمة — تحقق من الاتصال", "error");
+        return;
+    }
+
+    showToast("تم إضافة الخدمة", "success");
+    loadActiveVisits();
+};
 /* ===========================
    تبويب: تغيير الموظف
 =========================== */
@@ -546,23 +553,40 @@ function loadEmpTab() {
         sel.appendChild(opt);
     });
 
-    el("empConfirm").onclick = async () => {
+el("empConfirm").onclick = async () => {
 
-        const rows = activeVisits.filter(v =>
-            String(v.data[1]).replace(/\s+/g, "").trim() ===
-            String(selectedPlate).replace(/\s+/g, "").trim()
-        );
+    const btn = el("empConfirm");
+    btn.disabled = true;
+    btn.textContent = "جاري التحديث...";
 
-        for (const v of rows) {
-            await apiUpdateRow("Visits", v.row, {
-                employee_in: sel.value
-            });
+    const rows = activeVisits.filter(v =>
+        String(v.data[1]).replace(/\s+/g, "").trim() ===
+        String(selectedPlate).replace(/\s+/g, "").trim()
+    );
+
+    let ok = true;
+
+    for (const v of rows) {
+        const res = await apiUpdateRow("Visits", v.row, {
+            employee_in: sel.value
+        });
+
+        if (!res || res.success !== true) {
+            ok = false;
         }
+    }
 
-        showToast("تم تحديث الموظف", "success");
-        loadActiveVisits();
-    };
-}
+    btn.disabled = false;
+    btn.textContent = "تغيير الموظف";
+
+    if (!ok) {
+        showToast("فشل تحديث الموظف — تحقق من الاتصال", "error");
+        return;
+    }
+
+    showToast("تم تحديث الموظف", "success");
+    loadActiveVisits();
+};
 /* ===========================
    تبويب: تغيير الخصم
 =========================== */
