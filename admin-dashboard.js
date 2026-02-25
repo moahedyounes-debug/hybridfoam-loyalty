@@ -435,79 +435,113 @@ function renderInvoicesSummary(list) {
 }
 
 /* ===========================
+   Safe Date Parser
+=========================== */
+function parseDateTime(str) {
+    if (!str) return null;
+
+    const [datePart, timePart] = str.split(" ");
+    if (!datePart || !timePart) return null;
+
+    const [y, m, d] = datePart.split("-").map(Number);
+    const [hh, mm, ss] = timePart.split(":").map(Number);
+
+    return new Date(y, m - 1, d, hh, mm, ss || 0);
+}
+
+/* ===========================
    Completed Tab Filter (Local)
 =========================== */
 function bindCompletedFilter() {
 
-  // ====== اليوم (12 ظهر → 6 فجر) ======
-  el("filterToday").onclick = () => {
-    const now = new Date();
+    // ====== اليوم (12 ظهر → 6 فجر) ======
+    el("filterToday").onclick = () => {
 
-    // بداية اليوم: 12:00 PM
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+        const now = new Date();
 
-    // نهاية اليوم: 6:00 AM (اليوم التالي)
-    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 6, 0, 0);
+        // بداية اليوم: 12:00 PM
+        const start = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            12, 0, 0
+        );
 
-    renderCompletedVisits(
-      filteredVisits.filter(v => {
-        const d = new Date(v[13]); // وقت الدخول
-        return d >= start && d <= end;
-      })
-    );
-  };
+        // نهاية اليوم: 6:00 AM (اليوم التالي)
+        const end = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() + 1,
+            6, 0, 0
+        );
 
-  // ====== الأسبوع ======
-  el("filterWeek").onclick = () => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = (day === 0 ? -6 : 1 - day);
-    const start = new Date(now);
-    start.setDate(now.getDate() + diff);
+        renderCompletedVisits(
+            filteredVisits.filter(v => {
+                const d = parseDateTime(v[13]); // check_in
+                if (!d) return false;
+                return d >= start && d <= end;
+            })
+        );
+    };
 
-    renderCompletedVisits(
-      filteredVisits.filter(v => {
-        const d = new Date(v[13]);
-        return d >= start && d <= now;
-      })
-    );
-  };
+    // ====== الأسبوع ======
+    el("filterWeek").onclick = () => {
+        const now = new Date();
+        const day = now.getDay();
+        const diff = (day === 0 ? -6 : 1 - day);
+        const start = new Date(now);
+        start.setDate(now.getDate() + diff);
 
-  // ====== الشهر ======
-  el("filterMonth").onclick = () => {
-    const now = new Date();
-    renderCompletedVisits(
-      filteredVisits.filter(v => {
-        const d = new Date(v[13]);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      })
-    );
-  };
+        renderCompletedVisits(
+            filteredVisits.filter(v => {
+                const d = parseDateTime(v[13]);
+                return d && d >= start && d <= now;
+            })
+        );
+    };
 
-  // ====== السنة ======
-  el("filterYear").onclick = () => {
-    const y = new Date().getFullYear();
-    renderCompletedVisits(
-      filteredVisits.filter(v => new Date(v[13]).getFullYear() === y)
-    );
-  };
+    // ====== الشهر ======
+    el("filterMonth").onclick = () => {
+        const now = new Date();
+        renderCompletedVisits(
+            filteredVisits.filter(v => {
+                const d = parseDateTime(v[13]);
+                return d &&
+                    d.getMonth() === now.getMonth() &&
+                    d.getFullYear() === now.getFullYear();
+            })
+        );
+    };
 
-  // ====== مخصص ======
-  el("filterCustom").onclick = () => {
-    const f = el("filterFrom").value;
-    const t = el("filterTo").value;
+    // ====== السنة ======
+    el("filterYear").onclick = () => {
+        const y = new Date().getFullYear();
+        renderCompletedVisits(
+            filteredVisits.filter(v => {
+                const d = parseDateTime(v[13]);
+                return d && d.getFullYear() === y;
+            })
+        );
+    };
 
-    if (!f || !t) return alert("اختر التاريخين");
+    // ====== مخصص ======
+    el("filterCustom").onclick = () => {
+        const f = el("filterFrom").value;
+        const t = el("filterTo").value;
 
-    renderCompletedVisits(
-      filteredVisits.filter(v => {
-        const d = getDateOnly(v[13]);
-        return d >= f && d <= t;
-      })
-    );
-  };
+        if (!f || !t) return alert("اختر التاريخين");
+
+        renderCompletedVisits(
+            filteredVisits.filter(v => {
+                const d = parseDateTime(v[13]);
+                if (!d) return false;
+
+                const dateOnly = d.toISOString().split("T")[0];
+                return dateOnly >= f && dateOnly <= t;
+            })
+        );
+    };
 }
-
 /* ===========================
    Export Filtered Table
 =========================== */
