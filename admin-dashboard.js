@@ -100,39 +100,43 @@ function parseDateTime(str) {
    Top Summary
 =========================== */
 function renderTopSummary(list) {
-    let total = 0; // TOTAL_PAID
-    let priceTotal = 0; // price
+    let total = 0;        // TOTAL_PAID (بعد الخصم)
+    let priceTotal = 0;   // price (قبل الخصم)
     let cash = 0;
     let card = 0;
     let tips = 0;
     let totalCommission = 0;
 
     list.forEach(v => {
-        const price = Number(v[7] || 0);
-        const cashAmount = Number(v[20] || 0);
-        const cardAmount = Number(v[21] || 0);
-        const totalPaid = Number(v[22] || 0);
-        const tip = Number(v[23] || 0);
-        const commission = Number(v[12] || 0);
+        const price       = Number(v[7]  || 0);
+        const cashAmount  = Number(v[20] || 0);
+        const cardAmount  = Number(v[21] || 0);
+        const totalPaid   = Number(v[22] || 0);
+        const tip         = Number(v[23] || 0);
+        const commission  = Number(v[12] || 0);
 
-        priceTotal += price;
-        total += totalPaid;
-        cash += cashAmount;
-        card += cardAmount;
-        tips += tip;
+        priceTotal      += price;
+        total           += totalPaid;
+        cash            += cashAmount;
+        card            += cardAmount;
+        tips            += tip;
         totalCommission += commission;
     });
 
+    // الخصم = الفرق بين السعر والإجمالي بعد الخصم
     const discount = priceTotal - total;
-    const net = total;
 
-    el("sumCash").innerText = cash + " ريال";
-    el("sumCard").innerText = card + " ريال";
-    el("sumDiscount").innerText = discount + " ريال";
-    el("sumNet").innerText = net + " ريال";
-    el("sumTotal").innerText = priceTotal + " ريال";
-    el("sumTips").innerText = tips + " ريال";
-    el("sumServices").innerText = list.length;
+    // الإجمالي بعد الخصومات = السعر - الخصم
+    const net = priceTotal - discount; // يساوي total
+
+    // الكاش / الشبكة / الخصم / الإجمالي بعد الخصومات / الإجمالي قبل الخصم
+    el("sumCash").innerText       = cash + " ريال";
+    el("sumCard").innerText       = card + " ريال";
+    el("sumDiscount").innerText   = discount + " ريال";
+    el("sumNet").innerText        = net + " ريال";        // الإجمالي بعد الخصومات
+    el("sumTotal").innerText      = priceTotal + " ريال"; // الإجمالي (قبل الخصم)
+    el("sumTips").innerText       = tips + " ريال";
+    el("sumServices").innerText   = list.length;
     el("sumCommission").innerText = totalCommission + " ريال";
 }
 
