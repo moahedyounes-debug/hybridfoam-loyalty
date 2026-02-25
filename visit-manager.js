@@ -954,54 +954,50 @@ if (btn) {
 
     const membership = plate_numbers;
 
-    /* ===========================
-       إرسال البيانات
-    ============================ */
+  /* ===========================
+   إرسال البيانات
+=========================== */
 
-    try {
-        await apiAddVisit({
-            membership,
-            plate_numbers,
-            plate_letters,
-            car_type,
-            car_model,
-            car_size,
-            employee_in,
-            branch,
-            parking_slot,
-            payment_status,
-            payment_method,
-            discount,
-            tip,
-            cash_amount: cash,
-            card_amount: card,
+try {
+    await apiAddVisit({
+        membership,
+        plate_numbers,
+        plate_letters,
+        car_type,
+        car_model,
+        car_size,
+        employee_in,
+        branch,
+        parking_slot,
+        payment_status,
+        payment_method,
+        discount,
+        tip,
+        cash_amount: cash,
+        card_amount: card,
 
-            services: JSON.stringify(
-                selectedServices.map(s => ({
-                    name: s.name,
-                    price: s.price,
+        // 🔥 هنا التعديل الصحيح — بدون JSON.stringify
+        services: selectedServices.map(s => ({
+            name: s.name,
+            price: s.price,
+            points: Math.floor(s.price / 5),
+            commission: s.commission
+        }))
+    });
 
-                    // كل 5 ريال = نقطة واحدة
-                    points: Math.floor(s.price / 5),
+    showToast("تم تسجيل الزيارة بنجاح", "success");
+    resetForm();
+    loadActiveVisits();
 
-                    // العمولة من شيت Commissions (موجودة مسبقًا في selectedServices)
-                    commission: s.commission
-                }))
-            )
-        });
+} catch (err) {
+    console.error(err);
+    showToast("خطأ أثناء تسجيل الزيارة", "error");
+}
 
-        showToast("تم تسجيل الزيارة بنجاح", "success");
-        resetForm();
-        loadActiveVisits();
+// إعادة تفعيل الزر بعد الانتهاء
+btn.disabled = false;
+btn.textContent = "تسجيل الزيارة";
 
-    } catch (err) {
-        console.error(err);
-        showToast("خطأ أثناء تسجيل الزيارة", "error");
-    }
-
-    // إعادة تفعيل الزر بعد الانتهاء
-    btn.disabled = false;
-    btn.textContent = "تسجيل الزيارة";
 
     /* ===========================
        دالة مساعدة لإعادة الزر
