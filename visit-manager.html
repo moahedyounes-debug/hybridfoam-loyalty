@@ -272,11 +272,15 @@ HTML :
             </div>
 
             <div class="tab-content">
-                <div id="tab-swap" class="tab-pane active">
-                    <label>اختر الخدمة الجديدة</label>
-                    <select id="swapServiceSelect"></select>
-                    <button id="swapConfirm" class="btn-primary full">تأكيد التبديل</button>
-                </div>
+<div id="tab-swap" class="tab-pane">
+    <label>اختر الخدمة الحالية</label>
+    <select id="swapOldServiceSelect"></select>
+
+    <label style="margin-top:15px;">اختر الخدمة الجديدة</label>
+    <select id="swapNewServiceSelect"></select>
+
+    <button id="swapConfirm" class="btn-primary full">تأكيد التبديل</button>
+</div>
 
                 <div id="tab-delete" class="tab-pane">
                     <label>اختر الخدمة المراد حذفها</label>
