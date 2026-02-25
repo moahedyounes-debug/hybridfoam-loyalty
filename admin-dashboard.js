@@ -113,10 +113,23 @@ function bindGlobalFilter() {
 function applyGlobalFilter(type) {
   const now = new Date();
 
-  if (type === "today") {
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
-    const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 6, 0, 0);
+if (type === "today") {
+    // بداية اليوم: 12:30 PM
+    const start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        12, 30, 0
+    );
 
+    // النهاية: 12:30 PM + 15 ساعة = 3:30 AM اليوم التالي
+    const end = new Date(start.getTime() + (15 * 60 * 60 * 1000));
+
+    filteredVisits = allVisits.filter(v => {
+        const d = parseDateTime(v[13]);
+        return d && d >= start && d <= end;
+    });
+}
     filteredVisits = allVisits.filter(v => {
       const d = parseDateTime(v[13]);
       return d && d >= start && d <= end;
