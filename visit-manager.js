@@ -788,9 +788,11 @@ function recalcTotal() {
 =========================== */
 async function submitVisit() {
 
-    const btn = el("btnSubmitVisit"); // ← تأكد أن الزر يحمل هذا الـ id
+const btn = el("btnSubmitVisit");
+if (btn) {
     btn.disabled = true;
     btn.textContent = "جاري تسجيل الزيارة...";
+}
 
     const plate_numbers = el("plate_numbers").value.trim();
     const plate_letters = el("plate_letters").value.trim();
