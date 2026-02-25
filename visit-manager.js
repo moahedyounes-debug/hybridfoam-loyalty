@@ -249,7 +249,6 @@ function openPaymentModal(plate) {
 function closePaymentModal() {
     el("paymentModal").classList.remove("show");
 }
-
 /* ===========================
    تنفيذ الدفع (النسخة المصححة)
 =========================== */
@@ -430,7 +429,8 @@ el("swapConfirm").onclick = async () => {
 
     showToast("تم تبديل الخدمة", "success");
     loadActiveVisits();
-};
+    };
+}
 
 /* ===========================
    تبويب: حذف خدمة
@@ -538,7 +538,8 @@ function loadAddTab() {
 
     showToast("تم إضافة الخدمة", "success");
     loadActiveVisits();
-};
+    };
+}
 /* ===========================
    تبويب: تغيير الموظف
 =========================== */
@@ -586,7 +587,8 @@ el("empConfirm").onclick = async () => {
 
     showToast("تم تحديث الموظف", "success");
     loadActiveVisits();
-};
+    };
+}
 /* ===========================
    تبويب: تغيير الخصم
 =========================== */
@@ -615,7 +617,8 @@ el("tipConfirm").onclick = async () => {
 
     showToast("تم تحديث الإكرامية", "success");
     loadActiveVisits();
-};
+    };
+}
 /* ===========================
    تحميل أنواع السيارات
 =========================== */
