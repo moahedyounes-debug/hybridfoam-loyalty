@@ -711,17 +711,22 @@ function addServiceToList() {
         return;
     }
 
-    const exists = selectedServices.some(s => s.name === name);
-    if (exists) {
-        showToast("الخدمة مضافة مسبقاً", "warning");
-        return;
+    // 🔥 منع تكرار الخدمة (ما عدا المبيعات)
+    if (category !== "مبيعات") {
+        const exists = selectedServices.some(s => s.name === name);
+        if (exists) {
+            showToast("هذه الخدمة مضافة مسبقاً", "warning");
+            return;
+        }
     }
 
+    // إضافة الخدمة
     selectedServices.push({ name, price, points, category });
 
     renderServicesList();
     recalcTotal();
 
+    // إعادة ضبط الحقول
     el("service_type").value = "";
     el("service_detail").innerHTML = '<option value="">— اختر الخدمة —</option>';
     el("price").value = "";
@@ -783,7 +788,7 @@ function recalcTotal() {
 =========================== */
 async function submitVisit() {
 
-    const btn = el("submit_visit_btn"); // ← تأكد أن الزر يحمل هذا الـ id
+    const btn = el("btnSubmitVisit"); // ← تأكد أن الزر يحمل هذا الـ id
     btn.disabled = true;
     btn.textContent = "جاري تسجيل الزيارة...";
 
@@ -901,10 +906,6 @@ async function submitVisit() {
     }
 }
 
-
-/* ===========================
-   إعادة ضبط النموذج
-=========================== */
 /* ===========================
    إعادة ضبط النموذج
 =========================== */
