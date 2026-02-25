@@ -113,70 +113,64 @@ function bindGlobalFilter() {
 function applyGlobalFilter(type) {
   const now = new Date();
 
-if (type === "today") {
-    // بداية اليوم: 12:30 PM
-    const start = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        12, 30, 0
-    );
+  if (type === "today") {
+      // بداية اليوم: 12:30 PM
+      const start = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          12, 30, 0
+      );
 
-    // النهاية: 12:30 PM + 15 ساعة = 3:30 AM اليوم التالي
-    const end = new Date(start.getTime() + (15 * 60 * 60 * 1000));
+      // النهاية: 12:30 PM + 15 ساعة = 3:30 AM اليوم التالي
+      const end = new Date(start.getTime() + (15 * 60 * 60 * 1000));
 
-    filteredVisits = allVisits.filter(v => {
-        const d = parseDateTime(v[13]);
-        return d && d >= start && d <= end;
-    });
-}
-    filteredVisits = allVisits.filter(v => {
-      const d = parseDateTime(v[13]);
-      return d && d >= start && d <= end;
-    });
+      filteredVisits = allVisits.filter(v => {
+          const d = parseDateTime(v[13]);
+          return d && d >= start && d <= end;
+      });
   }
 
   else if (type === "week") {
-    const { start, end } = getWeekRange();
-    filteredVisits = allVisits.filter(v => {
-      const d = parseDateTime(v[13]);
-      return d && d >= start && d < end;
-    });
+      const { start, end } = getWeekRange();
+      filteredVisits = allVisits.filter(v => {
+          const d = parseDateTime(v[13]);
+          return d && d >= start && d < end;
+      });
   }
 
   else if (type === "month") {
-    const m = now.getMonth();
-    const y = now.getFullYear();
-    filteredVisits = allVisits.filter(v => {
-      const d = parseDateTime(v[13]);
-      return d && d.getMonth() === m && d.getFullYear() === y;
-    });
+      const m = now.getMonth();
+      const y = now.getFullYear();
+      filteredVisits = allVisits.filter(v => {
+          const d = parseDateTime(v[13]);
+          return d && d.getMonth() === m && d.getFullYear() === y;
+      });
   }
 
   else if (type === "year") {
-    const y = now.getFullYear();
-    filteredVisits = allVisits.filter(v => {
-      const d = parseDateTime(v[13]);
-      return d && d.getFullYear() === y;
-    });
+      const y = now.getFullYear();
+      filteredVisits = allVisits.filter(v => {
+          const d = parseDateTime(v[13]);
+          return d && d.getFullYear() === y;
+      });
   }
 
   else if (type === "custom") {
-    const f = el("gFrom").value;
-    const t = el("gTo").value;
-    if (!f || !t) return alert("اختر التاريخين");
+      const f = el("gFrom").value;
+      const t = el("gTo").value;
+      if (!f || !t) return alert("اختر التاريخين");
 
-    filteredVisits = allVisits.filter(v => {
-      const d = parseDateTime(v[13]);
-      if (!d) return false;
-      const dateOnly = d.toISOString().split("T")[0];
-      return dateOnly >= f && dateOnly <= t;
-    });
+      filteredVisits = allVisits.filter(v => {
+          const d = parseDateTime(v[13]);
+          if (!d) return false;
+          const dateOnly = d.toISOString().split("T")[0];
+          return dateOnly >= f && dateOnly <= t;
+      });
   }
 
   renderAll();
 }
-
 /* ===========================
    Top Summary
 =========================== */
