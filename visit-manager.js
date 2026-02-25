@@ -346,7 +346,11 @@ async function submitPayment(method, total) {
 /* ===========================
    مودال التعديل
 =========================== */
-function openEditModal(action) {
+function openEditModal(plate) {
+
+    // أهم خطوة
+    selectedPlate = plate;
+
     el("editModal").classList.add("show");
 
     loadSwapTab();
@@ -358,7 +362,6 @@ function openEditModal(action) {
 function closeEditModal() {
     el("editModal").classList.remove("show");
 }
-
 /* ===========================
    التبويبات
 =========================== */
@@ -374,7 +377,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 
 /* ===========================
    تبويب: تبديل خدمة
-=========================== */
+========================== */
 function loadSwapTab() {
 
     // القائمة الأولى: الخدمات الحالية للسيارة
@@ -1071,19 +1074,20 @@ document.addEventListener("click", function (e) {
         return;
     }
 
-    /* اختيار إجراء التعديل (زر داخل edit-menu) */
-    if (e.target.matches(".edit-menu button")) {
+/* اختيار إجراء التعديل (زر داخل edit-menu) */
+if (e.target.matches(".edit-menu button")) {
 
-        const plate = e.target.parentElement.dataset.plate;
-        const action = e.target.dataset.action;
+    const plate = e.target.parentElement.dataset.plate;
+    const action = e.target.dataset.action;
 
-        selectedPlate = plate;
+    selectedPlate = plate;
 
-        openEditModal(action);
+    // هنا كان الخطأ
+    openEditModal(plate);
 
-        e.target.parentElement.classList.remove("show");
-        return;
-    }
+    e.target.parentElement.classList.remove("show");
+    return;
+}
 });
 
 /* ===========================
