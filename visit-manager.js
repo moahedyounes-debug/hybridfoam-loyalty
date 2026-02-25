@@ -175,7 +175,7 @@ function updateSummary(rows) {
     el("summaryTotal").textContent = totalAmount + " ريال";
 }
 /* ===========================
-   مودال الدفع (النسخة النهائية)
+   مودال الدفع (النسخة النهائية بعد الإصلاح)
 =========================== */
 function openPaymentModal(plate) {
 
@@ -235,6 +235,9 @@ function openPaymentModal(plate) {
             el("card_box").style.display = "none";
         }
     };
+
+    // 🔥 تشغيل onchange مباشرة عند فتح المودال
+    el("modal_method_select").dispatchEvent(new Event("change"));
 
     // فتح المودال
     el("paymentModal").classList.add("show");
@@ -373,24 +376,51 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
    تبويب: تبديل خدمة
 =========================== */
 function loadSwapTab() {
-    const sel = el("swapServiceSelect");
-    sel.innerHTML = "";
+
+    // القائمة الأولى: الخدمات الحالية للسيارة
+    const oldSel = el("swapOldServiceSelect");
+    oldSel.innerHTML = "";
+
+    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
+
+    rows.forEach(v => {
+        const serviceName = v.data[6] || "";
+        const price = Number(v.data[7] || 0);
+
+        if (serviceName.trim() !== "") {
+            const opt = document.createElement("option");
+            opt.value = v.row; // رقم الصف في الشيت
+            opt.textContent = `${serviceName} — ${price} ريال`;
+            oldSel.appendChild(opt);
+        }
+    });
+
+    // القائمة الثانية: الخدمات الجديدة المتاحة
+    const newSel = el("swapNewServiceSelect");
+    newSel.innerHTML = "";
 
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
         opt.textContent = `${s.service} — ${s.price} ريال`;
         opt.dataset.price = s.price;
-        sel.appendChild(opt);
+        newSel.appendChild(opt);
     });
 
+    // زر التبديل
     el("swapConfirm").onclick = async () => {
-        const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
-        const row = rows[0];
 
-        await apiUpdateRow("Visits", row.row, JSON.stringify({
-            service_detail: sel.value,
-            price: Number(sel.selectedOptions[0].dataset.price)
+        if (!oldSel.value) {
+            showToast("اختر الخدمة المراد تبديلها", "warning");
+            return;
+        }
+
+        const newService = newSel.value;
+        const newPrice = Number(newSel.selectedOptions[0].dataset.price);
+
+        await apiUpdateRow("Visits", oldSel.value, JSON.stringify({
+            service_detail: newService,
+            price: newPrice
         }));
 
         showToast("تم تبديل الخدمة", "success");
@@ -405,28 +435,46 @@ function loadDeleteTab() {
     const sel = el("deleteServiceSelect");
     sel.innerHTML = "";
 
+    // جلب كل الصفوف الخاصة بنفس رقم اللوحة
     const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
 
+    // تعبئة القائمة بالخدمات الحقيقية فقط
     rows.forEach(v => {
-        const serviceName = v.data[6];
+        const serviceName = v.data[6] || "";
         const price = Number(v.data[7] || 0);
 
-        const opt = document.createElement("option");
-        opt.value = v.row;
-        opt.textContent = `${serviceName} — ${price} ريال`;
-        sel.appendChild(opt);
+        // تجاهل الصفوف اللي ما فيها خدمة
+        if (serviceName.trim() !== "") {
+            const opt = document.createElement("option");
+            opt.value = v.row; // رقم الصف في الشيت
+            opt.textContent = `${serviceName} — ${price} ريال`;
+            sel.appendChild(opt);
+        }
     });
 
+    // زر الحذف
     el("deleteConfirm").onclick = async () => {
+
+        // لا يوجد خدمة مختارة
+        if (!sel.value) {
+            showToast("لا توجد خدمة لحذفها", "warning");
+            return;
+        }
+
+        // تعطيل الزر أثناء التنفيذ
         el("deleteConfirm").disabled = true;
         el("deleteConfirm").textContent = "جاري الحذف...";
 
+        // حذف الصف من الشيت
         await apiDeleteRow("Visits", sel.value);
 
+        // إعادة الزر لوضعه الطبيعي
         el("deleteConfirm").disabled = false;
         el("deleteConfirm").textContent = "حذف الخدمة";
 
         showToast("تم حذف الخدمة", "success");
+
+        // تحديث القائمة
         loadActiveVisits();
     };
 }
@@ -438,6 +486,7 @@ function loadAddTab() {
     const sel = el("addServiceSelect");
     sel.innerHTML = "";
 
+    // تعبئة قائمة الخدمات المتاحة
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
@@ -447,11 +496,14 @@ function loadAddTab() {
         sel.appendChild(opt);
     });
 
+    // زر الإضافة
     el("addConfirm").onclick = async () => {
+
         const service = sel.value;
         const price = Number(sel.selectedOptions[0].dataset.price);
         const points = Number(sel.selectedOptions[0].dataset.points);
 
+        // هل الخدمة موجودة مسبقاً؟
         const exists = activeVisits.some(v =>
             v.data[1] === selectedPlate && v.data[6] === service
         );
@@ -461,25 +513,39 @@ function loadAddTab() {
             return;
         }
 
-        await apiAddVisit({
-            services: [{ name: service, price, points }],
+        // إضافة صف جديد للخدمة
+        await apiAddRow("Visits", {
+            membership: "",
             plate_numbers: selectedPlate,
             plate_letters: "",
             car_type: "",
             car_model: "",
             car_size: "",
+            service_detail: service,
+            price: price,
+            points: points,
             employee_in: "",
+            employee_out: "",
             branch: "",
-            parking_slot: "",
+            commission: "",
+            check_in: "",
+            check_out: "",
             payment_status: "غير مدفوع",
-            payment_method: ""
+            payment_method: "",
+            parking_slot: "",
+            rating: "",
+            payment_method_copy: "",
+            CASH_AMOUNT: "",
+            CARD_AMOUNT: "",
+            TOTAL_PAID: "",
+            tip: "",
+            discount: ""
         });
 
         showToast("تم إضافة الخدمة", "success");
         loadActiveVisits();
     };
 }
-
 /* ===========================
    تبويب: تغيير الموظف
 =========================== */
@@ -487,23 +553,35 @@ function loadEmpTab() {
     const sel = el("empSelect");
     sel.innerHTML = "";
 
+    // تعبئة قائمة الموظفين
     employeesData.forEach(e => {
         const opt = document.createElement("option");
-        opt.value = e[0];
+        opt.value = e[0];       // اسم الموظف
         opt.textContent = e[0];
         sel.appendChild(opt);
     });
 
+    // زر التحديث
     el("empConfirm").onclick = async () => {
+
+        // جلب كل الصفوف الخاصة بنفس اللوحة
         const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
 
+        if (!rows.length) {
+            showToast("لا توجد خدمات لهذه اللوحة", "error");
+            return;
+        }
+
+        // تحديث employee_in في كل الصفوف
         for (const v of rows) {
-            await apiUpdateRow("Visits", v.row, JSON.stringify({
+            await apiUpdateRow("Visits", v.row, {
                 employee_in: sel.value
-            }));
+            });
         }
 
         showToast("تم تحديث الموظف", "success");
+
+        // إعادة تحميل الزيارات
         loadActiveVisits();
     };
 }
