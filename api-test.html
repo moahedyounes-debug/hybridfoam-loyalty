@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Hybrid Foam – API Tester</title>
+    <title>Hybrid Foam – FULL API TESTER</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
@@ -56,15 +56,18 @@
 
 <body>
 
-<h2>🧪 Hybrid Foam – Universal API Tester</h2>
+<h2>🧪 Hybrid Foam – FULL API TESTER</h2>
 
 <div class="box">
-    <h3>🔗 رابط الـ API</h3>
-    <input id="apiUrl" value="https://script.google.com/macros/s/AKfycbxxokzZV8CMZ3waUTbHXc0OZ7oj5pivpX6y0xyNdVM5P_kRdQq8-JWF_dK9LZxsMiPo/exec">
+    <h3>🔗 رابط الـ API (يتم قراءته تلقائيًا من api.js)</h3>
+    <input id="apiUrl" placeholder="جاري التحميل...">
 </div>
 
+<!-- ===========================
+       GET ALL
+=========================== -->
 <div class="box">
-    <h3>🟦 اختبار GET (getAll)</h3>
+    <h3>🟦 GET: getAll</h3>
     <select id="sheetSelect">
         <option value="Customers">Customers</option>
         <option value="Cars">Cars</option>
@@ -73,20 +76,18 @@
         <option value="Branches">Branches</option>
         <option value="Commissions">Commissions</option>
         <option value="Employees">Employees</option>
-        <option value="Level">Level</option>
+        <option value="Levels">Levels</option>
         <option value="Cost">Cost</option>
         <option value="Car-Type">Car-Type</option>
     </select>
     <button onclick="runGet()">تشغيل GET</button>
 </div>
 
+<!-- ===========================
+       UNIVERSAL POST
+=========================== -->
 <div class="box">
-    <h3>🚗 عرض موديلات السيارات (Car-Type)</h3>
-    <button onclick="runCarTypes()">عرض Car-Type</button>
-</div>
-
-<div class="box">
-    <h3>🟨 اختبار POST (أي أكشن)</h3>
+    <h3>🟨 POST: أي أكشن</h3>
 
     <input id="actionName" placeholder="action مثال: getCustomerByPhone">
 
@@ -98,8 +99,117 @@
     <button onclick="runPost()">تشغيل POST</button>
 </div>
 
+<!-- ===========================
+       QUICK TESTS
+=========================== -->
+<div class="box">
+    <h3>🚀 اختبارات جاهزة لكل الأكشنات</h3>
+
+    <button onclick="quick('loginSupervisor', {username:'admin', password:'1234'})">loginSupervisor</button>
+
+    <button onclick="quick('getCustomerByPhone', {phone:'0500000000'})">getCustomerByPhone</button>
+    <button onclick="quick('getCustomerByMembership', {membership:'20260001'})">getCustomerByMembership</button>
+
+    <button onclick="quick('getCarsByPhone', {phone:'0500000000'})">getCarsByPhone</button>
+    <button onclick="quick('getCarByMembership', {membership:'20260001'})">getCarByMembership</button>
+
+    <button onclick="quick('getVisitsByMembership', {membership:'20260001'})">getVisitsByMembership</button>
+    <button onclick="quick('getActiveVisits', {})">getActiveVisits</button>
+
+    <button onclick="quick('getBookingsByPhone', {phone:'0500000000'})">getBookingsByPhone</button>
+    <button onclick="quick('getBookingsByDate', {date:'2026-02-25'})">getBookingsByDate</button>
+
+    <button onclick="quick('getEmployees', {})">getEmployees</button>
+    <button onclick="quick('getBranches', {})">getBranches</button>
+    <button onclick="quick('getLevels', {})">getLevels</button>
+
+    <button onclick="quick('getServices', {})">getServices</button>
+    <button onclick="quick('getServicesByCategory', {category:'خارجي'})">getServicesByCategory</button>
+
+    <button onclick="quick('getCarTypes', {})">getCarTypes</button>
+
+    <button onclick="quick('calculatePayrollByEmployee', {employee:'محمد', from:'2026-01-01', to:'2026-01-31'})">calculatePayroll</button>
+
+    <button onclick="quick('getNotifications', {phone:'0500000000'})">getNotifications</button>
+</div>
+
+<!-- ===========================
+       VISITS TESTS
+=========================== -->
+<div class="box">
+    <h3>🧼 اختبارات Visits</h3>
+
+    <button onclick="quick('addVisit', {
+        membership:'20260001',
+        plate_numbers:'1234',
+        plate_letters:'أ ب ج',
+        car_type:'سيدان',
+        car_model:'كامري',
+        car_size:'وسط',
+        service_detail:'خارجي صغير',
+        price:20,
+        points:2,
+        employee_in:'أحمد',
+        branch:'مكة'
+    })">addVisit</button>
+
+    <button onclick="quick('closeVisit', {
+        row:5,
+        payment_status:'مدفوع',
+        payment_method:'كاش',
+        cash_amount:20,
+        card_amount:0,
+        total_paid:20,
+        tip:5,
+        discount:3
+    })">closeVisit</button>
+
+    <button onclick="quick('updateRow', {
+        sheet:'Visits',
+        row:5,
+        values: JSON.stringify({ price: 30 })
+    })">updateRow (Visits)</button>
+</div>
+
+<!-- ===========================
+       UNIVERSAL ROW OPS
+=========================== -->
+<div class="box">
+    <h3>📌 Universal Row Operations</h3>
+
+    <button onclick="quick('addRow', {
+        sheet:'Customers',
+        values: JSON.stringify(['Test','0500000000','Camry'])
+    })">addRow</button>
+
+    <button onclick="quick('updateRow', {
+        sheet:'Customers',
+        row:3,
+        values: JSON.stringify({ phone:'0555555555' })
+    })">updateRow</button>
+
+    <button onclick="quick('deleteRow', {sheet:'Customers', row:3})">deleteRow</button>
+</div>
+
 <textarea id="output" placeholder="النتيجة تظهر هنا..."></textarea>
 
+<!-- ===========================
+       LOAD API_URL FROM api.js
+=========================== -->
+<script src="api.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (typeof API_URL !== "undefined") {
+        document.getElementById("apiUrl").value = API_URL;
+    } else {
+        document.getElementById("apiUrl").value = "❌ لم يتم العثور على API_URL في api.js";
+    }
+});
+</script>
+
+<!-- ===========================
+       TESTER LOGIC
+=========================== -->
 <script>
 async function runGet() {
     const url = document.getElementById("apiUrl").value;
@@ -114,19 +224,6 @@ async function runGet() {
 
     document.getElementById("output").value =
         "GET " + sheet + ":\n\n" + JSON.stringify(json, null, 2);
-}
-
-async function runCarTypes() {
-    const url = document.getElementById("apiUrl").value;
-
-    const form = new URLSearchParams();
-    form.append("action", "getCarTypes");
-
-    const res = await fetch(url, { method: "POST", body: form });
-    const json = await res.json();
-
-    document.getElementById("output").value =
-        "Car-Type:\n\n" + JSON.stringify(json, null, 2);
 }
 
 async function runPost() {
@@ -159,6 +256,23 @@ async function runPost() {
 
     document.getElementById("output").value =
         "POST " + action + ":\n\n" + JSON.stringify(json, null, 2);
+}
+
+async function quick(action, params) {
+    const url = document.getElementById("apiUrl").value;
+
+    const form = new URLSearchParams();
+    form.append("action", action);
+
+    Object.keys(params).forEach(k => {
+        form.append(k, params[k]);
+    });
+
+    const res = await fetch(url, { method: "POST", body: form });
+    const json = await res.json();
+
+    document.getElementById("output").value =
+        "Quick Test: " + action + ":\n\n" + JSON.stringify(json, null, 2);
 }
 </script>
 
