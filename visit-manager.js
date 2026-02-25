@@ -307,9 +307,13 @@ async function submitPayment(method, total) {
     // السعر بعد الخصم لكل خدمة
     const distributedPaid = prices.map((price, i) => price - distributedDiscount[i]);
 
-    // توزيع الدفع الجزئي (لو موجود)
-    const cashRatio = cash / total;
-    const cardRatio = card / total;
+// إصلاح total قبل التوزيع
+const safeTotal = total > 0 ? total : 1;
+
+// نسب الدفع الصحيحة
+const cashRatio = cash > 0 ? (cash / safeTotal) : 0;
+const cardRatio = card > 0 ? (card / safeTotal) : 0;
+
 
     // إرسال البيانات لكل صف
     for (let i = 0; i < rows.length; i++) {
