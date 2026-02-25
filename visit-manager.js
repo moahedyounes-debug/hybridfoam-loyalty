@@ -194,10 +194,10 @@ function openPaymentModal(plate) {
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
     // الأعمدة الصحيحة:
-    // tip = col 24
-    // discount = col 25
-    const oldTip = Number(rows[0].data[24] || 0);
-    const oldDiscount = Number(rows[0].data[25] || 0);
+    // tip = col 23
+    // discount = col 24
+    const oldTip = Number(rows[0].data[23] || 0);
+    const oldDiscount = Number(rows[0].data[24] || 0);
 
     // تعبئة القيم في المودال
     el("modal_total_before").textContent = totalBeforeDiscount + " ريال";
@@ -247,12 +247,13 @@ function openPaymentModal(plate) {
         submitPayment(method, totalAfter);
     };
 }
+
 function closePaymentModal() {
     el("paymentModal").classList.remove("show");
 }
 
 /* ===========================
-   تنفيذ الدفع
+   تنفيذ الدفع (النسخة المصححة)
 =========================== */
 async function submitPayment(method, total) {
 
@@ -262,8 +263,13 @@ async function submitPayment(method, total) {
 
     let cash = 0, card = 0;
 
-    if (method === "كاش") cash = total;
-    else if (method === "شبكة") card = total;
+    // تحديد طريقة الدفع
+    if (method === "كاش") {
+        cash = total;
+    } 
+    else if (method === "شبكة") {
+        card = total;
+    } 
     else if (method === "جزئي") {
 
         cash = Number(el("modal_cash").value || 0);
@@ -277,6 +283,7 @@ async function submitPayment(method, total) {
         }
     }
 
+    // جلب الصفوف الخاصة باللوحة
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(selectedPlate));
 
     if (!rows.length) {
@@ -286,19 +293,24 @@ async function submitPayment(method, total) {
         return;
     }
 
+    // استخراج الأسعار
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
+    // قراءة الخصم والإكرامية من المودال
     const discount = Number(el("modal_discount_input").value || 0);
     const tip = Number(el("modal_tip_input").value || 0);
 
+    // توزيع الخصم على الخدمات
     const distributedDiscount = prices.map(price => {
         const ratio = totalBeforeDiscount ? (price / totalBeforeDiscount) : 0;
         return Math.round(ratio * discount);
     });
 
+    // حساب المبلغ المدفوع لكل خدمة
     const distributedPaid = prices.map((price, i) => price - distributedDiscount[i]);
 
+    // إرسال البيانات لكل صف
     for (let i = 0; i < rows.length; i++) {
 
         const v = rows[i];
@@ -306,10 +318,16 @@ async function submitPayment(method, total) {
         await apiCloseVisit(v.row, {
             payment_status: "مدفوع",
             payment_method: method,
+
             cash_amount: method === "كاش" ? distributedPaid[i] : (method === "جزئي" ? cash : 0),
             card_amount: method === "شبكة" ? distributedPaid[i] : (method === "جزئي" ? card : 0),
+
             total_paid: distributedPaid[i],
+
+            // أهم سطر: الخصم الموزّع
             discount: distributedDiscount[i],
+
+            // الإكرامية فقط لأول خدمة
             tip: i === 0 ? tip : 0
         });
     }
@@ -321,6 +339,7 @@ async function submitPayment(method, total) {
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
+
 /* ===========================
    مودال التعديل
 =========================== */
