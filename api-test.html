@@ -2,187 +2,181 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>صفحة اختبار الزيارات</title>
+<title>صفحة اختبار الزيارات — جاهزة 100%</title>
 <style>
 body { font-family: Tahoma; padding: 20px; background:#f2f2f2 }
-.box { background:#fff; padding:20px; margin-bottom:20px; border-radius:10px; border:1px solid #ccc }
-input, select, textarea { width:100%; padding:8px; margin:5px 0 10px; }
+.card { background:#fff; padding:20px; margin-bottom:20px; border-radius:10px; border:1px solid #ccc }
 button { padding:10px 20px; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer }
 button:hover { background:#1e4fc7 }
-h2 { margin-top:0 }
+.service { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee }
+.modal-bg { display:none; position:fixed; inset:0; background:#0008; padding:40px }
+.modal { background:#fff; padding:20px; border-radius:10px; max-width:400px; margin:auto }
+input, select { width:100%; padding:8px; margin:5px 0 10px; }
 </style>
 </head>
 <body>
 
-<h1>🔧 صفحة اختبار API — Add / Update / Close</h1>
+<h1>🔧 صفحة اختبار الزيارات — Add / Update / Close</h1>
+
+<button onclick="loadActive()">🔄 تحميل الزيارات النشطة</button>
+
+<div id="visits"></div>
 
 <!-- ===========================
-     إضافة زيارة
+     مودال الدفع
 =========================== -->
-<div class="box">
-<h2>➕ إضافة زيارة (Add Visit)</h2>
+<div id="modal" class="modal-bg">
+  <div class="modal">
+    <h2>💳 تحديث الدفع</h2>
 
-<label>أرقام اللوحة</label>
-<input id="add_plate_numbers">
+    <p><b>الإجمالي:</b> <span id="m_total"></span></p>
 
-<label>حروف اللوحة</label>
-<input id="add_plate_letters">
+    <label>الخصم</label>
+    <input id="m_discount">
 
-<label>الخدمات (JSON)</label>
-<textarea id="add_services" rows="3">[
-  {"name":"غسيل خارجي","price":30,"points":6,"commission":5},
-  {"name":"غسيل داخلي","price":40,"points":8,"commission":7}
-]</textarea>
+    <label>الإكرامية</label>
+    <input id="m_tip">
 
-<label>الخصم</label>
-<input id="add_discount" value="0">
+    <label>طريقة الدفع</label>
+    <select id="m_method">
+      <option value="كاش">كاش</option>
+      <option value="شبكة">شبكة</option>
+      <option value="جزئي">جزئي</option>
+    </select>
 
-<label>الإكرامية</label>
-<input id="add_tip" value="0">
+    <label>كاش</label>
+    <input id="m_cash">
 
-<label>حالة الدفع</label>
-<select id="add_status">
-  <option value="غير مدفوع">غير مدفوع</option>
-  <option value="مدفوع">مدفوع</option>
-</select>
+    <label>شبكة</label>
+    <input id="m_card">
 
-<label>طريقة الدفع</label>
-<select id="add_method">
-  <option value="">— اختر —</option>
-  <option value="كاش">كاش</option>
-  <option value="شبكة">شبكة</option>
-  <option value="جزئي">جزئي</option>
-</select>
+    <button onclick="confirmPayment()">✔ تنفيذ الدفع</button>
+    <button onclick="closeModal()">✖ إغلاق</button>
 
-<label>مبلغ الكاش</label>
-<input id="add_cash" value="0">
-
-<label>مبلغ الشبكة</label>
-<input id="add_card" value="0">
-
-<button onclick="testAddVisit()">تنفيذ Add Visit</button>
-
-<p id="add_result"></p>
-</div>
-
-<!-- ===========================
-     تحديث زيارة
-=========================== -->
-<div class="box">
-<h2>✏️ تحديث زيارة (Update Visit)</h2>
-
-<label>أرقام اللوحة</label>
-<input id="upd_plate">
-
-<label>الخصم الجديد</label>
-<input id="upd_discount" value="0">
-
-<label>الإكرامية الجديدة</label>
-<input id="upd_tip" value="0">
-
-<label>الموظف</label>
-<input id="upd_emp">
-
-<label>الموقف</label>
-<input id="upd_park">
-
-<button onclick="testUpdateVisit()">تنفيذ Update Visit</button>
-
-<p id="upd_result"></p>
-</div>
-
-<!-- ===========================
-     إغلاق زيارة
-=========================== -->
-<div class="box">
-<h2>💳 إغلاق زيارة (Close Visit)</h2>
-
-<label>رقم الصف (row)</label>
-<input id="close_row">
-
-<label>طريقة الدفع</label>
-<select id="close_method">
-  <option value="كاش">كاش</option>
-  <option value="شبكة">شبكة</option>
-  <option value="جزئي">جزئي</option>
-</select>
-
-<label>إجمالي الدفع</label>
-<input id="close_total" value="0">
-
-<label>مبلغ الكاش</label>
-<input id="close_cash" value="0">
-
-<label>مبلغ الشبكة</label>
-<input id="close_card" value="0">
-
-<label>الخصم</label>
-<input id="close_discount" value="0">
-
-<label>الإكرامية</label>
-<input id="close_tip" value="0">
-
-<button onclick="testCloseVisit()">تنفيذ Close Visit</button>
-
-<p id="close_result"></p>
+    <p id="m_result"></p>
+  </div>
 </div>
 
 <script>
+let API = "https://script.google.com/macros/s/AKfycbzX4ChhmrFTDKtJSBQeqPKlUz5Kplua0phhw_tuJkGyx3NWdDeZocXZCZPxQHJnEqyKaw/exec";
+let currentPlate = null;
+let currentRows = [];
+
 // ===========================
-// 1) ADD VISIT
+// تحميل الزيارات النشطة
 // ===========================
-async function testAddVisit() {
-  const res = await fetch("YOUR_API_URL?action=addVisit", {
-    method: "POST",
-    body: new URLSearchParams({
-      plate_numbers: add_plate_numbers.value,
-      plate_letters: add_plate_letters.value,
-      services: add_services.value,
-      discount: add_discount.value,
-      tip: add_tip.value,
-      payment_status: add_status.value,
-      payment_method: add_method.value,
-      cash_amount: add_cash.value,
-      card_amount: add_card.value
-    })
+async function loadActive() {
+  const box = document.getElementById("visits");
+  box.innerHTML = "جاري التحميل...";
+
+  const res = await fetch(API + "?action=getActiveVisits");
+  const data = await res.json();
+
+  if (!data.success || !data.visits.length) {
+    box.innerHTML = "<p>لا توجد زيارات</p>";
+    return;
+  }
+
+  const cars = {};
+
+  data.visits.forEach(v => {
+    const r = v.data;
+    const plate = r[1];
+
+    if (!cars[plate]) {
+      cars[plate] = {
+        plate,
+        rows: [],
+        total: 0,
+        discount: Number(r[24] || 0),
+        tip: Number(r[23] || 0)
+      };
+    }
+
+    cars[plate].rows.push(v);
+    cars[plate].total += Number(r[7] || 0);
   });
-  add_result.textContent = await res.text();
+
+  box.innerHTML = "";
+
+  Object.values(cars).forEach(car => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    let servicesHTML = "";
+    car.rows.forEach(r => {
+      servicesHTML += `
+        <div class="service">
+          <span>${r.data[6]}</span>
+          <span>${r.data[7]} ريال</span>
+        </div>
+      `;
+    });
+
+    div.innerHTML = `
+      <h3>🚗 لوحة: ${car.plate}</h3>
+      ${servicesHTML}
+      <p><b>الإجمالي:</b> ${car.total} ريال</p>
+      <p><b>الخصم:</b> ${car.discount} ريال</p>
+      <p><b>الإكرامية:</b> ${car.tip} ريال</p>
+
+      <button onclick="openModal('${car.plate}')">💳 تحديث الدفع</button>
+    `;
+
+    box.appendChild(div);
+  });
 }
 
 // ===========================
-// 2) UPDATE VISIT
+// فتح مودال الدفع
 // ===========================
-async function testUpdateVisit() {
-  const res = await fetch("YOUR_API_URL?action=updateVisit", {
-    method: "POST",
-    body: new URLSearchParams({
-      plate_numbers: upd_plate.value,
-      discount: upd_discount.value,
-      tip: upd_tip.value,
-      employee_in: upd_emp.value,
-      parking_slot: upd_park.value
-    })
-  });
-  upd_result.textContent = await res.text();
+function openModal(plate) {
+  currentPlate = plate;
+  document.getElementById("modal").style.display = "block";
+
+  fetch(API + "?action=getActiveVisits")
+    .then(r => r.json())
+    .then(d => {
+      currentRows = d.visits.filter(v => v.data[1] === plate);
+      const total = currentRows.reduce((s, v) => s + Number(v.data[7]), 0);
+
+      document.getElementById("m_total").textContent = total + " ريال";
+      document.getElementById("m_discount").value = currentRows[0].data[24] || 0;
+      document.getElementById("m_tip").value = currentRows[0].data[23] || 0;
+    });
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
 }
 
 // ===========================
-// 3) CLOSE VISIT
+// تنفيذ الدفع — بدون row
 // ===========================
-async function testCloseVisit() {
-  const res = await fetch("YOUR_API_URL?action=closeVisit", {
-    method: "POST",
-    body: new URLSearchParams({
-      row: close_row.value,
-      payment_method: close_method.value,
-      total_paid: close_total.value,
-      cash_amount: close_cash.value,
-      card_amount: close_card.value,
-      discount: close_discount.value,
-      tip: close_tip.value
-    })
-  });
-  close_result.textContent = await res.text();
+async function confirmPayment() {
+  const discount = Number(m_discount.value);
+  const tip = Number(m_tip.value);
+  const method = m_method.value;
+  const cash = Number(m_cash.value || 0);
+  const card = Number(m_card.value || 0);
+
+  for (const r of currentRows) {
+    await fetch(API + "?action=closeVisit", {
+      method: "POST",
+      body: new URLSearchParams({
+        row: r.row,   // ← نستخدم row داخليًا فقط، المستخدم ما يشوفه
+        payment_method: method,
+        discount,
+        tip,
+        cash_amount: cash,
+        card_amount: card,
+        total_paid: cash + card
+      })
+    });
+  }
+
+  m_result.textContent = "✔ تم تحديث الدفع";
+  loadActive();
 }
 </script>
 
