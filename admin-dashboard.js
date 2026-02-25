@@ -1,3 +1,18 @@
+function applyLanguage(lang) {
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        el.innerText = translations[lang][key] || key;
+    });
+
+    // تغيير اتجاه الصفحة
+    if (lang === "en") {
+        document.body.dir = "ltr";
+    } else {
+        document.body.dir = "rtl";
+    }
+}
+
+
 const el = id => document.getElementById(id);
 const getDateOnly = v => String(v || "").split("T")[0].split(" ")[0];
 
@@ -8,10 +23,16 @@ let commissions = {};
 document.addEventListener("DOMContentLoaded", () => {
     loadAllVisits();
     bindTabs();
-    bindGlobalFilter(); // ← رجعناها لأنها ضرورية
+    bindGlobalFilter();
     bindCompletedFilter();
     bindExport();
+
+    // ربط زر اللغة
+    el("langSwitcher").onchange = (e) => {
+        applyLanguage(e.target.value);
+    };
 });
+
 
 /* ===========================
    Load All Visits Once
@@ -640,4 +661,17 @@ function bindExport() {
         a.download = "filtered_visits.csv";
         a.click();
     };
+}
+
+function applyLanguage(lang) {
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        el.innerText = translations[lang][key] || key;
+    });
+
+    if (lang === "en") {
+        document.body.dir = "ltr";
+    } else {
+        document.body.dir = "rtl";
+    }
 }
