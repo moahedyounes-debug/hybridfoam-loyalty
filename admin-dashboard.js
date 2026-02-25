@@ -54,15 +54,32 @@ function bindTabs() {
    Safe Date Parser
 =========================== */
 function parseDateTime(str) {
-  if (!str) return null;
-  str = str.replace("T", " ");
-  const [datePart, timePart] = str.split(" ");
-  if (!datePart || !timePart) return null;
+    if (!str) return null;
 
-  const [y, m, d] = datePart.split("-").map(Number);
-  const [hh, mm, ss] = timePart.split(":").map(Number);
+    // تنظيف
+    str = str.trim();
 
-  return new Date(y, m - 1, d, hh, mm, ss || 0);
+    // استبدال T بمسافة
+    str = str.replace("T", " ");
+
+    // لو التاريخ بدون وقت
+    if (str.length === 10) {
+        str += " 00:00:00";
+    }
+
+    const parts = str.split(" ");
+    if (parts.length < 2) return null;
+
+    const [datePart, timePart] = parts;
+
+    const [y, m, d] = datePart.split("-").map(Number);
+
+    let [hh, mm, ss] = timePart.split(":").map(Number);
+
+    // لو الوقت بدون ثواني
+    if (isNaN(ss)) ss = 0;
+
+    return new Date(y, m - 1, d, hh, mm, ss);
 }
 
 /* ===========================
