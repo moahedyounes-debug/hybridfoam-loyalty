@@ -446,47 +446,65 @@ function bindGlobalFilter() {
 function applyGlobalFilter(type) {
     const now = new Date();
 
-    /* ===========================
-       TODAY (1 PM → 2 AM)
-    ============================ */
-    if (type === "today") {
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 0, 0);
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 2, 0, 0);
+/* ===========================
+   TODAY (12 PM → next day 11:59 AM)
+=========================== */
+if (type === "today") {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+    const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
 
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
-    }
+    filteredVisits = allVisits.filter(v => {
+        const d = parseDateTime(v[13]);
+        return d && d >= start && d <= end;
+    });
+}
 
-    /* ===========================
-       YESTERDAY (1 PM → 2 AM)
-    ============================ */
-    else if (type === "yesterday") {
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 13, 0, 0);
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2, 0, 0);
+/* ===========================
+   YESTERDAY (12 PM → today 11:59 AM)
+=========================== */
+else if (type === "yesterday") {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 12, 0, 0);
+    const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 59, 59);
 
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
-    }
+    filteredVisits = allVisits.filter(v => {
+        const d = parseDateTime(v[13]);
+        return d && d >= start && d <= end;
+    });
+}
 
-    /* ===========================
-       WEEK (Wed 1 PM → Tue 2 AM)
-    ============================ */
-    else if (type === "week") {
-        const day = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed...
-        const diff = day >= 3 ? day - 3 : (7 - (3 - day));
 
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff, 13, 0, 0);
-        const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 2, 0, 0);
+/* ===========================
+   WEEK (Wed 12 PM → Tue 11:59 AM)
+=========================== */
+else if (type === "week") {
 
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
-    }
+    const day = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed...
+    
+    // حساب كم يوم نرجع للخلف للوصول إلى الأربعاء
+    const diff = day >= 3 ? day - 3 : (7 - (3 - day));
+
+    // بداية الأسبوع: الأربعاء 12:00 الظهر
+    const start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - diff,
+        12, 0, 0
+    );
+
+    // نهاية الأسبوع: الثلاثاء 11:59 صباحاً
+    const end = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate() + 6,
+        11, 59, 59
+    );
+
+    filteredVisits = allVisits.filter(v => {
+        const d = parseDateTime(v[13]);
+        return d && d >= start && d <= end;
+    });
+}
+
 
     /* ===========================
        MONTH (1st 1 PM → next month 2 AM)
