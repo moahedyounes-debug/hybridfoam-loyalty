@@ -181,15 +181,6 @@ function renderTopSummary(list) {
 }
 
 /* ===========================
-   Commission Summary (Disabled)
-=========================== */
-async function loadCommissions() {
-    commissions = {};
-    return;
-}
-
-
-/* ===========================
    Employees Summary
 =========================== */
 function renderEmployeesSummary(list) {
