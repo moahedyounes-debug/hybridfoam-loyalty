@@ -1,159 +1,118 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>لوحة المشرف</title>
-
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <!-- Dashboard CSS -->
-    <link rel="stylesheet" href="admin-dashboard.css">
-
-<!-- PDF Library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <meta charset="UTF-8">
+  <title>لوحة المشرف</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="admin-dashboard.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
-
 <body>
+  <!-- GLOBAL FILTER -->
+  <div class="global-filter" role="region" aria-label="مرشحات عامة">
+    <button class="btn-primary" id="gToday" aria-pressed="false">اليوم</button>
+    <button class="btn-primary" id="gWeek" aria-pressed="false">هذا الأسبوع</button>
+    <button class="btn-primary" id="gMonth" aria-pressed="false">هذا الشهر</button>
+    <button class="btn-primary" id="gYear" aria-pressed="false">هذه السنة</button>
+    <input type="date" id="gFrom" aria-label="من">
+    <input type="date" id="gTo" aria-label="إلى">
+    <button class="btn-secondary" id="gCustom">تطبيق</button>
+  </div>
 
-    <!-- ====== GLOBAL FILTER ====== -->
-    <div class="global-filter">
-        <button class="btn-primary" id="gToday">اليوم</button>
-        <button class="btn-primary" id="gWeek">هذا الأسبوع</button>
-        <button class="btn-primary" id="gMonth">هذا الشهر</button>
-        <button class="btn-primary" id="gYear">هذه السنة</button>
-
-        <input type="date" id="gFrom">
-        <input type="date" id="gTo">
-        <button class="btn-secondary" id="gCustom">تطبيق</button>
+  <!-- HEADER SUMMARY -->
+  <div class="top-summary" role="region" aria-label="ملخص">
+    <div class="summary-box" role="group" aria-label="الشبكة">
+      <span class="material-icons" aria-hidden="true">credit_card</span>
+      <p>الشبكة</p>
+      <h3 id="sumCard">0 ريال</h3>
+    </div>
+    <div class="summary-box" role="group" aria-label="الكاش">
+      <span class="material-icons" aria-hidden="true">payments</span>
+      <p>الكاش</p>
+      <h3 id="sumCash">0 ريال</h3>
+    </div>
+    <div class="summary-box" role="group" aria-label="الخصومات">
+      <span class="material-icons" aria-hidden="true">money_off</span>
+      <p>الخصومات</p>
+      <h3 id="sumDiscount">0 ريال</h3>
+    </div>
+    <div class="summary-box" role="group" aria-label="الإجمالي بعد الخصومات">
+      <span class="material-icons" aria-hidden="true">account_balance</span>
+      <p>الإجمالي بعد الخصومات</p>
+      <h3 id="sumNet">0 ريال</h3>
     </div>
 
-    <!-- ====== HEADER SUMMARY ====== -->
-<div class="top-summary">
+    <div class="summary-box" role="group" aria-label="عدد الخدمات">
+      <span class="material-icons" aria-hidden="true">cleaning_services</span>
+      <p>عدد الخدمات</p>
+      <h3 id="sumServices">0</h3>
+    </div>
+    <div class="summary-box" role="group" aria-label="الإكراميات">
+      <span class="material-icons" aria-hidden="true">card_giftcard</span>
+      <p>الإكراميات</p>
+      <h3 id="sumTips">0 ريال</h3>
+    </div>
+    <div class="summary-box" role="group" aria-label="العمولة">
+      <span class="material-icons" aria-hidden="true">workspace_premium</span>
+      <p>العمولة</p>
+      <h3 id="sumCommission">0 ريال</h3>
+    </div>
+    <div class="summary-box" role="group" aria-label="الإجمالي">
+      <span class="material-icons" aria-hidden="true">account_balance_wallet</span>
+      <p>الإجمالي</p>
+      <h3 id="sumTotal">0 ريال</h3>
+    </div>
+  </div>
 
-    <!-- ===== الصف الأول ===== -->
-    <div class="summary-box">
-        <span class="material-icons">credit_card</span>
-        <p>الشبكة</p>
-        <h3 id="sumCard">0 ريال</h3>
+  <!-- TABS -->
+  <div class="tabs-container" role="tablist" aria-label="التبويبات">
+    <button class="tab-btn active" data-tab="employees" aria-selected="true"><span class="material-icons">person</span> ملخص الموظفين</button>
+    <button class="tab-btn" data-tab="completed" aria-selected="false"><span class="material-icons">directions_car</span> الزيارات المكتملة</button>
+    <button class="tab-btn" data-tab="services" aria-selected="false"><span class="material-icons">cleaning_services</span> ملخص الخدمات</button>
+    <button class="tab-btn" data-tab="bookings" aria-selected="false"><span class="material-icons">event</span> الحجوزات</button>
+    <button class="tab-btn" data-tab="notifications" aria-selected="false"><span class="material-icons">notifications</span> الإشعارات</button>
+    <button class="tab-btn" data-tab="invoices" aria-selected="false"><span class="material-icons">receipt_long</span> الفواتير</button>
+  </div>
+
+  <!-- TAB CONTENT -->
+  <div id="tab-employees" class="tab-content active" role="tabpanel"></div>
+
+  <div id="tab-completed" class="tab-content" role="tabpanel">
+    <div class="filter-box">
+      <button class="btn-primary" id="filterToday">اليوم</button>
+      <button class="btn-primary" id="filterWeek">هذا الأسبوع</button>
+      <button class="btn-primary" id="filterMonth">هذا الشهر</button>
+      <button class="btn-primary" id="filterYear">هذه السنة</button>
+      <input type="date" id="filterFrom" aria-label="من">
+      <input type="date" id="filterTo" aria-label="إلى">
+      <button class="btn-secondary" id="filterCustom">تطبيق</button>
+      <button class="btn-export" id="exportExcel">تصدير Excel</button>
     </div>
 
-    <div class="summary-box">
-        <span class="material-icons">payments</span>
-        <p>الكاش</p>
-        <h3 id="sumCash">0 ريال</h3>
+    <div id="completedContent"></div>
+    <div id="completedTotal" class="table-total"></div>
+  </div>
+
+  <div id="tab-services" class="tab-content" role="tabpanel"></div>
+  <div id="tab-bookings" class="tab-content" role="tabpanel"></div>
+  <div id="tab-notifications" class="tab-content" role="tabpanel"></div>
+  <div id="tab-invoices" class="tab-content" role="tabpanel"></div>
+
+  <!-- DETAILS MODAL -->
+  <div id="detailsModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content">
+      <span id="closeModal" class="material-icons close-btn" role="button" aria-label="إغلاق">close</span>
+      <h2>تفاصيل الزيارة</h2>
+      <div id="detailsBody"></div>
+      <div class="modal-actions">
+        <button id="downloadCSV" class="btn-primary">تحميل CSV</button>
+        <button id="downloadPDF" class="btn-secondary">تحميل PDF</button>
+      </div>
     </div>
+  </div>
 
-    <div class="summary-box">
-        <span class="material-icons">money_off</span>
-        <p>الخصومات</p>
-        <h3 id="sumDiscount">0 ريال</h3>
-    </div>
-
-    <div class="summary-box">
-        <span class="material-icons">account_balance</span>
-        <p>الإجمالي بعد الخصومات</p>
-        <h3 id="sumNet">0 ريال</h3>
-    </div>
-
-    <!-- ===== الصف الثاني ===== -->
-    <div class="summary-box">
-        <span class="material-icons">cleaning_services</span>
-        <p>عدد الخدمات</p>
-        <h3 id="sumServices">0</h3>
-    </div>
-    
-    <div class="summary-box">
-        <span class="material-icons">card_giftcard</span>
-        <p>الإكراميات</p>
-        <h3 id="sumTips">0 ريال</h3>
-    </div>
-
-    <div class="summary-box">
-        <span class="material-icons">workspace_premium</span>
-        <p>العمولة</p>
-        <h3 id="sumCommission">0 ريال</h3>
-    </div>
-
-    <div class="summary-box">
-        <span class="material-icons">account_balance_wallet</span>
-        <p>الإجمالي</p>
-        <h3 id="sumTotal">0 ريال</h3>
-    </div>
-
-</div>
-
-    <!-- ====== TABS ====== -->
-    <div class="tabs-container">
-        <button class="tab-btn active" data-tab="employees">
-            <span class="material-icons">person</span> ملخص الموظفين
-        </button>
-
-        <button class="tab-btn" data-tab="completed">
-            <span class="material-icons">directions_car</span> الزيارات المكتملة
-        </button>
-
-        <button class="tab-btn" data-tab="services">
-            <span class="material-icons">cleaning_services</span> ملخص الخدمات
-        </button>
-
-        <button class="tab-btn" data-tab="bookings">
-            <span class="material-icons">event</span> الحجوزات
-        </button>
-
-        <button class="tab-btn" data-tab="notifications">
-            <span class="material-icons">notifications</span> الإشعارات
-        </button>
-
-        <button class="tab-btn" data-tab="invoices">
-            <span class="material-icons">receipt_long</span> الفواتير
-        </button>
-    </div>
-
-    <!-- ====== TAB CONTENT ====== -->
-    <div id="tab-employees" class="tab-content active"></div>
-
-    <div id="tab-completed" class="tab-content">
-        <div class="filter-box">
-            <button class="btn-primary" id="filterToday">اليوم</button>
-            <button class="btn-primary" id="filterWeek">هذا الأسبوع</button>
-            <button class="btn-primary" id="filterMonth">هذا الشهر</button>
-            <button class="btn-primary" id="filterYear">هذه السنة</button>
-
-            <input type="date" id="filterFrom">
-            <input type="date" id="filterTo">
-            <button class="btn-secondary" id="filterCustom">تطبيق</button>
-
-            <button class="btn-export" id="exportExcel">تصدير Excel</button>
-        </div>
-
-        <div id="completedContent"></div>
-        <div id="completedTotal" class="table-total"></div>
-    </div>
-
-    <div id="tab-services" class="tab-content"></div>
-    <div id="tab-bookings" class="tab-content"></div>
-    <div id="tab-notifications" class="tab-content"></div>
-    <div id="tab-invoices" class="tab-content"></div>
-
-    <!-- ====== DETAILS MODAL ====== -->
-    <div id="detailsModal" class="modal">
-        <div class="modal-content">
-            <span id="closeModal" class="material-icons close-btn">close</span>
-            <h2>تفاصيل الزيارة</h2>
-            <div id="detailsBody"></div>
-
-            <div class="modal-actions">
-                <button id="downloadCSV" class="btn-primary">تحميل CSV</button>
-                <button id="downloadPDF" class="btn-secondary">تحميل PDF</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- JS -->
-    <script src="api.js"></script>
-    <script src="admin-dashboard.js"></script>
-
+  <script src="api.js"></script>
+  <script src="admin-dashboard.js"></script>
 </body>
 </html>
