@@ -54,19 +54,18 @@ async function loadActiveVisits() {
             return;
         }
 
-        /* تجميع حسب اللوحة */
         const cars = {};
 
         for (const v of rows) {
             const r = v.data;
 
-            const plate = r[1];              // رقم اللوحة
-            const brand = r[3] || "";        // نوع السيارة
-            const service = r[6];            // الخدمة
-            const price = Number(r[7] || 0); // السعر
-            const emp = r[9] || "غير محدد";  // الموظف
-            const parking = r[17];           // الموقف
-            const discount = Number(r[24] || 0); // الخصم
+            const plate = String(r[1]).replace(/\s+/g, "").trim();
+            const brand = r[3] || "";
+            const service = r[6];
+            const price = Number(r[7] || 0);
+            const emp = r[9] || "غير محدد";
+            const parking = r[17];
+            const discount = Number(r[24] || 0);
 
             if (!cars[plate]) {
                 cars[plate] = {
@@ -84,12 +83,10 @@ async function loadActiveVisits() {
             cars[plate].total += price;
         }
 
-        /* حساب الإجمالي بعد الخصم */
         Object.values(cars).forEach(car => {
             car.totalAfterDiscount = car.total - car.discount;
         });
 
-        /* بناء البطاقات */
         const fragment = document.createDocumentFragment();
 
         for (const car of Object.values(cars)) {
@@ -122,7 +119,6 @@ async function loadActiveVisits() {
 
     <div class="card-footer">
 
-        <!-- قائمة الدفع -->
         <div class="dropdown">
             <button class="btn-pay" type="button">💳 تحديث الدفع ▼</button>
 
@@ -133,7 +129,6 @@ async function loadActiveVisits() {
             </div>
         </div>
 
-        <!-- قائمة التعديل -->
         <div class="dropdown">
             <button class="edit-btn" type="button">✏️ تعديل ▼</button>
 
@@ -348,8 +343,7 @@ async function submitPayment(method, total) {
 =========================== */
 function openEditModal(plate) {
 
-    // أهم خطوة
-    selectedPlate = plate;
+    selectedPlate = String(plate).replace(/\s+/g, "").trim();
 
     el("editModal").classList.add("show");
 
@@ -380,11 +374,13 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 ========================== */
 function loadSwapTab() {
 
-    // القائمة الأولى: الخدمات الحالية للسيارة
     const oldSel = el("swapOldServiceSelect");
     oldSel.innerHTML = "";
 
-    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
+    const rows = activeVisits.filter(v =>
+        String(v.data[1]).replace(/\s+/g, "").trim() ===
+        String(selectedPlate).replace(/\s+/g, "").trim()
+    );
 
     rows.forEach(v => {
         const serviceName = v.data[6] || "";
@@ -392,13 +388,12 @@ function loadSwapTab() {
 
         if (serviceName.trim() !== "") {
             const opt = document.createElement("option");
-            opt.value = v.row; // رقم الصف في الشيت
+            opt.value = v.row;
             opt.textContent = `${serviceName} — ${price} ريال`;
             oldSel.appendChild(opt);
         }
     });
 
-    // القائمة الثانية: الخدمات الجديدة المتاحة
     const newSel = el("swapNewServiceSelect");
     newSel.innerHTML = "";
 
@@ -410,7 +405,6 @@ function loadSwapTab() {
         newSel.appendChild(opt);
     });
 
-    // زر التبديل
     el("swapConfirm").onclick = async () => {
 
         if (!oldSel.value) {
@@ -421,10 +415,10 @@ function loadSwapTab() {
         const newService = newSel.value;
         const newPrice = Number(newSel.selectedOptions[0].dataset.price);
 
-        await apiUpdateRow("Visits", oldSel.value, JSON.stringify({
+        await apiUpdateRow("Visits", oldSel.value, {
             service_detail: newService,
             price: newPrice
-        }));
+        });
 
         showToast("تم تبديل الخدمة", "success");
         loadActiveVisits();
@@ -438,46 +432,37 @@ function loadDeleteTab() {
     const sel = el("deleteServiceSelect");
     sel.innerHTML = "";
 
-    // جلب كل الصفوف الخاصة بنفس رقم اللوحة
-    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
+    const rows = activeVisits.filter(v =>
+        String(v.data[1]).replace(/\s+/g, "").trim() ===
+        String(selectedPlate).replace(/\s+/g, "").trim()
+    );
 
-    // تعبئة القائمة بالخدمات الحقيقية فقط
+    if (!rows.length) return;
+
     rows.forEach(v => {
         const serviceName = v.data[6] || "";
         const price = Number(v.data[7] || 0);
 
-        // تجاهل الصفوف اللي ما فيها خدمة
         if (serviceName.trim() !== "") {
             const opt = document.createElement("option");
-            opt.value = v.row; // رقم الصف في الشيت
+            opt.value = v.row;
             opt.textContent = `${serviceName} — ${price} ريال`;
             sel.appendChild(opt);
         }
     });
 
-    // زر الحذف
     el("deleteConfirm").onclick = async () => {
+        if (!sel.value) return;
 
-        // لا يوجد خدمة مختارة
-        if (!sel.value) {
-            showToast("لا توجد خدمة لحذفها", "warning");
-            return;
-        }
-
-        // تعطيل الزر أثناء التنفيذ
         el("deleteConfirm").disabled = true;
         el("deleteConfirm").textContent = "جاري الحذف...";
 
-        // حذف الصف من الشيت
         await apiDeleteRow("Visits", sel.value);
 
-        // إعادة الزر لوضعه الطبيعي
         el("deleteConfirm").disabled = false;
         el("deleteConfirm").textContent = "حذف الخدمة";
 
         showToast("تم حذف الخدمة", "success");
-
-        // تحديث القائمة
         loadActiveVisits();
     };
 }
@@ -489,7 +474,6 @@ function loadAddTab() {
     const sel = el("addServiceSelect");
     sel.innerHTML = "";
 
-    // تعبئة قائمة الخدمات المتاحة
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
@@ -499,16 +483,16 @@ function loadAddTab() {
         sel.appendChild(opt);
     });
 
-    // زر الإضافة
     el("addConfirm").onclick = async () => {
 
         const service = sel.value;
         const price = Number(sel.selectedOptions[0].dataset.price);
         const points = Number(sel.selectedOptions[0].dataset.points);
 
-        // هل الخدمة موجودة مسبقاً؟
         const exists = activeVisits.some(v =>
-            v.data[1] === selectedPlate && v.data[6] === service
+            String(v.data[1]).replace(/\s+/g, "").trim() ===
+            String(selectedPlate).replace(/\s+/g, "").trim() &&
+            v.data[6] === service
         );
 
         if (exists) {
@@ -516,7 +500,6 @@ function loadAddTab() {
             return;
         }
 
-        // إضافة صف جديد للخدمة
         await apiAddRow("Visits", {
             membership: "",
             plate_numbers: selectedPlate,
@@ -556,26 +539,20 @@ function loadEmpTab() {
     const sel = el("empSelect");
     sel.innerHTML = "";
 
-    // تعبئة قائمة الموظفين
     employeesData.forEach(e => {
         const opt = document.createElement("option");
-        opt.value = e[0];       // اسم الموظف
+        opt.value = e[0];
         opt.textContent = e[0];
         sel.appendChild(opt);
     });
 
-    // زر التحديث
     el("empConfirm").onclick = async () => {
 
-        // جلب كل الصفوف الخاصة بنفس اللوحة
-        const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
+        const rows = activeVisits.filter(v =>
+            String(v.data[1]).replace(/\s+/g, "").trim() ===
+            String(selectedPlate).replace(/\s+/g, "").trim()
+        );
 
-        if (!rows.length) {
-            showToast("لا توجد خدمات لهذه اللوحة", "error");
-            return;
-        }
-
-        // تحديث employee_in في كل الصفوف
         for (const v of rows) {
             await apiUpdateRow("Visits", v.row, {
                 employee_in: sel.value
@@ -583,12 +560,9 @@ function loadEmpTab() {
         }
 
         showToast("تم تحديث الموظف", "success");
-
-        // إعادة تحميل الزيارات
         loadActiveVisits();
     };
 }
-
 /* ===========================
    تبويب: تغيير الخصم
 =========================== */
