@@ -594,31 +594,35 @@ el("empConfirm").onclick = async () => {
 =========================== */
 el("discConfirm").onclick = async () => {
     const val = Number(el("discInput").value || 0);
-    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
+    const rows = activeVisits.filter(v =>
+        String(v.data[1]).replace(/\s+/g, "").trim() ===
+        String(selectedPlate).replace(/\s+/g, "").trim()
+    );
 
     for (const v of rows) {
-        await apiUpdateRow("Visits", v.row, JSON.stringify({ discount: val }));
+        await apiUpdateRow("Visits", v.row, { discount: val });
     }
 
     showToast("تم تحديث الخصم", "success");
     loadActiveVisits();
 };
-
 /* ===========================
    تبويب: تغيير الإكرامية
 =========================== */
 el("tipConfirm").onclick = async () => {
     const val = Number(el("tipInput").value || 0);
-    const rows = activeVisits.filter(v => v.data[1] === selectedPlate);
+    const rows = activeVisits.filter(v =>
+        String(v.data[1]).replace(/\s+/g, "").trim() ===
+        String(selectedPlate).replace(/\s+/g, "").trim()
+    );
 
     for (const v of rows) {
-        await apiUpdateRow("Visits", v.row, JSON.stringify({ tip: val }));
+        await apiUpdateRow("Visits", v.row, { tip: val });
     }
 
     showToast("تم تحديث الإكرامية", "success");
     loadActiveVisits();
-    };
-}
+};
 /* ===========================
    تحميل أنواع السيارات
 =========================== */
