@@ -117,11 +117,17 @@ async function testSingleService() {
         car_type: "سيدان",
         car_model: "كامري",
         car_size: "وسط",
-        service_detail: "خارجي صغير",
-        price: 25,
-        points: 3,
         employee_in: "أحمد",
-        branch: "مكة"
+        branch: "مكة",
+        payment_status: "غير مدفوع",
+        services: JSON.stringify([
+            {
+                name: "خارجي صغير",
+                price: 25,
+                points: 3,
+                commission: 0
+            }
+        ])
     });
 
     if (!add.success) {
@@ -158,9 +164,9 @@ async function testMultiService() {
     const url = document.getElementById("apiUrl").value;
 
     const services = [
-        { detail: "غسيل", price: 25 },
-        { detail: "تلميع", price: 15 },
-        { detail: "تغليف", price: 10 }
+        { name: "غسيل", price: 25, points: 3, commission: 0 },
+        { name: "تلميع", price: 15, points: 3, commission: 0 },
+        { name: "تغليف", price: 10, points: 3, commission: 0 }
     ];
 
     const rows = [];
@@ -175,11 +181,10 @@ async function testMultiService() {
             car_type: "سيدان",
             car_model: "كامري",
             car_size: "وسط",
-            service_detail: s.detail,
-            price: s.price,
-            points: 3,
             employee_in: "أحمد",
-            branch: "مكة"
+            branch: "مكة",
+            payment_status: "غير مدفوع",
+            services: JSON.stringify([s])
         });
 
         rows.push(add.row);
