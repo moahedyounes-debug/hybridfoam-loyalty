@@ -452,21 +452,6 @@ function renderInvoicesSummary(list) {
 }
 
 /* ===========================
-   Safe Date Parser
-=========================== */
-function parseDateTime(str) {
-    if (!str) return null;
-
-    const [datePart, timePart] = str.split(" ");
-    if (!datePart || !timePart) return null;
-
-    const [y, m, d] = datePart.split("-").map(Number);
-    const [hh, mm, ss] = timePart.split(":").map(Number);
-
-    return new Date(y, m - 1, d, hh, mm, ss || 0);
-}
-
-/* ===========================
    Completed Tab Filter (Local)
 =========================== */
 function bindCompletedFilter() {
