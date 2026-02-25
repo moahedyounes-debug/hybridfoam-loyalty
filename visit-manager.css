@@ -326,54 +326,54 @@ input[readonly] { background: var(--gray-100); }
 .tab-pane button { margin-top: 18px; }
 
 /* Toast */
+/* Toast Container */
 #toast-container {
     position: fixed;
     top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 20px;
     z-index: 2000;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
+/* Toast Base Style */
 .toast {
-    padding: 14px 28px;
-    border-radius: 10px;
-    color: white;
-    font-weight: 500;
-    box-shadow: var(--shadow-lg);
+    padding: 16px 28px;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
     opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.3s;
+    transform: translateY(-25px) scale(0.95);
+    transition: all 0.35s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.05rem;
 }
 
-.toast.show { opacity: 1; transform: translateY(0); }
-.toast.success { background: var(--success); }
-.toast.error { background: var(--danger); }
-.toast.info { background: var(--primary); }
-
-/* Responsive */
-@media (max-width: 768px) {
-    .cards { grid-template-columns: 1fr; }
-    .row { grid-template-columns: 1fr; }
-    .tabs { flex-direction: column; }
-    .tab-btn { width: 100%; text-align: center; }
-    .modal-actions { flex-direction: column; }
+/* Show Animation */
+.toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
-/* Loading */
-.loading { text-align: center; padding: 40px; color: var(--gray-500); }
-.loading::after {
-    content: "";
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--gray-200);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-right: 10px;
-    vertical-align: middle;
+/* Toast Types */
+.toast.success {
+    background: linear-gradient(135deg, #10b981, #059669);
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast.error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast.info {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+/* Toast Icon */
+.toast .icon {
+    font-size: 1.4rem;
+    opacity: 0.9;
+}
