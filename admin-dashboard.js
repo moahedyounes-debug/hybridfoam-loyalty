@@ -113,33 +113,44 @@ function applyGlobalFilter(type) {
 =========================== */
 function renderTopSummary(list) {
 
-    let cash = 0, card = 0, total = 0, tips = 0, discount = 0;
+    let total = 0;
+    let cash = 0;
+    let card = 0;
+    let net = 0;
+    let tips = 0;
+    let discount = 0;
+    let totalCommission = 0;
 
     list.forEach(v => {
-        const price = Number(v[22] || v[7] || 0);
-        const method = v[16];
-        const tip = Number(v[25] || 0);
-        const disc = Number(v[26] || 0);
+
+        const price = Number(v[7] || 0);          // السعر الأصلي
+        const cashAmount = Number(v[20] || 0);    // كاش
+        const cardAmount = Number(v[21] || 0);    // شبكة
+        const totalPaid = Number(v[22] || 0);     // بعد الخصم
+        const tip = Number(v[23] || 0);           // إكرامية
+        const disc = Number(v[24] || 0);          // خصم
+        const commission = Number(v[12] || 0);    // عمولة
 
         total += price;
+        cash += cashAmount;
+        card += cardAmount;
         tips += tip;
         discount += disc;
+        totalCommission += commission;
 
-        if (method === "كاش") cash += price;
-        if (method === "شبكة") card += price;
+        // الإجمالي بعد الخصم = السعر الأصلي - المدفوع
+        net += (price - totalPaid);
     });
-
-    const net = total - discount;
 
     el("sumCash").innerText = cash + " ريال";
     el("sumCard").innerText = card + " ريال";
-    el("sumTotal").innerText = total + " ريال";
-    el("sumServices").innerText = list.length;
-    el("sumTips").innerText = tips + " ريال";
     el("sumDiscount").innerText = discount + " ريال";
     el("sumNet").innerText = net + " ريال";
+    el("sumTotal").innerText = total + " ريال";
+    el("sumTips").innerText = tips + " ريال";
+    el("sumServices").innerText = list.length;
+    el("sumCommission").innerText = totalCommission + " ريال";
 }
-
 /* ===========================
    Commission Summary (Disabled)
 =========================== */
