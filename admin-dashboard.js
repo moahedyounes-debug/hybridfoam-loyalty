@@ -8,7 +8,6 @@ let commissions = {};
 document.addEventListener("DOMContentLoaded", () => {
   loadAllVisits();
   bindTabs();
-  bindGlobalFilter();
   bindCompletedFilter();
   bindExport();
 });
