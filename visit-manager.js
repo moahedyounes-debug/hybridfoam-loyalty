@@ -347,7 +347,7 @@ await apiCloseVisit(v.row, {
     tip: i === 0 ? tip : 0,
     discount: distributedDiscount[i]
 });
-
+}
 
     showToast("تم تحديث الدفع بنجاح", "success");
     closePaymentModal();
