@@ -64,131 +64,14 @@
 </div>
 
 <!-- ===========================
-       GET ALL
-=========================== -->
-<div class="box">
-    <h3>🟦 GET: getAll</h3>
-    <select id="sheetSelect">
-        <option value="Customers">Customers</option>
-        <option value="Cars">Cars</option>
-        <option value="Visits">Visits</option>
-        <option value="Bookings">Bookings</option>
-        <option value="Branches">Branches</option>
-        <option value="Commissions">Commissions</option>
-        <option value="Employees">Employees</option>
-        <option value="Levels">Levels</option>
-        <option value="Cost">Cost</option>
-        <option value="Car-Type">Car-Type</option>
-    </select>
-    <button onclick="runGet()">تشغيل GET</button>
-</div>
-
-<!-- ===========================
-       UNIVERSAL POST
-=========================== -->
-<div class="box">
-    <h3>🟨 POST: أي أكشن</h3>
-
-    <input id="actionName" placeholder="action مثال: getCustomerByPhone">
-
-    <textarea id="params" placeholder='{
-  "phone": "0582007063",
-  "membership": "20260001"
-}'></textarea>
-
-    <button onclick="runPost()">تشغيل POST</button>
-</div>
-
-<!-- ===========================
-       QUICK TESTS
-=========================== -->
-<div class="box">
-    <h3>🚀 اختبارات جاهزة لكل الأكشنات</h3>
-
-    <button onclick="quick('loginSupervisor', {username:'admin', password:'1234'})">loginSupervisor</button>
-
-    <button onclick="quick('getCustomerByPhone', {phone:'0500000000'})">getCustomerByPhone</button>
-    <button onclick="quick('getCustomerByMembership', {membership:'20260001'})">getCustomerByMembership</button>
-
-    <button onclick="quick('getCarsByPhone', {phone:'0500000000'})">getCarsByPhone</button>
-    <button onclick="quick('getCarByMembership', {membership:'20260001'})">getCarByMembership</button>
-
-    <button onclick="quick('getVisitsByMembership', {membership:'20260001'})">getVisitsByMembership</button>
-    <button onclick="quick('getActiveVisits', {})">getActiveVisits</button>
-
-    <button onclick="quick('getBookingsByPhone', {phone:'0500000000'})">getBookingsByPhone</button>
-    <button onclick="quick('getBookingsByDate', {date:'2026-02-25'})">getBookingsByDate</button>
-
-    <button onclick="quick('getEmployees', {})">getEmployees</button>
-    <button onclick="quick('getBranches', {})">getBranches</button>
-    <button onclick="quick('getLevels', {})">getLevels</button>
-
-    <button onclick="quick('getServices', {})">getServices</button>
-    <button onclick="quick('getServicesByCategory', {category:'خارجي'})">getServicesByCategory</button>
-
-    <button onclick="quick('getCarTypes', {})">getCarTypes</button>
-
-    <button onclick="quick('calculatePayrollByEmployee', {employee:'محمد', from:'2026-01-01', to:'2026-01-31'})">calculatePayroll</button>
-
-    <button onclick="quick('getNotifications', {phone:'0500000000'})">getNotifications</button>
-</div>
-
-<!-- ===========================
        VISITS TESTS
 =========================== -->
 <div class="box">
     <h3>🧼 اختبارات Visits</h3>
 
-    <button onclick="quick('addVisit', {
-        membership:'20260001',
-        plate_numbers:'1234',
-        plate_letters:'أ ب ج',
-        car_type:'سيدان',
-        car_model:'كامري',
-        car_size:'وسط',
-        service_detail:'خارجي صغير',
-        price:20,
-        points:2,
-        employee_in:'أحمد',
-        branch:'مكة'
-    })">addVisit</button>
+    <button style="background:#28a745" onclick="testSingleService()">اختبار خدمة واحدة (خصم + إكرامية + كاش)</button>
 
-    <button onclick="quick('closeVisit', {
-        row:5,
-        payment_status:'مدفوع',
-        payment_method:'كاش',
-        cash_amount:20,
-        card_amount:0,
-        total_paid:20,
-        tip:5,
-        discount:3
-    })">closeVisit</button>
-
-    <button onclick="quick('updateRow', {
-        sheet:'Visits',
-        row:5,
-        values: JSON.stringify({ price: 30 })
-    })">updateRow (Visits)</button>
-</div>
-
-<!-- ===========================
-       UNIVERSAL ROW OPS
-=========================== -->
-<div class="box">
-    <h3>📌 Universal Row Operations</h3>
-
-    <button onclick="quick('addRow', {
-        sheet:'Customers',
-        values: JSON.stringify(['Test','0500000000','Camry'])
-    })">addRow</button>
-
-    <button onclick="quick('updateRow', {
-        sheet:'Customers',
-        row:3,
-        values: JSON.stringify({ phone:'0555555555' })
-    })">updateRow</button>
-
-    <button onclick="quick('deleteRow', {sheet:'Customers', row:3})">deleteRow</button>
+    <button style="background:#6f42c1" onclick="testMultiService()">اختبار عدة خدمات (توزيع خصم + إكرامية + شبكة)</button>
 </div>
 
 <textarea id="output" placeholder="النتيجة تظهر هنا..."></textarea>
@@ -208,72 +91,137 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <!-- ===========================
-       TESTER LOGIC
+       FULL TEST LOGIC
 =========================== -->
 <script>
-async function runGet() {
-    const url = document.getElementById("apiUrl").value;
-    const sheet = document.getElementById("sheetSelect").value;
 
+async function apiCall(url, params) {
     const form = new URLSearchParams();
-    form.append("action", "getAll");
-    form.append("sheet", sheet);
-
+    Object.keys(params).forEach(k => form.append(k, params[k]));
     const res = await fetch(url, { method: "POST", body: form });
-    const json = await res.json();
-
-    document.getElementById("output").value =
-        "GET " + sheet + ":\n\n" + JSON.stringify(json, null, 2);
+    return res.json();
 }
 
-async function runPost() {
+/* ============================================================
+   🔥 1) اختبار خدمة واحدة (خصم + إكرامية + كاش)
+============================================================ */
+async function testSingleService() {
     const url = document.getElementById("apiUrl").value;
-    const action = document.getElementById("actionName").value.trim();
-    const paramsText = document.getElementById("params").value.trim();
 
-    if (!action) {
-        alert("اكتب اسم الأكشن");
+    // 1) إضافة زيارة
+    let add = await apiCall(url, {
+        action: "addVisit",
+        membership: "20260001",
+        plate_numbers: "9999",
+        plate_letters: "أ ب ج",
+        car_type: "سيدان",
+        car_model: "كامري",
+        car_size: "وسط",
+        service_detail: "خارجي صغير",
+        price: 25,
+        points: 3,
+        employee_in: "أحمد",
+        branch: "مكة"
+    });
+
+    if (!add.success) {
+        document.getElementById("output").value =
+            "❌ خطأ في addVisit:\n\n" + JSON.stringify(add, null, 2);
         return;
     }
 
-    let params = {};
-    try {
-        params = JSON.parse(paramsText);
-    } catch (e) {
-        alert("صيغة JSON غير صحيحة");
-        return;
-    }
+    const row = add.row;
 
-    const form = new URLSearchParams();
-    form.append("action", action);
-
-    Object.keys(params).forEach(k => {
-        form.append(k, params[k]);
+    // 2) إغلاق الزيارة
+    let close = await apiCall(url, {
+        action: "closeVisit",
+        row: row,
+        payment_status: "مدفوع",
+        payment_method: "كاش",
+        cash_amount: 20,
+        card_amount: 0,
+        total_paid: 20,
+        tip: 5,
+        discount: 5
     });
 
-    const res = await fetch(url, { method: "POST", body: form });
-    const json = await res.json();
-
     document.getElementById("output").value =
-        "POST " + action + ":\n\n" + JSON.stringify(json, null, 2);
+        "✔ اختبار خدمة واحدة (خصم + إكرامية)\n\n" +
+        "Row: " + row + "\n\n" +
+        JSON.stringify(close, null, 2);
 }
 
-async function quick(action, params) {
+/* ============================================================
+   🔥 2) اختبار عدة خدمات (توزيع خصم + إكرامية + شبكة)
+============================================================ */
+async function testMultiService() {
     const url = document.getElementById("apiUrl").value;
 
-    const form = new URLSearchParams();
-    form.append("action", action);
+    const services = [
+        { detail: "غسيل", price: 25 },
+        { detail: "تلميع", price: 15 },
+        { detail: "تغليف", price: 10 }
+    ];
 
-    Object.keys(params).forEach(k => {
-        form.append(k, params[k]);
-    });
+    const rows = [];
 
-    const res = await fetch(url, { method: "POST", body: form });
-    const json = await res.json();
+    // 1) إضافة 3 خدمات
+    for (let s of services) {
+        let add = await apiCall(url, {
+            action: "addVisit",
+            membership: "20260001",
+            plate_numbers: "7777",
+            plate_letters: "أ ب ج",
+            car_type: "سيدان",
+            car_model: "كامري",
+            car_size: "وسط",
+            service_detail: s.detail,
+            price: s.price,
+            points: 3,
+            employee_in: "أحمد",
+            branch: "مكة"
+        });
+
+        rows.push(add.row);
+    }
+
+    // توزيع الخصم
+    const discount = 5;
+    const tip = 10;
+    const total = 25 + 15 + 10;
+
+    const discounts = [
+        Math.round((25 / total) * discount),
+        Math.round((15 / total) * discount),
+        Math.round((10 / total) * discount)
+    ];
+
+    const paid = [
+        25 - discounts[0],
+        15 - discounts[1],
+        10 - discounts[2]
+    ];
+
+    // 2) إغلاق كل زيارة
+    for (let i = 0; i < rows.length; i++) {
+        await apiCall(url, {
+            action: "closeVisit",
+            row: rows[i],
+            payment_status: "مدفوع",
+            payment_method: "شبكة",
+            cash_amount: 0,
+            card_amount: paid[i],
+            total_paid: paid[i],
+            tip: i === 0 ? tip : 0,
+            discount: discounts[i]
+        });
+    }
 
     document.getElementById("output").value =
-        "Quick Test: " + action + ":\n\n" + JSON.stringify(json, null, 2);
+        "✔ اختبار عدة خدمات (توزيع خصم + إكرامية)\n\n" +
+        "Rows: " + JSON.stringify(rows, null, 2);
 }
+
 </script>
 
 </body>
