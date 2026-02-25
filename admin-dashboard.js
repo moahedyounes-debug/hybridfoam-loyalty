@@ -50,62 +50,93 @@ function bindTabs() {
     };
   });
 }
+/* ===========================
+   Safe Date Parser
+=========================== */
+function parseDateTime(str) {
+    if (!str) return null;
+    str = str.replace("T", " ");
+    const [datePart, timePart] = str.split(" ");
+    if (!datePart || !timePart) return null;
+
+    const [y, m, d] = datePart.split("-").map(Number);
+    const [hh, mm, ss] = timePart.split(":").map(Number);
+
+    return new Date(y, m - 1, d, hh, mm, ss || 0);
+}
+
+/* ===========================
+   Week Range (Wed → Wed)
+=========================== */
+function getWeekRange() {
+    const now = new Date();
+    const day = now.getDay();
+
+    const lastWed = new Date(now);
+    const diff = day >= 3 ? day - 3 : (7 - (3 - day));
+    lastWed.setDate(now.getDate() - diff);
+
+    const nextWed = new Date(lastWed);
+    nextWed.setDate(lastWed.getDate() + 7);
+
+    return { start: lastWed, end: nextWed };
+}
 
 /* ===========================
    Global Filter
 =========================== */
-function bindGlobalFilter() {
-  el("gToday").onclick = () => applyGlobalFilter("today");
-  el("gWeek").onclick = () => applyGlobalFilter("week");
-  el("gMonth").onclick = () => applyGlobalFilter("month");
-  el("gYear").onclick = () => applyGlobalFilter("year");
-  el("gCustom").onclick = () => applyGlobalFilter("custom");
-}
-
 function applyGlobalFilter(type) {
-  const now = new Date();
+    const now = new Date();
 
-  if (type === "today") {
-    const t = now.toISOString().split("T")[0];
-    filteredVisits = allVisits.filter(v => (v[13] || "").startsWith(t));
-  }
+    if (type === "today") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+        const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 6, 0, 0);
 
-  else if (type === "week") {
-    const day = now.getDay();
-    const diff = (day === 0 ? -6 : 1 - day);
-    const start = new Date(now);
-    start.setDate(now.getDate() + diff);
-    filteredVisits = allVisits.filter(v => {
-      const d = new Date(v[13]);
-      return d >= start && d <= now;
-    });
-  }
+        filteredVisits = allVisits.filter(v => {
+            const d = parseDateTime(v[13]);
+            return d && d >= start && d <= end;
+        });
+    }
 
-  else if (type === "month") {
-    const m = now.getMonth();
-    const y = now.getFullYear();
-    filteredVisits = allVisits.filter(v => {
-      const d = new Date(v[13]);
-      return d.getMonth() === m && d.getFullYear() === y;
-    });
-  }
+    else if (type === "week") {
+        const { start, end } = getWeekRange();
+        filteredVisits = allVisits.filter(v => {
+            const d = parseDateTime(v[13]);
+            return d && d >= start && d < end;
+        });
+    }
 
-  else if (type === "year") {
-    const y = now.getFullYear();
-    filteredVisits = allVisits.filter(v => new Date(v[13]).getFullYear() === y);
-  }
+    else if (type === "month") {
+        const m = now.getMonth();
+        const y = now.getFullYear();
+        filteredVisits = allVisits.filter(v => {
+            const d = parseDateTime(v[13]);
+            return d && d.getMonth() === m && d.getFullYear() === y;
+        });
+    }
 
-  else if (type === "custom") {
-    const f = el("gFrom").value;
-    const t = el("gTo").value;
-    if (!f || !t) return alert("اختر التاريخين");
-    filteredVisits = allVisits.filter(v => {
-      const d = getDateOnly(v[13]);
-      return d >= f && d <= t;
-    });
-  }
+    else if (type === "year") {
+        const y = now.getFullYear();
+        filteredVisits = allVisits.filter(v => {
+            const d = parseDateTime(v[13]);
+            return d && d.getFullYear() === y;
+        });
+    }
 
-  renderAll();
+    else if (type === "custom") {
+        const f = el("gFrom").value;
+        const t = el("gTo").value;
+        if (!f || !t) return alert("اختر التاريخين");
+
+        filteredVisits = allVisits.filter(v => {
+            const d = parseDateTime(v[13]);
+            if (!d) return false;
+            const dateOnly = d.toISOString().split("T")[0];
+            return dateOnly >= f && dateOnly <= t;
+        });
+    }
+
+    renderAll();
 }
 
 /* ===========================
@@ -113,20 +144,20 @@ function applyGlobalFilter(type) {
 =========================== */
 function renderTopSummary(list) {
 
-    let total = 0;            // إجمالي (TOTAL_PAID)
-    let priceTotal = 0;       // مجموع السعر (price)
+    let total = 0;            // TOTAL_PAID
+    let priceTotal = 0;       // price
     let cash = 0;
     let card = 0;
     let tips = 0;
     let totalCommission = 0;
 
     list.forEach(v => {
-        const price = Number(v[7]  || 0);  // price
-        const cashAmount = Number(v[20] || 0); // CASH_AMOUNT
-        const cardAmount = Number(v[21] || 0); // CARD_AMOUNT
-        const totalPaid = Number(v[22] || 0);  // TOTAL_PAID
-        const tip = Number(v[23] || 0);        // tip
-        const commission = Number(v[12] || 0); // commission
+        const price = Number(v[7]  || 0);
+        const cashAmount = Number(v[20] || 0);
+        const cardAmount = Number(v[21] || 0);
+        const totalPaid = Number(v[22] || 0);
+        const tip = Number(v[23] || 0);
+        const commission = Number(v[12] || 0);
 
         priceTotal += price;
         total += totalPaid;
@@ -136,31 +167,27 @@ function renderTopSummary(list) {
         totalCommission += commission;
     });
 
-    const discount = total - priceTotal;      // الخصومات = الإجمالي - السعر
-    const net = total - discount;             // الإجمالي بعد الخصومات
+    const discount = priceTotal - total; // السعر - المدفوع
+    const net = total;                   // الإجمالي بعد الخصم
 
     el("sumCash").innerText = cash + " ريال";
     el("sumCard").innerText = card + " ريال";
     el("sumDiscount").innerText = discount + " ريال";
-    el("sumNet").innerText = net + " ريال";
-    el("sumTotal").innerText = total + " ريال";
+    el("sumNet").innerText = net + " ريال";        // الإجمالي بعد الخصم
+    el("sumTotal").innerText = priceTotal + " ريال"; // الإجمالي
     el("sumTips").innerText = tips + " ريال";
     el("sumServices").innerText = list.length;
     el("sumCommission").innerText = totalCommission + " ريال";
 }
+
 /* ===========================
    Commission Summary (Disabled)
 =========================== */
 async function loadCommissions() {
-    const res = await apiGetServices();
-    if (!res.success) return;
-
-    // فقط نحفظ أسماء الخدمات لو احتجناها
-    res.rows.forEach(r => {
-        const service = r[0];
-        commissions[service] = 0; // ما نستخدم العمولة من هنا
-    });
+    commissions = {};
+    return;
 }
+
 
 /* ===========================
    Employees Summary
