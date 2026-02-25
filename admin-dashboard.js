@@ -100,8 +100,8 @@ function parseDateTime(str) {
    Top Summary
 =========================== */
 function renderTopSummary(list) {
-    let total = 0;        // TOTAL_PAID (بعد الخصم)
-    let priceTotal = 0;   // price (قبل الخصم)
+    let totalPaid = 0;     // TOTAL_PAID (بعد الخصم)
+    let priceTotal = 0;    // price (قبل الخصم)
     let cash = 0;
     let card = 0;
     let tips = 0;
@@ -111,35 +111,36 @@ function renderTopSummary(list) {
         const price       = Number(v[7]  || 0);
         const cashAmount  = Number(v[20] || 0);
         const cardAmount  = Number(v[21] || 0);
-        const totalPaid   = Number(v[22] || 0);
+        const paid        = Number(v[22] || 0);
         const tip         = Number(v[23] || 0);
         const commission  = Number(v[12] || 0);
 
         priceTotal      += price;
-        total           += totalPaid;
+        totalPaid       += paid;
         cash            += cashAmount;
         card            += cardAmount;
         tips            += tip;
         totalCommission += commission;
     });
 
-    // الخصم = الفرق بين السعر والإجمالي بعد الخصم
-    const discount = priceTotal - total;
+    // الخصم = السعر قبل الخصم - المبلغ المدفوع
+    const discount = priceTotal - totalPaid;
 
     // الإجمالي بعد الخصومات = السعر - الخصم
-    const net = priceTotal - discount; // يساوي total
+    const net = priceTotal - discount; // يساوي totalPaid
 
-    // الكاش / الشبكة / الخصم / الإجمالي بعد الخصومات / الإجمالي قبل الخصم
+    // الإجمالي = السعر قبل الخصم
+    const total = priceTotal;
+
     el("sumCash").innerText       = cash + " ريال";
     el("sumCard").innerText       = card + " ريال";
     el("sumDiscount").innerText   = discount + " ريال";
-    el("sumNet").innerText        = net + " ريال";        // الإجمالي بعد الخصومات
-    el("sumTotal").innerText      = priceTotal + " ريال"; // الإجمالي (قبل الخصم)
+    el("sumNet").innerText        = net + " ريال";   // الإجمالي بعد الخصومات
+    el("sumTotal").innerText      = total + " ريال"; // الإجمالي (قبل الخصم)
     el("sumTips").innerText       = tips + " ريال";
     el("sumServices").innerText   = list.length;
     el("sumCommission").innerText = totalCommission + " ريال";
 }
-
 /* ===========================
    Employees Summary
 =========================== */
@@ -147,27 +148,31 @@ function renderEmployeesSummary(list) {
     const box = el("tab-employees");
     const emp = {};
 
-    let totalAfterDiscount = 0;
-    let totalDiscount = 0;
+    let totalAfterDiscount = 0; // مجموع المبلغ بعد الخصم
+    let totalDiscount = 0;      // مجموع الخصومات
     let totalTips = 0;
     let totalCommission = 0;
 
     list.forEach(v => {
         const employee = v[9] || "غير محدد";
-        const price = Number(v[22] || v[7] || 0);
-        const tip = Number(v[25] || 0);
-        const discount = Number(v[26] || 0);
-        const commission = Number(v[12] || 0);
+
+        const priceOriginal = Number(v[7] || 0);   // السعر قبل الخصم
+        const priceAfter    = Number(v[22] || 0);  // السعر بعد الخصم
+        const tip           = Number(v[25] || 0);
+        const commission    = Number(v[12] || 0);
+
+        // الخصم الحقيقي
+        const discount = priceOriginal - priceAfter;
 
         if (!emp[employee]) {
             emp[employee] = { cars: 0, total: 0, commission: 0 };
         }
 
         emp[employee].cars++;
-        emp[employee].total += price;
+        emp[employee].total += priceAfter;      // إجمالي الموظف بعد الخصم
         emp[employee].commission += commission;
 
-        totalAfterDiscount += price;
+        totalAfterDiscount += priceAfter;
         totalDiscount += discount;
         totalTips += tip;
         totalCommission += commission;
@@ -180,7 +185,7 @@ function renderEmployeesSummary(list) {
         <tr>
             <th>الموظف</th>
             <th>الخدمات</th>
-            <th>الإجمالي</th>
+            <th>الإجمالي بعد الخصم</th>
             <th>العمولات</th>
         </tr>
     `;
@@ -199,7 +204,8 @@ function renderEmployeesSummary(list) {
     html += `
     </table>
     <div class="table-total">
-        <b>الإجمالي: ${totalAfterDiscount} ريال</b><br>
+        <b>الإجمالي بعد الخصم: ${totalAfterDiscount} ريال</b><br>
+        <b>إجمالي الخصومات: ${totalDiscount} ريال</b><br>
         <b>العمولات: ${totalCommission} ريال</b>
     </div>
     `;
@@ -449,75 +455,68 @@ function bindGlobalFilter() {
 function applyGlobalFilter(type) {
     const now = new Date();
 
-/* ===========================
-   TODAY (12 PM → next day 11:59 AM)
-=========================== */
-if (type === "today") {
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
-    const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
+    /* ===========================
+       TODAY (12 PM → next day 11:59 AM)
+    ============================ */
+    if (type === "today") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+        const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
 
-    filteredVisits = allVisits.filter(v => {
-        const d = parseDateTime(v[13]);
-        return d && d >= start && d <= end;
-    });
-}
-
-/* ===========================
-   YESTERDAY (12 PM → today 11:59 AM)
-=========================== */
-else if (type === "yesterday") {
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 12, 0, 0);
-    const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 59, 59);
-
-    filteredVisits = allVisits.filter(v => {
-        const d = parseDateTime(v[13]);
-        return d && d >= start && d <= end;
-    });
-}
-
-
-/* ===========================
-   WEEK (Wed 12 PM → Tue 11:59 AM)
-=========================== */
-else if (type === "week") {
-
-    const day = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed...
-    
-    // حساب كم يوم نرجع للخلف للوصول إلى الأربعاء
-    const diff = day >= 3 ? day - 3 : (7 - (3 - day));
-
-    // بداية الأسبوع: الأربعاء 12:00 الظهر
-    const start = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() - diff,
-        12, 0, 0
-    );
-
-    // نهاية الأسبوع: الثلاثاء 11:59 صباحاً
-    const end = new Date(
-        start.getFullYear(),
-        start.getMonth(),
-        start.getDate() + 6,
-        11, 59, 59
-    );
-
-    filteredVisits = allVisits.filter(v => {
-        const d = parseDateTime(v[13]);
-        return d && d >= start && d <= end;
-    });
-}
-
+        filteredVisits = allVisits.filter(v => {
+            const d = parseDateTime(v[13]);
+            return d && d >= start && d <= end;
+        });
+    }
 
     /* ===========================
-       MONTH (1st 1 PM → next month 2 AM)
+       YESTERDAY (12 PM → today 11:59 AM)
+    ============================ */
+    else if (type === "yesterday") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 12, 0, 0);
+        const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 59, 59);
+
+        filteredVisits = allVisits.filter(v => {
+            const d = parseDateTime(v[13]);
+            return d && d >= start && d <= end;
+        });
+    }
+
+    /* ===========================
+       WEEK (Wed 12 PM → Tue 11:59 AM)
+    ============================ */
+    else if (type === "week") {
+        const day = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed...
+        const diff = day >= 3 ? day - 3 : (7 - (3 - day));
+
+        const start = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() - diff,
+            12, 0, 0
+        );
+
+        const end = new Date(
+            start.getFullYear(),
+            start.getMonth(),
+            start.getDate() + 6,
+            11, 59, 59
+        );
+
+        filteredVisits = allVisits.filter(v => {
+            const d = parseDateTime(v[13]);
+            return d && d >= start && d <= end;
+        });
+    }
+
+    /* ===========================
+       MONTH (1st 12 PM → next month 11:59 AM)
     ============================ */
     else if (type === "month") {
         const y = now.getFullYear();
         const m = now.getMonth();
 
-        const start = new Date(y, m, 1, 13, 0, 0);
-        const end = new Date(y, m + 1, 1, 2, 0, 0);
+        const start = new Date(y, m, 1, 12, 0, 0);
+        const end   = new Date(y, m + 1, 1, 11, 59, 59);
 
         filteredVisits = allVisits.filter(v => {
             const d = parseDateTime(v[13]);
@@ -526,13 +525,13 @@ else if (type === "week") {
     }
 
     /* ===========================
-       YEAR (Jan 1 1 PM → next year 2 AM)
+       YEAR (Jan 1 12 PM → next year 11:59 AM)
     ============================ */
     else if (type === "year") {
         const y = now.getFullYear();
 
-        const start = new Date(y, 0, 1, 13, 0, 0);
-        const end = new Date(y + 1, 0, 1, 2, 0, 0);
+        const start = new Date(y, 0, 1, 12, 0, 0);
+        const end   = new Date(y + 1, 0, 1, 11, 59, 59);
 
         filteredVisits = allVisits.filter(v => {
             const d = parseDateTime(v[13]);
@@ -541,7 +540,7 @@ else if (type === "week") {
     }
 
     /* ===========================
-       CUSTOM (1 PM → 2 AM)
+       CUSTOM (12 PM → next day 11:59 AM)
     ============================ */
     else if (type === "custom") {
         const f = el("gFrom").value;
@@ -549,9 +548,8 @@ else if (type === "week") {
 
         if (!f || !t) return alert("اختر التاريخين");
 
-        const start = new Date(f + " 13:00:00");
-        const end = new Date(t + " 02:00:00");
-        end.setDate(end.getDate() + 1);
+        const start = new Date(f + " 12:00:00");
+        const end   = new Date(t + " 11:59:59");
 
         filteredVisits = allVisits.filter(v => {
             const d = parseDateTime(v[13]);
@@ -568,12 +566,12 @@ else if (type === "week") {
 
 function bindCompletedFilter() {
 
-    // ====== اليوم (1 PM → 2 AM) ======
+    // ====== اليوم (12 PM → next day 11:59 AM) ======
     el("filterToday").onclick = () => {
         const now = new Date();
 
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 0, 0);
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 2, 0, 0);
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+        const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
 
         renderCompletedVisits(
             filteredVisits.filter(v => {
@@ -583,14 +581,25 @@ function bindCompletedFilter() {
         );
     };
 
-    // ====== الأسبوع (Wed → Tue) ======
+    // ====== الأسبوع (Wed 12 PM → Tue 11:59 AM) ======
     el("filterWeek").onclick = () => {
         const now = new Date();
-        const day = now.getDay();
+        const day = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed...
         const diff = day >= 3 ? day - 3 : (7 - (3 - day));
 
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff, 13, 0, 0);
-        const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 2, 0, 0);
+        const start = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() - diff,
+            12, 0, 0
+        );
+
+        const end = new Date(
+            start.getFullYear(),
+            start.getMonth(),
+            start.getDate() + 6,
+            11, 59, 59
+        );
 
         renderCompletedVisits(
             filteredVisits.filter(v => {
@@ -600,14 +609,14 @@ function bindCompletedFilter() {
         );
     };
 
-    // ====== الشهر ======
+    // ====== الشهر (1st 12 PM → next month 11:59 AM) ======
     el("filterMonth").onclick = () => {
         const now = new Date();
         const y = now.getFullYear();
         const m = now.getMonth();
 
-        const start = new Date(y, m, 1, 13, 0, 0);
-        const end = new Date(y, m + 1, 1, 2, 0, 0);
+        const start = new Date(y, m, 1, 12, 0, 0);
+        const end   = new Date(y, m + 1, 1, 11, 59, 59);
 
         renderCompletedVisits(
             filteredVisits.filter(v => {
@@ -617,13 +626,13 @@ function bindCompletedFilter() {
         );
     };
 
-    // ====== السنة ======
+    // ====== السنة (Jan 1 12 PM → next year 11:59 AM) ======
     el("filterYear").onclick = () => {
         const now = new Date();
         const y = now.getFullYear();
 
-        const start = new Date(y, 0, 1, 13, 0, 0);
-        const end = new Date(y + 1, 0, 1, 2, 0, 0);
+        const start = new Date(y, 0, 1, 12, 0, 0);
+        const end   = new Date(y + 1, 0, 1, 11, 59, 59);
 
         renderCompletedVisits(
             filteredVisits.filter(v => {
@@ -633,16 +642,15 @@ function bindCompletedFilter() {
         );
     };
 
-    // ====== مخصص ======
+    // ====== مخصص (12 PM → 11:59 AM) ======
     el("filterCustom").onclick = () => {
         const f = el("filterFrom").value;
         const t = el("filterTo").value;
 
         if (!f || !t) return alert("اختر التاريخين");
 
-        const start = new Date(f + " 13:00:00");
-        const end = new Date(t + " 02:00:00");
-        end.setDate(end.getDate() + 1);
+        const start = new Date(f + " 12:00:00");
+        const end   = new Date(t + " 11:59:59");
 
         renderCompletedVisits(
             filteredVisits.filter(v => {
@@ -652,7 +660,6 @@ function bindCompletedFilter() {
         );
     };
 }
-
 /* ===========================
    Export Filtered Table
 =========================== */
