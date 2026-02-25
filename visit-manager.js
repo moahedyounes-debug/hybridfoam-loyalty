@@ -1153,4 +1153,3 @@ window.onload = async function () {
         showToast("خطأ في تحميل البيانات", "error");
     }
 };
-
