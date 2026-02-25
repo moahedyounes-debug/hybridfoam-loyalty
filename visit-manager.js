@@ -335,20 +335,19 @@ const cardRatio = card > 0 ? (card / safeTotal) : 0;
             cardAmount = distributedPaid[i] - cashAmount;
         }
 
-        await apiCloseVisit(v.row, {
-            payment_status: "مدفوع",
-            payment_method: method,
+await apiCloseVisit(v.row, {
+    payment_status: "مدفوع",
+    payment_method: method,
+    parking_slot: v.data[17], // مهم حتى لا ينمسح
 
-            cash_amount: cashAmount,
-            card_amount: cardAmount,
+    CASH_AMOUNT: cashAmount,
+    CARD_AMOUNT: cardAmount,
+    TOTAL_PAID: distributedPaid[i],
 
-            total_paid: distributedPaid[i],
+    tip: i === 0 ? tip : 0,
+    discount: distributedDiscount[i]
+});
 
-            discount: distributedDiscount[i],
-
-            tip: i === 0 ? tip : 0
-        });
-    }
 
     showToast("تم تحديث الدفع بنجاح", "success");
     closePaymentModal();
