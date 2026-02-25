@@ -13,20 +13,36 @@
 
 <body>
 
-  <!-- GLOBAL FILTER -->
-  <div class="global-filter" role="region" aria-label="مرشحات عامة">
+<!-- LANGUAGE SWITCHER -->
+<div class="lang-box" style="margin: 10px 0;">
+  <select id="langSwitcher" style="padding: 6px 10px; font-size: 16px;">
+    <option value="ar">العربية</option>
+    <option value="en">English</option>
+    <option value="ur">اردو</option>
+  </select>
+</div>
 
-    <button class="btn-primary" id="gToday">اليوم</button>
-    <button class="btn-primary" id="gYesterday">أمس</button>
-    <button class="btn-primary" id="gWeek">هذا الأسبوع</button>
-    <button class="btn-primary" id="gMonth">هذا الشهر</button>
-    <button class="btn-primary" id="gYear">هذه السنة</button>
+  
+<!-- GLOBAL FILTER -->
+<div class="global-filter" role="region" aria-label="مرشحات عامة">
+
+    <button class="btn-primary" id="gToday" data-i18n="today">اليوم</button>
+
+    <button class="btn-primary" id="gYesterday" data-i18n="yesterday">أمس</button>
+
+    <button class="btn-primary" id="gWeek" data-i18n="week">هذا الأسبوع</button>
+
+    <button class="btn-primary" id="gMonth" data-i18n="month">هذا الشهر</button>
+
+    <button class="btn-primary" id="gYear" data-i18n="year">هذه السنة</button>
 
     <input type="date" id="gFrom" aria-label="من">
     <input type="date" id="gTo" aria-label="إلى">
-    <button class="btn-secondary" id="gCustom">تطبيق</button>
 
-  </div>
+    <button class="btn-secondary" id="gCustom" data-i18n="apply">تطبيق</button>
+
+</div>
+
 
   <!-- HEADER SUMMARY -->
   <div class="top-summary" role="region" aria-label="ملخص">
