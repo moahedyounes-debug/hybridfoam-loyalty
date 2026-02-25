@@ -976,13 +976,15 @@ try {
         cash_amount: cash,
         card_amount: card,
 
-        // 🔥 هنا التعديل الصحيح — بدون JSON.stringify
-        services: selectedServices.map(s => ({
-            name: s.name,
-            price: s.price,
-            points: Math.floor(s.price / 5),
-            commission: s.commission
-        }))
+services: JSON.stringify(
+    selectedServices.map(s => ({
+        name: s.name,
+        price: s.price,
+        points: Math.floor(s.price / 5),
+        commission: s.commission
+    }))
+)
+
     });
 
     showToast("تم تسجيل الزيارة بنجاح", "success");
