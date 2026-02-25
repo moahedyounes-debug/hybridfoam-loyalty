@@ -113,34 +113,31 @@ function applyGlobalFilter(type) {
 =========================== */
 function renderTopSummary(list) {
 
-    let total = 0;
+    let total = 0;            // إجمالي (TOTAL_PAID)
+    let priceTotal = 0;       // مجموع السعر (price)
     let cash = 0;
     let card = 0;
-    let net = 0;
     let tips = 0;
-    let discount = 0;
     let totalCommission = 0;
 
     list.forEach(v => {
+        const price = Number(v[7]  || 0);  // price
+        const cashAmount = Number(v[20] || 0); // CASH_AMOUNT
+        const cardAmount = Number(v[21] || 0); // CARD_AMOUNT
+        const totalPaid = Number(v[22] || 0);  // TOTAL_PAID
+        const tip = Number(v[23] || 0);        // tip
+        const commission = Number(v[12] || 0); // commission
 
-        const price = Number(v[7] || 0);          // السعر الأصلي
-        const cashAmount = Number(v[20] || 0);    // كاش
-        const cardAmount = Number(v[21] || 0);    // شبكة
-        const totalPaid = Number(v[22] || 0);     // بعد الخصم
-        const tip = Number(v[23] || 0);           // إكرامية
-        const disc = Number(v[24] || 0);          // خصم
-        const commission = Number(v[12] || 0);    // عمولة
-
-        total += price;
+        priceTotal += price;
+        total += totalPaid;
         cash += cashAmount;
         card += cardAmount;
         tips += tip;
-        discount += disc;
         totalCommission += commission;
-
-        // الإجمالي بعد الخصم = السعر الأصلي - المدفوع
-        net += (price - totalPaid);
     });
+
+    const discount = total - priceTotal;      // الخصومات = الإجمالي - السعر
+    const net = total - discount;             // الإجمالي بعد الخصومات
 
     el("sumCash").innerText = cash + " ريال";
     el("sumCard").innerText = card + " ريال";
