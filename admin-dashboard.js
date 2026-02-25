@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   bindGlobalFilter();
   bindCompletedFilter();
   bindExport();
-  loadCommissions();
 });
 
 /* ===========================
