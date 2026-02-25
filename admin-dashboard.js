@@ -247,14 +247,26 @@ function renderServicesSummary(list) {
 /* ===========================
    Export Services PDF
 =========================== */
-function exportServicesPDF() {
+async function exportServicesPDF() {
     const { jsPDF } = window.jspdf;
+
+    // تحميل خط عربي (Tajawal)
+    const fontUrl = "https://cdn.jsdelivr.net/gh/google/fonts/ofl/tajawal/Tajawal-Regular.ttf";
+    const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
 
     const doc = new jsPDF({
         orientation: "portrait",
         unit: "pt",
         format: "a4"
     });
+
+    // إضافة الخط
+    doc.addFileToVFS("Tajawal-Regular.ttf", btoa(
+        new Uint8Array(fontBytes)
+            .reduce((data, byte) => data + String.fromCharCode(byte), "")
+    ));
+    doc.addFont("Tajawal-Regular.ttf", "Tajawal", "normal");
+    doc.setFont("Tajawal");
 
     const table = document.querySelector("#servicesTable");
     if (!table) {
@@ -279,13 +291,25 @@ function exportServicesPDF() {
     doc.autoTable({
         head: [headers],
         body: rows,
-        styles: { fontSize: 10, cellPadding: 5 },
-        headStyles: { fillColor: [13, 71, 161] },
-        margin: { top: 40 }
+        styles: {
+            font: "Tajawal",
+            fontSize: 12,
+            cellPadding: 5,
+            halign: "right"
+        },
+        headStyles: {
+            fillColor: [13, 71, 161],
+            font: "Tajawal",
+            halign: "center"
+        },
+        margin: { top: 40 },
+        tableWidth: "auto",
+        theme: "grid"
     });
 
     doc.save("services-summary.pdf");
 }
+
 
 /* ===========================
    Completed Visits
