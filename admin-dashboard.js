@@ -12,7 +12,6 @@ function applyLanguage(lang) {
     }
 }
 
-
 const el = id => document.getElementById(id);
 const getDateOnly = v => String(v || "").split("T")[0].split(" ")[0];
 
