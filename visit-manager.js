@@ -779,9 +779,14 @@ function recalcTotal() {
 }
 
 /* ===========================
-   تسجيل الزيارة
+   تسجيل الزيارة (نسخة محسّنة)
 =========================== */
 async function submitVisit() {
+
+    const btn = el("submit_visit_btn"); // ← تأكد أن الزر يحمل هذا الـ id
+    btn.disabled = true;
+    btn.textContent = "جاري تسجيل الزيارة...";
+
     const plate_numbers = el("plate_numbers").value.trim();
     const plate_letters = el("plate_letters").value.trim();
     const car_type = el("car_type").value;
@@ -793,14 +798,23 @@ async function submitVisit() {
     const payment_status = el("payment_status").value;
     const payment_method = el("payment_method").value;
 
-    if (!plate_numbers) return showToast("أدخل أرقام اللوحة", "warning");
-    if (!selectedServices.length) return showToast("أضف خدمة واحدة على الأقل", "warning");
-    if (!car_type || !car_model) return showToast("اختر نوع وموديل السيارة", "warning");
-    if (!employee_in) return showToast("اختر الموظف", "warning");
-    if (!branch) return showToast("اختر الفرع", "warning");
-    if (!parking_slot) return showToast("اختر رقم الموقف", "warning");
-    if (!payment_status) return showToast("اختر حالة الدفع", "warning");
-    if (payment_status === "مدفوع" && !payment_method) return showToast("اختر طريقة الدفع", "warning");
+    /* ===========================
+       التحقق من الحقول
+    ============================ */
+
+    if (!plate_numbers) return resetBtn("أدخل أرقام اللوحة (إجباري)");
+    if (!plate_letters) return resetBtn("أدخل حروف اللوحة (إجباري)");
+    if (!selectedServices.length) return resetBtn("أضف خدمة واحدة على الأقل");
+    if (!car_type || !car_model) return resetBtn("اختر نوع وموديل السيارة");
+    if (!employee_in) return resetBtn("اختر الموظف");
+    if (!branch) return resetBtn("اختر الفرع");
+    if (!parking_slot) return resetBtn("اختر رقم الموقف");
+    if (!payment_status) return resetBtn("اختر حالة الدفع");
+    if (payment_status === "مدفوع" && !payment_method) return resetBtn("اختر طريقة الدفع");
+
+    /* ===========================
+       الحسابات
+    ============================ */
 
     const discount = Number(el("discount").value || 0);
     const tip = Number(el("tip").value || 0);
@@ -811,6 +825,7 @@ async function submitVisit() {
     let cash = 0, card = 0;
 
     if (payment_status === "مدفوع") {
+
         if (payment_method === "كاش") cash = finalTotal;
         if (payment_method === "شبكة") card = finalTotal;
 
@@ -819,12 +834,16 @@ async function submitVisit() {
             card = Number(el("card_amount").value || 0);
 
             if (cash + card !== finalTotal) {
-                return showToast(`المبلغ يجب أن يكون ${finalTotal} ريال`, "warning");
+                return resetBtn(`المبلغ يجب أن يكون ${finalTotal} ريال`);
             }
         }
     }
 
     const membership = plate_numbers;
+
+    /* ===========================
+       إرسال البيانات
+    ============================ */
 
     try {
         await apiAddVisit({
@@ -843,12 +862,17 @@ async function submitVisit() {
             tip,
             cash_amount: cash,
             card_amount: card,
+
             services: JSON.stringify(
                 selectedServices.map(s => ({
                     name: s.name,
                     price: s.price,
-                    points: s.points,
-                    commission: s.points
+
+                    // كل 5 ريال = نقطة واحدة
+                    points: Math.floor(s.price / 5),
+
+                    // العمولة من شيت Commissions (موجودة مسبقًا في selectedServices)
+                    commission: s.commission
                 }))
             )
         });
@@ -861,8 +885,26 @@ async function submitVisit() {
         console.error(err);
         showToast("خطأ أثناء تسجيل الزيارة", "error");
     }
+
+    // إعادة تفعيل الزر بعد الانتهاء
+    btn.disabled = false;
+    btn.textContent = "تسجيل الزيارة";
+
+    /* ===========================
+       دالة مساعدة لإعادة الزر
+    ============================ */
+    function resetBtn(msg) {
+        showToast(msg, "warning");
+        btn.disabled = false;
+        btn.textContent = "تسجيل الزيارة";
+        return;
+    }
 }
 
+
+/* ===========================
+   إعادة ضبط النموذج
+=========================== */
 /* ===========================
    إعادة ضبط النموذج
 =========================== */
@@ -878,11 +920,16 @@ function resetForm() {
     el("points").value = "";
     el("discount").value = "0";
     el("tip").value = "0";
+
+    // إزالة اسم الموظف
+    el("employee_in").value = "";
+
     el("parking_slot").value = "";
     el("payment_status").value = "";
     el("payment_method").value = "";
     el("cash_amount").value = "";
     el("card_amount").value = "";
+
     el("partial_payment_box").style.display = "none";
     el("payment_method_wrapper").style.display = "none";
 
