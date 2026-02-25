@@ -304,27 +304,44 @@ async function submitPayment(method, total) {
         return Math.round(ratio * discount);
     });
 
-    // حساب المبلغ المدفوع لكل خدمة
+    // السعر بعد الخصم لكل خدمة
     const distributedPaid = prices.map((price, i) => price - distributedDiscount[i]);
+
+    // توزيع الدفع الجزئي (لو موجود)
+    const cashRatio = cash / total;
+    const cardRatio = card / total;
 
     // إرسال البيانات لكل صف
     for (let i = 0; i < rows.length; i++) {
 
         const v = rows[i];
 
+        // توزيع الدفع حسب طريقة الدفع
+        let cashAmount = 0;
+        let cardAmount = 0;
+
+        if (method === "كاش") {
+            cashAmount = distributedPaid[i];
+        }
+        else if (method === "شبكة") {
+            cardAmount = distributedPaid[i];
+        }
+        else if (method === "جزئي") {
+            cashAmount = Math.round(distributedPaid[i] * cashRatio);
+            cardAmount = distributedPaid[i] - cashAmount;
+        }
+
         await apiCloseVisit(v.row, {
             payment_status: "مدفوع",
             payment_method: method,
 
-            cash_amount: method === "كاش" ? distributedPaid[i] : (method === "جزئي" ? cash : 0),
-            card_amount: method === "شبكة" ? distributedPaid[i] : (method === "جزئي" ? card : 0),
+            cash_amount: cashAmount,
+            card_amount: cardAmount,
 
             total_paid: distributedPaid[i],
 
-            // أهم سطر: الخصم الموزّع
             discount: distributedDiscount[i],
 
-            // الإكرامية فقط لأول خدمة
             tip: i === 0 ? tip : 0
         });
     }
