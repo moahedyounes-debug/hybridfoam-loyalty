@@ -1,232 +1,124 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>Hybrid Foam – FULL API TESTER</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Visit Debugger – Hybrid Foam</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: "Tajawal", sans-serif;
-            background: #f0f2f5;
-            padding: 20px;
-        }
-        h2, h3 {
-            margin-bottom: 10px;
-        }
-        .box {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            margin: 5px 0;
-            border: none;
-            border-radius: 8px;
-            background: #007bff;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #005fcc;
-        }
-        textarea {
-            width: 100%;
-            height: 260px;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin: 6px 0;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
-    </style>
+<style>
+body { font-family: "Tajawal", sans-serif; background:#f0f2f5; padding:20px; }
+.box { background:white; padding:15px; border-radius:12px; margin-bottom:20px; }
+button { width:100%; padding:12px; margin:5px 0; background:#007bff; color:white; border:none; border-radius:8px; }
+textarea { width:100%; height:260px; margin-top:10px; }
+</style>
 </head>
 
 <body>
 
-<h2>🧪 Hybrid Foam – FULL API TESTER</h2>
+<h2>🧪 Visit Debugger – Hybrid Foam</h2>
 
 <div class="box">
-    <h3>🔗 رابط الـ API (يتم قراءته تلقائيًا من api.js)</h3>
+    <h3>🔗 API URL</h3>
     <input id="apiUrl" placeholder="جاري التحميل...">
 </div>
 
-<!-- ===========================
-       VISITS TESTS
-=========================== -->
 <div class="box">
-    <h3>🧼 اختبارات Visits</h3>
+    <h3>🔥 اختبار إضافة زيارة (خدمة واحدة)</h3>
+    <button onclick="testAddVisit()">تشغيل الاختبار</button>
+</div>
 
-    <button style="background:#28a745" onclick="testSingleService()">اختبار خدمة واحدة (خصم + إكرامية + كاش)</button>
-
-    <button style="background:#6f42c1" onclick="testMultiService()">اختبار عدة خدمات (توزيع خصم + إكرامية + شبكة)</button>
+<div class="box">
+    <h3>🔥 اختبار عدة خدمات + توزيع الخصم</h3>
+    <button onclick="testMulti()">تشغيل الاختبار</button>
 </div>
 
 <textarea id="output" placeholder="النتيجة تظهر هنا..."></textarea>
 
-<!-- ===========================
-       LOAD API_URL FROM api.js
-=========================== -->
 <script src="api.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof API_URL !== "undefined") {
         document.getElementById("apiUrl").value = API_URL;
-    } else {
-        document.getElementById("apiUrl").value = "❌ لم يتم العثور على API_URL في api.js";
     }
 });
-</script>
 
-<!-- ===========================
-       FULL TEST LOGIC
-=========================== -->
-<script>
-
-async function apiCall(url, params) {
+async function api(url, data) {
     const form = new URLSearchParams();
-    Object.keys(params).forEach(k => form.append(k, params[k]));
-    const res = await fetch(url, { method: "POST", body: form });
+    Object.keys(data).forEach(k => form.append(k, data[k]));
+    const res = await fetch(url, { method:"POST", body:form });
     return res.json();
 }
 
-/* ============================================================
-   🔥 1) اختبار خدمة واحدة (خصم + إكرامية + كاش)
-============================================================ */
-async function testSingleService() {
-    const url = document.getElementById("apiUrl").value;
+/* ===========================
+   اختبار خدمة واحدة
+=========================== */
+async function testAddVisit() {
+    const url = el("apiUrl").value;
 
-    // 1) إضافة زيارة
-    let add = await apiCall(url, {
-        action: "addVisit",
-        membership: "20260001",
-        plate_numbers: "9999",
-        plate_letters: "أ ب ج",
-        car_type: "سيدان",
-        car_model: "كامري",
-        car_size: "وسط",
-        employee_in: "أحمد",
-        branch: "مكة",
-        payment_status: "غير مدفوع",
+    const add = await api(url, {
+        action:"addVisit",
+        membership:"20260001",
+        plate_numbers:"معاهد",
+        plate_letters:"أ ب ج",
+        car_type:"سيدان",
+        car_model:"كامري",
+        car_size:"وسط",
+        employee_in:"أحمد",
+        branch:"مكة",
+        payment_status:"غير مدفوع",
         services: JSON.stringify([
-            {
-                name: "خارجي صغير",
-                price: 25,
-                points: 3,
-                commission: 0
-            }
+            { name:"خارجي صغير", price:25, points:3, commission:0 }
         ])
     });
 
-    if (!add.success) {
-        document.getElementById("output").value =
-            "❌ خطأ في addVisit:\n\n" + JSON.stringify(add, null, 2);
-        return;
+    let out = "📌 نتيجة addVisit:\n" + JSON.stringify(add, null, 2);
+
+    if (add.row) {
+        out += "\n\n✔ الصف الذي نزل في الشيت: " + add.row;
     }
 
-    const row = add.row;
-
-    // 2) إغلاق الزيارة
-    let close = await apiCall(url, {
-        action: "closeVisit",
-        row: row,
-        payment_status: "مدفوع",
-        payment_method: "كاش",
-        cash_amount: 20,
-        card_amount: 0,
-        total_paid: 20,
-        tip: 5,
-        discount: 5
-    });
-
-    document.getElementById("output").value =
-        "✔ اختبار خدمة واحدة (خصم + إكرامية)\n\n" +
-        "Row: " + row + "\n\n" +
-        JSON.stringify(close, null, 2);
+    el("output").value = out;
 }
 
-/* ============================================================
-   🔥 2) اختبار عدة خدمات (توزيع خصم + إكرامية + شبكة)
-============================================================ */
-async function testMultiService() {
-    const url = document.getElementById("apiUrl").value;
+/* ===========================
+   اختبار عدة خدمات
+=========================== */
+async function testMulti() {
+    const url = el("apiUrl").value;
 
     const services = [
-        { name: "غسيل", price: 25, points: 3, commission: 0 },
-        { name: "تلميع", price: 15, points: 3, commission: 0 },
-        { name: "تغليف", price: 10, points: 3, commission: 0 }
+        { name:"غسيل", price:25, points:3, commission:0 },
+        { name:"تلميع", price:15, points:3, commission:0 },
+        { name:"تغليف", price:10, points:3, commission:0 }
     ];
 
     const rows = [];
 
-    // 1) إضافة 3 خدمات
     for (let s of services) {
-        let add = await apiCall(url, {
-            action: "addVisit",
-            membership: "20260001",
-            plate_numbers: "7777",
-            plate_letters: "أ ب ج",
-            car_type: "سيدان",
-            car_model: "كامري",
-            car_size: "وسط",
-            employee_in: "أحمد",
-            branch: "مكة",
-            payment_status: "غير مدفوع",
+        const add = await api(url, {
+            action:"addVisit",
+            membership:"20260001",
+            plate_numbers:"معاهد",
+            plate_letters:"أ ب ج",
+            car_type:"سيدان",
+            car_model:"كامري",
+            car_size:"وسط",
+            employee_in:"أحمد",
+            branch:"مكة",
+            payment_status:"غير مدفوع",
             services: JSON.stringify([s])
         });
 
         rows.push(add.row);
     }
 
-    // توزيع الخصم
-    const discount = 5;
-    const tip = 10;
-    const total = 25 + 15 + 10;
-
-    const discounts = [
-        Math.round((25 / total) * discount),
-        Math.round((15 / total) * discount),
-        Math.round((10 / total) * discount)
-    ];
-
-    const paid = [
-        25 - discounts[0],
-        15 - discounts[1],
-        10 - discounts[2]
-    ];
-
-    // 2) إغلاق كل زيارة
-    for (let i = 0; i < rows.length; i++) {
-        await apiCall(url, {
-            action: "closeVisit",
-            row: rows[i],
-            payment_status: "مدفوع",
-            payment_method: "شبكة",
-            cash_amount: 0,
-            card_amount: paid[i],
-            total_paid: paid[i],
-            tip: i === 0 ? tip : 0,
-            discount: discounts[i]
-        });
-    }
-
-    document.getElementById("output").value =
-        "✔ اختبار عدة خدمات (توزيع خصم + إكرامية)\n\n" +
-        "Rows: " + JSON.stringify(rows, null, 2);
+    el("output").value =
+        "📌 الصفوف التي نزلت:\n" +
+        JSON.stringify(rows, null, 2) +
+        "\n\n⚠️ الآن نعرف هل addVisit يرجّع row أم لا.";
 }
 
+function el(id){ return document.getElementById(id); }
 </script>
 
 </body>
