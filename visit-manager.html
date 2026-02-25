@@ -4,18 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>رغوة الهجين - إدارة الزيارات</title>
+
+    <!-- ملفات التنسيق -->
     <link rel="stylesheet" href="visit-manager.css">
+
+    <!-- API -->
     <script src="api.js"></script>
 </head>
+
 <body>
+
     <div class="container">
-        <!-- العنوان -->
+
+        <!-- ===========================
+             العنوان الرئيسي
+        ============================ -->
         <div class="page-header">
             <h1>رغوة الهجين</h1>
             <h2>إدارة الزيارات</h2>
         </div>
 
-        <!-- شريط الملخص -->
+        <!-- ===========================
+             شريط الملخص
+        ============================ -->
         <div class="summary-bar">
             <div class="summary-item">
                 <div class="label">الزيارات النشطة</div>
@@ -31,51 +42,71 @@
             </div>
         </div>
 
-        <!-- السيارات داخل المغسلة -->
+        <!-- ===========================
+             السيارات داخل المغسلة
+        ============================ -->
         <div class="section">
             <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
+
             <div id="activeVisitsList" class="cards">
                 <div class="loading">جارِ التحميل...</div>
             </div>
-            <button id="btnRefreshActive" class="btn-secondary full">🔄 تحديث القائمة</button>
+
+            <button id="btnRefreshActive" class="btn-secondary full">
+                🔄 تحديث القائمة
+            </button>
         </div>
 
-        <!-- تسجيل الزيارة -->
+        <!-- ===========================
+             تسجيل زيارة جديدة
+             (هنا يبدأ visitBox)
+        ============================ -->
         <div id="visitBox" class="section">
             <h3 class="section-title">📝 تسجيل زيارة جديدة</h3>
-
-            <!-- بيانات اللوحة -->
+                        <!-- بيانات اللوحة -->
             <div class="row">
                 <div>
                     <label>أرقام اللوحة *</label>
                     <input type="text" id="plate_numbers" placeholder="1234" required>
                 </div>
                 <div>
-                    <label>حروف اللوحة</label>
+                    <label>حروف اللوحة *</label>
                     <input type="text" id="plate_letters" placeholder="ABC">
                 </div>
             </div>
 
-            <!-- السيارة -->
+            <!-- بيانات السيارة -->
             <div class="row">
                 <div>
-                    <label>براند السيارة *</label>
-                    <select id="car_type" required>
-                        <option value="">— اختر البراند —</option>
-                    </select>
+                    <label>نوع السيارة *</label>
+                    <select id="car_type"></select>
                 </div>
                 <div>
                     <label>موديل السيارة *</label>
-                    <select id="car_model" required>
-                        <option value="">— اختر الموديل —</option>
-                    </select>
+                    <select id="car_model"></select>
                 </div>
             </div>
 
             <div class="row">
                 <div>
-                    <label>الحجم</label>
-                    <input type="text" id="car_size" readonly>
+                    <label>حجم السيارة *</label>
+                    <select id="car_size"></select>
+                </div>
+                <div>
+                    <label>الموظف *</label>
+                    <select id="employee_in"></select>
+                </div>
+            </div>
+
+            <!-- الفرع والموقف -->
+            <div class="row">
+                <div>
+                    <label>الفرع *</label>
+                    <select id="branch"></select>
+                </div>
+                <div>
+                    <label>رقم الموقف *</label>
+                    <select id="parking_slot"></select>
                 </div>
             </div>
 
@@ -83,13 +114,13 @@
             <div class="row">
                 <div>
                     <label>نوع الخدمة *</label>
-                    <select id="service_type" required>
+                    <select id="service_type">
                         <option value="">— اختر النوع —</option>
                     </select>
                 </div>
                 <div>
                     <label>تفاصيل الخدمة *</label>
-                    <select id="service_detail" required>
+                    <select id="service_detail">
                         <option value="">— اختر الخدمة —</option>
                     </select>
                 </div>
@@ -108,13 +139,19 @@
             </div>
 
             <!-- إضافة خدمة -->
-            <button id="btnAddService" class="btn-secondary full">➕ إضافة خدمة</button>
+            <button id="btnAddService" class="btn-secondary full">
+                ➕ إضافة خدمة
+            </button>
 
+            <!-- قائمة الخدمات -->
             <div id="servicesList" class="services-box"></div>
 
-            <div class="total">الإجمالي: <span id="totalPrice">0</span> ريال</div>
+            <!-- الإجمالي -->
+            <div class="total">
+                الإجمالي: <span id="totalPrice">0</span> ريال
+            </div>
 
-            <!-- الخصم / الإكرامية / الموقف -->
+            <!-- الخصم / الإكرامية -->
             <div class="row">
                 <div>
                     <label>الخصم</label>
@@ -126,59 +163,27 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div>
-                    <label>رقم الموقف *</label>
-                    <select id="parking_slot" required>
-                        <option value="">— اختر الموقف —</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- الموظف والفرع -->
-            <div class="row">
-                <div>
-                    <label>الموظف *</label>
-                    <select id="employee_in" required>
-                        <option value="">— اختر الموظف —</option>
-                    </select>
-                </div>
-                <div>
-                    <label>الفرع *</label>
-                    <select id="branch" required>
-                        <option value="">— اختر الفرع —</option>
-                    </select>
-                </div>
-            </div>
-
             <!-- الدفع -->
             <div class="row">
                 <div>
                     <label>حالة الدفع *</label>
-                    <select id="payment_status" required>
-                        <option value="">— اختر الحالة —</option>
-                        <option value="مدفوع">مدفوع</option>
+                    <select id="payment_status">
+                        <option value="">— اختر —</option>
                         <option value="غير مدفوع">غير مدفوع</option>
+                        <option value="مدفوع">مدفوع</option>
                     </select>
                 </div>
-                <div id="payment_method_wrapper" style="display:none;">
-                    <label>طريقة الدفع *</label>
+                <div>
+                    <label>طريقة الدفع</label>
                     <select id="payment_method">
-                        <option value="">— اختر الطريقة —</option>
+                        <option value="">— اختر —</option>
                         <option value="كاش">كاش</option>
                         <option value="شبكة">شبكة</option>
-                        <option value="جزئي">جزئي (كاش + شبكة)</option>
+                        <option value="جزئي">جزئي</option>
                     </select>
                 </div>
             </div>
-
-            <!-- الدفع الجزئي -->
+                        <!-- الدفع الجزئي -->
             <div id="partial_payment_box" style="display:none; margin-top:15px;">
                 <div class="row">
                     <div>
@@ -190,129 +195,27 @@
                         <input type="number" id="card_amount" placeholder="0">
                     </div>
                 </div>
-                <div class="total">المجموع المدفوع: <span id="paid_total">0</span> ريال</div>
-            </div>
 
-            <button id="btnSubmitVisit" class="btn-primary full" style="margin-top:20px;" onclick="submitVisit()">💾 تسجيل الزيارة</button>
-        </div>
-    </div>
-
-<!-- مودال الدفع -->
-<div id="paymentModal" class="modal-overlay">
-    <div class="modal-box">
-
-        <div class="modal-header">
-            <h3>💳 تحديث الدفع</h3>
-            <button id="closePaymentModal" class="btn-danger small">✕</button>
-        </div>
-
-        <label>طريقة الدفع</label>
-        <select id="modal_method_select">
-            <option value="كاش">كاش</option>
-            <option value="شبكة">شبكة</option>
-            <option value="جزئي">جزئي (كاش + شبكة)</option>
-        </select>
-
-        <p><b>الإجمالي قبل الخصم:</b> <span id="modal_total_before">0 ريال</span></p>
-
-        <!-- الخصم -->
-        <div style="margin-top:15px;">
-            <label>الخصم</label>
-            <input type="number" id="modal_discount_input" placeholder="0">
-        </div>
-
-        <p><b>الخصم الحالي:</b> <span id="modal_discount">0 ريال</span></p>
-
-        <p><b>الإجمالي بعد الخصم:</b> <span id="modal_total_after">0 ريال</span></p>
-
-        <!-- الإكرامية -->
-        <div style="margin-top:15px;">
-            <label>الإكرامية</label>
-            <input type="number" id="modal_tip_input" placeholder="0">
-        </div>
-
-        <p><b>الإكرامية الحالية:</b> <span id="modal_tip">0 ريال</span></p>
-
-        <!-- الدفع الجزئي -->
-        <div id="cash_box" style="display:none; margin-top:15px;">
-            <label>مبلغ الكاش</label>
-            <input type="number" id="modal_cash" placeholder="0">
-        </div>
-
-        <div id="card_box" style="display:none; margin-top:15px;">
-            <label>مبلغ الشبكة</label>
-            <input type="number" id="modal_card" placeholder="0">
-        </div>
-
-        <div class="modal-actions">
-            <button id="modal_confirm" class="btn-primary">✅ تأكيد</button>
-            <button id="modal_close" class="btn-secondary">إغلاق</button>
-        </div>
-
-    </div>
-</div>
-
-    <!-- مودال التعديل -->
-    <div id="editModal" class="modal-overlay">
-        <div class="modal-box large">
-            <div class="modal-header">
-                <h3>✏️ تعديل الزيارة</h3>
-                <button id="editClose" class="btn-danger small">✕</button>
-            </div>
-
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="tab-swap">🔄 تبديل خدمة</button>
-                <button class="tab-btn" data-tab="tab-delete">🗑️ حذف خدمة</button>
-                <button class="tab-btn" data-tab="tab-add">➕ إضافة خدمة</button>
-                <button class="tab-btn" data-tab="tab-emp">👤 تغيير الموظف</button>
-                <button class="tab-btn" data-tab="tab-disc">💰 تغيير الخصم</button>
-                <button class="tab-btn" data-tab="tab-tip">🎁 تغيير الإكرامية</button>
-            </div>
-
-            <div class="tab-content">
-                <div id="tab-swap" class="tab-pane active">
-                    <label>اختر الخدمة الجديدة</label>
-                    <select id="swapServiceSelect"></select>
-                    <button id="swapConfirm" class="btn-primary full">تأكيد التبديل</button>
-                </div>
-
-                <div id="tab-delete" class="tab-pane">
-                    <label>اختر الخدمة المراد حذفها</label>
-                    <select id="deleteServiceSelect"></select>
-                    <button id="deleteConfirm" class="btn-danger full">حذف الخدمة</button>
-                </div>
-
-                <div id="tab-add" class="tab-pane">
-                    <label>اختر خدمة للإضافة</label>
-                    <select id="addServiceSelect"></select>
-                    <button id="addConfirm" class="btn-primary full">إضافة الخدمة</button>
-                </div>
-
-                <div id="tab-emp" class="tab-pane">
-                    <label>اختر الموظف الجديد</label>
-                    <select id="empSelect"></select>
-                    <button id="empConfirm" class="btn-primary full">تحديث الموظف</button>
-                </div>
-
-                <div id="tab-disc" class="tab-pane">
-                    <label>الخصم الجديد</label>
-                    <input type="number" id="discInput" placeholder="0">
-                    <button id="discConfirm" class="btn-primary full">تحديث الخصم</button>
-                </div>
-
-                <div id="tab-tip" class="tab-pane">
-                    <label>الإكرامية الجديدة</label>
-                    <input type="number" id="tipInput" placeholder="0">
-                    <button id="tipConfirm" class="btn-primary full">تحديث الإكرامية</button>
+                <div class="total">
+                    المجموع المدفوع:
+                    <span id="paid_total">0</span> ريال
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Toast -->
-    <div id="toast-container"></div>
+            <!-- زر تسجيل الزيارة -->
+            <button id="btnSubmitVisit"
+                    class="btn-primary full"
+                    style="margin-top:20px;"
+                    onclick="submitVisit()">
+                💾 تسجيل الزيارة
+            </button>
 
-    <!-- JavaScript -->
+        </div> <!-- نهاية visitBox -->
+
+    </div> <!-- نهاية container -->
+
+    <!-- تحميل السكربت بعد كل العناصر -->
     <script src="visit-manager.js"></script>
+
 </body>
 </html>
