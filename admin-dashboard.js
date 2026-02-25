@@ -8,6 +8,7 @@ let commissions = {};
 document.addEventListener("DOMContentLoaded", () => {
   loadAllVisits();
   bindTabs();
+  bindGlobalFilter();     // ← رجعناها لأنها ضرورية
   bindCompletedFilter();
   bindExport();
 });
@@ -48,93 +49,102 @@ function bindTabs() {
     };
   });
 }
+
 /* ===========================
    Safe Date Parser
 =========================== */
 function parseDateTime(str) {
-    if (!str) return null;
-    str = str.replace("T", " ");
-    const [datePart, timePart] = str.split(" ");
-    if (!datePart || !timePart) return null;
+  if (!str) return null;
+  str = str.replace("T", " ");
+  const [datePart, timePart] = str.split(" ");
+  if (!datePart || !timePart) return null;
 
-    const [y, m, d] = datePart.split("-").map(Number);
-    const [hh, mm, ss] = timePart.split(":").map(Number);
+  const [y, m, d] = datePart.split("-").map(Number);
+  const [hh, mm, ss] = timePart.split(":").map(Number);
 
-    return new Date(y, m - 1, d, hh, mm, ss || 0);
+  return new Date(y, m - 1, d, hh, mm, ss || 0);
 }
 
 /* ===========================
    Week Range (Wed → Wed)
 =========================== */
 function getWeekRange() {
-    const now = new Date();
-    const day = now.getDay();
+  const now = new Date();
+  const day = now.getDay();
 
-    const lastWed = new Date(now);
-    const diff = day >= 3 ? day - 3 : (7 - (3 - day));
-    lastWed.setDate(now.getDate() - diff);
+  const lastWed = new Date(now);
+  const diff = day >= 3 ? day - 3 : (7 - (3 - day));
+  lastWed.setDate(now.getDate() - diff);
 
-    const nextWed = new Date(lastWed);
-    nextWed.setDate(lastWed.getDate() + 7);
+  const nextWed = new Date(lastWed);
+  nextWed.setDate(lastWed.getDate() + 7);
 
-    return { start: lastWed, end: nextWed };
+  return { start: lastWed, end: nextWed };
 }
 
 /* ===========================
-   Global Filter
+   Global Filter (REAL FIX)
 =========================== */
+function bindGlobalFilter() {
+  el("gToday").onclick  = () => applyGlobalFilter("today");
+  el("gWeek").onclick   = () => applyGlobalFilter("week");
+  el("gMonth").onclick  = () => applyGlobalFilter("month");
+  el("gYear").onclick   = () => applyGlobalFilter("year");
+  el("gCustom").onclick = () => applyGlobalFilter("custom");
+}
+
 function applyGlobalFilter(type) {
-    const now = new Date();
+  const now = new Date();
 
-    if (type === "today") {
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
-        const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 6, 0, 0);
+  if (type === "today") {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+    const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 6, 0, 0);
 
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
-    }
+    filteredVisits = allVisits.filter(v => {
+      const d = parseDateTime(v[13]);
+      return d && d >= start && d <= end;
+    });
+  }
 
-    else if (type === "week") {
-        const { start, end } = getWeekRange();
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d < end;
-        });
-    }
+  else if (type === "week") {
+    const { start, end } = getWeekRange();
+    filteredVisits = allVisits.filter(v => {
+      const d = parseDateTime(v[13]);
+      return d && d >= start && d < end;
+    });
+  }
 
-    else if (type === "month") {
-        const m = now.getMonth();
-        const y = now.getFullYear();
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d.getMonth() === m && d.getFullYear() === y;
-        });
-    }
+  else if (type === "month") {
+    const m = now.getMonth();
+    const y = now.getFullYear();
+    filteredVisits = allVisits.filter(v => {
+      const d = parseDateTime(v[13]);
+      return d && d.getMonth() === m && d.getFullYear() === y;
+    });
+  }
 
-    else if (type === "year") {
-        const y = now.getFullYear();
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d.getFullYear() === y;
-        });
-    }
+  else if (type === "year") {
+    const y = now.getFullYear();
+    filteredVisits = allVisits.filter(v => {
+      const d = parseDateTime(v[13]);
+      return d && d.getFullYear() === y;
+    });
+  }
 
-    else if (type === "custom") {
-        const f = el("gFrom").value;
-        const t = el("gTo").value;
-        if (!f || !t) return alert("اختر التاريخين");
+  else if (type === "custom") {
+    const f = el("gFrom").value;
+    const t = el("gTo").value;
+    if (!f || !t) return alert("اختر التاريخين");
 
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            if (!d) return false;
-            const dateOnly = d.toISOString().split("T")[0];
-            return dateOnly >= f && dateOnly <= t;
-        });
-    }
+    filteredVisits = allVisits.filter(v => {
+      const d = parseDateTime(v[13]);
+      if (!d) return false;
+      const dateOnly = d.toISOString().split("T")[0];
+      return dateOnly >= f && dateOnly <= t;
+    });
+  }
 
-    renderAll();
+  renderAll();
 }
 
 /* ===========================
