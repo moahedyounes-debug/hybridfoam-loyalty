@@ -468,6 +468,7 @@ function loadAddTab() {
     const sel = el("addServiceSelect");
     sel.innerHTML = "";
 
+    // تحميل قائمة الخدمات
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
@@ -477,6 +478,7 @@ function loadAddTab() {
         sel.appendChild(opt);
     });
 
+    // زر تأكيد الإضافة
     el("addConfirm").onclick = async () => {
 
         const btn = el("addConfirm");
@@ -520,56 +522,32 @@ function loadAddTab() {
         ============================ */
 
         const res = await apiAddRow("Visits", {
-            plate: selectedPlate,
+            membership: "",
+            plate_numbers: selectedPlate,
+            plate_letters: "",
+            car_type: "",
+            car_model: "",
+            car_size: "",
             service_detail: service,
             price: price,
-            points: points
+            points: points,
+            employee_in: "",
+            employee_out: "",
+            branch: "",
+            commission: points,
+            check_in: "",
+            check_out: "",
+            payment_status: "غير مدفوع",
+            payment_method: "",
+            parking_slot: "",
+            rating: "",
+            payment_method_copy: "",
+            CASH_AMOUNT: "",
+            CARD_AMOUNT: "",
+            TOTAL_PAID: "",
+            tip: "",
+            discount: ""
         });
-
-        btn.disabled = false;
-        btn.textContent = "إضافة الخدمة";
-
-        if (!res || res.success !== true) {
-            showToast("فشل إضافة الخدمة", "error");
-            return;
-        }
-
-        showToast("تمت إضافة الخدمة", "success");
-        loadActiveVisits();
-    };
-}
-
-        /* ===========================
-           إضافة الخدمة
-        ============================ */
-
-const res = await apiAddRow("Visits", {
-    membership: "",
-    plate_numbers: selectedPlate,
-    plate_letters: "",
-    car_type: "",
-    car_model: "",
-    car_size: "",
-    service_detail: service,
-    price: price,
-    points: points,
-    employee_in: "",
-    employee_out: "",
-    branch: "",
-    commission: points,   // ←🔥 العمولة الصحيحة
-    check_in: "",
-    check_out: "",
-    payment_status: "غير مدفوع",
-    payment_method: "",
-    parking_slot: "",
-    rating: "",
-    payment_method_copy: "",
-    CASH_AMOUNT: "",
-    CARD_AMOUNT: "",
-    TOTAL_PAID: "",
-    tip: "",
-    discount: ""
-});
 
         btn.disabled = false;
         btn.textContent = "إضافة الخدمة";
@@ -583,6 +561,7 @@ const res = await apiAddRow("Visits", {
         loadActiveVisits();
     };
 }
+
 /* ===========================
    تبويب: تغيير الموظف
 =========================== */
