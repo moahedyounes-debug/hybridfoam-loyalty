@@ -1029,15 +1029,13 @@ document.addEventListener("click", function (e) {
     /* إغلاق أي قائمة مفتوحة عند الضغط خارجها */
     if (
         !e.target.closest(".dropdown") &&
-        !e.target.closest("#paymentModal") &&     // المودال نفسه
-        !e.target.closest(".modal-content")       // محتوى المودال
+        !e.target.closest("#paymentModal") &&
+        !e.target.closest(".modal-content")
     ) {
         document.querySelectorAll(".dropdown-content").forEach(menu => {
             menu.classList.remove("show");
         });
     }
-
-});
 
     /* فتح قائمة التعديل */
     if (e.target.classList.contains("edit-btn")) {
@@ -1063,7 +1061,7 @@ document.addEventListener("click", function (e) {
         return;
     }
 
-    /* اختيار طريقة الدفع (زر داخل pay-menu) */
+    /* اختيار طريقة الدفع */
     if (e.target.matches(".pay-menu button")) {
 
         const plate = e.target.parentElement.dataset.plate;
@@ -1079,7 +1077,7 @@ document.addEventListener("click", function (e) {
         return;
     }
 
-    /* اختيار إجراء التعديل (زر داخل edit-menu) */
+    /* اختيار إجراء التعديل */
     if (e.target.matches(".edit-menu button")) {
 
         const plate = e.target.parentElement.dataset.plate;
@@ -1092,6 +1090,7 @@ document.addEventListener("click", function (e) {
         e.target.parentElement.classList.remove("show");
         return;
     }
+
 });
 /* ===========================
    تشغيل النظام عند التحميل
@@ -1122,7 +1121,6 @@ window.onload = async function () {
         };
 
 // إغلاق مودال الدفع
-el("paymentModal").onclick = closePaymentModal;
 el("modal_close").onclick = closePaymentModal;
 
 // إغلاق مودال التعديل
