@@ -310,10 +310,6 @@ const safeTotal = total > 0 ? total : 1;
 const cashRatio = cash > 0 ? (cash / safeTotal) : 0;
 const cardRatio = card > 0 ? (card / safeTotal) : 0;
 
-
-    // إرسال البيانات لكل صف
-    for (let i = 0; i < rows.length; i++) {
-
         const v = rows[i];
 
         // توزيع الدفع حسب طريقة الدفع
@@ -331,17 +327,17 @@ const cardRatio = card > 0 ? (card / safeTotal) : 0;
             cardAmount = distributedPaid[i] - cashAmount;
         }
 
-await apiCloseVisit(v.row, {
+await apiCloseVisit(rows[0].row, {
     payment_status: "مدفوع",
     payment_method: method,
-    parking_slot: v.data[17], // مهم حتى لا ينمسح
+    parking_slot: rows[0].data[17],
 
-    CASH_AMOUNT: cashAmount,
-    CARD_AMOUNT: cardAmount,
-    TOTAL_PAID: distributedPaid[i],
+    CASH_AMOUNT: cash,
+    CARD_AMOUNT: card,
+    TOTAL_PAID: total,
 
-    tip: i === 0 ? tip : 0,
-    discount: distributedDiscount[i]
+    tip: tip,
+    discount: discount
 });
 }
 
