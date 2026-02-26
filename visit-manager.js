@@ -84,7 +84,7 @@ async function loadActiveVisits() {
         }
 
         Object.values(cars).forEach(car => {
-            car.totalAfterDiscount = car.total - car.discount;
+            car.total_paidDiscount = car.total - car.discount;
         });
 
         const fragment = document.createDocumentFragment();
@@ -114,7 +114,7 @@ async function loadActiveVisits() {
 
         <p><b>الإجمالي قبل الخصم:</b> ${car.total} ريال</p>
         <p><b>الخصم:</b> ${car.discount} ريال</p>
-        <p><b>الإجمالي بعد الخصم:</b> ${car.totalAfterDiscount} ريال</p>
+        <p><b>الإجمالي بعد الخصم:</b> ${car.total_paidDiscount} ريال</p>
     </div>
 
     <div class="card-footer">
@@ -224,12 +224,12 @@ function openPaymentModal(plate) {
         const newTip = Number(el("modal_tip_input").value || 0);
         const total_paid = totalBefore - newDiscount;
 
-        submitPayment({
-            method,
-            total_paid,
-            discount: newDiscount,
-            tip: newTip
-        });
+submitPayment({
+    method,
+    total_paid: total_paid,
+    discount: newDiscount,
+    tip: newTip
+});
     };
 }
 /* ===========================
@@ -271,9 +271,9 @@ async function submitPayment({ method, total_paid, discount, tip }) {
             payment_method: method,
             cash_amount: cash,
             card_amount: card,
-            total_paid,
-            tip,
-            discount
+            total_paid: total_paid,
+            tip: tip,
+            discount: discount
         });
 
         showToast("تم تحديث الدفع بنجاح", "success");
