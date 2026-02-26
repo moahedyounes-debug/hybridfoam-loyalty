@@ -1029,12 +1029,15 @@ document.addEventListener("click", function (e) {
     /* إغلاق أي قائمة مفتوحة عند الضغط خارجها */
     if (
         !e.target.closest(".dropdown") &&
-        !e.target.closest("#paymentModal")   // ← منع إغلاق نافذة الدفع
+        !e.target.closest("#paymentModal") &&     // المودال نفسه
+        !e.target.closest(".modal-content")       // محتوى المودال
     ) {
         document.querySelectorAll(".dropdown-content").forEach(menu => {
             menu.classList.remove("show");
         });
     }
+
+});
 
     /* فتح قائمة التعديل */
     if (e.target.classList.contains("edit-btn")) {
