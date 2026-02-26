@@ -182,22 +182,22 @@ function openPaymentModal(plate) {
     }
 
     const prices = rows.map(v => Number(v.data[7] || 0));
-    const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
+    const discount = Number(rows[0].data[24] || 0);
+    const tip = Number(rows[0].data[23] || 0);
 
-    const oldTip = Number(rows[0].data[23] || 0);
-    const oldDiscount = Number(rows[0].data[24] || 0);
+    const totalBefore = prices.reduce((a, b) => a + b, 0);
+    const totalAfter = totalBefore - discount;
 
-    el("modal_total_before").textContent = totalBeforeDiscount + " ريال";
-    el("modal_discount").textContent = oldDiscount + " ريال";
-    el("modal_tip").textContent = oldTip + " ريال";
+    el("modal_total_before").textContent = totalBefore + " ريال";
+    el("modal_discount").textContent = discount + " ريال";
+    el("modal_tip").textContent = tip + " ريال";
 
-    el("modal_discount_input").value = oldDiscount;
-    el("modal_tip_input").value = oldTip;
+    el("modal_discount_input").value = discount;
+    el("modal_tip_input").value = tip;
 
     const updateTotals = () => {
         const d = Number(el("modal_discount_input").value || 0);
-        const after = totalBeforeDiscount - d;
-        el("modal_total_after").textContent = after + " ريال";
+        el("modal_total_after").textContent = (totalBefore - d) + " ريال";
     };
 
     updateTotals();
@@ -210,24 +210,19 @@ function openPaymentModal(plate) {
 
     el("modal_method_select").onchange = () => {
         const method = el("modal_method_select").value;
-        if (method === "جزئي") {
-            el("cash_box").style.display = "block";
-            el("card_box").style.display = "block";
-        } else {
-            el("cash_box").style.display = "none";
-            el("card_box").style.display = "none";
-        }
+        const show = method === "جزئي";
+        el("cash_box").style.display = show ? "block" : "none";
+        el("card_box").style.display = show ? "block" : "none";
     };
-    el("modal_method_select").dispatchEvent(new Event("change"));
 
+    el("modal_method_select").dispatchEvent(new Event("change"));
     el("paymentModal").classList.add("show");
 
-    // تمرير القيم الصحيحة إلى submitPayment
     el("modal_confirm").onclick = () => {
         const method = el("modal_method_select").value;
         const newDiscount = Number(el("modal_discount_input").value || 0);
         const newTip = Number(el("modal_tip_input").value || 0);
-        const totalAfter = totalBeforeDiscount - newDiscount;
+        const totalAfter = totalBefore - newDiscount;
 
         submitPayment({
             method,
@@ -237,7 +232,6 @@ function openPaymentModal(plate) {
         });
     };
 }
-
 /* ===========================
    إغلاق مودال الدفع
 =========================== */
@@ -282,72 +276,17 @@ async function submitPayment({ method, totalAfter, discount, tip }) {
     try {
         await apiCloseVisit(rows[0].row, {
             payment_method: method,
-            CASH_AMOUNT: cash,
-            CARD_AMOUNT: card,
-            TOTAL_PAID: totalAfter,
-            tip: tip,
-            discount: discount
+            cash_amount: cash,
+            card_amount: card,
+            total_paid: totalAfter,
+            tip,
+            discount
         });
 
         showToast("تم تحديث الدفع بنجاح", "success");
         closePaymentModal();
         loadActiveVisits();
-    } catch (err) {
-        console.error(err);
-        showToast("خطأ في تحديث الدفع", "error");
-    }
 
-    btn.disabled = false;
-    btn.textContent = "تأكيد";
-}
-
-/* ===========================
-   تنفيذ الدفع (نسخة آمنة)
-=========================== */
-async function submitPayment({ method, totalAfter, discount, tip }) {
-    const btn = el("modal_confirm");
-    btn.disabled = true;
-    btn.textContent = "جاري المعالجة...";
-
-    let cash = 0, card = 0;
-
-    if (method === "كاش") {
-        cash = totalAfter;
-    } else if (method === "شبكة") {
-        card = totalAfter;
-    } else if (method === "جزئي") {
-        cash = Number(el("modal_cash").value || 0);
-        card = Number(el("modal_card").value || 0);
-
-        if (cash + card !== totalAfter) {
-            showToast(`المبلغ يجب أن يكون ${totalAfter} ريال`, "error");
-            btn.disabled = false;
-            btn.textContent = "تأكيد";
-            return;
-        }
-    }
-
-    const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(selectedPlate));
-    if (!rows.length) {
-        showToast("خطأ: لا توجد بيانات", "error");
-        btn.disabled = false;
-        btn.textContent = "تأكيد";
-        return;
-    }
-
-    try {
-        await apiCloseVisit(rows[0].row, {
-            payment_method: method,
-            CASH_AMOUNT: cash,
-            CARD_AMOUNT: card,
-            TOTAL_PAID: totalAfter,
-            tip: tip,
-            discount: discount
-        });
-
-        showToast("تم تحديث الدفع بنجاح", "success");
-        closePaymentModal();
-        loadActiveVisits();
     } catch (err) {
         console.error(err);
         showToast("خطأ في تحديث الدفع", "error");
