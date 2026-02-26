@@ -222,7 +222,7 @@ function openPaymentModal(plate) {
 
     el("paymentModal").classList.add("show");
 
-    // ✅ نمرّر كل القيم المطلوبة لـ submitPayment
+    // تمرير القيم الصحيحة إلى submitPayment
     el("modal_confirm").onclick = () => {
         const method = el("modal_method_select").value;
         const newDiscount = Number(el("modal_discount_input").value || 0);
@@ -236,6 +236,69 @@ function openPaymentModal(plate) {
             tip: newTip
         });
     };
+}
+
+/* ===========================
+   إغلاق مودال الدفع
+=========================== */
+function closePaymentModal() {
+    el("paymentModal").classList.remove("show");
+}
+
+/* ===========================
+   تنفيذ الدفع (نسخة آمنة)
+=========================== */
+async function submitPayment({ method, totalAfter, discount, tip }) {
+    const btn = el("modal_confirm");
+    btn.disabled = true;
+    btn.textContent = "جاري المعالجة...";
+
+    let cash = 0, card = 0;
+
+    if (method === "كاش") {
+        cash = totalAfter;
+    } else if (method === "شبكة") {
+        card = totalAfter;
+    } else if (method === "جزئي") {
+        cash = Number(el("modal_cash").value || 0);
+        card = Number(el("modal_card").value || 0);
+
+        if (cash + card !== totalAfter) {
+            showToast(`المبلغ يجب أن يكون ${totalAfter} ريال`, "error");
+            btn.disabled = false;
+            btn.textContent = "تأكيد";
+            return;
+        }
+    }
+
+    const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(selectedPlate));
+    if (!rows.length) {
+        showToast("خطأ: لا توجد بيانات", "error");
+        btn.disabled = false;
+        btn.textContent = "تأكيد";
+        return;
+    }
+
+    try {
+        await apiCloseVisit(rows[0].row, {
+            payment_method: method,
+            CASH_AMOUNT: cash,
+            CARD_AMOUNT: card,
+            TOTAL_PAID: totalAfter,
+            tip: tip,
+            discount: discount
+        });
+
+        showToast("تم تحديث الدفع بنجاح", "success");
+        closePaymentModal();
+        loadActiveVisits();
+    } catch (err) {
+        console.error(err);
+        showToast("خطأ في تحديث الدفع", "error");
+    }
+
+    btn.disabled = false;
+    btn.textContent = "تأكيد";
 }
 
 /* ===========================
