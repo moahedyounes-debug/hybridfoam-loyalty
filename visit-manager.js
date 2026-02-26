@@ -176,7 +176,6 @@ function openPaymentModal(plate) {
 
     selectedPlate = plate;
 
-    // جلب الصفوف الخاصة بهذه اللوحة
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
 
     if (!rows.length) {
@@ -184,28 +183,27 @@ function openPaymentModal(plate) {
         return;
     }
 
-    // استخراج الأسعار
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    // الأعمدة الصحيحة:
-    // tip = col 23
-    // discount = col 24
+    // الخصم والإكرامية القديمة (قد تكون صفر)
     const oldTip = Number(rows[0].data[23] || 0);
     const oldDiscount = Number(rows[0].data[24] || 0);
 
-    // تعبئة القيم في المودال
+    // تعبئة المودال
     el("modal_total_before").textContent = totalBeforeDiscount + " ريال";
     el("modal_discount").textContent = oldDiscount + " ريال";
     el("modal_tip").textContent = oldTip + " ريال";
 
+    // 🔥 أهم خطوة: السماح بتعديل الخصم الجديد
     el("modal_discount_input").value = oldDiscount;
     el("modal_tip_input").value = oldTip;
 
-    // تحديث الإجمالي بعد الخصم
+    // 🔥 تحديث الإجمالي بعد الخصم بناءً على القيمة الجديدة
     const updateTotals = () => {
         const d = Number(el("modal_discount_input").value || 0);
-        el("modal_total_after").textContent = (totalBeforeDiscount - d) + " ريال";
+        const after = totalBeforeDiscount - d;
+        el("modal_total_after").textContent = after + " ريال";
     };
 
     updateTotals();
@@ -218,7 +216,6 @@ function openPaymentModal(plate) {
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
-    // مراقبة اختيار طريقة الدفع
     el("modal_method_select").onchange = () => {
         const method = el("modal_method_select").value;
 
@@ -231,23 +228,22 @@ function openPaymentModal(plate) {
         }
     };
 
-    // 🔥 تشغيل onchange مباشرة عند فتح المودال
     el("modal_method_select").dispatchEvent(new Event("change"));
 
-    // فتح المودال
     el("paymentModal").classList.add("show");
 
-    // زر التأكيد
+    // 🔥 هنا التعديل الحقيقي
     el("modal_confirm").onclick = () => {
         const method = el("modal_method_select").value;
-        const totalAfter = totalBeforeDiscount - Number(el("modal_discount_input").value || 0);
+
+        // نقرأ الخصم الجديد من input
+        const newDiscount = Number(el("modal_discount_input").value || 0);
+
+        // نحسب totalAfter بناءً على الخصم الجديد
+        const totalAfter = totalBeforeDiscount - newDiscount;
 
         submitPayment(method, totalAfter);
     };
-}
-
-function closePaymentModal() {
-    el("paymentModal").classList.remove("show");
 }
 /* ===========================
    تنفيذ الدفع (النسخة المصححة)
@@ -520,62 +516,65 @@ function loadAddTab() {
         const price = Number(sel.selectedOptions[0].dataset.price);
         const points = Number(sel.selectedOptions[0].dataset.points);
 
-        /* ===========================
-           🔥 منع إضافة أكثر من غسيل
-        ============================ */
+/* ===========================
+   🔥 منع إضافة أكثر من غسيل
+=========================== */
 
-        const isWash = service.includes("غسيل") || service.includes("خارجي") || service.includes("داخلي");
+const selectedServiceObj = servicesData.find(s => s.service === service);
+const isWash = selectedServiceObj && selectedServiceObj.category === "غسيل";
 
-        if (isWash) {
-            // نشيك هل السيارة عندها غسيل مسبقاً
-            const hasWash = activeVisits.some(v =>
-                v.plate_numbers === selectedPlate &&
-                (
-                    v.service_detail.includes("غسيل") ||
-                    v.service_detail.includes("خارجي") ||
-                    v.service_detail.includes("داخلي")
-                )
-            );
+if (isWash) {
 
-            if (hasWash) {
-                btn.disabled = false;
-                btn.textContent = "إضافة الخدمة";
-                showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس السيارة", "error");
-                return;
-            }
-        }
+    const hasWash = activeVisits.some(v => {
+        const existingServiceName = v.data[6]; // اسم الخدمة
+        const existingServiceObj = servicesData.find(s => s.service === existingServiceName);
+
+        return (
+            String(v.data[1]).replace(/\s+/g, "").trim() === String(selectedPlate).trim() &&
+            existingServiceObj &&
+            existingServiceObj.category === "غسيل"
+        );
+    });
+
+    if (hasWash) {
+        btn.disabled = false;
+        btn.textContent = "إضافة الخدمة";
+        showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس السيارة", "error");
+        return;
+    }
+}
 
         /* ===========================
            إضافة الخدمة
         ============================ */
 
-        const res = await apiAddRow("Visits", {
-            membership: "",
-            plate_numbers: selectedPlate,
-            plate_letters: "",
-            car_type: "",
-            car_model: "",
-            car_size: "",
-            service_detail: service,
-            price: price,
-            points: points,
-            employee_in: "",
-            employee_out: "",
-            branch: "",
-            commission: "",
-            check_in: "",
-            check_out: "",
-            payment_status: "غير مدفوع",
-            payment_method: "",
-            parking_slot: "",
-            rating: "",
-            payment_method_copy: "",
-            CASH_AMOUNT: "",
-            CARD_AMOUNT: "",
-            TOTAL_PAID: "",
-            tip: "",
-            discount: ""
-        });
+const res = await apiAddRow("Visits", {
+    membership: "",
+    plate_numbers: selectedPlate,
+    plate_letters: "",
+    car_type: "",
+    car_model: "",
+    car_size: "",
+    service_detail: service,
+    price: price,
+    points: points,
+    employee_in: "",
+    employee_out: "",
+    branch: "",
+    commission: points,   // ←🔥 العمولة الصحيحة
+    check_in: "",
+    check_out: "",
+    payment_status: "غير مدفوع",
+    payment_method: "",
+    parking_slot: "",
+    rating: "",
+    payment_method_copy: "",
+    CASH_AMOUNT: "",
+    CARD_AMOUNT: "",
+    TOTAL_PAID: "",
+    tip: "",
+    discount: ""
+});
 
         btn.disabled = false;
         btn.textContent = "إضافة الخدمة";
