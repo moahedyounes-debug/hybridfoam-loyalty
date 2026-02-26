@@ -327,7 +327,7 @@ input[readonly] { background: var(--gray-100); }
 
 /* Toast */
 /* Toast Container */
-#toast-container {
+#toastContainer {
     position: fixed;
     top: 20px;
     right: 20px;
