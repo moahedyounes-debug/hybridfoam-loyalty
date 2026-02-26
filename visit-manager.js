@@ -172,11 +172,13 @@ function updateSummary(rows) {
 function openPaymentModal(plate) {
     selectedPlate = plate;
 
-    const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
-    if (!rows.length) {
-        showToast("لا توجد بيانات لهذه اللوحة", "error");
-        return;
-    }
+  const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
+if (!rows.length) {
+    showToast("لا توجد بيانات لهذه اللوحة", "error");
+    return;
+}
+
+console.log("ROW DATA:", rows[0].data); // ← هذا السطر المهم
 
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBefore = prices.reduce((a, b) => a + b, 0);
