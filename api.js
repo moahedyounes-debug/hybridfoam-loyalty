@@ -105,7 +105,6 @@ async function apiCloseVisit(row, data) {
     action: "closeVisit",
     row,
 
-    payment_status: data.payment_status,
     payment_method: data.payment_method,
 
     cash_amount: data.cash_amount,
