@@ -1106,9 +1106,13 @@ window.onload = async function () {
                 this.value === "جزئي" ? "block" : "none";
         };
 
-        el("payment_modal").onclick = payment_modal;
-        el("modal_close").onclick = payment_modal;
-        el("editClose").onclick = closeEditModal;
+// إغلاق مودال الدفع
+el("paymentModal").onclick = closePaymentModal;
+el("modal_close").onclick = closePaymentModal;
+
+// إغلاق مودال التعديل
+el("editClose").onclick = closeEditModal;
+
 
         el("discount").oninput = recalcTotal;
 
