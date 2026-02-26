@@ -80,7 +80,7 @@ function parseDateTime(str) {
 
     str = str.trim().replace("T", " ");
 
-    // لو التاريخ بدون وقت → نضيف 00:00:00
+    // لو التاريخ بدون وقت
     if (str.length === 10) {
         str += " 00:00:00";
     }
@@ -94,16 +94,20 @@ function parseDateTime(str) {
     const [y, m, d] = datePart.split("-").map(Number);
 
     // الوقت
-    let timePart = timePartRaw;
+    let timePart = timePartRaw.trim();
 
-    // لو الوقت بدون ثواني → نضيف :00
-    if (timePart.split(":").length === 2) {
+    // لو الوقت بدون ثواني
+    const t = timePart.split(":");
+    if (t.length === 2) {
         timePart += ":00";
     }
 
     let [hh, mm, ss] = timePart.split(":").map(Number);
 
-    if (isNaN(hh) || isNaN(mm) || isNaN(ss)) return null;
+    // إصلاح أي NaN
+    if (isNaN(hh)) hh = 0;
+    if (isNaN(mm)) mm = 0;
+    if (isNaN(ss)) ss = 0;
 
     return new Date(y, m - 1, d, hh, mm, ss);
 }
