@@ -1027,7 +1027,10 @@ function resetForm() {
 document.addEventListener("click", function (e) {
 
     /* إغلاق أي قائمة مفتوحة عند الضغط خارجها */
-    if (!e.target.closest(".dropdown")) {
+    if (
+        !e.target.closest(".dropdown") &&
+        !e.target.closest("#paymentModal")   // ← منع إغلاق نافذة الدفع
+    ) {
         document.querySelectorAll(".dropdown-content").forEach(menu => {
             menu.classList.remove("show");
         });
@@ -1073,22 +1076,20 @@ document.addEventListener("click", function (e) {
         return;
     }
 
-/* اختيار إجراء التعديل (زر داخل edit-menu) */
-if (e.target.matches(".edit-menu button")) {
+    /* اختيار إجراء التعديل (زر داخل edit-menu) */
+    if (e.target.matches(".edit-menu button")) {
 
-    const plate = e.target.parentElement.dataset.plate;
-    const action = e.target.dataset.action;
+        const plate = e.target.parentElement.dataset.plate;
+        const action = e.target.dataset.action;
 
-    selectedPlate = plate;
+        selectedPlate = plate;
 
-    // هنا كان الخطأ
-    openEditModal(plate);
+        openEditModal(plate);
 
-    e.target.parentElement.classList.remove("show");
-    return;
-}
+        e.target.parentElement.classList.remove("show");
+        return;
+    }
 });
-
 /* ===========================
    تشغيل النظام عند التحميل
 =========================== */
