@@ -210,8 +210,8 @@ function renderEmployeesSummary(list) {
     html += `
     </table>
     <div class="table-total">
-        <b>الصافي : ${totalAfter} ريال</b><br>
         <b>الإجمالي: ${totalBefore} ريال</b><br>
+        <b>الصافي : ${totalAfter} ريال</b><br>
         <b>إجمالي الخصومات: ${totalDiscount} ريال</b><br>
         <b>العمولات: ${totalCommission} ريال</b>
     </div>
