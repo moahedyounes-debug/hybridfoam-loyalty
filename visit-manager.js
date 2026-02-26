@@ -1176,24 +1176,32 @@ window.onload = async function () {
 
 
 
-// إغلاق مودال التعديل
-el("editClose").onclick = closeEditModal;
+/* ===========================
+   إغلاق مودال التعديل
+=========================== */
+function closeEditModal() {
+    el("editModal").classList.remove("show");
+}
 
+/* ===========================
+   تحميل النظام
+=========================== */
+window.onload = async () => {
+    try {
 
+        // أي أكواد تحميل بيانات أو تهيئة هنا…
+
+        // ربط زر إغلاق المودال
+        el("editClose").onclick = closeEditModal;
+
+        // تحديث الإجمالي عند تغيير الخصم
         el("discount").oninput = recalcTotal;
 
+        // رسالة نجاح
         showToast("تم تحميل النظام بنجاح", "success");
 
-// إغلاق مودال التعديل
-el("editClose").onclick = closeEditModal;
-
-el("discount").oninput = recalcTotal;
-
-showToast("تم تحميل النظام بنجاح", "success");
-
-} catch (err) {
-    console.error(err);
-    showToast("خطأ في تحميل البيانات", "error");
-}
+    } catch (err) {
+        console.error(err);
+        showToast("خطأ في تحميل البيانات", "error");
+    }
 }; // ← هنا ينتهي window.onload بالكامل
-
