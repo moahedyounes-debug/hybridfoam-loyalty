@@ -1071,7 +1071,7 @@ function resetForm() {
 =========================== */
 document.addEventListener("click", function (e) {
 
-    /* إغلاق أي قائمة مفتوحة عند الضغط خارجها */
+    // إغلاق أي قائمة مفتوحة
     if (
         !e.target.closest(".dropdown") &&
         !e.target.closest("#paymentModal") &&
@@ -1082,7 +1082,7 @@ document.addEventListener("click", function (e) {
         });
     }
 
-    /* فتح قائمة التعديل */
+    // فتح قائمة التعديل
     if (e.target.classList.contains("edit-btn")) {
         const dropdown = e.target.nextElementSibling;
 
@@ -1094,7 +1094,7 @@ document.addEventListener("click", function (e) {
         return;
     }
 
-    /* فتح قائمة الدفع */
+    // فتح قائمة الدفع
     if (e.target.classList.contains("btn-pay")) {
         const dropdown = e.target.nextElementSibling;
 
@@ -1106,38 +1106,31 @@ document.addEventListener("click", function (e) {
         return;
     }
 
-    /* اختيار طريقة الدفع */
+    // اختيار طريقة الدفع
     if (e.target.matches(".pay-menu button")) {
 
         const plate = e.target.parentElement.dataset.plate;
         const method = e.target.dataset.method;
 
-        // تنظيف رقم اللوحة
         selectedPlate = String(plate).replace(/\s+/g, "").trim();
 
-        // افتح نافذة الدفع
         openPaymentModal(selectedPlate);
 
-        // ضبط طريقة الدفع
         el("modal_method_select").value = method;
-
-        // إصلاح مشكلة الدفع الجزئي
         el("modal_method_select").dispatchEvent(new Event("change"));
 
         e.target.parentElement.classList.remove("show");
         return;
     }
 
-    /* اختيار إجراء التعديل */
+    // اختيار إجراء التعديل
     if (e.target.matches(".edit-menu button")) {
 
         const plate = e.target.parentElement.dataset.plate;
         const action = e.target.dataset.action;
 
-        // تنظيف رقم اللوحة
         selectedPlate = String(plate).replace(/\s+/g, "").trim();
 
-        // فتح التاب الصحيح داخل مودال التعديل
         openEditModal(selectedPlate, action);
 
         e.target.parentElement.classList.remove("show");
@@ -1145,6 +1138,8 @@ document.addEventListener("click", function (e) {
     }
 
 });
+
+
 /* ===========================
    إغلاق مودال التعديل
 =========================== */
@@ -1152,11 +1147,13 @@ function closeEditModal() {
     el("editModal").classList.remove("show");
 }
 
+
 /* ===========================
    تشغيل النظام عند التحميل
 =========================== */
 window.onload = async function () {
     try {
+
         await Promise.all([
             loadCarTypes(),
             loadServices(),
