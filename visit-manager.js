@@ -273,7 +273,7 @@ async function submitPayment({ method, totalAfter, discount, tip }) {
     }
 
     try {
-        await api_closeVisit(rows[0].row, {
+        await apiCloseVisit(rows[0].row, {
             payment_method: method,
             CASH_AMOUNT: cash,
             CARD_AMOUNT: card,
