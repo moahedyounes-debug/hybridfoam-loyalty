@@ -175,26 +175,30 @@ function updateSummary(rows) {
 function openPaymentModal(plate) {
     selectedPlate = plate;
 
+    // جلب كل الصفوف الخاصة باللوحة
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
     if (!rows.length) {
         showToast("لا توجد بيانات لهذه اللوحة", "error");
         return;
     }
 
+    // حساب الإجمالي قبل الخصم
     const prices = rows.map(v => Number(v.data[7] || 0));
-    const discount = Number(rows[0].data[24] || 0);
-    const tip = Number(rows[0].data[23] || 0);
-
     const totalBefore = prices.reduce((a, b) => a + b, 0);
-    const totalAfter = totalBefore - discount;
 
+    // جلب الخصم والإكرامية الحالية
+    const oldDiscount = Number(rows[0].data[24] || 0);
+    const oldTip = Number(rows[0].data[23] || 0);
+
+    // تعبئة القيم في المودال
     el("modal_total_before").textContent = totalBefore + " ريال";
-    el("modal_discount").textContent = discount + " ريال";
-    el("modal_tip").textContent = tip + " ريال";
+    el("modal_discount").textContent = oldDiscount + " ريال";
+    el("modal_tip").textContent = oldTip + " ريال";
 
-    el("modal_discount_input").value = discount;
-    el("modal_tip_input").value = tip;
+    el("modal_discount_input").value = oldDiscount;
+    el("modal_tip_input").value = oldTip;
 
+    // تحديث الإجمالي بعد الخصم
     const updateTotals = () => {
         const d = Number(el("modal_discount_input").value || 0);
         el("modal_total_after").textContent = (totalBefore - d) + " ريال";
@@ -203,11 +207,13 @@ function openPaymentModal(plate) {
     updateTotals();
     el("modal_discount_input").oninput = updateTotals;
 
+    // إخفاء حقول الدفع الجزئي
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
+    // إظهار/إخفاء حقول الدفع الجزئي حسب الطريقة
     el("modal_method_select").onchange = () => {
         const method = el("modal_method_select").value;
         const show = method === "جزئي";
@@ -216,8 +222,11 @@ function openPaymentModal(plate) {
     };
 
     el("modal_method_select").dispatchEvent(new Event("change"));
+
+    // فتح المودال
     el("paymentModal").classList.add("show");
 
+    // عند الضغط على تأكيد
     el("modal_confirm").onclick = () => {
         const method = el("modal_method_select").value;
         const newDiscount = Number(el("modal_discount_input").value || 0);
