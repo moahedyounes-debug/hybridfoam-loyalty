@@ -169,9 +169,6 @@ function updateSummary(rows) {
     el("summaryCars").textContent = uniquePlates;
     el("summaryTotal").textContent = totalAmount + " ريال";
 }
-/* ===========================
-   مودال الدفع (النسخة النهائية)
-=========================== */
 function openPaymentModal(plate) {
     selectedPlate = plate;
 
@@ -188,9 +185,6 @@ function openPaymentModal(plate) {
     const oldTip = Number(rows[0].data[23] || 0);
 
     el("modal_total_before").textContent = totalBefore + " ريال";
-    el("modal_discount").textContent = oldDiscount + " ريال";
-    el("modal_tip").textContent = oldTip + " ريال";
-
     el("modal_discount_input").value = oldDiscount;
     el("modal_tip_input").value = oldTip;
 
@@ -224,17 +218,14 @@ function openPaymentModal(plate) {
         const newTip = Number(el("modal_tip_input").value || 0);
         const total_paid = totalBefore - newDiscount;
 
-submitPayment({
-    method,
-    total_paid: total_paid,
-    discount: newDiscount,
-    tip: newTip
-});
+        submitPayment({
+            method,
+            total_paid,
+            discount: newDiscount,
+            tip: newTip
+        });
     };
 }
-/* ===========================
-   تنفيذ الدفع (النسخة النهائية)
-=========================== */
 async function submitPayment({ method, total_paid, discount, tip }) {
     const btn = el("modal_confirm");
     btn.disabled = true;
@@ -271,9 +262,9 @@ async function submitPayment({ method, total_paid, discount, tip }) {
             payment_method: method,
             cash_amount: cash,
             card_amount: card,
-            total_paid: total_paid,
-            tip: tip,
-            discount: discount
+            total_paid,
+            tip,
+            discount
         });
 
         showToast("تم تحديث الدفع بنجاح", "success");
