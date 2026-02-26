@@ -173,11 +173,9 @@ function updateSummary(rows) {
    مودال الدفع (النسخة النهائية بعد الإصلاح)
 =========================== */
 function openPaymentModal(plate) {
-
     selectedPlate = plate;
 
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
-
     if (!rows.length) {
         showToast("لا توجد بيانات لهذه اللوحة", "error");
         return;
@@ -186,20 +184,16 @@ function openPaymentModal(plate) {
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
 
-    // الخصم والإكرامية القديمة (قد تكون صفر)
     const oldTip = Number(rows[0].data[23] || 0);
     const oldDiscount = Number(rows[0].data[24] || 0);
 
-    // تعبئة المودال
     el("modal_total_before").textContent = totalBeforeDiscount + " ريال";
     el("modal_discount").textContent = oldDiscount + " ريال";
     el("modal_tip").textContent = oldTip + " ريال";
 
-    // 🔥 أهم خطوة: السماح بتعديل الخصم الجديد
     el("modal_discount_input").value = oldDiscount;
     el("modal_tip_input").value = oldTip;
 
-    // 🔥 تحديث الإجمالي بعد الخصم بناءً على القيمة الجديدة
     const updateTotals = () => {
         const d = Number(el("modal_discount_input").value || 0);
         const after = totalBeforeDiscount - d;
@@ -209,16 +203,13 @@ function openPaymentModal(plate) {
     updateTotals();
     el("modal_discount_input").oninput = updateTotals;
 
-    // إخفاء حقول الدفع الجزئي
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
-
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
     el("modal_method_select").onchange = () => {
         const method = el("modal_method_select").value;
-
         if (method === "جزئي") {
             el("cash_box").style.display = "block";
             el("card_box").style.display = "block";
@@ -227,58 +218,53 @@ function openPaymentModal(plate) {
             el("card_box").style.display = "none";
         }
     };
-
     el("modal_method_select").dispatchEvent(new Event("change"));
 
     el("paymentModal").classList.add("show");
 
-    // 🔥 هنا التعديل الحقيقي
+    // ✅ نمرّر كل القيم المطلوبة لـ submitPayment
     el("modal_confirm").onclick = () => {
         const method = el("modal_method_select").value;
-
-        // نقرأ الخصم الجديد من input
         const newDiscount = Number(el("modal_discount_input").value || 0);
-
-        // نحسب totalAfter بناءً على الخصم الجديد
+        const newTip = Number(el("modal_tip_input").value || 0);
         const totalAfter = totalBeforeDiscount - newDiscount;
 
-        submitPayment(method, totalAfter);
+        submitPayment({
+            method,
+            totalAfter,
+            discount: newDiscount,
+            tip: newTip
+        });
     };
 }
-/* ===========================
-   تنفيذ الدفع (النسخة النهائية المصححة)
-=========================== */
-async function submitPayment(method, total) {
 
+/* ===========================
+   تنفيذ الدفع (نسخة آمنة)
+=========================== */
+async function submitPayment({ method, totalAfter, discount, tip }) {
     const btn = el("modal_confirm");
     btn.disabled = true;
     btn.textContent = "جاري المعالجة...";
 
     let cash = 0, card = 0;
 
-    // تحديد طريقة الدفع
     if (method === "كاش") {
-        cash = total;
-    } 
-    else if (method === "شبكة") {
-        card = total;
-    } 
-    else if (method === "جزئي") {
-
+        cash = totalAfter;
+    } else if (method === "شبكة") {
+        card = totalAfter;
+    } else if (method === "جزئي") {
         cash = Number(el("modal_cash").value || 0);
         card = Number(el("modal_card").value || 0);
 
-        if (cash + card !== total) {
-            showToast(`المبلغ يجب أن يكون ${total} ريال`, "error");
+        if (cash + card !== totalAfter) {
+            showToast(`المبلغ يجب أن يكون ${totalAfter} ريال`, "error");
             btn.disabled = false;
             btn.textContent = "تأكيد";
             return;
         }
     }
 
-    // جلب الصفوف الخاصة باللوحة
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(selectedPlate));
-
     if (!rows.length) {
         showToast("خطأ: لا توجد بيانات", "error");
         btn.disabled = false;
@@ -286,32 +272,28 @@ async function submitPayment(method, total) {
         return;
     }
 
-    // قراءة الخصم والإكرامية من المودال
-    const discount = Number(el("modal_discount_input").value || 0);
-    const tip = Number(el("modal_tip_input").value || 0);
+    try {
+        await api_closeVisit(rows[0].row, {
+            payment_method: method,
+            CASH_AMOUNT: cash,
+            CARD_AMOUNT: card,
+            TOTAL_PAID: totalAfter,
+            tip: tip,
+            discount: discount
+        });
 
-    // 🔥 تحديث الزيارة مرة واحدة فقط (بدون Loop)
-    await apiCloseVisit(rows[0].row, {
-        payment_status: "مدفوع",
-        payment_method: method,
-        parking_slot: rows[0].data[17],
-
-        CASH_AMOUNT: cash,
-        CARD_AMOUNT: card,
-        TOTAL_PAID: total,
-
-        tip: tip,
-        discount: discount
-    });
-
-    showToast("تم تحديث الدفع بنجاح", "success");
-
-    payment_modal();
-    loadActiveVisits();
+        showToast("تم تحديث الدفع بنجاح", "success");
+        closePaymentModal();
+        loadActiveVisits();
+    } catch (err) {
+        console.error(err);
+        showToast("خطأ في تحديث الدفع", "error");
+    }
 
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
+
 /* ===========================
    مودال التعديل
 =========================== */
@@ -601,35 +583,31 @@ el("empConfirm").onclick = async () => {
 =========================== */
 el("discConfirm").onclick = async () => {
     const val = Number(el("discInput").value || 0);
-    const rows = activeVisits.filter(v =>
-        String(v.data[1]).replace(/\s+/g, "").trim() ===
-        String(selectedPlate).replace(/\s+/g, "").trim()
-    );
 
-    for (const v of rows) {
-        await apiUpdateRow("Visits", v.row, { discount: val });
-    }
+    await api_updateVisit({
+        plate_numbers: selectedPlate,
+        discount: val
+    });
 
     showToast("تم تحديث الخصم", "success");
     loadActiveVisits();
 };
+
 /* ===========================
    تبويب: تغيير الإكرامية
 =========================== */
 el("tipConfirm").onclick = async () => {
     const val = Number(el("tipInput").value || 0);
-    const rows = activeVisits.filter(v =>
-        String(v.data[1]).replace(/\s+/g, "").trim() ===
-        String(selectedPlate).replace(/\s+/g, "").trim()
-    );
 
-    for (const v of rows) {
-        await apiUpdateRow("Visits", v.row, { tip: val });
-    }
+    await api_updateVisit({
+        plate_numbers: selectedPlate,
+        tip: val
+    });
 
     showToast("تم تحديث الإكرامية", "success");
     loadActiveVisits();
 };
+
 /* ===========================
    تحميل أنواع السيارات
 =========================== */
