@@ -170,27 +170,23 @@ function updateSummary(rows) {
     el("summaryTotal").textContent = totalAmount + " ريال";
 }
 /* ===========================
-   مودال الدفع (النسخة النهائية بعد الإصلاح)
+   مودال الدفع (النسخة النهائية)
 =========================== */
 function openPaymentModal(plate) {
     selectedPlate = plate;
 
-    // جلب كل الصفوف الخاصة باللوحة
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
     if (!rows.length) {
         showToast("لا توجد بيانات لهذه اللوحة", "error");
         return;
     }
 
-    // حساب الإجمالي قبل الخصم
     const prices = rows.map(v => Number(v.data[7] || 0));
     const totalBefore = prices.reduce((a, b) => a + b, 0);
 
-    // جلب الخصم والإكرامية الحالية
     const oldDiscount = Number(rows[0].data[24] || 0);
     const oldTip = Number(rows[0].data[23] || 0);
 
-    // تعبئة القيم في المودال
     el("modal_total_before").textContent = totalBefore + " ريال";
     el("modal_discount").textContent = oldDiscount + " ريال";
     el("modal_tip").textContent = oldTip + " ريال";
@@ -198,7 +194,6 @@ function openPaymentModal(plate) {
     el("modal_discount_input").value = oldDiscount;
     el("modal_tip_input").value = oldTip;
 
-    // تحديث الإجمالي بعد الخصم
     const updateTotals = () => {
         const d = Number(el("modal_discount_input").value || 0);
         el("modal_total_after").textContent = (totalBefore - d) + " ريال";
@@ -207,13 +202,11 @@ function openPaymentModal(plate) {
     updateTotals();
     el("modal_discount_input").oninput = updateTotals;
 
-    // إخفاء حقول الدفع الجزئي
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
     el("modal_cash").value = "";
     el("modal_card").value = "";
 
-    // إظهار/إخفاء حقول الدفع الجزئي حسب الطريقة
     el("modal_method_select").onchange = () => {
         const method = el("modal_method_select").value;
         const show = method === "جزئي";
@@ -223,35 +216,26 @@ function openPaymentModal(plate) {
 
     el("modal_method_select").dispatchEvent(new Event("change"));
 
-    // فتح المودال
     el("paymentModal").classList.add("show");
 
-    // عند الضغط على تأكيد
     el("modal_confirm").onclick = () => {
         const method = el("modal_method_select").value;
         const newDiscount = Number(el("modal_discount_input").value || 0);
         const newTip = Number(el("modal_tip_input").value || 0);
-        const totalAfter = totalBefore - newDiscount;
+        const total_paid = totalBefore - newDiscount;
 
         submitPayment({
             method,
-            totalAfter,
+            total_paid,
             discount: newDiscount,
             tip: newTip
         });
     };
 }
 /* ===========================
-   إغلاق مودال الدفع
+   تنفيذ الدفع (النسخة النهائية)
 =========================== */
-function closePaymentModal() {
-    el("paymentModal").classList.remove("show");
-}
-
-/* ===========================
-   تنفيذ الدفع (نسخة آمنة)
-=========================== */
-async function submitPayment({ method, totalAfter, discount, tip }) {
+async function submitPayment({ method, total_paid, discount, tip }) {
     const btn = el("modal_confirm");
     btn.disabled = true;
     btn.textContent = "جاري المعالجة...";
@@ -259,15 +243,15 @@ async function submitPayment({ method, totalAfter, discount, tip }) {
     let cash = 0, card = 0;
 
     if (method === "كاش") {
-        cash = totalAfter;
+        cash = total_paid;
     } else if (method === "شبكة") {
-        card = totalAfter;
+        card = total_paid;
     } else if (method === "جزئي") {
         cash = Number(el("modal_cash").value || 0);
         card = Number(el("modal_card").value || 0);
 
-        if (cash + card !== totalAfter) {
-            showToast(`المبلغ يجب أن يكون ${totalAfter} ريال`, "error");
+        if (cash + card !== total_paid) {
+            showToast(`المبلغ يجب أن يكون ${total_paid} ريال`, "error");
             btn.disabled = false;
             btn.textContent = "تأكيد";
             return;
@@ -287,7 +271,7 @@ async function submitPayment({ method, totalAfter, discount, tip }) {
             payment_method: method,
             cash_amount: cash,
             card_amount: card,
-            total_paid: totalAfter,
+            total_paid,
             tip,
             discount
         });
@@ -304,7 +288,6 @@ async function submitPayment({ method, totalAfter, discount, tip }) {
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
-
 /* ===========================
    مودال التعديل
 =========================== */
