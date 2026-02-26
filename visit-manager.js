@@ -308,20 +308,40 @@ el("modal_close").onclick = closePaymentModal;
 /* ===========================
    مودال التعديل
 =========================== */
-function openEditModal(plate) {
+function openEditModal(plate, action) {
 
     selectedPlate = String(plate).replace(/\s+/g, "").trim();
 
+    // افتح المودال
     el("editModal").classList.add("show");
 
+    // أخفِ كل التابات
+    document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+
+    // ألغِ تفعيل كل الأزرار
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+
+    // حدّد التاب المطلوب
+    let tabId = "";
+
+    if (action === "swap") tabId = "tab-swap";
+    if (action === "delete") tabId = "tab-delete";
+    if (action === "add") tabId = "tab-add";
+    if (action === "emp") tabId = "tab-emp";
+    if (action === "disc") tabId = "tab-disc";
+    if (action === "tip") tabId = "tab-tip";
+
+    // فعّل التاب
+    el(tabId).classList.add("active");
+
+    // فعّل زر التاب
+    document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add("active");
+
+    // تحميل بيانات التاب
     loadSwapTab();
     loadDeleteTab();
     loadAddTab();
     loadEmpTab();
-}
-
-function closeEditModal() {
-    el("editModal").classList.remove("show");
 }
 /* ===========================
    التبويبات
@@ -338,15 +358,14 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 
 /* ===========================
    تبويب: تبديل خدمة
-========================== */
+=========================== */
 function loadSwapTab() {
 
     const oldSel = el("swapOldServiceSelect");
     oldSel.innerHTML = "";
 
     const rows = activeVisits.filter(v =>
-        String(v.data[1]).replace(/\s+/g, "").trim() ===
-        String(selectedPlate).replace(/\s+/g, "").trim()
+        String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
     );
 
     rows.forEach(v => {
@@ -372,44 +391,43 @@ function loadSwapTab() {
         newSel.appendChild(opt);
     });
 
-el("swapConfirm").onclick = async () => {
+    el("swapConfirm").onclick = async () => {
 
-    const btn = el("swapConfirm");
-    btn.disabled = true;
-    btn.textContent = "جاري التبديل...";
+        const btn = el("swapConfirm");
+        btn.disabled = true;
+        btn.textContent = "جاري التبديل...";
 
-    const oldRow = oldSel.value;
-    const newService = newSel.value;
-    const newPrice = Number(newSel.selectedOptions[0].dataset.price);
+        const oldRow = oldSel.value;
+        const newService = newSel.value;
+        const newPrice = Number(newSel.selectedOptions[0].dataset.price);
 
-    const res = await apiUpdateRow("Visits", oldRow, {
-        service_detail: newService,
-        price: newPrice
-    });
+        const res = await apiUpdateRow("Visits", oldRow, {
+            service_detail: newService,
+            price: newPrice
+        });
 
-    btn.disabled = false;
-    btn.textContent = "تأكيد التبديل";
+        btn.disabled = false;
+        btn.textContent = "تأكيد التبديل";
 
-    if (!res || res.success !== true) {
-        showToast("فشل التبديل — تحقق من الاتصال", "error");
-        return;
-    }
+        if (!res || res.success !== true) {
+            showToast("فشل التبديل — تحقق من الاتصال", "error");
+            return;
+        }
 
-    showToast("تم تبديل الخدمة", "success");
-    loadActiveVisits();
+        showToast("تم تبديل الخدمة", "success");
+        loadActiveVisits();
     };
 }
-
 /* ===========================
    تبويب: حذف خدمة
 =========================== */
 function loadDeleteTab() {
+
     const sel = el("deleteServiceSelect");
     sel.innerHTML = "";
 
     const rows = activeVisits.filter(v =>
-        String(v.data[1]).replace(/\s+/g, "").trim() ===
-        String(selectedPlate).replace(/\s+/g, "").trim()
+        String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
     );
 
     if (!rows.length) return;
@@ -427,6 +445,7 @@ function loadDeleteTab() {
     });
 
     el("deleteConfirm").onclick = async () => {
+
         if (!sel.value) return;
 
         el("deleteConfirm").disabled = true;
@@ -441,11 +460,11 @@ function loadDeleteTab() {
         loadActiveVisits();
     };
 }
-
 /* ===========================
    تبويب: إضافة خدمة
 =========================== */
 function loadAddTab() {
+
     const sel = el("addServiceSelect");
     sel.innerHTML = "";
 
@@ -468,32 +487,56 @@ function loadAddTab() {
         const price = Number(sel.selectedOptions[0].dataset.price);
         const points = Number(sel.selectedOptions[0].dataset.points);
 
-/* ===========================
-   🔥 منع إضافة أكثر من غسيل
-=========================== */
+        /* ===========================
+           🔥 منع إضافة أكثر من غسيل
+        ============================ */
 
-const selectedServiceObj = servicesData.find(s => s.service === service);
-const isWash = selectedServiceObj && selectedServiceObj.category === "غسيل";
+        const selectedServiceObj = servicesData.find(s => s.service === service);
+        const isWash = selectedServiceObj && selectedServiceObj.category === "غسيل";
 
-if (isWash) {
+        if (isWash) {
 
-    const hasWash = activeVisits.some(v => {
-        const existingServiceName = v.data[6]; // اسم الخدمة
-        const existingServiceObj = servicesData.find(s => s.service === existingServiceName);
+            const hasWash = activeVisits.some(v => {
+                const existingServiceName = v.data[6];
+                const existingServiceObj = servicesData.find(s => s.service === existingServiceName);
 
-        return (
-            String(v.data[1]).replace(/\s+/g, "").trim() === String(selectedPlate).trim() &&
-            existingServiceObj &&
-            existingServiceObj.category === "غسيل"
-        );
-    });
+                return (
+                    String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate &&
+                    existingServiceObj &&
+                    existingServiceObj.category === "غسيل"
+                );
+            });
 
-    if (hasWash) {
+            if (hasWash) {
+                btn.disabled = false;
+                btn.textContent = "إضافة الخدمة";
+                showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس السيارة", "error");
+                return;
+            }
+        }
+
+        /* ===========================
+           إضافة الخدمة فعليًا
+        ============================ */
+
+        const res = await apiAddRow("Visits", {
+            plate: selectedPlate,
+            service_detail: service,
+            price: price,
+            points: points
+        });
+
         btn.disabled = false;
         btn.textContent = "إضافة الخدمة";
-        showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس السيارة", "error");
-        return;
-    }
+
+        if (!res || res.success !== true) {
+            showToast("فشل إضافة الخدمة", "error");
+            return;
+        }
+
+        showToast("تمت إضافة الخدمة", "success");
+        loadActiveVisits();
+    };
 }
 
         /* ===========================
@@ -544,80 +587,103 @@ const res = await apiAddRow("Visits", {
    تبويب: تغيير الموظف
 =========================== */
 function loadEmpTab() {
+
     const sel = el("empSelect");
     sel.innerHTML = "";
 
-    employeesData.forEach(e => {
+    employeesData.forEach(emp => {
         const opt = document.createElement("option");
-        opt.value = e[0];
-        opt.textContent = e[0];
+        opt.value = emp.name;
+        opt.textContent = emp.name;
         sel.appendChild(opt);
     });
 
-el("empConfirm").onclick = async () => {
+    el("empConfirm").onclick = async () => {
 
-    const btn = el("empConfirm");
-    btn.disabled = true;
-    btn.textContent = "جاري التحديث...";
+        const newEmp = sel.value;
 
-    const rows = activeVisits.filter(v =>
-        String(v.data[1]).replace(/\s+/g, "").trim() ===
-        String(selectedPlate).replace(/\s+/g, "").trim()
-    );
+        const rows = activeVisits.filter(v =>
+            String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
+        );
 
-    let ok = true;
+        if (!rows.length) return;
 
-    for (const v of rows) {
-        const res = await apiUpdateRow("Visits", v.row, {
-            employee_in: sel.value
+        const row = rows[0].row;
+
+        const res = await apiUpdateRow("Visits", row, {
+            employee: newEmp
         });
 
         if (!res || res.success !== true) {
-            ok = false;
+            showToast("فشل تحديث الموظف", "error");
+            return;
         }
-    }
 
-    btn.disabled = false;
-    btn.textContent = "تغيير الموظف";
-
-    if (!ok) {
-        showToast("فشل تحديث الموظف — تحقق من الاتصال", "error");
-        return;
-    }
-
-    showToast("تم تحديث الموظف", "success");
-    loadActiveVisits();
+        showToast("تم تحديث الموظف", "success");
+        loadActiveVisits();
     };
 }
 /* ===========================
    تبويب: تغيير الخصم
 =========================== */
-el("discConfirm").onclick = async () => {
-    const val = Number(el("discInput").value || 0);
+function loadDiscTab() {
 
-    await api_updateVisit({
-        plate_numbers: selectedPlate,
-        discount: val
-    });
+    el("discConfirm").onclick = async () => {
 
-    showToast("تم تحديث الخصم", "success");
-    loadActiveVisits();
-};
+        const newDisc = Number(el("discInput").value || 0);
+
+        const rows = activeVisits.filter(v =>
+            String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
+        );
+
+        if (!rows.length) return;
+
+        const row = rows[0].row;
+
+        const res = await apiUpdateRow("Visits", row, {
+            discount: newDisc
+        });
+
+        if (!res || res.success !== true) {
+            showToast("فشل تحديث الخصم", "error");
+            return;
+        }
+
+        showToast("تم تحديث الخصم", "success");
+        loadActiveVisits();
+    };
+}
 
 /* ===========================
    تبويب: تغيير الإكرامية
 =========================== */
-el("tipConfirm").onclick = async () => {
-    const val = Number(el("tipInput").value || 0);
+function loadTipTab() {
 
-    await api_updateVisit({
-        plate_numbers: selectedPlate,
-        tip: val
-    });
+    el("tipConfirm").onclick = async () => {
 
-    showToast("تم تحديث الإكرامية", "success");
-    loadActiveVisits();
-};
+        const newTip = Number(el("tipInput").value || 0);
+
+        const rows = activeVisits.filter(v =>
+            String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
+        );
+
+        if (!rows.length) return;
+
+        const row = rows[0].row;
+
+        const res = await apiUpdateRow("Visits", row, {
+            tip: newTip
+        });
+
+        if (!res || res.success !== true) {
+            showToast("فشل تحديث الإكرامية", "error");
+            return;
+        }
+
+        showToast("تم تحديث الإكرامية", "success");
+        loadActiveVisits();
+    };
+}
 
 /* ===========================
    تحميل أنواع السيارات
@@ -1067,11 +1133,17 @@ document.addEventListener("click", function (e) {
         const plate = e.target.parentElement.dataset.plate;
         const method = e.target.dataset.method;
 
-        selectedPlate = plate;
+        // تنظيف رقم اللوحة
+        selectedPlate = String(plate).replace(/\s+/g, "").trim();
 
-        openPaymentModal(plate);
+        // افتح نافذة الدفع
+        openPaymentModal(selectedPlate);
 
+        // ضبط طريقة الدفع
         el("modal_method_select").value = method;
+
+        // إصلاح مشكلة الدفع الجزئي
+        el("modal_method_select").dispatchEvent(new Event("change"));
 
         e.target.parentElement.classList.remove("show");
         return;
@@ -1083,9 +1155,11 @@ document.addEventListener("click", function (e) {
         const plate = e.target.parentElement.dataset.plate;
         const action = e.target.dataset.action;
 
-        selectedPlate = plate;
+        // تنظيف رقم اللوحة
+        selectedPlate = String(plate).replace(/\s+/g, "").trim();
 
-        openEditModal(plate);
+        // فتح التاب الصحيح داخل مودال التعديل
+        openEditModal(selectedPlate, action);
 
         e.target.parentElement.classList.remove("show");
         return;
@@ -1131,8 +1205,16 @@ el("editClose").onclick = closeEditModal;
 
         showToast("تم تحميل النظام بنجاح", "success");
 
-    } catch (err) {
-        console.error(err);
-        showToast("خطأ في تحميل البيانات", "error");
-    }
-};
+// إغلاق مودال التعديل
+el("editClose").onclick = closeEditModal;
+
+el("discount").oninput = recalcTotal;
+
+showToast("تم تحميل النظام بنجاح", "success");
+
+} catch (err) {
+    console.error(err);
+    showToast("خطأ في تحميل البيانات", "error");
+}
+}; // ← هنا ينتهي window.onload بالكامل
+
