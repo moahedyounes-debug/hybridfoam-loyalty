@@ -1146,6 +1146,13 @@ document.addEventListener("click", function (e) {
 
 });
 /* ===========================
+   إغلاق مودال التعديل
+=========================== */
+function closeEditModal() {
+    el("editModal").classList.remove("show");
+}
+
+/* ===========================
    تشغيل النظام عند التحميل
 =========================== */
 window.onload = async function () {
@@ -1159,10 +1166,12 @@ window.onload = async function () {
 
         await loadActiveVisits();
 
+        // أزرار الزيارة
         el("btnAddService").onclick = addServiceToList;
         el("btnSubmitVisit").onclick = submitVisit;
         el("btnRefreshActive").onclick = loadActiveVisits;
 
+        // الدفع
         el("payment_status").onchange = function () {
             el("payment_method_wrapper").style.display =
                 this.value === "مدفوع" ? "block" : "none";
@@ -1173,25 +1182,7 @@ window.onload = async function () {
                 this.value === "جزئي" ? "block" : "none";
         };
 
-
-
-
-/* ===========================
-   إغلاق مودال التعديل
-=========================== */
-function closeEditModal() {
-    el("editModal").classList.remove("show");
-}
-
-/* ===========================
-   تحميل النظام
-=========================== */
-window.onload = async () => {
-    try {
-
-        // أي أكواد تحميل بيانات أو تهيئة هنا…
-
-        // ربط زر إغلاق المودال
+        // إغلاق مودال التعديل
         el("editClose").onclick = closeEditModal;
 
         // تحديث الإجمالي عند تغيير الخصم
@@ -1204,4 +1195,4 @@ window.onload = async () => {
         console.error(err);
         showToast("خطأ في تحميل البيانات", "error");
     }
-}; // ← هنا ينتهي window.onload بالكامل
+};
