@@ -73,14 +73,14 @@ function bindTabs() {
 }
 
 /* ===========================
-   Safe Date Parser
+   Safe Date Parser (Enhanced)
 =========================== */
 function parseDateTime(str) {
     if (!str) return null;
 
-    str = str.trim();
-    str = str.replace("T", " ");
+    str = str.trim().replace("T", " ");
 
+    // لو التاريخ بدون وقت → نضيف 00:00:00
     if (str.length === 10) {
         str += " 00:00:00";
     }
@@ -88,11 +88,22 @@ function parseDateTime(str) {
     const parts = str.split(" ");
     if (parts.length < 2) return null;
 
-    const [datePart, timePart] = parts;
+    const [datePart, timePartRaw] = parts;
+
+    // التاريخ
     const [y, m, d] = datePart.split("-").map(Number);
 
+    // الوقت
+    let timePart = timePartRaw;
+
+    // لو الوقت بدون ثواني → نضيف :00
+    if (timePart.split(":").length === 2) {
+        timePart += ":00";
+    }
+
     let [hh, mm, ss] = timePart.split(":").map(Number);
-    if (isNaN(ss)) ss = 0;
+
+    if (isNaN(hh) || isNaN(mm) || isNaN(ss)) return null;
 
     return new Date(y, m - 1, d, hh, mm, ss);
 }
@@ -132,14 +143,17 @@ function renderTopSummary(list) {
     // الإجمالي = السعر قبل الخصم
     const total = priceTotal;
 
-    el("sumCash").innerText       = cash + " ريال";
-    el("sumCard").innerText       = card + " ريال";
-    el("sumDiscount").innerText   = discount + " ريال";
-    el("sumNet").innerText        = net + " ريال";   // الإجمالي بعد الخصومات
-    el("sumTotal").innerText      = total + " ريال"; // الإجمالي (قبل الخصم)
-    el("sumTips").innerText       = tips + " ريال";
-    el("sumServices").innerText   = list.length;
-    el("sumCommission").innerText = totalCommission + " ريال";
+el("sumCash").innerText       = cash + " ريال";
+el("sumCard").innerText       = card + " ريال";
+el("sumDiscount").innerText   = discount + " ريال";
+
+// عكس النتائج هنا
+el("sumNet").innerText        = priceTotal + " ريال"; // الإجمالي بعد الخصم (كان الإجمالي)
+el("sumTotal").innerText      = total + " ريال";      // الإجمالي (كان الإجمالي بعد الخصم)
+
+el("sumTips").innerText       = tips + " ريال";
+el("sumServices").innerText   = list.length;
+el("sumCommission").innerText = totalCommission + " ريال";
 }
 /* ===========================
    Employees Summary
