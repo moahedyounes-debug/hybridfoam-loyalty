@@ -246,7 +246,7 @@ function openPaymentModal(plate) {
     };
 }
 /* ===========================
-   تنفيذ الدفع (النسخة المصححة)
+   تنفيذ الدفع (النسخة النهائية المصححة)
 =========================== */
 async function submitPayment(method, total) {
 
@@ -286,69 +286,32 @@ async function submitPayment(method, total) {
         return;
     }
 
-    // استخراج الأسعار
-    const prices = rows.map(v => Number(v.data[7] || 0));
-    const totalBeforeDiscount = prices.reduce((a, b) => a + b, 0);
-
     // قراءة الخصم والإكرامية من المودال
     const discount = Number(el("modal_discount_input").value || 0);
     const tip = Number(el("modal_tip_input").value || 0);
 
-    // توزيع الخصم على الخدمات
-    const distributedDiscount = prices.map(price => {
-        const ratio = totalBeforeDiscount ? (price / totalBeforeDiscount) : 0;
-        return Math.round(ratio * discount);
+    // 🔥 تحديث الزيارة مرة واحدة فقط (بدون Loop)
+    await apiCloseVisit(rows[0].row, {
+        payment_status: "مدفوع",
+        payment_method: method,
+        parking_slot: rows[0].data[17],
+
+        CASH_AMOUNT: cash,
+        CARD_AMOUNT: card,
+        TOTAL_PAID: total,
+
+        tip: tip,
+        discount: discount
     });
 
-    // السعر بعد الخصم لكل خدمة
-    const distributedPaid = prices.map((price, i) => price - distributedDiscount[i]);
-
-// إصلاح total قبل التوزيع
-const safeTotal = total > 0 ? total : 1;
-
-// نسب الدفع الصحيحة
-const cashRatio = cash > 0 ? (cash / safeTotal) : 0;
-const cardRatio = card > 0 ? (card / safeTotal) : 0;
-
-        const v = rows[i];
-
-        // توزيع الدفع حسب طريقة الدفع
-        let cashAmount = 0;
-        let cardAmount = 0;
-
-        if (method === "كاش") {
-            cashAmount = distributedPaid[i];
-        }
-        else if (method === "شبكة") {
-            cardAmount = distributedPaid[i];
-        }
-        else if (method === "جزئي") {
-            cashAmount = Math.round(distributedPaid[i] * cashRatio);
-            cardAmount = distributedPaid[i] - cashAmount;
-        }
-
-await apiCloseVisit(rows[0].row, {
-    payment_status: "مدفوع",
-    payment_method: method,
-    parking_slot: rows[0].data[17],
-
-    CASH_AMOUNT: cash,
-    CARD_AMOUNT: card,
-    TOTAL_PAID: total,
-
-    tip: tip,
-    discount: discount
-});
-}
-
     showToast("تم تحديث الدفع بنجاح", "success");
-    closePaymentModal();
+
+    payment_modal();
     loadActiveVisits();
 
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
-
 /* ===========================
    مودال التعديل
 =========================== */
@@ -1165,8 +1128,8 @@ window.onload = async function () {
                 this.value === "جزئي" ? "block" : "none";
         };
 
-        el("closePaymentModal").onclick = closePaymentModal;
-        el("modal_close").onclick = closePaymentModal;
+        el("payment_modal").onclick = payment_modal;
+        el("modal_close").onclick = payment_modal;
         el("editClose").onclick = closeEditModal;
 
         el("discount").oninput = recalcTotal;
