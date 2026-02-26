@@ -111,49 +111,41 @@ function parseDateTime(str) {
    Top Summary
 =========================== */
 function renderTopSummary(list) {
-    let totalPaid = 0;     // TOTAL_PAID (بعد الخصم)
-    let priceTotal = 0;    // price (قبل الخصم)
+    let totalBefore = 0;   // price (قبل الخصم) = 2161
+    let totalAfter  = 0;   // TOTAL_PAID (بعد الخصم) = 2068
     let cash = 0;
     let card = 0;
     let tips = 0;
     let totalCommission = 0;
 
     list.forEach(v => {
-        const price       = Number(v[7]  || 0);
-        const cashAmount  = Number(v[20] || 0);
-        const cardAmount  = Number(v[21] || 0);
-        const paid        = Number(v[22] || 0);
-        const tip         = Number(v[23] || 0);
-        const commission  = Number(v[12] || 0);
+        const price      = Number(v[7]  || 0);  // قبل الخصم
+        const paid       = Number(v[22] || 0);  // بعد الخصم
+        const cashAmount = Number(v[20] || 0);
+        const cardAmount = Number(v[21] || 0);
+        const tip        = Number(v[23] || 0);
+        const commission = Number(v[12] || 0);
 
-        priceTotal      += price;
-        totalPaid       += paid;
+        totalBefore     += price;
+        totalAfter      += paid;
         cash            += cashAmount;
         card            += cardAmount;
         tips            += tip;
         totalCommission += commission;
     });
 
-    // الخصم = السعر قبل الخصم - المبلغ المدفوع
-    const discount = priceTotal - totalPaid;
+    const discount = totalBefore - totalAfter; // 2161 - 2068 = 93
 
-    // الإجمالي بعد الخصومات = السعر - الخصم
-    const net = priceTotal - discount; // يساوي totalPaid
+    el("sumCash").innerText       = cash + " ريال";
+    el("sumCard").innerText       = card + " ريال";
+    el("sumDiscount").innerText   = discount + " ريال";
 
-    // الإجمالي = السعر قبل الخصم
-    const total = priceTotal;
+    el("sumTotal").innerText      = totalBefore + " ريال"; // الإجمالي = 2161
+    el("sumNet").innerText        = totalAfter + " ريال";  // الإجمالي بعد الخصم = 2068
 
-el("sumCash").innerText       = cash + " ريال";
-el("sumCard").innerText       = card + " ريال";
-el("sumDiscount").innerText   = discount + " ريال";
-
-// عكس النتائج هنا
-el("sumNet").innerText        = priceTotal + " ريال"; // الإجمالي بعد الخصم (كان الإجمالي)
-el("sumTotal").innerText      = total + " ريال";      // الإجمالي (كان الإجمالي بعد الخصم)
-
-el("sumTips").innerText       = tips + " ريال";
-el("sumServices").innerText   = list.length;
-el("sumCommission").innerText = totalCommission + " ريال";
+    el("sumTips").innerText       = tips + " ريال";
+    el("sumServices").innerText   = list.length;
+    el("sumCommission").innerText = totalCommission + " ريال";
 }
 /* ===========================
    Employees Summary
@@ -162,44 +154,41 @@ function renderEmployeesSummary(list) {
     const box = el("tab-employees");
     const emp = {};
 
-    let totalAfterDiscount = 0; // مجموع المبلغ بعد الخصم
-    let totalDiscount = 0;      // مجموع الخصومات
-    let totalTips = 0;
+    let totalBefore = 0;   // قبل الخصم = 2161
+    let totalAfter  = 0;   // بعد الخصم = 2068
+    let totalDiscount = 0;
     let totalCommission = 0;
 
     list.forEach(v => {
-        const employee = v[9] || "غير محدد";
-
-        const priceOriginal = Number(v[7] || 0);   // السعر قبل الخصم
-        const priceAfter    = Number(v[22] || 0);  // السعر بعد الخصم
-        const tip           = Number(v[25] || 0);
+        const employee      = v[9] || "غير محدد";
+        const priceOriginal = Number(v[7]  || 0); // قبل الخصم
+        const priceAfter    = Number(v[22] || 0); // بعد الخصم
         const commission    = Number(v[12] || 0);
 
-        // الخصم الحقيقي
         const discount = priceOriginal - priceAfter;
 
         if (!emp[employee]) {
-            emp[employee] = { cars: 0, total: 0, commission: 0 };
+            emp[employee] = { cars: 0, totalBefore: 0, commission: 0 };
         }
 
         emp[employee].cars++;
-        emp[employee].total += priceAfter;      // إجمالي الموظف بعد الخصم
-        emp[employee].commission += commission;
+        emp[employee].totalBefore += priceOriginal; // نعرض قبل الخصم
+        emp[employee].commission  += commission;
 
-        totalAfterDiscount += priceAfter;
-        totalDiscount += discount;
-        totalTips += tip;
+        totalBefore     += priceOriginal;
+        totalAfter      += priceAfter;
+        totalDiscount   += discount;
         totalCommission += commission;
     });
 
-    const sorted = Object.entries(emp).sort((a, b) => b[1].total - a[1].total);
+    const sorted = Object.entries(emp).sort((a, b) => b[1].totalBefore - a[1].totalBefore);
 
     let html = `
     <table>
         <tr>
             <th>الموظف</th>
             <th>الخدمات</th>
-            <th>الإجمالي بعد الخصم</th>
+            <th>الإجمالي</th>
             <th>العمولات</th>
         </tr>
     `;
@@ -209,7 +198,7 @@ function renderEmployeesSummary(list) {
         <tr>
             <td>${name}</td>
             <td>${data.cars}</td>
-            <td>${data.total}</td>
+            <td>${data.totalBefore}</td>
             <td>${data.commission}</td>
         </tr>
         `;
@@ -218,7 +207,8 @@ function renderEmployeesSummary(list) {
     html += `
     </table>
     <div class="table-total">
-        <b>الإجمالي بعد الخصم: ${totalAfterDiscount} ريال</b><br>
+        <b>الإجمالي: ${totalBefore} ريال</b><br>
+        <b>الإجمالي بعد الخصم: ${totalAfter} ريال</b><br>
         <b>إجمالي الخصومات: ${totalDiscount} ريال</b><br>
         <b>العمولات: ${totalCommission} ريال</b>
     </div>
@@ -226,7 +216,6 @@ function renderEmployeesSummary(list) {
 
     box.innerHTML = html;
 }
-
 /* ===========================
    Services Summary + PDF Export
 =========================== */
