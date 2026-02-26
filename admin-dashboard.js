@@ -157,9 +157,8 @@ function renderTopSummary(list) {
 function renderEmployeesSummary(list) {
     const box = el("tab-employees");
     const emp = {};
-
-    let totalBefore = 0;   // قبل الخصم = 2161
     let totalAfter  = 0;   // بعد الخصم = 2068
+    let totalBefore = 0;   // قبل الخصم = 2161
     let totalDiscount = 0;
     let totalCommission = 0;
 
@@ -211,8 +210,8 @@ function renderEmployeesSummary(list) {
     html += `
     </table>
     <div class="table-total">
-        <b>الإجمالي : ${totalAfter} ريال</b><br>
-        <b>الصافي: ${totalBefore} ريال</b><br>
+        <b>الصافي : ${totalAfter} ريال</b><br>
+        <b>الإجمالي: ${totalBefore} ريال</b><br>
         <b>إجمالي الخصومات: ${totalDiscount} ريال</b><br>
         <b>العمولات: ${totalCommission} ريال</b>
     </div>
