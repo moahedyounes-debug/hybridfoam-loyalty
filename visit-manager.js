@@ -279,6 +279,17 @@ async function submitPayment({ method, total_paid, discount, tip }) {
     btn.disabled = false;
     btn.textContent = "تأكيد";
 }
+
+/* ===========================
+   إغلاق مودال الدفع
+=========================== */
+function closePaymentModal() {
+    el("paymentModal").classList.remove("show");
+}
+   
+// إغلاق مودال الدفع
+el("modal_close").onclick = closePaymentModal;
+
 /* ===========================
    مودال التعديل
 =========================== */
@@ -1094,8 +1105,8 @@ window.onload = async function () {
                 this.value === "جزئي" ? "block" : "none";
         };
 
-// إغلاق مودال الدفع
-el("modal_close").onclick = closePaymentModal;
+
+
 
 // إغلاق مودال التعديل
 el("editClose").onclick = closeEditModal;
