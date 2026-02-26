@@ -169,35 +169,44 @@ function updateSummary(rows) {
     el("summaryCars").textContent = uniquePlates;
     el("summaryTotal").textContent = totalAmount + " ريال";
 }
+
+/* ===========================
+   تحديث الدفع المفتوح 
+=========================== */
+
 function openPaymentModal(plate) {
     selectedPlate = plate;
 
-  const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
-if (!rows.length) {
-    showToast("لا توجد بيانات لهذه اللوحة", "error");
-    return;
-}
+    const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
+    if (!rows.length) {
+        showToast("لا توجد بيانات لهذه اللوحة", "error");
+        return;
+    }
 
-console.log("ROW DATA:", rows[0].data); // ← هذا السطر المهم
+    const row = rows[0].data;
 
-    const prices = rows.map(v => Number(v.data[7] || 0));
-    const totalBefore = prices.reduce((a, b) => a + b, 0);
+    // السعر الحقيقي من الصف (price = index 7)
+    const totalBefore = Number(row[7] || 0);
 
-    const oldDiscount = Number(rows[0].data[24] || 0);
-    const oldTip = Number(rows[0].data[23] || 0);
+    // نبدأ الخصم والإكرامية من 0 (الموظف يكتبهم)
+    const oldDiscount = 0;
+    const oldTip = 0;
 
+    // تعبئة المودال
     el("modal_total_before").textContent = totalBefore + " ريال";
     el("modal_discount_input").value = oldDiscount;
     el("modal_tip_input").value = oldTip;
 
     const updateTotals = () => {
         const d = Number(el("modal_discount_input").value || 0);
-        el("modal_total_after").textContent = (totalBefore - d) + " ريال";
+        const totalAfter = Math.max(0, totalBefore - d);
+        el("modal_total_after").textContent = totalAfter + " ريال";
     };
 
     updateTotals();
     el("modal_discount_input").oninput = updateTotals;
 
+    // إخفاء حقول الكاش/الشبكة الجزئية مبدئياً
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
     el("modal_cash").value = "";
@@ -218,7 +227,7 @@ console.log("ROW DATA:", rows[0].data); // ← هذا السطر المهم
         const method = el("modal_method_select").value;
         const newDiscount = Number(el("modal_discount_input").value || 0);
         const newTip = Number(el("modal_tip_input").value || 0);
-        const total_paid = totalBefore - newDiscount;
+        const total_paid = Math.max(0, totalBefore - newDiscount);
 
         submitPayment({
             method,
@@ -228,6 +237,10 @@ console.log("ROW DATA:", rows[0].data); // ← هذا السطر المهم
         });
     };
 }
+/* ===========================
+   تحديث الدفع 
+=========================== */
+
 async function submitPayment({ method, total_paid, discount, tip }) {
     const btn = el("modal_confirm");
     btn.disabled = true;
