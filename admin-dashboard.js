@@ -244,37 +244,46 @@ function renderTopSummary(list) {
     el("sumCommission").innerText = totalCommission + " ريال";
 }
 /* ===========================
-   Employees Summary
+   Employees Summary (with tips)
 =========================== */
 function renderEmployeesSummary(list) {
     const box = el("tab-employees");
     const emp = {};
 
-    let totalBefore = 0;   // قبل الخصم
-    let totalAfter  = 0;   // بعد الخصم
-    let totalDiscount = 0;
-    let totalCommission = 0;
+    let totalBefore = 0;      // إجمالي قبل الخصم
+    let totalAfter  = 0;      // إجمالي بعد الخصم
+    let totalDiscount = 0;    // إجمالي الخصومات
+    let totalCommission = 0;  // إجمالي العمولات
+    let totalTips = 0;        // إجمالي الإكراميات
 
     list.forEach(v => {
         const employee      = v[9] || "غير محدد";
-        const priceOriginal = Number(v[7]  || 0); 
-        const priceAfter    = Number(v[22] || 0);
+        const priceOriginal = Number(v[7]  || 0);   // قبل الخصم
+        const priceAfter    = Number(v[22] || 0);   // بعد الخصم
         const commission    = Number(v[12] || 0);
+        const tip           = Number(v[23] || 0);   // الإكرامية
 
         const discount = priceOriginal - priceAfter;
 
         if (!emp[employee]) {
-            emp[employee] = { cars: 0, totalBefore: 0, commission: 0 };
+            emp[employee] = { 
+                cars: 0, 
+                totalBefore: 0, 
+                commission: 0,
+                tips: 0
+            };
         }
 
         emp[employee].cars++;
         emp[employee].totalBefore += priceOriginal;
         emp[employee].commission  += commission;
+        emp[employee].tips        += tip;
 
         totalBefore     += priceOriginal;
         totalAfter      += priceAfter;
         totalDiscount   += discount;
         totalCommission += commission;
+        totalTips       += tip;
     });
 
     const sorted = Object.entries(emp).sort((a, b) => b[1].totalBefore - a[1].totalBefore);
@@ -285,6 +294,7 @@ function renderEmployeesSummary(list) {
             <th>الموظف</th>
             <th>الخدمات</th>
             <th>الإجمالي</th>
+            <th>الإكراميات</th>
             <th>العمولات</th>
         </tr>
     `;
@@ -295,6 +305,7 @@ function renderEmployeesSummary(list) {
             <td>${name}</td>
             <td>${data.cars}</td>
             <td>${data.totalBefore}</td>
+            <td>${data.tips}</td>
             <td>${data.commission}</td>
         </tr>
         `;
@@ -302,18 +313,19 @@ function renderEmployeesSummary(list) {
 
     html += `
     </table>
+
     <div class="table-total">
-        <b>الإجمالي : ${totalAfter} ريال</b><br>
-        <b>الصافي: ${totalBefore} ريال</b><br>
-        <b>الصافي : ${totalAfter} ريال</b><br>
-        <b>الإجمالي: ${totalBefore} ريال</b><br>
+        <b>إجمالي قبل الخصم: ${totalBefore} ريال</b><br>
+        <b>إجمالي بعد الخصم: ${totalAfter} ريال</b><br>
         <b>إجمالي الخصومات: ${totalDiscount} ريال</b><br>
-        <b>العمولات: ${totalCommission} ريال</b>
+        <b>إجمالي الإكراميات: ${totalTips} ريال</b><br>
+        <b>إجمالي العمولات: ${totalCommission} ريال</b>
     </div>
     `;
 
     box.innerHTML = html;
 }
+
 /* ===========================
    SERVICES SUMMARY
 =========================== */
