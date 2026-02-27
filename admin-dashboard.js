@@ -473,13 +473,6 @@ async function renderBookings() {
     drawBookingsUI(filteredBookings);
 }
 
-    // ربط الفلترة العامة بهذه الصفحة
-    currentData = allBookings;
-    currentRenderer = drawBookingsUI;
-
-    drawBookingsUI(filteredBookings);
-}
-
 function drawBookingsUI() {
     const box = el("tab-bookings");
 
