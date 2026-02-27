@@ -668,7 +668,7 @@ window._openVisitDetails = function(v) {
 
 
 /* ===========================
-   GLOBAL DATE FILTER (FOR ALL PAGES)
+   GLOBAL DATE FILTER (UNIFIED)
 =========================== */
 
 let currentData = [];
@@ -676,68 +676,80 @@ let currentRenderer = null;
 let currentDateIndex = null;
 
 function bindGlobalFilter() {
-    el("gToday").onclick = () => filterByRange("today");
-    el("gYesterday").onclick = () => filterByRange("yesterday");
-    el("gWeek").onclick = () => filterByRange("week");
-    el("gMonth").onclick = () => filterByRange("month");
-    el("gYear").onclick = () => filterByRange("year");
+    el("gToday").onclick = () => applyRange("today");
+    el("gYesterday").onclick = () => applyRange("yesterday");
+    el("gWeek").onclick = () => applyRange("week");
+    el("gMonth").onclick = () => applyRange("month");
+    el("gYear").onclick = () => applyRange("year");
 
     el("gCustom").onclick = () => {
-        const from = el("gFrom").value;
-        const to = el("gTo").value;
-        filterByCustom(from, to);
+        const f = el("gFrom").value;
+        const t = el("gTo").value;
+        if (!f || !t) return alert("اختر التاريخين");
+        applyCustom(f, t);
     };
 }
 
-function filterByRange(type) {
+/* ===========================
+   RANGE FILTERS
+=========================== */
+
+function applyRange(type) {
     const now = new Date();
     let from, to;
 
-    if (type === "today") {
-        from = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
-        to   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
+    switch (type) {
+        case "today":
+            from = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+            to   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
+            break;
+
+        case "yesterday":
+            from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 12, 0, 0);
+            to   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 59, 59);
+            break;
+
+        case "week":
+            const day = now.getDay();
+            const diff = day >= 3 ? day - 3 : (7 - (3 - day));
+            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff, 12, 0, 0);
+            from = start;
+            to   = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 11, 59, 59);
+            break;
+
+        case "month":
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            from = new Date(y, m, 1, 12, 0, 0);
+            to   = new Date(y, m + 1, 1, 11, 59, 59);
+            break;
+
+        case "year":
+            const yy = now.getFullYear();
+            from = new Date(yy, 0, 1, 12, 0, 0);
+            to   = new Date(yy + 1, 0, 1, 11, 59, 59);
+            break;
     }
 
-    if (type === "yesterday") {
-        from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 12, 0, 0);
-        to   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 59, 59);
-    }
-
-    if (type === "week") {
-        const day = now.getDay();
-        const diff = day >= 3 ? day - 3 : (7 - (3 - day));
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff, 12, 0, 0);
-        from = start;
-        to   = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 11, 59, 59);
-    }
-
-    if (type === "month") {
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        from = new Date(y, m, 1, 12, 0, 0);
-        to   = new Date(y, m + 1, 1, 11, 59, 59);
-    }
-
-    if (type === "year") {
-        const y = now.getFullYear();
-        from = new Date(y, 0, 1, 12, 0, 0);
-        to   = new Date(y + 1, 0, 1, 11, 59, 59);
-    }
-
-    applyGlobalFilter(from, to);
+    applyFilter(from, to);
 }
 
-function filterByCustom(from, to) {
-    if (!from || !to) return alert("اختر التاريخين");
+/* ===========================
+   CUSTOM RANGE
+=========================== */
 
+function applyCustom(from, to) {
     const start = new Date(from + " 12:00:00");
     const end   = new Date(to   + " 11:59:59");
-
-    applyGlobalFilter(start, end);
+    applyFilter(start, end);
 }
 
-function applyGlobalFilter(from, to) {
-    if (!currentData.length || currentRenderer === null || currentDateIndex === null) {
+/* ===========================
+   MAIN FILTER ENGINE
+=========================== */
+
+function applyFilter(from, to) {
+    if (!currentData.length || !currentRenderer || currentDateIndex === null) {
         alert("لا توجد بيانات للفلترة");
         return;
     }
@@ -747,13 +759,9 @@ function applyGlobalFilter(from, to) {
         return d && d >= from && d <= to;
     });
 
-    if (!filtered.length) {
-        alert("لا توجد بيانات للفترة");
-        return;
-    }
-
     currentRenderer(filtered);
 }
+
 
 /* ===========================
    LANGUAGE SWITCHER
