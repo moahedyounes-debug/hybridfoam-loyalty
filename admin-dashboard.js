@@ -441,43 +441,104 @@ function renderInvoicesSummary(list) {
     box.innerHTML = html;
 }
 /* ===========================
-   BOOKINGS
+   BOOKINGS WITH SEARCH & FILTER
 =========================== */
+let allBookings = [];
+let filteredBookings = [];
+
 async function renderBookings() {
     const box = el("tab-bookings");
     box.innerHTML = "جاري التحميل...";
 
-    const today = new Date().toISOString().split("T")[0];
-    const res = await apiGetBookingsByDate(today);
+    // جلب كل الحجوزات
+    const res = await apiGetAll("Bookings");
 
-    if (!res.success || !res.rows || !res.rows.length) {
-        box.innerHTML = "لا توجد حجوزات لليوم";
+    if (!res.success || !res.rows) {
+        box.innerHTML = "لا توجد حجوزات";
         return;
     }
 
+    allBookings = res.rows;
+    filteredBookings = [...allBookings];
+
+    drawBookingsUI();
+}
+
+function drawBookingsUI() {
+    const box = el("tab-bookings");
+
     let html = `
+    <div class="booking-tools">
+
+        <input id="bookingSearch" type="text" placeholder="بحث برقم اللوحة / العضوية / الاسم" style="padding:8px;width:60%;font-size:16px">
+
+        <button class="btn-primary" id="showAllBookings">الكل</button>
+        <button class="btn-primary" id="showPendingBookings">المعلقة</button>
+        <button class="btn-primary" id="showDoneBookings">المكتملة</button>
+
+    </div>
+
     <table>
         <tr>
-            <th>الاسم</th>
+            <th>العميل</th>
             <th>الجوال</th>
             <th>الخدمة</th>
+            <th>التاريخ</th>
             <th>الوقت</th>
+            <th>الحالة</th>
         </tr>
     `;
 
-    res.rows.forEach(b => {
+    filteredBookings.forEach(b => {
         html += `
         <tr>
-            <td>${b[1]}</td>
+            <td>${b[1] || "-"}</td>
+            <td>${b[0]}</td>
             <td>${b[2]}</td>
             <td>${b[3]}</td>
             <td>${b[4]}</td>
+            <td>${b[5]}</td>
         </tr>
         `;
     });
 
     html += `</table>`;
+
     box.innerHTML = html;
+
+    bindBookingFilters();
+}
+
+function bindBookingFilters() {
+    // البحث
+    el("bookingSearch").oninput = (e) => {
+        const q = e.target.value.trim();
+        filteredBookings = allBookings.filter(b =>
+            (b[0] + "").includes(q) ||   // رقم الجوال
+            (b[1] + "").includes(q) ||   // اسم العميل
+            (b[2] + "").includes(q) ||   // الخدمة
+            (b[6] + "").includes(q)      // العضوية (لو موجودة)
+        );
+        drawBookingsUI();
+    };
+
+    // الكل
+    el("showAllBookings").onclick = () => {
+        filteredBookings = [...allBookings];
+        drawBookingsUI();
+    };
+
+    // المعلقة
+    el("showPendingBookings").onclick = () => {
+        filteredBookings = allBookings.filter(b => b[5] === "قيد الانتظار");
+        drawBookingsUI();
+    };
+
+    // المكتملة
+    el("showDoneBookings").onclick = () => {
+        filteredBookings = allBookings.filter(b => b[5] === "تم التنفيذ" || b[5] === "مكتمل");
+        drawBookingsUI();
+    };
 }
 
 /* ===========================
