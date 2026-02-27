@@ -251,6 +251,28 @@ async function apiGetLevels() {
     action: "getLevels"
   });
 }
+/* ===========================
+   Update Booking Status
+=========================== */
+async function apiUpdateBookingStatus(phone, status) {
+    return apiPost({
+        action: "updateBookingStatus",
+        phone,
+        status
+    });
+}
+
+/* ===========================
+   Update Booking Date & Time
+=========================== */
+async function apiUpdateBookingDate(phone, date, time) {
+    return apiPost({
+        action: "updateBookingDate",
+        phone,
+        date,
+        time
+    });
+}
 
 /* ===========================
    Universal Row Operations
