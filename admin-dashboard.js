@@ -84,19 +84,19 @@ async function exportPDF(table) {
         format: "a4"
     });
 
-    // تحميل خط عربي (Cairo)
-    const fontUrl = "https://cdn.jsdelivr.net/gh/google/fonts/ofl/cairo/Cairo-Regular.ttf";
-    const fontBuffer = await fetch(fontUrl).then(res => res.arrayBuffer());
-    const fontBytes = new Uint8Array(fontBuffer);
-    let fontBase64 = "";
-    for (let i = 0; i < fontBytes.length; i++) {
-        fontBase64 += String.fromCharCode(fontBytes[i]);
-    }
-    fontBase64 = btoa(fontBase64);
+// تحميل خط Noto Naskh Arabic
+const fontUrl = "https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf";
+const fontBuffer = await fetch(fontUrl).then(res => res.arrayBuffer());
+const fontBytes = new Uint8Array(fontBuffer);
+let fontBase64 = "";
+for (let i = 0; i < fontBytes.length; i++) {
+    fontBase64 += String.fromCharCode(fontBytes[i]);
+}
+fontBase64 = btoa(fontBase64);
 
-    doc.addFileToVFS("Cairo.ttf", fontBase64);
-    doc.addFont("Cairo.ttf", "Cairo", "normal");
-    doc.setFont("Cairo");
+doc.addFileToVFS("Noto.ttf", fontBase64);
+doc.addFont("Noto.ttf", "Noto", "normal");
+doc.setFont("Noto");
 
     const headers = [];
     table.querySelectorAll("tr th").forEach(th => headers.push(th.innerText));
@@ -441,7 +441,7 @@ function renderInvoicesSummary(list) {
     box.innerHTML = html;
 }
 /* ===========================
-   BOOKINGS WITH SEARCH & FILTER
+   BOOKINGS WITH SEARCH & FILTER + ACTION BUTTONS
 =========================== */
 let allBookings = [];
 let filteredBookings = [];
@@ -450,7 +450,6 @@ async function renderBookings() {
     const box = el("tab-bookings");
     box.innerHTML = "جاري التحميل...";
 
-    // جلب كل الحجوزات
     const res = await apiGetAll("Bookings");
 
     if (!res.success || !res.rows) {
@@ -461,7 +460,11 @@ async function renderBookings() {
     allBookings = res.rows;
     filteredBookings = [...allBookings];
 
-    drawBookingsUI();
+    // ربط الفلترة العامة بهذه الصفحة
+    currentData = allBookings;
+    currentRenderer = drawBookingsUI;
+
+    drawBookingsUI(filteredBookings);
 }
 
 function drawBookingsUI() {
@@ -470,7 +473,8 @@ function drawBookingsUI() {
     let html = `
     <div class="booking-tools">
 
-        <input id="bookingSearch" type="text" placeholder="بحث برقم اللوحة / العضوية / الاسم" style="padding:8px;width:60%;font-size:16px">
+        <input id="bookingSearch" type="text" placeholder="بحث برقم اللوحة / العضوية / الاسم" 
+               style="padding:8px;width:60%;font-size:16px">
 
         <button class="btn-primary" id="showAllBookings">الكل</button>
         <button class="btn-primary" id="showPendingBookings">المعلقة</button>
@@ -486,10 +490,11 @@ function drawBookingsUI() {
             <th>التاريخ</th>
             <th>الوقت</th>
             <th>الحالة</th>
+            <th>الإجراءات</th>
         </tr>
     `;
 
-    filteredBookings.forEach(b => {
+    filteredBookings.forEach((b, i) => {
         html += `
         <tr>
             <td>${b[1] || "-"}</td>
@@ -498,6 +503,12 @@ function drawBookingsUI() {
             <td>${b[3]}</td>
             <td>${b[4]}</td>
             <td>${b[5]}</td>
+
+            <td>
+                <button class="btn-primary" onclick="confirmBooking(${i})">تأكيد</button>
+                <button class="btn-secondary" onclick="cancelBooking(${i})">إلغاء</button>
+                <button class="btn-edit" onclick="editBooking(${i})">تعديل</button>
+            </td>
         </tr>
         `;
     });
@@ -536,9 +547,45 @@ function bindBookingFilters() {
 
     // المكتملة
     el("showDoneBookings").onclick = () => {
-        filteredBookings = allBookings.filter(b => b[5] === "تم التنفيذ" || b[5] === "مكتمل");
+        filteredBookings = allBookings.filter(b => 
+            b[5] === "تم التنفيذ" || b[5] === "مكتمل"
+        );
         drawBookingsUI();
     };
+}
+
+/* ===========================
+   ACTION BUTTONS
+=========================== */
+
+// تأكيد الحجز
+function confirmBooking(index) {
+    const b = filteredBookings[index];
+    apiUpdateBookingStatus(b[0], "تم التنفيذ");
+    alert("تم تأكيد الحجز");
+    renderBookings();
+}
+
+// إلغاء الحجز
+function cancelBooking(index) {
+    const b = filteredBookings[index];
+    apiUpdateBookingStatus(b[0], "ملغي");
+    alert("تم إلغاء الحجز");
+    renderBookings();
+}
+
+// تعديل الموعد
+function editBooking(index) {
+    const b = filteredBookings[index];
+
+    const newDate = prompt("أدخل التاريخ الجديد:", b[3]);
+    const newTime = prompt("أدخل الوقت الجديد:", b[4]);
+
+    if (!newDate || !newTime) return;
+
+    apiUpdateBookingDate(b[0], newDate, newTime);
+    alert("تم تعديل الموعد");
+    renderBookings();
 }
 
 /* ===========================
@@ -612,9 +659,15 @@ el("closeModal").onclick = closeDetailsModal;
 window._openVisitDetails = function(v) {
     openDetailsModal(v);
 };
+
 /* ===========================
-   GLOBAL FILTER
+   GLOBAL DATE FILTER (WORKS FOR ALL PAGES)
 =========================== */
+
+// هذا المتغير يخزن الداتا الحالية للصفحة المفتوحة
+let currentData = [];
+let currentRenderer = null; // دالة إعادة الرسم
+
 function bindGlobalFilter() {
     el("gToday").onclick = () => filterByRange("today");
     el("gYesterday").onclick = () => filterByRange("yesterday");
@@ -660,7 +713,7 @@ function filterByRange(type) {
         to = getDateOnly(now);
     }
 
-    applyFilter(from, to);
+    applyGlobalFilter(from, to);
 }
 
 function filterByCustom(from, to) {
@@ -668,86 +721,22 @@ function filterByCustom(from, to) {
         alert("اختر التاريخين أولاً");
         return;
     }
-    applyFilter(from, to);
+    applyGlobalFilter(from, to);
 }
 
-function applyFilter(from, to) {
-    filteredVisits = allVisits.filter(v => {
-        const date = getDateOnly(v[10] || v[11] || "");
-        return date >= from && date <= to;
-    });
-
-    renderAll();
-}
-
-/* ===========================
-   COMPLETED FILTER
-=========================== */
-function bindCompletedFilter() {
-    el("filterToday").onclick = () => filterCompleted("today");
-    el("filterYesterday").onclick = () => filterCompleted("yesterday");
-    el("filterWeek").onclick = () => filterCompleted("week");
-    el("filterMonth").onclick = () => filterCompleted("month");
-    el("filterYear").onclick = () => filterCompleted("year");
-
-    el("filterCustom").onclick = () => {
-        const from = el("filterFrom").value;
-        const to = el("filterTo").value;
-        filterCompletedCustom(from, to);
-    };
-}
-
-function filterCompleted(type) {
-    const now = new Date();
-    let from, to;
-
-    if (type === "today") from = to = getDateOnly(now);
-
-    if (type === "yesterday") {
-        const y = new Date(now);
-        y.setDate(y.getDate() - 1);
-        from = to = getDateOnly(y);
-    }
-
-    if (type === "week") {
-        const start = new Date(now);
-        start.setDate(start.getDate() - 7);
-        from = getDateOnly(start);
-        to = getDateOnly(now);
-    }
-
-    if (type === "month") {
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-        from = getDateOnly(start);
-        to = getDateOnly(now);
-    }
-
-    if (type === "year") {
-        const start = new Date(now.getFullYear(), 0, 1);
-        from = getDateOnly(start);
-        to = getDateOnly(now);
-    }
-
-    applyCompletedFilter(from, to);
-}
-
-function filterCompletedCustom(from, to) {
-    if (!from || !to) {
-        alert("اختر التاريخين أولاً");
+function applyGlobalFilter(from, to) {
+    if (!currentData.length || !currentRenderer) {
+        alert("لا توجد بيانات للفلترة");
         return;
     }
-    applyCompletedFilter(from, to);
-}
 
-function applyCompletedFilter(from, to) {
-    const paid = allVisits.filter(v => v[15] === "مدفوع");
-
-    const filtered = paid.filter(v => {
-        const date = getDateOnly(v[10] || v[11] || "");
+    // نفترض أن التاريخ موجود في العمود رقم 3 أو 10 حسب نوع الصفحة
+    const filtered = currentData.filter(row => {
+        const date = getDateOnly(row[3] || row[10] || "");
         return date >= from && date <= to;
     });
 
-    renderCompletedVisits(filtered);
+    currentRenderer(filtered);
 }
 
 /* ===========================
