@@ -250,7 +250,7 @@ function renderEmployeesSummary(list) {
     list.forEach(v => {
         const employee = v[9] || "غير محدد";
         const price = Number(v[7] || 0);
-        const discount = Number(v[26] || 0);
+        const discount = Number(v[24] || 0);
         const net = price - discount;
         const tip = Number(v[23] || 0);
         const comm = Number(v[12] || 0);
@@ -380,7 +380,7 @@ function renderCompletedVisits(list) {
 
     paid.forEach(v => {
         const price = Number(v[7] || 0);
-        const discount = Number(v[26] || 0);
+        const discount = Number(v[24] || 0);
         const net = price - discount;
         const method = v[16];
         const employee = v[9];
