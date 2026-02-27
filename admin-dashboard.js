@@ -30,6 +30,10 @@ document.addEventListener("DOMContentLoaded", () => {
     el("langSwitcher").onchange = (e) => {
         applyLanguage(e.target.value);
     };
+
+    // ربط أزرار التصدير
+    el("exportPDF").onclick = () => exportPDF(getActiveTable());
+    el("exportExcel").onclick = () => exportExcel(getActiveTable());
 });
 
 
@@ -71,6 +75,17 @@ function bindTabs() {
         };
     });
 }
+
+/* ===========================
+   Get Active Table (NEW)
+=========================== */
+function getActiveTable() {
+    const active = document.querySelector(".tab-content.active");
+    if (!active) return null;
+    return active.querySelector("table");
+}
+
+
 
 /* ===========================
    Safe Date Parser (Enhanced)
@@ -229,7 +244,7 @@ function renderServicesSummary(list) {
 
     list.forEach(v => {
         const s = v[6] || "غير محدد";
-        const price = Number(v[22] || v[7] || 0);
+        const price = Number(v[22] || 0); // بعد الخصم فقط
         const method = v[16];
 
         if (!svc[s]) svc[s] = { count: 0, cash: 0, card: 0, total: 0 };
@@ -280,86 +295,82 @@ function renderServicesSummary(list) {
     `;
 
     box.innerHTML = html;
-
-    // ربط الأزرار
-    el("exportServicesPDF").onclick = exportServicesPDF;
-    el("exportServicesExcel").onclick = exportServicesExcel;
 }
 
 /* ===========================
-   Export Services PDF
+   PDF
 =========================== */
-async function exportServicesPDF() {
-    const { jsPDF } = window.jspdf;
+async function exportPDF(table) {
+    if (!table) {
+        alert("لا يوجد جدول للتصدير");
+        return;
+    }
 
+    const { jsPDF } = window.jspdf;
     const doc = new jsPDF({
         orientation: "portrait",
         unit: "pt",
         format: "a4"
     });
 
-    doc.addFileToVFS("Amiri-Regular.ttf", amiriFont);
-    doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
-    doc.setFont("Amiri");
-
-    const table = document.querySelector("#servicesTable");
-    if (!table) {
-        alert("لا توجد بيانات للتصدير");
-        return;
-    }
-
     const headers = [];
-    table.querySelectorAll("tr th").forEach(th => {
-        headers.push(th.innerText);
-    });
+    table.querySelectorAll("tr th").forEach(th => headers.push(th.innerText));
 
     const rows = [];
     table.querySelectorAll("tr:not(:first-child)").forEach(tr => {
         const row = [];
-        tr.querySelectorAll("td").forEach(td => {
-            row.push(td.innerText);
-        });
+        tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
         rows.push(row);
     });
 
     doc.autoTable({
         head: [headers],
         body: rows,
-        styles: {
-            font: "Amiri",
-            fontSize: 12,
-            cellPadding: 5,
-            halign: "right"
-        },
-        headStyles: {
-            fillColor: [13, 71, 161],
-            font: "Amiri",
-            halign: "center"
-        },
+        styles: { fontSize: 12, cellPadding: 5, halign: "right" },
+        headStyles: { fillColor: [13, 71, 161], halign: "center" },
         margin: { top: 40 },
         theme: "grid"
     });
 
-    doc.save("services-summary.pdf");
+    doc.save("export.pdf");
 }
 
+
 /* ===========================
-   Export Services Excel
+   Excel file
 =========================== */
-function exportServicesExcel() {
-    const table = document.querySelector("#servicesTable");
+
+async function exportPDF(table) {
     if (!table) {
-        alert("لا توجد بيانات للتصدير");
+        alert("لا يوجد جدول للتصدير");
         return;
     }
 
-    const html = table.outerHTML.replace(/ /g, '%20');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
 
-    const a = document.createElement("a");
-    a.href = 'data:application/vnd.ms-excel,' + html;
-    a.download = "services-summary.xls";
-    a.click();
+    const headers = [];
+    table.querySelectorAll("tr th").forEach(th => headers.push(th.innerText));
+
+    const rows = [];
+    table.querySelectorAll("tr:not(:first-child)").forEach(tr => {
+        const row = [];
+        tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
+        rows.push(row);
+    });
+
+    doc.autoTable({
+        head: [headers],
+        body: rows,
+        styles: { fontSize: 12, cellPadding: 5, halign: "right" },
+        headStyles: { fillColor: [13, 71, 161], halign: "center" },
+        margin: { top: 40 },
+        theme: "grid"
+    });
+
+    doc.save("export.pdf");
 }
+
 
 /* ===========================
    Completed Visits
@@ -433,7 +444,7 @@ function renderInvoicesSummary(list) {
 
     list.forEach(v => {
         const m = v[0] || "بدون عضوية";
-        const price = Number(v[22] || v[7] || 0);
+        const price = Number(v[22] || 0); // بعد الخصم فقط
 
         if (!mem[m]) mem[m] = { visits: 0, total: 0 };
 
