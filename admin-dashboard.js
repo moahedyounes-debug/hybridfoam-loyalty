@@ -660,13 +660,14 @@ window._openVisitDetails = function(v) {
     openDetailsModal(v);
 };
 
+
 /* ===========================
-   GLOBAL DATE FILTER (WORKS FOR ALL PAGES)
+   GLOBAL DATE FILTER (FOR ALL PAGES)
 =========================== */
 
-// هذا المتغير يخزن الداتا الحالية للصفحة المفتوحة
 let currentData = [];
-let currentRenderer = null; // دالة إعادة الرسم
+let currentRenderer = null;
+let currentDateIndex = null;
 
 function bindGlobalFilter() {
     el("gToday").onclick = () => filterByRange("today");
@@ -686,55 +687,64 @@ function filterByRange(type) {
     const now = new Date();
     let from, to;
 
-    if (type === "today") from = to = getDateOnly(now);
+    if (type === "today") {
+        from = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+        to   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
+    }
 
     if (type === "yesterday") {
-        const y = new Date(now);
-        y.setDate(y.getDate() - 1);
-        from = to = getDateOnly(y);
+        from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 12, 0, 0);
+        to   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 59, 59);
     }
 
     if (type === "week") {
-        const start = new Date(now);
-        start.setDate(start.getDate() - 7);
-        from = getDateOnly(start);
-        to = getDateOnly(now);
+        const day = now.getDay();
+        const diff = day >= 3 ? day - 3 : (7 - (3 - day));
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff, 12, 0, 0);
+        from = start;
+        to   = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 11, 59, 59);
     }
 
     if (type === "month") {
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-        from = getDateOnly(start);
-        to = getDateOnly(now);
+        const y = now.getFullYear();
+        const m = now.getMonth();
+        from = new Date(y, m, 1, 12, 0, 0);
+        to   = new Date(y, m + 1, 1, 11, 59, 59);
     }
 
     if (type === "year") {
-        const start = new Date(now.getFullYear(), 0, 1);
-        from = getDateOnly(start);
-        to = getDateOnly(now);
+        const y = now.getFullYear();
+        from = new Date(y, 0, 1, 12, 0, 0);
+        to   = new Date(y + 1, 0, 1, 11, 59, 59);
     }
 
     applyGlobalFilter(from, to);
 }
 
 function filterByCustom(from, to) {
-    if (!from || !to) {
-        alert("اختر التاريخين أولاً");
-        return;
-    }
-    applyGlobalFilter(from, to);
+    if (!from || !to) return alert("اختر التاريخين");
+
+    const start = new Date(from + " 12:00:00");
+    const end   = new Date(to   + " 11:59:59");
+
+    applyGlobalFilter(start, end);
 }
 
 function applyGlobalFilter(from, to) {
-    if (!currentData.length || !currentRenderer) {
+    if (!currentData.length || currentRenderer === null || currentDateIndex === null) {
         alert("لا توجد بيانات للفلترة");
         return;
     }
 
-    // نفترض أن التاريخ موجود في العمود رقم 3 أو 10 حسب نوع الصفحة
     const filtered = currentData.filter(row => {
-        const date = getDateOnly(row[3] || row[10] || "");
-        return date >= from && date <= to;
+        const d = parseDateTime(row[currentDateIndex]);
+        return d && d >= from && d <= to;
     });
+
+    if (!filtered.length) {
+        alert("لا توجد بيانات للفترة");
+        return;
+    }
 
     currentRenderer(filtered);
 }
