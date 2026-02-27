@@ -84,19 +84,19 @@ async function exportPDF(table) {
         format: "a4"
     });
 
-// تحميل خط Noto Naskh Arabic
-const fontUrl = "https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf";
-const fontBuffer = await fetch(fontUrl).then(res => res.arrayBuffer());
-const fontBytes = new Uint8Array(fontBuffer);
-let fontBase64 = "";
-for (let i = 0; i < fontBytes.length; i++) {
-    fontBase64 += String.fromCharCode(fontBytes[i]);
-}
-fontBase64 = btoa(fontBase64);
+    // تحميل خط Noto Naskh Arabic
+    const fontUrl = "https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf";
+    const fontBuffer = await fetch(fontUrl).then(res => res.arrayBuffer());
+    const fontBytes = new Uint8Array(fontBuffer);
+    let fontBase64 = "";
+    for (let i = 0; i < fontBytes.length; i++) {
+        fontBase64 += String.fromCharCode(fontBytes[i]);
+    }
+    fontBase64 = btoa(fontBase64);
 
-doc.addFileToVFS("Noto.ttf", fontBase64);
-doc.addFont("Noto.ttf", "Noto", "normal");
-doc.setFont("Noto");
+    doc.addFileToVFS("Noto.ttf", fontBase64);
+    doc.addFont("Noto.ttf", "Noto", "normal");
+    doc.setFont("Noto");
 
     const headers = [];
     table.querySelectorAll("tr th").forEach(th => headers.push(th.innerText));
@@ -111,14 +111,15 @@ doc.setFont("Noto");
     doc.autoTable({
         head: [headers],
         body: rows,
-        styles: { font: "Cairo", fontSize: 12, cellPadding: 5, halign: "right" },
-        headStyles: { fillColor: [13, 71, 161], halign: "center" },
+        styles: { font: "Noto", fontSize: 12, cellPadding: 5, halign: "right" },
+        headStyles: { fillColor: [13, 71, 161], halign: "center", font: "Noto" },
         margin: { top: 40 },
         theme: "grid"
     });
 
     doc.save("export.pdf");
 }
+
 
 /* ===========================
    TABS
@@ -473,7 +474,11 @@ async function renderBookings() {
     drawBookingsUI(filteredBookings);
 }
 
-function drawBookingsUI() {
+function drawBookingsUI(list = filteredBookings) {
+
+    // مهم جداً: حدّث القائمة الحالية بالبيانات القادمة من الفلتر
+    filteredBookings = list;
+
     const box = el("tab-bookings");
 
     let html = `
@@ -500,7 +505,7 @@ function drawBookingsUI() {
         </tr>
     `;
 
-    filteredBookings.forEach((b, i) => {
+    list.forEach((b, i) => {
         html += `
         <tr>
             <td>${b[1] || "-"}</td>
@@ -525,6 +530,7 @@ function drawBookingsUI() {
 
     bindBookingFilters();
 }
+
 
 function bindBookingFilters() {
     // البحث
