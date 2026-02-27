@@ -220,7 +220,7 @@ function renderEmployeesSummary(list) {
     box.innerHTML = html;
 }
 /* ===========================
-   Services Summary + PDF Export
+   Services Summary + PDF + Excel Export
 =========================== */
 function renderServicesSummary(list) {
     const box = el("tab-services");
@@ -245,6 +245,10 @@ function renderServicesSummary(list) {
     let html = `
     <button class="btn-export" id="exportServicesPDF" style="margin-bottom: 15px;">
         تصدير PDF
+    </button>
+
+    <button class="btn-export" id="exportServicesExcel" style="margin-bottom: 15px;">
+        تصدير Excel
     </button>
 
     <table id="servicesTable">
@@ -277,7 +281,9 @@ function renderServicesSummary(list) {
 
     box.innerHTML = html;
 
+    // ربط الأزرار
     el("exportServicesPDF").onclick = exportServicesPDF;
+    el("exportServicesExcel").onclick = exportServicesExcel;
 }
 
 /* ===========================
@@ -292,7 +298,6 @@ async function exportServicesPDF() {
         format: "a4"
     });
 
-    // إضافة الخط العربي
     doc.addFileToVFS("Amiri-Regular.ttf", amiriFont);
     doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
     doc.setFont("Amiri");
@@ -336,6 +341,24 @@ async function exportServicesPDF() {
     });
 
     doc.save("services-summary.pdf");
+}
+
+/* ===========================
+   Export Services Excel
+=========================== */
+function exportServicesExcel() {
+    const table = document.querySelector("#servicesTable");
+    if (!table) {
+        alert("لا توجد بيانات للتصدير");
+        return;
+    }
+
+    const html = table.outerHTML.replace(/ /g, '%20');
+
+    const a = document.createElement("a");
+    a.href = 'data:application/vnd.ms-excel,' + html;
+    a.download = "services-summary.xls";
+    a.click();
 }
 
 /* ===========================
