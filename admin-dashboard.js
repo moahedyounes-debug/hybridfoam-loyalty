@@ -84,8 +84,8 @@ async function exportPDF(table) {
         format: "a4"
     });
 
-    // تحميل خط عربي (Amiri)
-    const fontUrl = "https://cdn.jsdelivr.net/gh/alif-type/amiri@master/amiri-regular.ttf";
+    // تحميل خط عربي (Cairo)
+    const fontUrl = "https://cdn.jsdelivr.net/gh/google/fonts/ofl/cairo/Cairo-Regular.ttf";
     const fontBuffer = await fetch(fontUrl).then(res => res.arrayBuffer());
     const fontBytes = new Uint8Array(fontBuffer);
     let fontBase64 = "";
@@ -94,9 +94,9 @@ async function exportPDF(table) {
     }
     fontBase64 = btoa(fontBase64);
 
-    doc.addFileToVFS("amiri.ttf", fontBase64);
-    doc.addFont("amiri.ttf", "amiri", "normal");
-    doc.setFont("amiri");
+    doc.addFileToVFS("Cairo.ttf", fontBase64);
+    doc.addFont("Cairo.ttf", "Cairo", "normal");
+    doc.setFont("Cairo");
 
     const headers = [];
     table.querySelectorAll("tr th").forEach(th => headers.push(th.innerText));
@@ -111,7 +111,7 @@ async function exportPDF(table) {
     doc.autoTable({
         head: [headers],
         body: rows,
-        styles: { font: "amiri", fontSize: 12, cellPadding: 5, halign: "right" },
+        styles: { font: "Cairo", fontSize: 12, cellPadding: 5, halign: "right" },
         headStyles: { fillColor: [13, 71, 161], halign: "center" },
         margin: { top: 40 },
         theme: "grid"
