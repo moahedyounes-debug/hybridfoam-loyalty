@@ -780,8 +780,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     bindGlobalFilter();
 
-    bindCompletedFilter();
-
     bindGlobalExportButtons();
 
     el("langSwitcher").onchange = (e) => applyLanguage(e.target.value);
