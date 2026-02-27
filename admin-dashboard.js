@@ -250,16 +250,15 @@ function renderEmployeesSummary(list) {
     const box = el("tab-employees");
     const emp = {};
 
-    let totalBefore = 0;   // قبل الخصم = 2161
-    let totalAfter  = 0;   // بعد الخصم = 2068
-    let totalBefore = 0;   // قبل الخصم = 2161
+    let totalBefore = 0;   // قبل الخصم
+    let totalAfter  = 0;   // بعد الخصم
     let totalDiscount = 0;
     let totalCommission = 0;
 
     list.forEach(v => {
         const employee      = v[9] || "غير محدد";
-        const priceOriginal = Number(v[7]  || 0); // قبل الخصم
-        const priceAfter    = Number(v[22] || 0); // بعد الخصم
+        const priceOriginal = Number(v[7]  || 0); 
+        const priceAfter    = Number(v[22] || 0);
         const commission    = Number(v[12] || 0);
 
         const discount = priceOriginal - priceAfter;
@@ -269,7 +268,7 @@ function renderEmployeesSummary(list) {
         }
 
         emp[employee].cars++;
-        emp[employee].totalBefore += priceOriginal; // نعرض قبل الخصم
+        emp[employee].totalBefore += priceOriginal;
         emp[employee].commission  += commission;
 
         totalBefore     += priceOriginal;
