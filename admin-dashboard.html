@@ -22,18 +22,13 @@
   </select>
 </div>
 
-  
 <!-- GLOBAL FILTER -->
 <div class="global-filter" role="region" aria-label="مرشحات عامة">
 
     <button class="btn-primary" id="gToday" data-i18n="today">اليوم</button>
-
     <button class="btn-primary" id="gYesterday" data-i18n="yesterday">أمس</button>
-
     <button class="btn-primary" id="gWeek" data-i18n="week">هذا الأسبوع</button>
-
     <button class="btn-primary" id="gMonth" data-i18n="month">هذا الشهر</button>
-
     <button class="btn-primary" id="gYear" data-i18n="year">هذه السنة</button>
 
     <input type="date" id="gFrom" aria-label="من">
@@ -43,9 +38,8 @@
 
 </div>
 
-
-  <!-- HEADER SUMMARY -->
-  <div class="top-summary" role="region" aria-label="ملخص">
+<!-- HEADER SUMMARY -->
+<div class="top-summary" role="region" aria-label="ملخص">
 
     <div class="summary-box">
       <span class="material-icons">credit_card</span>
@@ -65,7 +59,7 @@
       <h3 id="sumDiscount">0 ريال</h3>
     </div>
     
-       <div class="summary-box">
+    <div class="summary-box">
       <span class="material-icons">account_balance</span>
       <p>الصافي</p>
       <h3 id="sumNet">0 ريال</h3>
@@ -88,16 +82,23 @@
       <p>العمولة</p>
       <h3 id="sumCommission">0 ريال</h3>
     </div>
-        <div class="summary-box">
+
+    <div class="summary-box">
       <span class="material-icons">account_balance_wallet</span>
       <p>الإجمالي</p>
       <h3 id="sumTotal">0 ريال</h3>
     </div>
     
-  </div>
+</div>
 
-  <!-- TABS -->
-  <div class="tabs-container" role="tablist">
+<!-- GLOBAL EXPORT BUTTONS -->
+<div id="globalExportButtons" style="margin: 15px 0;">
+    <button class="btn-export" id="exportPDF">تصدير PDF</button>
+    <button class="btn-export" id="exportExcel">تصدير Excel</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs-container" role="tablist">
 
     <button class="tab-btn active" data-tab="employees">
       <span class="material-icons">person</span> ملخص الموظفين
@@ -123,14 +124,12 @@
       <span class="material-icons">receipt_long</span> الفواتير
     </button>
 
-  </div>
+</div>
 
+<!-- TAB CONTENT -->
+<div id="tab-employees" class="tab-content active"></div>
 
-  
-  <!-- TAB CONTENT -->
-  <div id="tab-employees" class="tab-content active"></div>
-
-  <div id="tab-completed" class="tab-content">
+<div id="tab-completed" class="tab-content">
 
     <div class="filter-box">
 
@@ -144,22 +143,20 @@
       <input type="date" id="filterTo">
       <button class="btn-secondary" id="filterCustom">تطبيق</button>
 
-      <button class="btn-export" id="exportExcel">تصدير Excel</button>
-
     </div>
 
     <div id="completedContent"></div>
     <div id="completedTotal" class="table-total"></div>
 
-  </div>
+</div>
 
-  <div id="tab-services" class="tab-content"></div>
-  <div id="tab-bookings" class="tab-content"></div>
-  <div id="tab-notifications" class="tab-content"></div>
-  <div id="tab-invoices" class="tab-content"></div>
+<div id="tab-services" class="tab-content"></div>
+<div id="tab-bookings" class="tab-content"></div>
+<div id="tab-notifications" class="tab-content"></div>
+<div id="tab-invoices" class="tab-content"></div>
 
-  <!-- DETAILS MODAL -->
-  <div id="detailsModal" class="modal" aria-hidden="true">
+<!-- DETAILS MODAL -->
+<div id="detailsModal" class="modal" aria-hidden="true">
     <div class="modal-content">
 
       <span id="closeModal" class="material-icons close-btn">close</span>
@@ -181,5 +178,3 @@
 
 </body>
 </html>
-
-
