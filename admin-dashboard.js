@@ -158,23 +158,29 @@ async function loadAllVisits() {
     filteredVisits = [...allVisits];
 
     // ربط الفلترة العامة بصفحة الزيارات
-    currentData = allVisits;
-    currentRenderer = renderAll;
-    currentDateIndex = 14; // check_in
+    currentData = allVisits;          // البيانات التي سيتم فلترتها
+    currentRenderer = renderAll;      // دالة إعادة الرسم
+    currentDateIndex = 14;            // عمود التاريخ check_in
 
-    renderAll(filteredVisits);
+    renderAll(filteredVisits);        // أول رسم للصفحة
 }
 
 /* ===========================
-   Render All Sections
+   Render All Sections (Fixed)
 =========================== */
-function renderAll() {
-    renderTopSummary(filteredVisits);
-    renderEmployeesSummary(filteredVisits);
-    renderServicesSummary(filteredVisits);
-    renderCompletedVisits(filteredVisits);
-    renderInvoicesSummary(filteredVisits);
+function renderAll(list = filteredVisits) {
+
+    // تحديث القائمة الحالية بالبيانات القادمة من الفلتر
+    filteredVisits = list;
+
+    // إعادة رسم كل الأقسام بالبيانات الجديدة
+    renderTopSummary(list);
+    renderEmployeesSummary(list);
+    renderServicesSummary(list);
+    renderCompletedVisits(list);
+    renderInvoicesSummary(list);
 }
+
 
 /* ===========================
    Global Export Buttons Binding
