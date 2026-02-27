@@ -144,7 +144,7 @@ function bindTabs() {
 }
 
 /* ===========================
-   Load All Visits Once
+   Load All Visits Once (Updated for Global Filter)
 =========================== */
 async function loadAllVisits() {
     const res = await apiGetAll("Visits");
@@ -156,7 +156,12 @@ async function loadAllVisits() {
     allVisits = res.rows || [];
     filteredVisits = [...allVisits];
 
-    renderAll();
+    // ربط الفلترة العامة بصفحة الزيارات
+    currentData = allVisits;
+    currentRenderer = renderAll;
+    currentDateIndex = 14; // check_in
+
+    renderAll(filteredVisits);
 }
 
 /* ===========================
@@ -459,6 +464,14 @@ async function renderBookings() {
 
     allBookings = res.rows;
     filteredBookings = [...allBookings];
+
+    // ربط الفلترة العامة بصفحة الحجوزات
+    currentData = allBookings;       // البيانات التي ستُفلتر
+    currentRenderer = drawBookingsUI; // دالة إعادة الرسم
+    currentDateIndex = 3;             // عمود التاريخ في Bookings = b[3]
+
+    drawBookingsUI(filteredBookings);
+}
 
     // ربط الفلترة العامة بهذه الصفحة
     currentData = allBookings;
