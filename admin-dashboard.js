@@ -160,7 +160,7 @@ async function loadAllVisits() {
     // ربط الفلترة العامة بصفحة الزيارات
     currentData = allVisits;          // البيانات التي سيتم فلترتها
     currentRenderer = renderAll;      // دالة إعادة الرسم
-    currentDateIndex = 14;            // عمود التاريخ check_in
+    currentDateIndex = 13;            // عمود التاريخ check_in
 
     renderAll(filteredVisits);        // أول رسم للصفحة
 }
