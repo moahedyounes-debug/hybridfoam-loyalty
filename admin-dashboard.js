@@ -1,57 +1,166 @@
-function applyLanguage(lang) {
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-        const key = el.getAttribute("data-i18n");
-        el.innerText = translations[lang][key] || key;
-    });
-
-    // تغيير اتجاه الصفحة
-    if (lang === "en") {
-        document.body.dir = "ltr";
-    } else {
-        document.body.dir = "rtl";
-    }
-}
+/* ===========================
+   Helpers & Globals
+=========================== */
 
 const el = id => document.getElementById(id);
 const getDateOnly = v => String(v || "").split("T")[0].split(" ")[0];
 
 let allVisits = [];
 let filteredVisits = [];
-let commissions = {};
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadAllVisits();
-    bindTabs();
-    bindGlobalFilter();
-    bindCompletedFilter();
-    bindExport();
+/* ===========================
+   Safe Date Parser
+=========================== */
+function parseDateTime(str) {
+    if (!str) return null;
 
-    // ربط زر اللغة
-    el("langSwitcher").onchange = (e) => {
-        applyLanguage(e.target.value);
-    };
+    str = str.trim().replace("T", " ");
 
-    // ربط أزرار التصدير
-    el("exportPDF").onclick = () => exportPDF(getActiveTable());
-    el("exportExcel").onclick = () => exportExcel(getActiveTable());
-});
+    if (str.length === 10) {
+        str += " 00:00:00";
+    }
 
+    const parts = str.split(" ");
+    if (parts.length < 2) return null;
+
+    const [datePart, timePartRaw] = parts;
+    const [y, m, d] = datePart.split("-").map(Number);
+
+    let timePart = timePartRaw.trim();
+    const t = timePart.split(":");
+    if (t.length === 2) {
+        timePart += ":00";
+    }
+
+    let [hh, mm, ss] = timePart.split(":").map(Number);
+
+    if (isNaN(hh)) hh = 0;
+    if (isNaN(mm)) mm = 0;
+    if (isNaN(ss)) ss = 0;
+
+    return new Date(y, m - 1, d, hh, mm, ss);
+}
+
+/* ===========================
+   Get Active Table (for export)
+=========================== */
+function getActiveTable() {
+    const active = document.querySelector(".tab-content.active");
+    if (!active) return null;
+    return active.querySelector("table");
+}
+
+/* ===========================
+   Export Excel (Global)
+=========================== */
+function exportExcel(table) {
+    if (!table) {
+        alert("لا يوجد جدول للتصدير");
+        return;
+    }
+
+    const html = table.outerHTML.replace(/ /g, '%20');
+
+    const a = document.createElement("a");
+    a.href = 'data:application/vnd.ms-excel,' + html;
+    a.download = "export.xls";
+    a.click();
+}
+
+/* ===========================
+   Export PDF (Global, Arabic support)
+=========================== */
+async function exportPDF(table) {
+    if (!table) {
+        alert("لا يوجد جدول للتصدير");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4"
+    });
+
+    // تحميل خط عربي (Amiri)
+    const fontUrl = "https://cdn.jsdelivr.net/gh/alif-type/amiri@master/amiri-regular.ttf";
+    const fontBuffer = await fetch(fontUrl).then(res => res.arrayBuffer());
+    const fontBytes = new Uint8Array(fontBuffer);
+    let fontBase64 = "";
+    for (let i = 0; i < fontBytes.length; i++) {
+        fontBase64 += String.fromCharCode(fontBytes[i]);
+    }
+    fontBase64 = btoa(fontBase64);
+
+    doc.addFileToVFS("amiri.ttf", fontBase64);
+    doc.addFont("amiri.ttf", "amiri", "normal");
+    doc.setFont("amiri");
+
+    const headers = [];
+    table.querySelectorAll("tr th").forEach(th => headers.push(th.innerText));
+
+    const rows = [];
+    table.querySelectorAll("tr:not(:first-child)").forEach(tr => {
+        const row = [];
+        tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
+        rows.push(row);
+    });
+
+    doc.autoTable({
+        head: [headers],
+        body: rows,
+        styles: { font: "amiri", fontSize: 12, cellPadding: 5, halign: "right" },
+        headStyles: { fillColor: [13, 71, 161], halign: "center" },
+        margin: { top: 40 },
+        theme: "grid"
+    });
+
+    doc.save("export.pdf");
+}
+
+/* ===========================
+   TABS
+=========================== */
+function bindTabs() {
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+            const tab = el("tab-" + btn.dataset.tab);
+            tab.classList.add("active");
+
+            if (btn.dataset.tab === "bookings") {
+                renderBookings();
+            }
+            if (btn.dataset.tab === "notifications") {
+                renderNotifications();
+            }
+        };
+    });
+}
 
 /* ===========================
    Load All Visits Once
 =========================== */
 async function loadAllVisits() {
     const res = await apiGetAll("Visits");
-    if (!res.success) return;
+    if (!res.success) {
+        console.error("Failed to load visits", res);
+        return;
+    }
 
-    allVisits = res.rows;
+    allVisits = res.rows || [];
     filteredVisits = [...allVisits];
 
     renderAll();
 }
 
 /* ===========================
-   Render Everything
+   Render All Sections
 =========================== */
 function renderAll() {
     renderTopSummary(filteredVisits);
@@ -62,180 +171,116 @@ function renderAll() {
 }
 
 /* ===========================
-   Tabs
+   Global Export Buttons Binding
 =========================== */
-function bindTabs() {
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-        btn.onclick = () => {
-            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
+function bindGlobalExportButtons() {
+    const pdfBtn = el("exportPDF");
+    const excelBtn = el("exportExcel");
 
-            document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-            el("tab-" + btn.dataset.tab).classList.add("active");
+    if (pdfBtn) {
+        pdfBtn.onclick = () => {
+            const table = getActiveTable();
+            exportPDF(table);
         };
-    });
-}
-
-/* ===========================
-   Get Active Table (NEW)
-=========================== */
-function getActiveTable() {
-    const active = document.querySelector(".tab-content.active");
-    if (!active) return null;
-    return active.querySelector("table");
-}
-
-
-
-/* ===========================
-   Safe Date Parser (Enhanced)
-=========================== */
-function parseDateTime(str) {
-    if (!str) return null;
-
-    str = str.trim().replace("T", " ");
-
-    // لو التاريخ بدون وقت
-    if (str.length === 10) {
-        str += " 00:00:00";
     }
 
-    const parts = str.split(" ");
-    if (parts.length < 2) return null;
-
-    const [datePart, timePartRaw] = parts;
-
-    // التاريخ
-    const [y, m, d] = datePart.split("-").map(Number);
-
-    // الوقت
-    let timePart = timePartRaw.trim();
-
-    // لو الوقت بدون ثواني
-    const t = timePart.split(":");
-    if (t.length === 2) {
-        timePart += ":00";
+    if (excelBtn) {
+        excelBtn.onclick = () => {
+            const table = getActiveTable();
+            exportExcel(table);
+        };
     }
-
-    let [hh, mm, ss] = timePart.split(":").map(Number);
-
-    // إصلاح أي NaN
-    if (isNaN(hh)) hh = 0;
-    if (isNaN(mm)) mm = 0;
-    if (isNaN(ss)) ss = 0;
-
-    return new Date(y, m - 1, d, hh, mm, ss);
 }
 /* ===========================
-   Top Summary
+   TOP SUMMARY
 =========================== */
 function renderTopSummary(list) {
-    let totalBefore = 0;   // price (قبل الخصم) = 2161
-    let totalAfter  = 0;   // TOTAL_PAID (بعد الخصم) = 2068
-    let cash = 0;
-    let card = 0;
-    let tips = 0;
-    let totalCommission = 0;
+    let cash = 0, card = 0, discount = 0, net = 0, services = 0, tips = 0, commission = 0, total = 0;
 
     list.forEach(v => {
-        const price      = Number(v[7]  || 0);  // قبل الخصم
-        const paid       = Number(v[22] || 0);  // بعد الخصم
-        const cashAmount = Number(v[20] || 0);
-        const cardAmount = Number(v[21] || 0);
-        const tip        = Number(v[23] || 0);
-        const commission = Number(v[12] || 0);
+        const price = Number(v[7] || 0);
+        const disc = Number(v[26] || 0);
+        const netPrice = price - disc;
 
-        totalBefore     += price;
-        totalAfter      += paid;
-        cash            += cashAmount;
-        card            += cardAmount;
-        tips            += tip;
-        totalCommission += commission;
+        const method = v[16];
+        const tip = Number(v[23] || 0);
+        const comm = Number(v[12] || 0);
+
+        services++;
+        discount += disc;
+        tips += tip;
+        commission += comm;
+        net += netPrice;
+
+        if (method === "كاش") cash += netPrice;
+        if (method === "شبكة") card += netPrice;
+
+        total += netPrice;
     });
 
-    const discount = totalBefore - totalAfter; // 2161 - 2068 = 93
-
-    el("sumCash").innerText       = cash + " ريال";
-    el("sumCard").innerText       = card + " ريال";
-    el("sumDiscount").innerText   = discount + " ريال";
-
-    el("sumTotal").innerText      = totalBefore + " ريال"; // الإجمالي = 2161
-    el("sumNet").innerText        = totalAfter + " ريال";  // الإجمالي بعد الخصم = 2068
-
-    el("sumTips").innerText       = tips + " ريال";
-    el("sumServices").innerText   = list.length;
-    el("sumCommission").innerText = totalCommission + " ريال";
+    el("sumCash").innerText = cash + " ريال";
+    el("sumCard").innerText = card + " ريال";
+    el("sumDiscount").innerText = discount + " ريال";
+    el("sumNet").innerText = net + " ريال";
+    el("sumServices").innerText = services;
+    el("sumTips").innerText = tips + " ريال";
+    el("sumCommission").innerText = commission + " ريال";
+    el("sumTotal").innerText = total + " ريال";
 }
+
 /* ===========================
-   Employees Summary
+   EMPLOYEES SUMMARY
 =========================== */
 function renderEmployeesSummary(list) {
     const box = el("tab-employees");
     const emp = {};
-    let totalAfter  = 0;   // بعد الخصم = 2068
-    let totalBefore = 0;   // قبل الخصم = 2161
-    let totalDiscount = 0;
-    let totalCommission = 0;
 
     list.forEach(v => {
-        const employee      = v[9] || "غير محدد";
-        const priceOriginal = Number(v[7]  || 0); // قبل الخصم
-        const priceAfter    = Number(v[22] || 0); // بعد الخصم
-        const commission    = Number(v[12] || 0);
+        const employee = v[9] || "غير محدد";
+        const price = Number(v[7] || 0);
+        const discount = Number(v[26] || 0);
+        const net = price - discount;
+        const tip = Number(v[23] || 0);
+        const comm = Number(v[12] || 0);
 
-        const discount = priceOriginal - priceAfter;
+        if (!emp[employee]) emp[employee] = { visits: 0, net: 0, tips: 0, commission: 0 };
 
-        if (!emp[employee]) {
-            emp[employee] = { cars: 0, totalBefore: 0, commission: 0 };
-        }
-
-        emp[employee].cars++;
-        emp[employee].totalBefore += priceOriginal; // نعرض قبل الخصم
-        emp[employee].commission  += commission;
-
-        totalBefore     += priceOriginal;
-        totalAfter      += priceAfter;
-        totalDiscount   += discount;
-        totalCommission += commission;
+        emp[employee].visits++;
+        emp[employee].net += net;
+        emp[employee].tips += tip;
+        emp[employee].commission += comm;
     });
-
-    const sorted = Object.entries(emp).sort((a, b) => b[1].totalBefore - a[1].totalBefore);
 
     let html = `
     <table>
         <tr>
             <th>الموظف</th>
-            <th>الخدمات</th>
-            <th>الإجمالي</th>
-            <th>العمولات</th>
+            <th>الزيارات</th>
+            <th>الصافي</th>
+            <th>الإكراميات</th>
+            <th>العمولة</th>
         </tr>
     `;
 
-    sorted.forEach(([name, data]) => {
+    Object.keys(emp).forEach(e => {
+        const r = emp[e];
         html += `
         <tr>
-            <td>${name}</td>
-            <td>${data.cars}</td>
-            <td>${data.totalBefore}</td>
-            <td>${data.commission}</td>
+            <td>${e}</td>
+            <td>${r.visits}</td>
+            <td>${r.net}</td>
+            <td>${r.tips}</td>
+            <td>${r.commission}</td>
         </tr>
         `;
     });
 
-    html += `
-    </table>
-    <div class="table-total">
-        <b>الإجمالي: ${totalBefore} ريال</b><br>
-        <b>الصافي : ${totalAfter} ريال</b><br>
-        <b>إجمالي الخصومات: ${totalDiscount} ريال</b><br>
-        <b>العمولات: ${totalCommission} ريال</b>
-    </div>
-    `;
-
+    html += `</table>`;
     box.innerHTML = html;
 }
+
 /* ===========================
-   Services Summary + PDF + Excel Export
+   SERVICES SUMMARY
 =========================== */
 function renderServicesSummary(list) {
     const box = el("tab-services");
@@ -244,7 +289,7 @@ function renderServicesSummary(list) {
 
     list.forEach(v => {
         const s = v[6] || "غير محدد";
-        const price = Number(v[22] || 0); // بعد الخصم فقط
+        const price = Number(v[22] || 0);
         const method = v[16];
 
         if (!svc[s]) svc[s] = { count: 0, cash: 0, card: 0, total: 0 };
@@ -258,15 +303,7 @@ function renderServicesSummary(list) {
     });
 
     let html = `
-    <button class="btn-export" id="exportServicesPDF" style="margin-bottom: 15px;">
-        تصدير PDF
-    </button>
-
-    <button class="btn-export" id="exportServicesExcel" style="margin-bottom: 15px;">
-        تصدير Excel
-    </button>
-
-    <table id="servicesTable">
+    <table>
         <tr>
             <th>الخدمة</th>
             <th>العدد</th>
@@ -298,82 +335,7 @@ function renderServicesSummary(list) {
 }
 
 /* ===========================
-   PDF
-=========================== */
-async function exportPDF(table) {
-    if (!table) {
-        alert("لا يوجد جدول للتصدير");
-        return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "pt",
-        format: "a4"
-    });
-
-    const headers = [];
-    table.querySelectorAll("tr th").forEach(th => headers.push(th.innerText));
-
-    const rows = [];
-    table.querySelectorAll("tr:not(:first-child)").forEach(tr => {
-        const row = [];
-        tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
-        rows.push(row);
-    });
-
-    doc.autoTable({
-        head: [headers],
-        body: rows,
-        styles: { fontSize: 12, cellPadding: 5, halign: "right" },
-        headStyles: { fillColor: [13, 71, 161], halign: "center" },
-        margin: { top: 40 },
-        theme: "grid"
-    });
-
-    doc.save("export.pdf");
-}
-
-
-/* ===========================
-   Excel file
-=========================== */
-
-async function exportPDF(table) {
-    if (!table) {
-        alert("لا يوجد جدول للتصدير");
-        return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-
-    const headers = [];
-    table.querySelectorAll("tr th").forEach(th => headers.push(th.innerText));
-
-    const rows = [];
-    table.querySelectorAll("tr:not(:first-child)").forEach(tr => {
-        const row = [];
-        tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
-        rows.push(row);
-    });
-
-    doc.autoTable({
-        head: [headers],
-        body: rows,
-        styles: { fontSize: 12, cellPadding: 5, halign: "right" },
-        headStyles: { fillColor: [13, 71, 161], halign: "center" },
-        margin: { top: 40 },
-        theme: "grid"
-    });
-
-    doc.save("export.pdf");
-}
-
-
-/* ===========================
-   Completed Visits
+   COMPLETED VISITS
 =========================== */
 function renderCompletedVisits(list) {
     const box = el("completedContent");
@@ -429,13 +391,12 @@ function renderCompletedVisits(list) {
     });
 
     html += `</table>`;
-
     box.innerHTML = html;
     totalBox.innerHTML = `<b>الإجمالي الصافي: ${total} ريال</b>`;
 }
 
 /* ===========================
-   Invoices Summary
+   INVOICES SUMMARY
 =========================== */
 function renderInvoicesSummary(list) {
     const box = el("tab-invoices");
@@ -444,7 +405,7 @@ function renderInvoicesSummary(list) {
 
     list.forEach(v => {
         const m = v[0] || "بدون عضوية";
-        const price = Number(v[22] || 0); // بعد الخصم فقط
+        const price = Number(v[22] || 0);
 
         if (!mem[m]) mem[m] = { visits: 0, total: 0 };
 
@@ -480,266 +441,283 @@ function renderInvoicesSummary(list) {
     box.innerHTML = html;
 }
 /* ===========================
-   Global Filter (Updated)
+   BOOKINGS
 =========================== */
+async function renderBookings() {
+    const box = el("tab-bookings");
+    box.innerHTML = "جاري التحميل...";
 
-function bindGlobalFilter() {
-    el("gToday").onclick = () => applyGlobalFilter("today");
-    el("gYesterday").onclick = () => applyGlobalFilter("yesterday");
-    el("gWeek").onclick = () => applyGlobalFilter("week");
-    el("gMonth").onclick = () => applyGlobalFilter("month");
-    el("gYear").onclick = () => applyGlobalFilter("year");
-    el("gCustom").onclick = () => applyGlobalFilter("custom");
+    const today = new Date().toISOString().split("T")[0];
+    const res = await apiGetBookingsByDate(today);
+
+    if (!res.success || !res.rows || !res.rows.length) {
+        box.innerHTML = "لا توجد حجوزات لليوم";
+        return;
+    }
+
+    let html = `
+    <table>
+        <tr>
+            <th>الاسم</th>
+            <th>الجوال</th>
+            <th>الخدمة</th>
+            <th>الوقت</th>
+        </tr>
+    `;
+
+    res.rows.forEach(b => {
+        html += `
+        <tr>
+            <td>${b[1]}</td>
+            <td>${b[2]}</td>
+            <td>${b[3]}</td>
+            <td>${b[4]}</td>
+        </tr>
+        `;
+    });
+
+    html += `</table>`;
+    box.innerHTML = html;
 }
 
-function applyGlobalFilter(type) {
+/* ===========================
+   NOTIFICATIONS
+=========================== */
+async function renderNotifications() {
+    const box = el("tab-notifications");
+    box.innerHTML = "جاري التحميل...";
+
+    const res = await apiGetNotifications("ALL");
+
+    if (!res.success || !res.rows || !res.rows.length) {
+        box.innerHTML = "لا توجد إشعارات";
+        return;
+    }
+
+    let html = `
+    <table>
+        <tr>
+            <th>الرسالة</th>
+            <th>التاريخ</th>
+        </tr>
+    `;
+
+    res.rows.forEach(n => {
+        html += `
+        <tr>
+            <td>${n[1]}</td>
+            <td>${n[2]}</td>
+        </tr>
+        `;
+    });
+
+    html += `</table>`;
+    box.innerHTML = html;
+}
+
+/* ===========================
+   DETAILS MODAL
+=========================== */
+function openDetailsModal(visit) {
+    const modal = el("detailsModal");
+    const body = el("detailsBody");
+
+    body.innerHTML = `
+        <p><b>اللوحة:</b> ${visit[1]} ${visit[2]}</p>
+        <p><b>الخدمة:</b> ${visit[6]}</p>
+        <p><b>السعر:</b> ${visit[7]}</p>
+        <p><b>الخصم:</b> ${visit[26]}</p>
+        <p><b>الصافي:</b> ${visit[7] - visit[26]}</p>
+        <p><b>الدفع:</b> ${visit[16]}</p>
+        <p><b>الموظف:</b> ${visit[9]}</p>
+        <p><b>الدخول:</b> ${visit[13]}</p>
+        <p><b>الخروج:</b> ${visit[14]}</p>
+        <p><b>الإكرامية:</b> ${visit[23]}</p>
+        <p><b>العمولة:</b> ${visit[12]}</p>
+    `;
+
+    modal.setAttribute("aria-hidden", "false");
+}
+
+function closeDetailsModal() {
+    el("detailsModal").setAttribute("aria-hidden", "true");
+}
+
+el("closeModal").onclick = closeDetailsModal;
+
+/* ===========================
+   GLOBAL VISIT DETAILS HANDLER
+=========================== */
+window._openVisitDetails = function(v) {
+    openDetailsModal(v);
+};
+/* ===========================
+   GLOBAL FILTER
+=========================== */
+function bindGlobalFilter() {
+    el("gToday").onclick = () => filterByRange("today");
+    el("gYesterday").onclick = () => filterByRange("yesterday");
+    el("gWeek").onclick = () => filterByRange("week");
+    el("gMonth").onclick = () => filterByRange("month");
+    el("gYear").onclick = () => filterByRange("year");
+
+    el("gCustom").onclick = () => {
+        const from = el("gFrom").value;
+        const to = el("gTo").value;
+        filterByCustom(from, to);
+    };
+}
+
+function filterByRange(type) {
     const now = new Date();
+    let from, to;
 
-    /* ===========================
-       TODAY (12 PM → next day 11:59 AM)
-    ============================ */
-    if (type === "today") {
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
-        const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
+    if (type === "today") from = to = getDateOnly(now);
 
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
+    if (type === "yesterday") {
+        const y = new Date(now);
+        y.setDate(y.getDate() - 1);
+        from = to = getDateOnly(y);
     }
 
-    /* ===========================
-       YESTERDAY (12 PM → today 11:59 AM)
-    ============================ */
-    else if (type === "yesterday") {
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 12, 0, 0);
-        const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 59, 59);
-
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
+    if (type === "week") {
+        const start = new Date(now);
+        start.setDate(start.getDate() - 7);
+        from = getDateOnly(start);
+        to = getDateOnly(now);
     }
 
-    /* ===========================
-       WEEK (Wed 12 PM → Tue 11:59 AM)
-    ============================ */
-    else if (type === "week") {
-        const day = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed...
-        const diff = day >= 3 ? day - 3 : (7 - (3 - day));
-
-        const start = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate() - diff,
-            12, 0, 0
-        );
-
-        const end = new Date(
-            start.getFullYear(),
-            start.getMonth(),
-            start.getDate() + 6,
-            11, 59, 59
-        );
-
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
+    if (type === "month") {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        from = getDateOnly(start);
+        to = getDateOnly(now);
     }
 
-    /* ===========================
-       MONTH (1st 12 PM → next month 11:59 AM)
-    ============================ */
-    else if (type === "month") {
-        const y = now.getFullYear();
-        const m = now.getMonth();
-
-        const start = new Date(y, m, 1, 12, 0, 0);
-        const end   = new Date(y, m + 1, 1, 11, 59, 59);
-
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
+    if (type === "year") {
+        const start = new Date(now.getFullYear(), 0, 1);
+        from = getDateOnly(start);
+        to = getDateOnly(now);
     }
 
-    /* ===========================
-       YEAR (Jan 1 12 PM → next year 11:59 AM)
-    ============================ */
-    else if (type === "year") {
-        const y = now.getFullYear();
+    applyFilter(from, to);
+}
 
-        const start = new Date(y, 0, 1, 12, 0, 0);
-        const end   = new Date(y + 1, 0, 1, 11, 59, 59);
-
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
+function filterByCustom(from, to) {
+    if (!from || !to) {
+        alert("اختر التاريخين أولاً");
+        return;
     }
+    applyFilter(from, to);
+}
 
-    /* ===========================
-       CUSTOM (12 PM → next day 11:59 AM)
-    ============================ */
-    else if (type === "custom") {
-        const f = el("gFrom").value;
-        const t = el("gTo").value;
-
-        if (!f || !t) return alert("اختر التاريخين");
-
-        const start = new Date(f + " 12:00:00");
-        const end   = new Date(t + " 11:59:59");
-
-        filteredVisits = allVisits.filter(v => {
-            const d = parseDateTime(v[13]);
-            return d && d >= start && d <= end;
-        });
-    }
+function applyFilter(from, to) {
+    filteredVisits = allVisits.filter(v => {
+        const date = getDateOnly(v[10] || v[11] || "");
+        return date >= from && date <= to;
+    });
 
     renderAll();
 }
 
 /* ===========================
-   Completed Tab Filter (Local)
+   COMPLETED FILTER
 =========================== */
-
 function bindCompletedFilter() {
+    el("filterToday").onclick = () => filterCompleted("today");
+    el("filterYesterday").onclick = () => filterCompleted("yesterday");
+    el("filterWeek").onclick = () => filterCompleted("week");
+    el("filterMonth").onclick = () => filterCompleted("month");
+    el("filterYear").onclick = () => filterCompleted("year");
 
-    // ====== اليوم (12 PM → next day 11:59 AM) ======
-    el("filterToday").onclick = () => {
-        const now = new Date();
-
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
-        const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 59, 59);
-
-        renderCompletedVisits(
-            filteredVisits.filter(v => {
-                const d = parseDateTime(v[13]);
-                return d && d >= start && d <= end;
-            })
-        );
-    };
-
-    // ====== الأسبوع (Wed 12 PM → Tue 11:59 AM) ======
-    el("filterWeek").onclick = () => {
-        const now = new Date();
-        const day = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed...
-        const diff = day >= 3 ? day - 3 : (7 - (3 - day));
-
-        const start = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate() - diff,
-            12, 0, 0
-        );
-
-        const end = new Date(
-            start.getFullYear(),
-            start.getMonth(),
-            start.getDate() + 6,
-            11, 59, 59
-        );
-
-        renderCompletedVisits(
-            filteredVisits.filter(v => {
-                const d = parseDateTime(v[13]);
-                return d && d >= start && d <= end;
-            })
-        );
-    };
-
-    // ====== الشهر (1st 12 PM → next month 11:59 AM) ======
-    el("filterMonth").onclick = () => {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-
-        const start = new Date(y, m, 1, 12, 0, 0);
-        const end   = new Date(y, m + 1, 1, 11, 59, 59);
-
-        renderCompletedVisits(
-            filteredVisits.filter(v => {
-                const d = parseDateTime(v[13]);
-                return d && d >= start && d <= end;
-            })
-        );
-    };
-
-    // ====== السنة (Jan 1 12 PM → next year 11:59 AM) ======
-    el("filterYear").onclick = () => {
-        const now = new Date();
-        const y = now.getFullYear();
-
-        const start = new Date(y, 0, 1, 12, 0, 0);
-        const end   = new Date(y + 1, 0, 1, 11, 59, 59);
-
-        renderCompletedVisits(
-            filteredVisits.filter(v => {
-                const d = parseDateTime(v[13]);
-                return d && d >= start && d <= end;
-            })
-        );
-    };
-
-    // ====== مخصص (12 PM → 11:59 AM) ======
     el("filterCustom").onclick = () => {
-        const f = el("filterFrom").value;
-        const t = el("filterTo").value;
-
-        if (!f || !t) return alert("اختر التاريخين");
-
-        const start = new Date(f + " 12:00:00");
-        const end   = new Date(t + " 11:59:59");
-
-        renderCompletedVisits(
-            filteredVisits.filter(v => {
-                const d = parseDateTime(v[13]);
-                return d && d >= start && d <= end;
-            })
-        );
-    };
-}
-/* ===========================
-   Export Filtered Table
-=========================== */
-
-function bindExport() {
-    el("exportExcel").onclick = () => {
-        const rows = document.querySelectorAll("#completedContent table tr");
-
-        if (rows.length <= 1) {
-            alert("لا توجد بيانات للتصدير");
-            return;
-        }
-
-        let csv = "\ufeff";
-
-        rows.forEach(row => {
-            const cols = row.querySelectorAll("td, th");
-            const line = [...cols].map(c => `"${c.innerText}"`).join(",");
-            csv += line + "\n";
-        });
-
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "filtered_visits.csv";
-        a.click();
+        const from = el("filterFrom").value;
+        const to = el("filterTo").value;
+        filterCompletedCustom(from, to);
     };
 }
 
-function applyLanguage(lang) {
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-        const key = el.getAttribute("data-i18n");
-        el.innerText = translations[lang][key] || key;
+function filterCompleted(type) {
+    const now = new Date();
+    let from, to;
+
+    if (type === "today") from = to = getDateOnly(now);
+
+    if (type === "yesterday") {
+        const y = new Date(now);
+        y.setDate(y.getDate() - 1);
+        from = to = getDateOnly(y);
+    }
+
+    if (type === "week") {
+        const start = new Date(now);
+        start.setDate(start.getDate() - 7);
+        from = getDateOnly(start);
+        to = getDateOnly(now);
+    }
+
+    if (type === "month") {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        from = getDateOnly(start);
+        to = getDateOnly(now);
+    }
+
+    if (type === "year") {
+        const start = new Date(now.getFullYear(), 0, 1);
+        from = getDateOnly(start);
+        to = getDateOnly(now);
+    }
+
+    applyCompletedFilter(from, to);
+}
+
+function filterCompletedCustom(from, to) {
+    if (!from || !to) {
+        alert("اختر التاريخين أولاً");
+        return;
+    }
+    applyCompletedFilter(from, to);
+}
+
+function applyCompletedFilter(from, to) {
+    const paid = allVisits.filter(v => v[15] === "مدفوع");
+
+    const filtered = paid.filter(v => {
+        const date = getDateOnly(v[10] || v[11] || "");
+        return date >= from && date <= to;
     });
 
-    if (lang === "en") {
-        document.body.dir = "ltr";
-    } else {
-        document.body.dir = "rtl";
-    }
+    renderCompletedVisits(filtered);
 }
+
+/* ===========================
+   LANGUAGE SWITCHER
+=========================== */
+function applyLanguage(lang) {
+    if (!window.translations) return;
+
+    document.querySelectorAll("[data-i18n]").forEach(elm => {
+        const key = elm.getAttribute("data-i18n");
+        if (translations[lang] && translations[lang][key]) {
+            elm.innerText = translations[lang][key];
+        }
+    });
+}
+
+/* ===========================
+   DOMContentLoaded
+=========================== */
+document.addEventListener("DOMContentLoaded", () => {
+
+    loadAllVisits();
+
+    bindTabs();
+
+    bindGlobalFilter();
+
+    bindCompletedFilter();
+
+    bindGlobalExportButtons();
+
+    el("langSwitcher").onchange = (e) => applyLanguage(e.target.value);
+
+});
