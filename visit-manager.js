@@ -550,7 +550,6 @@ function loadAddTab() {
         loadActiveVisits();
     };
 }
-}
 
 /* ===========================
    تبويب: تغيير الموظف
