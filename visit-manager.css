@@ -325,16 +325,20 @@ input[readonly] { background: var(--gray-100); }
 .tab-pane label { margin-top: 18px; display: block; }
 .tab-pane button { margin-top: 18px; }
 
-/* Toast */
-/* Toast Container */
-#toastContainer {
+/* ===========================
+   Toast Notifications (Centered Top)
+=========================== */
+
+#toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 2000;
+    top: 20px;                 /* أعلى الشاشة */
+    left: 50%;                 /* منتصف العرض */
+    transform: translateX(-50%);
+    z-index: 999999;           /* فوق كل شيء */
     display: flex;
     flex-direction: column;
     gap: 12px;
+    pointer-events: none;
 }
 
 /* Toast Base Style */
@@ -351,6 +355,7 @@ input[readonly] { background: var(--gray-100); }
     align-items: center;
     gap: 12px;
     font-size: 1.05rem;
+    pointer-events: all;
 }
 
 /* Show Animation */
@@ -370,6 +375,10 @@ input[readonly] { background: var(--gray-100); }
 
 .toast.info {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.toast.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
 }
 
 /* Toast Icon */
