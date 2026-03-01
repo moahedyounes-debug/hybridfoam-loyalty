@@ -910,6 +910,15 @@ function recalcTotal() {
     el("totalPrice").textContent = finalTotal;
 }
 
+function updatePartialTotal() {
+    const cash = Number(el("cash_amount").value || 0);
+    const card = Number(el("card_amount").value || 0);
+    const total = cash + card;
+
+    el("paid_total").textContent = total;
+}
+
+
 /* ===========================
    تسجيل الزيارة
 =========================== */
@@ -1169,4 +1178,8 @@ window.onload = async () => {
     await loadBranches();
     await loadEmployees();
     await loadActiveVisits();
+
+   el("cash_amount").oninput = updatePartialTotal;
+el("card_amount").oninput = updatePartialTotal;
+
 };
