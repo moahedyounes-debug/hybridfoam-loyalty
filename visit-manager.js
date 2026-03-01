@@ -161,36 +161,24 @@ async function loadActiveVisits() {
 /* ===========================
    تحديث شريط الملخص
 =========================== */
-function updateSummary(rows) {
-    const uniquePlates = new Set(rows.map(v => v.data[1])).size;
-    const totalAmount = rows.reduce((sum, v) => sum + Number(v.data[7] || 0), 0);
-
-    el("summaryActive").textContent = rows.length;
-    el("summaryCars").textContent = uniquePlates;
-    el("summaryTotal").textContent = totalAmount + " ريال";
-}
-
-/* ===========================
-   تحديث الدفع المفتوح 
-=========================== */
-
 function openPaymentModal(plate) {
     selectedPlate = plate;
 
+    // كل الخدمات لنفس اللوحة
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(plate));
     if (!rows.length) {
         showToast("لا توجد بيانات لهذه اللوحة", "error");
         return;
     }
 
-    const row = rows[0].data;
+    // إجمالي السعر قبل الخصم
+    const totalBefore = rows.reduce((sum, r) => sum + Number(r.data[7] || 0), 0);
 
-    // السعر الحقيقي من الصف (price = index 7)
-    const totalBefore = Number(row[7] || 0);
+    // الخصم القديم (مجموع كل الخدمات)
+    const oldDiscount = rows.reduce((sum, r) => sum + Number(r.data[24] || 0), 0);
 
-    // نبدأ الخصم والإكرامية من 0 (الموظف يكتبهم)
-    const oldDiscount = 0;
-    const oldTip = 0;
+    // الإكرامية القديمة
+    const oldTip = rows.reduce((sum, r) => sum + Number(r.data[23] || 0), 0);
 
     // تعبئة المودال
     el("modal_total_before").textContent = totalBefore + " ريال";
@@ -206,7 +194,7 @@ function openPaymentModal(plate) {
     updateTotals();
     el("modal_discount_input").oninput = updateTotals;
 
-    // إخفاء حقول الكاش/الشبكة الجزئية مبدئياً
+    // إخفاء حقول الدفع الجزئي
     el("cash_box").style.display = "none";
     el("card_box").style.display = "none";
     el("modal_cash").value = "";
@@ -237,6 +225,7 @@ function openPaymentModal(plate) {
         });
     };
 }
+
 /* ===========================
    تحديث الدفع 
 =========================== */
@@ -264,6 +253,7 @@ async function submitPayment({ method, total_paid, discount, tip }) {
         }
     }
 
+    // كل الصفوف الخاصة باللوحة
     const rows = activeVisits.filter(v => v.data && String(v.data[1]) === String(selectedPlate));
     if (!rows.length) {
         showToast("خطأ: لا توجد بيانات", "error");
@@ -273,14 +263,17 @@ async function submitPayment({ method, total_paid, discount, tip }) {
     }
 
     try {
-        await apiCloseVisit(rows[0].row, {
-            payment_method: method,
-            cash_amount: cash,
-            card_amount: card,
-            total_paid,
-            tip,
-            discount
-        });
+        await apiCloseVisit(
+            rows.map(r => r.row),   // ← نرسل كل الصفوف
+            {
+                payment_method: method,
+                cash_amount: cash,
+                card_amount: card,
+                total_paid,
+                tip,
+                discount
+            }
+        );
 
         showToast("تم تحديث الدفع بنجاح", "success");
         closePaymentModal();
@@ -344,124 +337,117 @@ function openEditModal(plate, action) {
     loadEmpTab();
 }
 /* ===========================
-   التبويبات
-=========================== */
-document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.onclick = () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
-
-        btn.classList.add("active");
-        el(btn.dataset.tab).classList.add("active");
-    };
-});
-
-/* ===========================
-   تبويب: تبديل خدمة
+   تبويب: تبديل الخدمة
 =========================== */
 function loadSwapTab() {
 
-    const oldSel = el("swapOldServiceSelect");
-    oldSel.innerHTML = "";
+    const oldSel = el("oldServiceSelect");
+    const newSel = el("newServiceSelect");
 
+    // تعبئة الخدمات الحالية
+    oldSel.innerHTML = "";
     const rows = activeVisits.filter(v =>
         String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
     );
-
-    rows.forEach(v => {
-        const serviceName = v.data[6] || "";
-        const price = Number(v.data[7] || 0);
-
-        if (serviceName.trim() !== "") {
-            const opt = document.createElement("option");
-            opt.value = v.row;
-            opt.textContent = `${serviceName} — ${price} ريال`;
-            oldSel.appendChild(opt);
-        }
+    rows.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r.row;
+        opt.textContent = r.data[6]; // service_detail
+        oldSel.appendChild(opt);
     });
 
-    const newSel = el("swapNewServiceSelect");
+    // تعبئة الخدمات الجديدة
     newSel.innerHTML = "";
-
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
-        opt.textContent = `${s.service} — ${s.price} ريال`;
-        opt.dataset.price = s.price;
+        opt.textContent = s.service;
         newSel.appendChild(opt);
     });
 
     el("swapConfirm").onclick = async () => {
 
-        const btn = el("swapConfirm");
-        btn.disabled = true;
-        btn.textContent = "جاري التبديل...";
-
-        const oldRow = oldSel.value;
+        const row = Number(oldSel.value);
         const newService = newSel.value;
-        const newPrice = Number(newSel.selectedOptions[0].dataset.price);
 
-        const res = await apiUpdateRow("Visits", oldRow, {
-            service_detail: newService,
-            price: newPrice
+        const svc = servicesData.find(s => s.service === newService);
+
+        await apiUpdateRow("Visits", row, {
+            SERVICE: svc.service,
+            PRICE: svc.price,
+            POINTS: svc.commission,
+            COMMISSION: svc.commission
         });
-
-        btn.disabled = false;
-        btn.textContent = "تأكيد التبديل";
-
-        if (!res || res.success !== true) {
-            showToast("فشل التبديل — تحقق من الاتصال", "error");
-            return;
-        }
 
         showToast("تم تبديل الخدمة", "success");
         loadActiveVisits();
     };
 }
+
 /* ===========================
-   تبويب: حذف خدمة
+   تبويب: تبديل الخدمة (نسخة صحيحة)
 =========================== */
-function loadDeleteTab() {
+function loadSwapTab() {
 
-    const sel = el("deleteServiceSelect");
-    sel.innerHTML = "";
+    const oldSel = el("oldServiceSelect");
+    const newSel = el("newServiceSelect");
 
+    oldSel.innerHTML = "";
+    newSel.innerHTML = "";
+
+    /* ===========================
+       تحميل الخدمات الحالية للسيارة
+    ============================ */
     const rows = activeVisits.filter(v =>
         String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
     );
 
-    if (!rows.length) return;
-
-    rows.forEach(v => {
-        const serviceName = v.data[6] || "";
-        const price = Number(v.data[7] || 0);
-
-        if (serviceName.trim() !== "") {
-            const opt = document.createElement("option");
-            opt.value = v.row;
-            opt.textContent = `${serviceName} — ${price} ريال`;
-            sel.appendChild(opt);
-        }
+    rows.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r.row;          // رقم الصف
+        opt.textContent = r.data[6]; // اسم الخدمة الحالية
+        oldSel.appendChild(opt);
     });
 
-    el("deleteConfirm").onclick = async () => {
+    /* ===========================
+       تحميل قائمة الخدمات الجديدة
+    ============================ */
+    servicesData.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.service;
+        opt.textContent = `${s.service} — ${s.price} ريال`;
+        newSel.appendChild(opt);
+    });
 
-        if (!sel.value) return;
+    /* ===========================
+       تنفيذ التبديل
+    ============================ */
+    el("swapConfirm").onclick = async () => {
 
-        el("deleteConfirm").disabled = true;
-        el("deleteConfirm").textContent = "جاري الحذف...";
+        const row = Number(oldSel.value);
+        const newServiceName = newSel.value;
 
-        await apiDeleteRow("Visits", sel.value);
+        const svc = servicesData.find(s => s.service === newServiceName);
 
-        el("deleteConfirm").disabled = false;
-        el("deleteConfirm").textContent = "حذف الخدمة";
+        if (!svc) {
+            showToast("الخدمة غير موجودة", "error");
+            return;
+        }
 
-        showToast("تم حذف الخدمة", "success");
+        await apiUpdateRow("Visits", row, {
+            SERVICE: svc.service,
+            PRICE: svc.price,
+            POINTS: svc.commission,
+            COMMISSION: svc.commission
+        });
+
+        showToast("تم تبديل الخدمة بنجاح", "success");
         loadActiveVisits();
     };
 }
+
 /* ===========================
-   تبويب: إضافة خدمة
+   تبويب: إضافة خدمة (نسخة صحيحة)
 =========================== */
 function loadAddTab() {
 
@@ -475,10 +461,10 @@ function loadAddTab() {
         opt.textContent = `${s.service} — ${s.price} ريال`;
         opt.dataset.price = s.price;
         opt.dataset.points = s.commission;
+        opt.dataset.category = s.category;
         sel.appendChild(opt);
     });
 
-    // زر تأكيد الإضافة
     el("addConfirm").onclick = async () => {
 
         const btn = el("addConfirm");
@@ -488,15 +474,12 @@ function loadAddTab() {
         const service = sel.value;
         const price = Number(sel.selectedOptions[0].dataset.price);
         const points = Number(sel.selectedOptions[0].dataset.points);
+        const category = sel.selectedOptions[0].dataset.category;
 
         /* ===========================
            🔥 منع إضافة أكثر من غسيل
         ============================ */
-
-        const selectedServiceObj = servicesData.find(s => s.service === service);
-        const isWash = selectedServiceObj && selectedServiceObj.category === "غسيل";
-
-        if (isWash) {
+        if (category === "غسيل") {
 
             const hasWash = activeVisits.some(v => {
                 const existingServiceName = v.data[6];
@@ -518,35 +501,41 @@ function loadAddTab() {
         }
 
         /* ===========================
-           إضافة الخدمة فعليًا
+           🔥 جلب بيانات السيارة من أول صف
         ============================ */
+        const base = activeVisits.find(v =>
+            String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
+        ).data;
 
+        /* ===========================
+           🔥 إضافة الخدمة فعليًا
+        ============================ */
         const res = await apiAddRow("Visits", {
-            membership: "",
-            plate_numbers: selectedPlate,
-            plate_letters: "",
-            car_type: "",
-            car_model: "",
-            car_size: "",
-            service_detail: service,
-            price: price,
-            points: points,
-            employee_in: "",
-            employee_out: "",
-            branch: "",
-            commission: points,
-            check_in: "",
-            check_out: "",
-            payment_status: "غير مدفوع",
-            payment_method: "",
-            parking_slot: "",
-            rating: "",
-            payment_method_copy: "",
+            MEMBERSHIP: base[0],
+            PLATE_NUMBERS: base[1],
+            PLATE_LETTERS: base[2],
+            CAR_TYPE: base[3],
+            CAR_MODEL: base[4],
+            CAR_SIZE: base[5],
+            SERVICE: service,
+            PRICE: price,
+            POINTS: points,
+            EMP_IN: base[9],
+            EMP_OUT: "",
+            BRANCH: base[11],
+            COMMISSION: points,
+            CHECK_IN: base[13],
+            CHECK_OUT: "",
+            PAY_STATUS: "غير مدفوع",
+            PAY_METHOD: "",
+            PARKING: base[17],
+            RATING: "",
+            PAY_METHOD_COPY: "",
             CASH_AMOUNT: "",
             CARD_AMOUNT: "",
             TOTAL_PAID: "",
-            tip: "",
-            discount: ""
+            TIP: 0,
+            DISCOUNT: 0
         });
 
         btn.disabled = false;
@@ -563,17 +552,18 @@ function loadAddTab() {
 }
 
 /* ===========================
-   تبويب: تغيير الموظف
+   تبويب: تغيير الموظف (نسخة صحيحة)
 =========================== */
 function loadEmpTab() {
 
     const sel = el("empSelect");
     sel.innerHTML = "";
 
+    // تعبئة قائمة الموظفين بشكل صحيح
     employeesData.forEach(emp => {
         const opt = document.createElement("option");
-        opt.value = emp.name;
-        opt.textContent = emp.name;
+        opt.value = emp[0];        // اسم الموظف
+        opt.textContent = emp[0];  // اسم الموظف
         sel.appendChild(opt);
     });
 
@@ -581,29 +571,30 @@ function loadEmpTab() {
 
         const newEmp = sel.value;
 
+        // كل الصفوف الخاصة باللوحة
         const rows = activeVisits.filter(v =>
             String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
         );
 
-        if (!rows.length) return;
-
-        const row = rows[0].row;
-
-        const res = await apiUpdateRow("Visits", row, {
-            employee: newEmp
-        });
-
-        if (!res || res.success !== true) {
-            showToast("فشل تحديث الموظف", "error");
+        if (!rows.length) {
+            showToast("لا توجد خدمات لهذه السيارة", "error");
             return;
         }
 
-        showToast("تم تحديث الموظف", "success");
+        // تحديث الموظف لكل الخدمات
+        for (const r of rows) {
+            await apiUpdateRow("Visits", r.row, {
+                EMP_IN: newEmp   // المفتاح الصحيح
+            });
+        }
+
+        showToast("تم تحديث الموظف لكل الخدمات", "success");
         loadActiveVisits();
     };
 }
+
 /* ===========================
-   تبويب: تغيير الخصم
+   تبويب: تغيير الخصم (نسخة صحيحة)
 =========================== */
 function loadDiscTab() {
 
@@ -611,30 +602,39 @@ function loadDiscTab() {
 
         const newDisc = Number(el("discInput").value || 0);
 
+        // كل الصفوف الخاصة باللوحة
         const rows = activeVisits.filter(v =>
             String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
         );
 
-        if (!rows.length) return;
-
-        const row = rows[0].row;
-
-        const res = await apiUpdateRow("Visits", row, {
-            discount: newDisc
-        });
-
-        if (!res || res.success !== true) {
-            showToast("فشل تحديث الخصم", "error");
+        if (!rows.length) {
+            showToast("لا توجد خدمات لهذه السيارة", "error");
             return;
         }
 
-        showToast("تم تحديث الخصم", "success");
+        // استخراج الأسعار
+        const prices = rows.map(r => Number(r.data[7] || 0));
+        const totalBefore = prices.reduce((a, b) => a + b, 0);
+
+        // توزيع الخصم نسبيًا
+        const distributed = prices.map(p =>
+            totalBefore ? Math.round((p / totalBefore) * newDisc) : 0
+        );
+
+        // تحديث كل الصفوف
+        for (let i = 0; i < rows.length; i++) {
+            await apiUpdateRow("Visits", rows[i].row, {
+                DISCOUNT: distributed[i]   // المفتاح الصحيح
+            });
+        }
+
+        showToast("تم تحديث الخصم بالتوزيع النسبي", "success");
         loadActiveVisits();
     };
 }
 
 /* ===========================
-   تبويب: تغيير الإكرامية
+   تبويب: تغيير الإكرامية (نسخة صحيحة)
 =========================== */
 function loadTipTab() {
 
@@ -642,24 +642,33 @@ function loadTipTab() {
 
         const newTip = Number(el("tipInput").value || 0);
 
+        // كل الصفوف الخاصة باللوحة
         const rows = activeVisits.filter(v =>
             String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
         );
 
-        if (!rows.length) return;
-
-        const row = rows[0].row;
-
-        const res = await apiUpdateRow("Visits", row, {
-            tip: newTip
-        });
-
-        if (!res || res.success !== true) {
-            showToast("فشل تحديث الإكرامية", "error");
+        if (!rows.length) {
+            showToast("لا توجد خدمات لهذه السيارة", "error");
             return;
         }
 
-        showToast("تم تحديث الإكرامية", "success");
+        // استخراج الأسعار
+        const prices = rows.map(r => Number(r.data[7] || 0));
+        const totalBefore = prices.reduce((a, b) => a + b, 0);
+
+        // توزيع الإكرامية نسبيًا
+        const distributed = prices.map(p =>
+            totalBefore ? Math.round((p / totalBefore) * newTip) : 0
+        );
+
+        // تحديث كل الصفوف
+        for (let i = 0; i < rows.length; i++) {
+            await apiUpdateRow("Visits", rows[i].row, {
+                TIP: distributed[i]   // المفتاح الصحيح
+            });
+        }
+
+        showToast("تم تحديث الإكرامية بالتوزيع النسبي", "success");
         loadActiveVisits();
     };
 }
@@ -838,14 +847,21 @@ function addServiceToList() {
         return;
     }
 
-    // 🔥 منع تكرار الخدمة (ما عدا المبيعات)
-    if (category !== "مبيعات") {
-        const exists = selectedServices.some(s => s.name === name);
-        if (exists) {
-            showToast("هذه الخدمة مضافة مسبقاً", "warning");
-            return;
-        }
+// 🔥 منع إضافة أكثر من غسيل أثناء التسجيل
+const isWash = servicesData.find(s => s.service === name)?.category === "غسيل";
+
+if (isWash) {
+    const hasWash = selectedServices.some(s => {
+        const svc = servicesData.find(x => x.service === s.name);
+        return svc && svc.category === "غسيل";
+    });
+
+    if (hasWash) {
+        showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس السيارة", "error");
+        return;
     }
+}
+
 
     // إضافة الخدمة
     selectedServices.push({ name, price, points, category });
@@ -1002,7 +1018,7 @@ services: JSON.stringify(
         name: s.name,
         price: s.price,
         points: Math.floor(s.price / 5),
-        commission: s.commission
+        commission: svc ? svc.commission : Math.floor(s.price / 5)
     }))
 )
 
