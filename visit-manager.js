@@ -411,57 +411,6 @@ function loadSwapTab() {
     };
 }
 
-    /* ===========================
-       تحميل الخدمات الحالية للسيارة
-    ============================ */
-    const rows = activeVisits.filter(v =>
-        String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
-    );
-
-    rows.forEach(r => {
-        const opt = document.createElement("option");
-        opt.value = r.row;          // رقم الصف
-        opt.textContent = r.data[6]; // اسم الخدمة الحالية
-        oldSel.appendChild(opt);
-    });
-
-}
-    /* ===========================
-       تحميل قائمة الخدمات الجديدة
-    ============================ */
-    servicesData.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s.service;
-        opt.textContent = `${s.service} — ${s.price} ريال`;
-        newSel.appendChild(opt);
-    });
-
-    /* ===========================
-       تنفيذ التبديل
-    ============================ */
-    el("swapConfirm").onclick = async () => {
-
-        const row = Number(oldSel.value);
-        const newServiceName = newSel.value;
-
-        const svc = servicesData.find(s => s.service === newServiceName);
-
-        if (!svc) {
-            showToast("الخدمة غير موجودة", "error");
-            return;
-        }
-
-        await apiUpdateRow("Visits", row, {
-            SERVICE: svc.service,
-            PRICE: svc.price,
-            POINTS: svc.commission,
-            COMMISSION: svc.commission
-        });
-
-        showToast("تم تبديل الخدمة بنجاح", "success");
-        loadActiveVisits();
-    };
-}
 /* ===========================
    تبويب: حذف خدمة
 =========================== *
