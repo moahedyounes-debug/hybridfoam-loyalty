@@ -358,41 +358,46 @@ function openEditModal(plate, action) {
     loadAddTab();
     loadEmpTab();
 }
-/* ===========================
-   تبويب: تبديل الخدمة
-=========================== */
 function loadSwapTab() {
 
-    const oldSel = el("oldServiceSelect");
-    const newSel = el("newServiceSelect");
+    const oldSel = el("swapOldServiceSelect");
+    const newSel = el("swapNewServiceSelect");
 
-    // تعبئة الخدمات الحالية
     oldSel.innerHTML = "";
+    newSel.innerHTML = "";
+
+    // تحميل الخدمات الحالية
     const rows = activeVisits.filter(v =>
         String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
     );
+
     rows.forEach(r => {
         const opt = document.createElement("option");
         opt.value = r.row;
-        opt.textContent = r.data[6]; // service_detail
+        opt.textContent = r.data[6];
         oldSel.appendChild(opt);
     });
 
-    // تعبئة الخدمات الجديدة
-    newSel.innerHTML = "";
+    // تحميل الخدمات الجديدة
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
-        opt.textContent = s.service;
+        opt.textContent = `${s.service} — ${s.price} ريال`;
         newSel.appendChild(opt);
     });
 
+    // تنفيذ التبديل
     el("swapConfirm").onclick = async () => {
 
         const row = Number(oldSel.value);
-        const newService = newSel.value;
+        const newServiceName = newSel.value;
 
-        const svc = servicesData.find(s => s.service === newService);
+        const svc = servicesData.find(s => s.service === newServiceName);
+
+        if (!svc) {
+            showToast("الخدمة غير موجودة", "error");
+            return;
+        }
 
         await apiUpdateRow("Visits", row, {
             SERVICE: svc.service,
@@ -401,21 +406,10 @@ function loadSwapTab() {
             COMMISSION: svc.commission
         });
 
-        showToast("تم تبديل الخدمة", "success");
+        showToast("تم تبديل الخدمة بنجاح", "success");
         loadActiveVisits();
     };
 }
-
-/* ===========================
-   تبويب: تبديل الخدمة (نسخة صحيحة)
-=========================== */
-function loadSwapTab() {
-
-    const oldSel = el("oldServiceSelect");
-    const newSel = el("newServiceSelect");
-
-    oldSel.innerHTML = "";
-    newSel.innerHTML = "";
 
     /* ===========================
        تحميل الخدمات الحالية للسيارة
@@ -467,6 +461,36 @@ function loadSwapTab() {
         loadActiveVisits();
     };
 }
+/* ===========================
+   تبويب: حذف خدمة
+=========================== *
+function loadDeleteTab() {
+
+    const sel = el("deleteServiceSelect");
+    sel.innerHTML = "";
+
+    const rows = activeVisits.filter(v =>
+        String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
+    );
+
+    rows.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r.row;
+        opt.textContent = r.data[6];
+        sel.appendChild(opt);
+    });
+
+    el("deleteConfirm").onclick = async () => {
+
+        const row = Number(sel.value);
+
+        await apiDeleteRow("Visits", row);
+
+        showToast("تم حذف الخدمة", "success");
+        loadActiveVisits();
+    };
+}
+
 
 /* ===========================
    تبويب: إضافة خدمة (نسخة صحيحة)
@@ -476,7 +500,6 @@ function loadAddTab() {
     const sel = el("addServiceSelect");
     sel.innerHTML = "";
 
-    // تحميل قائمة الخدمات
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
@@ -489,50 +512,34 @@ function loadAddTab() {
 
     el("addConfirm").onclick = async () => {
 
-        const btn = el("addConfirm");
-        btn.disabled = true;
-        btn.textContent = "جاري الإضافة...";
-
         const service = sel.value;
         const price = Number(sel.selectedOptions[0].dataset.price);
         const points = Number(sel.selectedOptions[0].dataset.points);
         const category = sel.selectedOptions[0].dataset.category;
 
-        /* ===========================
-           🔥 منع إضافة أكثر من غسيل
-        ============================ */
+        // منع الغسيل المكرر
         if (category === "غسيل") {
-
             const hasWash = activeVisits.some(v => {
-                const existingServiceName = v.data[6];
-                const existingServiceObj = servicesData.find(s => s.service === existingServiceName);
-
+                const svcName = v.data[6];
+                const svcObj = servicesData.find(s => s.service === svcName);
                 return (
                     String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate &&
-                    existingServiceObj &&
-                    existingServiceObj.category === "غسيل"
+                    svcObj &&
+                    svcObj.category === "غسيل"
                 );
             });
 
             if (hasWash) {
-                btn.disabled = false;
-                btn.textContent = "إضافة الخدمة";
                 showToast("لا يمكن إضافة أكثر من خدمة غسيل لنفس السيارة", "error");
                 return;
             }
         }
 
-        /* ===========================
-           🔥 جلب بيانات السيارة من أول صف
-        ============================ */
         const base = activeVisits.find(v =>
             String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
         ).data;
 
-        /* ===========================
-           🔥 إضافة الخدمة فعليًا
-        ============================ */
-        const res = await apiAddRow("Visits", {
+        await apiAddRow("Visits", {
             MEMBERSHIP: base[0],
             PLATE_NUMBERS: base[1],
             PLATE_LETTERS: base[2],
@@ -543,30 +550,14 @@ function loadAddTab() {
             PRICE: price,
             POINTS: points,
             EMP_IN: base[9],
-            EMP_OUT: "",
             BRANCH: base[11],
             COMMISSION: points,
             CHECK_IN: base[13],
-            CHECK_OUT: "",
-            PAY_STATUS: "غير مدفوع",
-            PAY_METHOD: "",
             PARKING: base[17],
-            RATING: "",
-            PAY_METHOD_COPY: "",
-            CASH_AMOUNT: "",
-            CARD_AMOUNT: "",
-            TOTAL_PAID: "",
             TIP: 0,
-            DISCOUNT: 0
+            DISCOUNT: 0,
+            PAY_STATUS: "غير مدفوع"
         });
-
-        btn.disabled = false;
-        btn.textContent = "إضافة الخدمة";
-
-        if (!res || res.success !== true) {
-            showToast("فشل إضافة الخدمة — تحقق من الاتصال", "error");
-            return;
-        }
 
         showToast("تم إضافة الخدمة", "success");
         loadActiveVisits();
@@ -581,11 +572,10 @@ function loadEmpTab() {
     const sel = el("empSelect");
     sel.innerHTML = "";
 
-    // تعبئة قائمة الموظفين بشكل صحيح
     employeesData.forEach(emp => {
         const opt = document.createElement("option");
-        opt.value = emp[0];        // اسم الموظف
-        opt.textContent = emp[0];  // اسم الموظف
+        opt.value = emp[0];
+        opt.textContent = emp[0];
         sel.appendChild(opt);
     });
 
@@ -593,27 +583,21 @@ function loadEmpTab() {
 
         const newEmp = sel.value;
 
-        // كل الصفوف الخاصة باللوحة
         const rows = activeVisits.filter(v =>
             String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
         );
 
-        if (!rows.length) {
-            showToast("لا توجد خدمات لهذه السيارة", "error");
-            return;
-        }
-
-        // تحديث الموظف لكل الخدمات
         for (const r of rows) {
             await apiUpdateRow("Visits", r.row, {
-                EMP_IN: newEmp   // المفتاح الصحيح
+                EMP_IN: newEmp
             });
         }
 
-        showToast("تم تحديث الموظف لكل الخدمات", "success");
+        showToast("تم تحديث الموظف", "success");
         loadActiveVisits();
     };
 }
+
 
 /* ===========================
    تبويب: تغيير الخصم (نسخة صحيحة)
@@ -624,36 +608,28 @@ function loadDiscTab() {
 
         const newDisc = Number(el("discInput").value || 0);
 
-        // كل الصفوف الخاصة باللوحة
         const rows = activeVisits.filter(v =>
             String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
         );
 
-        if (!rows.length) {
-            showToast("لا توجد خدمات لهذه السيارة", "error");
-            return;
-        }
-
-        // استخراج الأسعار
         const prices = rows.map(r => Number(r.data[7] || 0));
         const totalBefore = prices.reduce((a, b) => a + b, 0);
 
-        // توزيع الخصم نسبيًا
         const distributed = prices.map(p =>
             totalBefore ? Math.round((p / totalBefore) * newDisc) : 0
         );
 
-        // تحديث كل الصفوف
         for (let i = 0; i < rows.length; i++) {
             await apiUpdateRow("Visits", rows[i].row, {
-                DISCOUNT: distributed[i]   // المفتاح الصحيح
+                DISCOUNT: distributed[i]
             });
         }
 
-        showToast("تم تحديث الخصم بالتوزيع النسبي", "success");
+        showToast("تم تحديث الخصم", "success");
         loadActiveVisits();
     };
 }
+
 
 /* ===========================
    تبويب: تغيير الإكرامية (نسخة صحيحة)
@@ -664,36 +640,28 @@ function loadTipTab() {
 
         const newTip = Number(el("tipInput").value || 0);
 
-        // كل الصفوف الخاصة باللوحة
         const rows = activeVisits.filter(v =>
             String(v.data[1]).replace(/\s+/g, "").trim() === selectedPlate
         );
 
-        if (!rows.length) {
-            showToast("لا توجد خدمات لهذه السيارة", "error");
-            return;
-        }
-
-        // استخراج الأسعار
         const prices = rows.map(r => Number(r.data[7] || 0));
         const totalBefore = prices.reduce((a, b) => a + b, 0);
 
-        // توزيع الإكرامية نسبيًا
         const distributed = prices.map(p =>
             totalBefore ? Math.round((p / totalBefore) * newTip) : 0
         );
 
-        // تحديث كل الصفوف
         for (let i = 0; i < rows.length; i++) {
             await apiUpdateRow("Visits", rows[i].row, {
-                TIP: distributed[i]   // المفتاح الصحيح
+                TIP: distributed[i]
             });
         }
 
-        showToast("تم تحديث الإكرامية بالتوزيع النسبي", "success");
+        showToast("تم تحديث الإكرامية", "success");
         loadActiveVisits();
     };
 }
+
 
 /* ===========================
    تحميل أنواع السيارات
