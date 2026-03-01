@@ -445,6 +445,12 @@ function loadAddTab() {
 
     sel.innerHTML = "";
 
+    // منع التشغيل قبل تحميل الخدمات
+    if (!servicesData.length) {
+        showToast("لم يتم تحميل الخدمات بعد", "error");
+        return;
+    }
+
     servicesData.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.service;
@@ -472,6 +478,7 @@ function loadAddTab() {
         const points = Number(sel.selectedOptions[0].dataset.points);
         const category = sel.selectedOptions[0].dataset.category;
 
+        // منع الغسيل المكرر
         if (category === "غسيل") {
             const hasWash = activeVisits.some(v => {
                 const svcName = v.data[6];
@@ -542,6 +549,7 @@ function loadAddTab() {
         showToast("تم إضافة الخدمة", "success");
         loadActiveVisits();
     };
+}
 }
 
 /* ===========================
@@ -1083,6 +1091,32 @@ document.addEventListener("click", function (e) {
 
         openEditModal(plate, action);
     }
+});
+
+/* ===========================
+   التنقل بين التابات داخل مودال التعديل
+=========================== */
+document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+
+        const tabId = btn.dataset.tab;
+
+        // إلغاء تفعيل كل التابات
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+
+        // تفعيل التاب المطلوب
+        btn.classList.add("active");
+        el(tabId).classList.add("active");
+
+        // تحميل بيانات التاب عند فتحه
+        if (tabId === "tab-swap") loadSwapTab();
+        if (tabId === "tab-delete") loadDeleteTab();
+        if (tabId === "tab-add") loadAddTab();
+        if (tabId === "tab-emp") loadEmpTab();
+        if (tabId === "tab-disc") loadDiscTab();
+        if (tabId === "tab-tip") loadTipTab();
+    });
 });
 
 /* ===========================
