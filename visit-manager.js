@@ -35,6 +35,22 @@ function showToast(msg, type = "info") {
 /* ===========================
    تحميل الزيارات النشطة
 =========================== */
+/* ===========================
+   تحديث ملخص الزيارات
+=========================== */
+function updateSummary(rows) {
+    const total = rows.length;
+    const paid = rows.filter(v => v.data[16] === "مدفوع").length;
+    const unpaid = total - paid;
+
+    el("sum_total").textContent = total;
+    el("sum_paid").textContent = paid;
+    el("sum_unpaid").textContent = unpaid;
+}
+
+/* ===========================
+   تحميل الزيارات النشطة
+=========================== */
 async function loadActiveVisits() {
     const list = el("activeVisitsList");
     list.innerHTML = '<div class="loading">جارِ التحميل...</div>';
@@ -158,6 +174,7 @@ async function loadActiveVisits() {
         showToast("خطأ في تحميل الزيارات", "error");
     }
 }
+
 /* ===========================
    تحديث شريط الملخص
 =========================== */
