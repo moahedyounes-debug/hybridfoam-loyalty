@@ -33,20 +33,25 @@ function showToast(msg, type = "info") {
 }
 
 /* ===========================
-   تحميل الزيارات النشطة
-=========================== */
-/* ===========================
-   تحديث ملخص الزيارات
+   تحديث شريط الملخص
 =========================== */
 function updateSummary(rows) {
-    const total = rows.length;
-    const paid = rows.filter(v => v.data[16] === "مدفوع").length;
-    const unpaid = total - paid;
+    let totalServices = rows.length; // عدد الخدمات
+    let uniqueCars = new Set(rows.map(v => String(v.data[1]).replace(/\s+/g, ""))).size;
 
-    el("sum_total").textContent = total;
-    el("sum_paid").textContent = paid;
-    el("sum_unpaid").textContent = unpaid;
+    let totalAmount = 0;
+
+    rows.forEach(v => {
+        const price = Number(v.data[7] || 0);
+        const discount = Number(v.data[24] || 0);
+        totalAmount += (price - discount);
+    });
+
+    el("summaryActive").textContent = totalServices;
+    el("summaryCars").textContent = uniqueCars;
+    el("summaryTotal").textContent = totalAmount + " ريال";
 }
+
 
 /* ===========================
    تحميل الزيارات النشطة
@@ -60,7 +65,7 @@ async function loadActiveVisits() {
         const rows = res.visits || [];
         activeVisits = rows;
 
-        updateSummary(rows);
+        updateSummary(rows); // ← الآن يعمل بدون خطأ
 
         if (!rows.length) {
             list.innerHTML = `
