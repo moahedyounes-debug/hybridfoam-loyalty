@@ -8,93 +8,119 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     };
 });
 
-// نموذج زيارة كامل (جاهز للحقن)
+// نموذج مضغوط (3 سطور × 4 خانات)
 function createVisitForm() {
     return `
     <div class="card">
-        <h3>سيارة جديدة</h3>
 
-        <label>أرقام اللوحة *</label>
-        <input placeholder="1234">
+        <!-- السطر الأول -->
+        <div class="compact-grid">
+            <div class="field">
+                <label>أرقام اللوحة</label>
+                <input placeholder="1234">
+            </div>
 
-        <label>حروف اللوحة *</label>
-        <input placeholder="ABC">
+            <div class="field">
+                <label>حروف اللوحة</label>
+                <input placeholder="ABC">
+            </div>
 
-        <label>براند السيارة *</label>
-        <select>
-            <option>تويوتا</option>
-            <option>هيونداي</option>
-            <option>كيا</option>
-        </select>
+            <div class="field">
+                <label>البراند</label>
+                <select>
+                    <option>تويوتا</option>
+                    <option>هيونداي</option>
+                    <option>كيا</option>
+                </select>
+            </div>
 
-        <label>موديل السيارة *</label>
-        <select>
-            <option>كامري</option>
-            <option>كورولا</option>
-            <option>سوناتا</option>
-        </select>
+            <div class="field">
+                <label>الموديل</label>
+                <select>
+                    <option>كامري</option>
+                    <option>كورولا</option>
+                    <option>سوناتا</option>
+                </select>
+            </div>
+        </div>
 
-        <label>الحجم</label>
-        <input value="سيدان" readonly>
+        <!-- السطر الثاني -->
+        <div class="compact-grid">
+            <div class="field">
+                <label>نوع الخدمة</label>
+                <select>
+                    <option>خارجي</option>
+                    <option>داخلي</option>
+                </select>
+            </div>
 
-        <label>نوع الخدمة *</label>
-        <select>
-            <option>خارجي</option>
-            <option>داخلي</option>
-        </select>
+            <div class="field">
+                <label>تفاصيل الخدمة</label>
+                <select>
+                    <option>غسيل عادي</option>
+                    <option>غسيل فاخر</option>
+                </select>
+            </div>
 
-        <label>تفاصيل الخدمة *</label>
-        <select>
-            <option>غسيل عادي</option>
-            <option>غسيل فاخر</option>
-        </select>
+            <div class="field">
+                <label>الموظف</label>
+                <select>
+                    <option>سلوى</option>
+                    <option>أحمد</option>
+                </select>
+            </div>
 
-        <label>السعر</label>
-        <input value="25" readonly>
+            <div class="field">
+                <label>رقم الموقف</label>
+                <select>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+        </div>
 
-        <label>النقاط</label>
-        <input value="3" readonly>
+        <!-- السطر الثالث -->
+        <div class="compact-grid">
+            <div class="field">
+                <label>السعر</label>
+                <input value="25" readonly>
+            </div>
 
-        <label>الخصم</label>
-        <input placeholder="0">
+            <div class="field">
+                <label>الدفع</label>
+                <select>
+                    <option>مدفوع</option>
+                    <option>غير مدفوع</option>
+                </select>
+            </div>
 
-        <label>الإكرامية</label>
-        <input placeholder="0">
+            <div class="field">
+                <label>طريقة الدفع</label>
+                <select>
+                    <option>كاش</option>
+                    <option>شبكة</option>
+                    <option>جزئي</option>
+                </select>
+            </div>
 
-        <label>رقم الموقف *</label>
-        <select>
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-        </select>
+            <div class="field">
+                <label>الخصم</label>
+                <input placeholder="0">
+            </div>
+        </div>
 
-        <label>الموظف *</label>
-        <select>
-            <option>سلوى</option>
-            <option>أحمد</option>
-        </select>
+        <!-- الإكرامية -->
+        <div class="compact-grid">
+            <div class="field">
+                <label>الإكرامية</label>
+                <input placeholder="0">
+            </div>
+        </div>
 
-        <label>الفرع *</label>
-        <select>
-            <option>مكة</option>
-            <option>الرياض</option>
-        </select>
+        <button class="btn-primary">تسجيل</button>
+        <button class="btn-danger remove">حذف</button>
 
-        <label>حالة الدفع *</label>
-        <select>
-            <option>مدفوع</option>
-            <option>غير مدفوع</option>
-        </select>
-
-        <label>طريقة الدفع *</label>
-        <select>
-            <option>كاش</option>
-            <option>شبكة</option>
-            <option>جزئي</option>
-        </select>
-
-        <button class="btn-primary full">تسجيل</button>
-        <button class="btn-danger full remove">حذف</button>
     </div>
     `;
 }
