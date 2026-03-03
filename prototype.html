@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Prototype – مقارنة أنظمة استقبال السيارات</title>
+
+<link rel="stylesheet" href="prototype.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- التبويبات -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="t1">نماذج متعددة</button>
+        <button class="tab-btn" data-tab="t2">سلة السيارات</button>
+        <button class="tab-btn" data-tab="t3">نموذج متعدد السيارات</button>
+        <button class="tab-btn" data-tab="t4">الاستقبال السريع</button>
+    </div>
+
+    <!-- تبويب 1 -->
+    <section id="t1" class="tab-content active">
+        <h2>نماذج متعددة</h2>
+
+        <div id="summary1" class="summary-bar"></div>
+        <div id="cars1" class="cards"></div>
+
+        <button id="addForm" class="btn-primary">+ إضافة سيارة</button>
+        <div id="formsContainer"></div>
+    </section>
+
+    <!-- تبويب 2 -->
+    <section id="t2" class="tab-content">
+        <h2>سلة السيارات</h2>
+
+        <div id="summary2" class="summary-bar"></div>
+
+        <div class="card">
+            <h3>إضافة سيارة</h3>
+            <div id="basketForm"></div>
+        </div>
+
+        <h3>السلة:</h3>
+        <div id="cartList"></div>
+
+        <button class="btn-primary">✔ تسجيل كل السيارات</button>
+    </section>
+
+    <!-- تبويب 3 -->
+    <section id="t3" class="tab-content">
+        <h2>نموذج متعدد السيارات</h2>
+
+        <div id="summary3" class="summary-bar"></div>
+
+        <button id="addMultiCar" class="btn-primary">+ إضافة سيارة</button>
+        <div id="multiCarContainer"></div>
+
+        <button class="btn-primary">تسجيل الزيارة</button>
+    </section>
+
+    <!-- تبويب 4 -->
+    <section id="t4" class="tab-content">
+        <h2>الاستقبال السريع</h2>
+
+        <div id="summary4" class="summary-bar"></div>
+
+        <div class="card">
+            <h3>إضافة سريعة</h3>
+            <div id="fastForm"></div>
+        </div>
+
+        <h3>السيارات المضافة:</h3>
+        <div id="fastList"></div>
+    </section>
+
+</div>
+
+<!-- مودال الدفع -->
+<div id="paymentModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>💳 تحديث الدفع</h3>
+        <label>طريقة الدفع</label>
+        <select>
+            <option>كاش</option>
+            <option>شبكة</option>
+            <option>جزئي</option>
+        </select>
+        <button class="btn-primary modal-close">تأكيد</button>
+    </div>
+</div>
+
+<!-- مودال التعديل -->
+<div id="editModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>✏️ تعديل الخدمة</h3>
+        <label>الخدمة الجديدة</label>
+        <select>
+            <option>غسيل خارجي</option>
+            <option>غسيل داخلي</option>
+        </select>
+        <button class="btn-primary modal-close">تحديث</button>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<script src="prototype.js"></script>
+</body>
+</html>
