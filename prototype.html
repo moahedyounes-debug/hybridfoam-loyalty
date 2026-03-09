@@ -5,225 +5,90 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>رغوة الهجين - إدارة الزيارات</title>
 
-<link rel="stylesheet" href="prototype.css">
+<link rel="stylesheet" href="visit-manager.css">
 <script src="api.js"></script>
-
-<style>
-/* ============================
-   تصميم Prototype الأصلي
-============================ */
-
-/* كارد */
-.car-card, .visit-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border: 1px solid #eee;
-    position: relative;
-}
-
-/* صفوف 4 خانات */
-.row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-/* صفوف 5 خانات */
-.row-5 {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 15px;
-    margin-top: 20px;
-}
-
-/* صندوق الخدمات */
-.services-box {
-    background: #f7f7f7;
-    padding: 12px;
-    border-radius: 8px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-
-/* أزرار */
-.btn-primary {
-    background: #007bff;
-    color: #fff;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.btn-secondary {
-    background: #555;
-    color: #fff;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.btn-danger {
-    background: #d9534f;
-    color: #fff;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.full { width: 100%; }
-
-/* ملخص */
-.summary-bar {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.summary-item {
-    background: #fff;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-}
-
-.summary-item .label {
-    font-size: 14px;
-    color: #777;
-}
-
-.summary-item .value {
-    font-size: 22px;
-    font-weight: bold;
-    margin-top: 5px;
-}
-
-/* مودال */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-box {
-    background: #fff;
-    padding: 25px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 450px;
-}
-
-.modal-box.large {
-    max-width: 650px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 10px;
-    background: #eee;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.tab-btn.active {
-    background: #007bff;
-    color: #fff;
-}
-
-.tab-pane { display: none; }
-.tab-pane.active { display: block; }
-
-</style>
 
 </head>
 <body>
 
 <div class="container">
 
-<!-- العنوان -->
-<div class="page-header">
-    <h1>رغوة الهجين</h1>
-    <h2>إدارة الزيارات</h2>
+    <!-- العنوان -->
+    <div class="page-header">
+        <h1>رغوة الهجين</h1>
+        <h2>إدارة الزيارات</h2>
+    </div>
+
+    <!-- شريط الملخص -->
+    <div class="summary-bar">
+        <div class="summary-item">
+            <div class="label">الخدمات الحالية</div>
+            <div class="value" id="summaryActive">0</div>
+        </div>
+
+        <div class="summary-item">
+            <div class="label">السيارات حالياً</div>
+            <div class="value" id="summaryCars">0</div>
+        </div>
+
+        <div class="summary-item">
+            <div class="label">إجمالي المستحق</div>
+            <div class="value" id="summaryTotal">0 ريال</div>
+        </div>
+    </div>
+
+    <!-- السيارات داخل المغسلة -->
+    <div class="section">
+        <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
+
+        <div id="activeVisitsList" class="cards">
+            <div class="loading">جارِ التحميل...</div>
+        </div>
+
+        <button id="btnRefreshActive" class="btn-secondary full">🔄 تحديث القائمة</button>
+    </div>
+
+    <!-- زر إضافة سيارة -->
+    <button id="btnAddCar" class="btn-secondary full" style="margin-bottom:20px;">
+        + إضافة سيارة
+    </button>
+
+    <!-- هنا تضاف السيارات -->
+    <div id="carsContainer"></div>
+
 </div>
 
-<!-- شريط الملخص -->
-<div class="summary-bar">
-    <div class="summary-item">
-        <div class="label">الخدمات الحالية</div>
-        <div class="value" id="summaryActive">0</div>
-    </div>
+<!-- قالب السيارة -->
+<template id="carCardTemplate">
+<div class="section car-card visit-card" style="position:relative;">
 
-    <div class="summary-item">
-        <div class="label">السيارات حالياً</div>
-        <div class="value" id="summaryCars">0</div>
-    </div>
+    <button class="btn-danger" style="position:absolute; top:10px; left:10px;"
+            onclick="this.parentElement.remove(); updateSubmitButton();">
+        ✕
+    </button>
 
-    <div class="summary-item">
-        <div class="label">إجمالي المستحق</div>
-        <div class="value" id="summaryTotal">0 ريال</div>
-    </div>
-</div>
-
-<!-- السيارات داخل المغسلة -->
-<div class="section">
-    <h3 class="section-title">🚗 سيارات داخل المغسلة (غير مدفوعة)</h3>
-
-    <div id="activeVisitsList" class="cards">
-        <div class="loading">جارِ التحميل...</div>
-    </div>
-
-    <button id="btnRefreshActive" class="btn-secondary full">🔄 تحديث القائمة</button>
-</div>
-
-<!-- تسجيل زيارة جديدة -->
-<div id="visitBox" class="car-card">
-
-    <h3 class="section-title">📝 تسجيل زيارة جديدة</h3>
+    <h3 class="section-title">🚗 سيارة جديدة</h3>
 
     <!-- الصف الأول: 4 خانات -->
     <div class="row">
         <div>
             <label>أرقام اللوحة *</label>
-            <input id="plate_numbers" placeholder="1234">
+            <input class="plate_numbers" placeholder="1234">
         </div>
 
         <div>
             <label>حروف اللوحة</label>
-            <input id="plate_letters" placeholder="ABC">
+            <input class="plate_letters" placeholder="ABC">
         </div>
 
         <div>
             <label>براند السيارة *</label>
-            <select id="car_type"></select>
+            <select class="car_type"></select>
         </div>
 
         <div>
             <label>موديل السيارة *</label>
-            <select id="car_model"></select>
+            <select class="car_model"></select>
         </div>
     </div>
 
@@ -231,22 +96,22 @@
     <div class="row">
         <div>
             <label>نوع الخدمة *</label>
-            <select id="service_type"></select>
+            <select class="service_type"></select>
         </div>
 
         <div>
             <label>تفاصيل الخدمة *</label>
-            <select id="service_detail"></select>
+            <select class="service_detail"></select>
         </div>
 
         <div>
             <label>الموظف *</label>
-            <select id="employee_in"></select>
+            <select class="employee_in"></select>
         </div>
 
         <div>
             <label>رقم الموقف *</label>
-            <select id="parking_slot">
+            <select class="parking_slot">
                 <option value="">اختر</option>
                 <option>1</option><option>2</option><option>3</option>
                 <option>4</option><option>5</option><option>6</option>
@@ -258,12 +123,12 @@
     <div class="row-5">
         <div>
             <label>السعر</label>
-            <input id="price" readonly>
+            <input class="price" readonly>
         </div>
 
         <div>
             <label>حالة الدفع *</label>
-            <select id="payment_status">
+            <select class="payment_status">
                 <option value="">اختر</option>
                 <option value="مدفوع">مدفوع</option>
                 <option value="غير مدفوع">غير مدفوع</option>
@@ -272,7 +137,7 @@
 
         <div>
             <label>طريقة الدفع *</label>
-            <select id="payment_method">
+            <select class="payment_method">
                 <option value="">اختر</option>
                 <option value="كاش">كاش</option>
                 <option value="شبكة">شبكة</option>
@@ -282,60 +147,73 @@
 
         <div>
             <label>الخصم</label>
-            <input id="discount" value="0">
+            <input class="discount" value="0">
         </div>
 
         <div>
             <label>الإكرامية</label>
-            <input id="tip" value="0">
+            <input class="tip" value="0">
         </div>
     </div>
 
-    <!-- الحجم + النقاط تحت الصفوف -->
+    <!-- الحجم + النقاط -->
     <div class="row">
         <div>
             <label>الحجم</label>
-            <input id="car_size" readonly>
+            <input class="car_size" readonly>
         </div>
 
         <div>
             <label>النقاط / العمولة</label>
-            <input id="points" readonly>
+            <input class="points" readonly>
         </div>
     </div>
 
-    <!-- إضافة خدمة -->
-    <button id="btnAddService" class="btn-secondary full">+ إضافة خدمة</button>
+    <!-- الخدمات -->
+    <button class="btn-secondary full btnAddService">+ إضافة خدمة</button>
 
-    <div id="servicesList" class="services-box"></div>
+    <div class="services-box servicesList"></div>
 
-    <div class="total">الإجمالي: <span id="totalPrice">0</span> ريال</div>
-
-    <!-- دفع جزئي -->
-    <div id="partial_payment_box" style="display:none;">
-        <div class="row">
-            <div>
-                <label>مبلغ الكاش</label>
-                <input id="cash_amount" value="0">
-            </div>
-
-            <div>
-                <label>مبلغ الشبكة</label>
-                <input id="card_amount" value="0">
-            </div>
-        </div>
-
-        <div class="total">المجموع المدفوع: <span id="paid_total">0</span> ريال</div>
-    </div>
-
-    <button id="btnSubmitVisit" class="btn-primary full" onclick="submitVisit()">💾 تسجيل الزيارة</button>
+    <div class="total">الإجمالي: <span class="totalPrice">0</span> ريال</div>
 
 </div>
+</template>
 
+<!-- زر تسجيل الزيارة -->
+<div style="padding:20px;">
+    <button id="btnSubmitVisit" class="btn-primary full" onclick="submitVisit()">💾 تسجيل الزيارة</button>
 </div>
 
 <!-- مودالات + JS -->
 <script src="visit-manager.js"></script>
+
+<!-- سكربت إضافة السيارات -->
+<script>
+const carsContainer = document.getElementById("carsContainer");
+const btnAddCar = document.getElementById("btnAddCar");
+const submitBtn = document.getElementById("btnSubmitVisit");
+
+// إضافة سيارة جديدة
+btnAddCar.addEventListener("click", () => {
+    const template = document.getElementById("carCardTemplate");
+    const clone = template.content.cloneNode(true);
+    carsContainer.appendChild(clone);
+    updateSubmitButton();
+});
+
+// تحديث نص زر التسجيل
+function updateSubmitButton() {
+    const carCards = document.querySelectorAll(".visit-card");
+    if (carCards.length > 1) {
+        submitBtn.textContent = "💾 تسجيل الزيارات";
+    } else {
+        submitBtn.textContent = "💾 تسجيل الزيارة";
+    }
+}
+
+// أول تحميل
+updateSubmitButton();
+</script>
 
 </body>
 </html>
