@@ -71,6 +71,7 @@
 
 <script src="api.js"></script>
 <script>
+
 let CUSTOMER = JSON.parse(localStorage.getItem("customer") || "null");
 let PHONE = CUSTOMER ? CUSTOMER.phone : null;
 
@@ -80,6 +81,27 @@ let PHONE = CUSTOMER ? CUSTOMER.phone : null;
   }
 })();
 
+/* =============================
+   تنسيق التاريخ والوقت
+============================= */
+function formatDate(dateStr){
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr; // لو التاريخ جاهز أصلاً
+
+  const month = d.toLocaleString("en-US", { month: "short" });
+  const day = String(d.getDate()).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${month}/${day}/${year}`;
+}
+
+function formatTime(timeStr){
+  if(!timeStr) return timeStr;
+  return timeStr.slice(0,5); // HH:MM
+}
+
+/* =============================
+   تحميل الحجوزات
+============================= */
 window.onload = async function(){
   const box = document.getElementById("bookingsBox");
 
@@ -92,15 +114,25 @@ window.onload = async function(){
   const bookings = res.bookings.map(b => b.data);
 
   box.classList.remove("empty");
-  box.innerHTML = bookings.map(b => `
-    <div class="booking-card">
-      الخدمة: ${b[2]}<br>
-      التاريخ: ${b[3]}<br>
-      الوقت: ${b[4]}<br>
-      الحالة: ${b[5]}
-    </div>
-  `).join("");
+
+  box.innerHTML = bookings.map(b => {
+
+    const service = b[2];
+    const date = formatDate(b[3]);
+    const time = formatTime(b[4]);
+    const status = b[5];
+
+    return `
+      <div class="booking-card">
+        الخدمة: ${service}<br>
+        التاريخ: ${date}<br>
+        الوقت: ${time}<br>
+        الحالة: ${status}
+      </div>
+    `;
+  }).join("");
 };
+
 </script>
 
 </body>
