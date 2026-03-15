@@ -9,9 +9,26 @@
 <script src="api.js"></script>
 
 <style>
-.row4 { display:grid; grid-template-columns:repeat(4,1fr); gap:15px; }
-.row5 { display:grid; grid-template-columns:repeat(5,1fr); gap:15px; }
-.car-card { border:2px solid #ddd; padding:15px; border-radius:10px; background:#fafafa; margin-top:20px; }
+/* صفوف الكروت الجديدة */
+.row4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.row5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+}
+
+.car-card {
+    border: 2px solid #ddd;
+    padding: 15px;
+    border-radius: 10px;
+    background: #fafafa;
+    margin-top: 20px;
+}
 </style>
 </head>
 
@@ -191,6 +208,7 @@
 
     <button class="btn-danger full btn-remove-car">🗑 حذف السيارة</button>
 
+    <!-- الصف الأول (4 خانات) -->
     <div class="row4" style="margin-top:15px;">
         <div><label>أرقام اللوحة *</label><input class="plate_numbers"></div>
         <div><label>حروف اللوحة *</label><input class="plate_letters"></div>
@@ -198,6 +216,7 @@
         <div><label>الموديل *</label><select class="car_model"></select></div>
     </div>
 
+    <!-- الصف الثاني (4 خانات) -->
     <div class="row4" style="margin-top:15px;">
         <div><label>نوع الخدمة *</label><select class="service_type"></select></div>
         <div><label>تفاصيل الخدمة *</label><select class="service_detail"></select></div>
@@ -211,6 +230,7 @@
         </div>
     </div>
 
+    <!-- الصف الثالث (5 خانات) -->
     <div class="row5" style="margin-top:15px;">
         <div>
             <label>حالة الدفع *</label>
@@ -236,6 +256,7 @@
         <div><label>الحجم</label><input class="car_size" readonly></div>
     </div>
 
+    <!-- الدفع الجزئي -->
     <div class="partial_payment_box" style="display:none; margin-top:15px;">
         <div class="row4">
             <div><label>الكاش</label><input class="cash_amount" value="0"></div>
@@ -243,6 +264,7 @@
         </div>
     </div>
 
+    <!-- الخدمات -->
     <button class="btnAddService btn-secondary full" style="margin-top:15px;">➕ إضافة خدمة</button>
     <div class="servicesList"></div>
 
