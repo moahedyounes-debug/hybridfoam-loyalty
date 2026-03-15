@@ -486,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loadCarTypesIntoCard(card);
         loadServicesIntoCard(card);
         loadEmployeesIntoCard(card);
-        loadBranchesIntoCard(card);   // ← الآن تعمل بدون branchesData
+        loadBranchesIntoCard(card);
 
         /* ربط الدفع */
         setupPaymentLogic(card);
@@ -567,35 +567,36 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             if (row) {
-                priceInput.value = row.price;
-                pointsInput.value = row.points;
-                totalSpan.textContent = row.price;
-                card.dataset.price = row.price;
+                priceInput.value = row.price ?? 0;
+                pointsInput.value = row.points ?? 0;
+                totalSpan.textContent = row.price ?? 0;
+                card.dataset.price = row.price ?? 0;
 
                 calculateExtraCarTotal(card);
             }
         };
     }
 
-    /* تحميل الموظفين */
+    /* تحميل الموظفين — النسخة الصحيحة */
     function loadEmployeesIntoCard(card) {
+        const mainEmp = document.getElementById("employee_in");
         const sel = card.querySelector(".employee_in");
-        sel.innerHTML = '<option value="">— اختر —</option>';
-
-        employeesData.forEach(e => {
-            const opt = document.createElement("option");
-            opt.value = e[0];
-            opt.textContent = e[0];
-            sel.appendChild(opt);
-        });
+        sel.innerHTML = mainEmp.innerHTML;
     }
 
     /* تحميل الفروع — النسخة الصحيحة */
     function loadBranchesIntoCard(card) {
-        const mainBranch = document.getElementById("branch"); // القائمة الأساسية
-        const sel = card.querySelector(".branch");            // قائمة الكارد
+        const mainBranch = document.getElementById("branch");
+        const sel = card.querySelector(".branch");
 
-        sel.innerHTML = mainBranch.innerHTML; // نسخ الخيارات كما هي
+        sel.innerHTML = mainBranch.innerHTML;
+
+        // ضبط الفرع تلقائيًا على مكة
+        if (sel.querySelector('option[value="مكة"]')) {
+            sel.value = "مكة";
+        } else {
+            sel.selectedIndex = 1; // أول فرع بعد "اختر"
+        }
     }
 
     /* منطق الدفع */
@@ -641,9 +642,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const div = document.createElement("div");
         div.className = "service-item";
-        div.dataset.price = row.price;
+        div.dataset.price = row.price ?? 0;
         div.innerHTML = `
-            <span>${detailSel.value} — ${row.price} ريال</span>
+            <span>${detailSel.value} — ${row.price ?? 0} ريال</span>
             <button class="btn-danger small removeService">✕</button>
         `;
 
