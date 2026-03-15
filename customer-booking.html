@@ -111,7 +111,7 @@
   <label>التاريخ</label>
   <input type="date" id="date" onchange="loadAvailableTimes()">
 
-  <label>الوقت (من 1 الظهر إلى 1 الليل)</label>
+  <label>الوقت (10 صباحًا إلى 3 فجراً)</label>
   <select id="time">
     <option value="">اختر الوقت</option>
   </select>
@@ -151,6 +151,21 @@ function showToast(message, type = "info") {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 300);
   }, 2500);
+}
+
+/* =============================
+   تنسيق التاريخ والوقت
+============================= */
+function formatDate(dateStr){
+  const d = new Date(dateStr);
+  const month = d.toLocaleString("en-US", { month: "short" });
+  const day = String(d.getDate()).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${month}/${day}/${year}`;
+}
+
+function formatTime(timeStr){
+  return timeStr.slice(0,5);
 }
 
 /* =============================
@@ -256,19 +271,21 @@ async function loadAvailableTimes(){
 
   timeSelect.innerHTML = `<option value="">اختر الوقت</option>`;
 
-  for(let h = 13; h <= 23; h++){
+  /* من 10 صباحًا إلى 11:30 مساءً */
+  for(let h = 10; h <= 23; h++){
     const hour = h.toString().padStart(2, "0");
     ["00","30"].forEach(min => {
       const t = `${hour}:${min}`;
       if(!countByTime[t] || countByTime[t] < 6){
-        timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
+        timeSelect.innerHTML += `<option value="${t}">${formatTime(t)}</option>`;
       }
     });
   }
 
-  ["00:00","00:30","01:00"].forEach(t => {
+  /* من 12:00 إلى 03:00 فجراً */
+  ["00:00","00:30","01:00","01:30","02:00","02:30","03:00"].forEach(t => {
     if(!countByTime[t] || countByTime[t] < 6){
-      timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
+      timeSelect.innerHTML += `<option value="${t}">${formatTime(t)}</option>`;
     }
   });
 }
@@ -280,19 +297,23 @@ async function addBooking(){
   const category = document.getElementById("category").value;
   const service = document.getElementById("service").value;
   const branch = document.getElementById("branch").value;
-  const date = document.getElementById("date").value;
-  const time = document.getElementById("time").value;
 
-  if(!category || !service || !branch || !date || !time){
+  const rawDate = document.getElementById("date").value;
+  const rawTime = document.getElementById("time").value;
+
+  if(!category || !service || !branch || !rawDate || !rawTime){
     showToast("الرجاء تعبئة جميع الحقول", "error");
     return;
   }
+
+  const date = formatDate(rawDate);
+  const time = formatTime(rawTime);
 
   const createdAt = new Date().toISOString();
 
   const res = await apiPost({
     action: "addBooking",
-    phone: String(CUSTOMER.phone),   // ← يحفظ 05xxxxxx كنص
+    phone: String(CUSTOMER.phone),
     membership: CUSTOMER.membership,
     service,
     date,
