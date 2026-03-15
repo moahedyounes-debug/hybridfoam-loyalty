@@ -486,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loadCarTypesIntoCard(card);
         loadServicesIntoCard(card);
         loadEmployeesIntoCard(card);
-        loadBranchesIntoCard(card);
+        loadBranchesIntoCard(card);   // ← الآن تعمل بدون branchesData
 
         /* ربط الدفع */
         setupPaymentLogic(card);
@@ -590,17 +590,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* تحميل الفروع */
+    /* تحميل الفروع — النسخة الصحيحة */
     function loadBranchesIntoCard(card) {
-        const sel = card.querySelector(".branch");
-        sel.innerHTML = '<option value="">— اختر —</option>';
+        const mainBranch = document.getElementById("branch"); // القائمة الأساسية
+        const sel = card.querySelector(".branch");            // قائمة الكارد
 
-        branchesData.forEach(b => {
-            const opt = document.createElement("option");
-            opt.value = b[0];
-            opt.textContent = b[0];
-            sel.appendChild(opt);
-        });
+        sel.innerHTML = mainBranch.innerHTML; // نسخ الخيارات كما هي
     }
 
     /* منطق الدفع */
