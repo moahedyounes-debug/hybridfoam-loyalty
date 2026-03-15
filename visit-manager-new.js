@@ -15,9 +15,56 @@ let servicesData = [];
 let employeesData = [];
 
 /* ===========================
-   تحميل البيانات الأساسية عند فتح الصفحة
+   تحميل أنواع السيارات
 =========================== */
+async function loadCarTypes() {
+    try {
+        const res = await apiGetCarTypes();
+        carTypesData = res.rows || [];
+    } catch (err) {
+        console.error(err);
+    }
+}
 
+/* ===========================
+   تحميل الخدمات
+=========================== */
+async function loadServices() {
+    try {
+        const res = await apiGetServices();
+        servicesData = res.services || [];
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+/* ===========================
+   تحميل الموظفين
+=========================== */
+async function loadEmployees() {
+    try {
+        const res = await apiGetEmployees();
+        employeesData = res.rows || [];
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+/* ===========================
+   تحميل الزيارات النشطة
+=========================== */
+async function loadActiveVisits() {
+    try {
+        const res = await apiGetActiveVisits();
+        activeVisits = res.visits || [];
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+/* ===========================
+   تشغيل التحميل عند فتح الصفحة
+=========================== */
 window.addEventListener("DOMContentLoaded", async () => {
     await loadCarTypes();
     await loadServices();
@@ -82,9 +129,39 @@ function addServiceItem(card) {
 
     box.appendChild(div);
 }
-
 /* ===========================
-   إرسال كل سيارة باستخدام submitVisit() القديمة
+   دالة submitVisit الأصلية
+=========================== */
+
+async function submitVisit(data) {
+    return apiAddVisit({
+        membership: data.plate_numbers,
+        plate_numbers: data.plate_numbers,
+        plate_letters: data.plate_letters,
+        car_type: data.car_type,
+        car_model: data.car_model,
+        car_size: data.car_size,
+        employee_in: data.employee_in,
+        branch: "مكة",
+        parking_slot: data.parking_slot,
+        payment_status: data.payment_status,
+        payment_method: data.payment_method,
+        discount: data.discount,
+        tip: data.tip,
+        cash_amount: data.cash_amount,
+        card_amount: data.card_amount,
+        services: JSON.stringify([
+            {
+                name: data.service_detail,
+                price: Number(data.price),
+                points: Number(data.points),
+                commission: Number(data.points)
+            }
+        ])
+    });
+}
+/* ===========================
+   إرسال كل سيارة باستخدام submitVisit()
 =========================== */
 
 btnSubmitVisit.addEventListener("click", async () => {
@@ -97,7 +174,6 @@ btnSubmitVisit.addEventListener("click", async () => {
 
     for (const card of cars) {
 
-        // تجهيز بيانات السيارة
         const data = {
             plate_numbers: card.querySelector(".plate_numbers").value,
             plate_letters: card.querySelector(".plate_letters").value,
@@ -118,9 +194,8 @@ btnSubmitVisit.addEventListener("click", async () => {
             card_amount: card.querySelector(".card_amount").value
         };
 
-        // 🔥 استدعاء دالة API الأصلية
         try {
-            await submitVisit(data);  // ← نفس الدالة القديمة في api.js
+            await submitVisit(data);
             console.log("✔ تمت إضافة زيارة:", data.plate_numbers);
         } catch (err) {
             console.error("❌ خطأ أثناء إرسال الزيارة:", err);
