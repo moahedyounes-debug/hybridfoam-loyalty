@@ -764,20 +764,29 @@ document.addEventListener("DOMContentLoaded", () => {
     /* دمج مع submitVisit الأصلي */
     const originalSubmitVisit = window.submitVisit;
 
-    window.submitVisit = async function () {
+window.submitVisit = async function () {
 
-        const membership = document.getElementById("membership").value;
+    const mainCard = document.querySelector(".main-car-card");
 
-        const mainVisitId = await originalSubmitVisit();
+    if (!mainCard) {
+        showToast("لا يوجد سيارة رئيسية");
+        return;
+    }
 
-        const cards = document.querySelectorAll(".car-card");
+    const membership = document.getElementById("membership").value;
 
-        for (const card of cards) {
-            await submitSingleCar(card, membership);
-        }
+    // إرسال السيارة الأساسية
+    await submitSingleCar(mainCard, membership);
 
-        showToast("تم تسجيل جميع السيارات المكتملة");
-    };
+    // إرسال السيارات الإضافية
+    const cards = document.querySelectorAll(".car-card");
+
+    for (const card of cards) {
+        await submitSingleCar(card, membership);
+    }
+
+    showToast("تم تسجيل جميع السيارات المكتملة");
+};
 
     /* التوست */
     function showToast(msg) {
