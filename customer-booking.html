@@ -90,6 +90,11 @@
 
 <div class="box">
 
+  <label>السيارة</label>
+  <select id="car">
+    <option value="">جاري التحميل...</option>
+  </select>
+
   <label>الفئة (Category)</label>
   <select id="category" onchange="loadServices()">
     <option value="">اختر الفئة</option>
@@ -169,12 +174,47 @@ function formatTime(timeStr){
 }
 
 /* =============================
-   تحميل الفئات والخدمات والفروع
+   تحميل الصفحة
 ============================= */
 window.onload = async function(){
+  await loadCars();
   await loadCategories();
   await loadBranches();
 };
+
+/* =============================
+   تحميل سيارات العميل
+============================= */
+async function loadCars() {
+  const carSelect = document.getElementById("car");
+
+  const res = await apiGetCarsByPhone(CUSTOMER.phone);
+
+  if (!res.success || !res.cars.length) {
+    carSelect.innerHTML = `<option value="">لا توجد سيارات</option>`;
+    return;
+  }
+
+  const cars = res.cars.map(c => c.data);
+
+  if (cars.length === 1) {
+    carSelect.innerHTML = `
+      <option value="${cars[0][0]}">
+        ${cars[0][2]} - ${cars[0][5]} ${cars[0][4]}
+      </option>
+    `;
+    return;
+  }
+
+  carSelect.innerHTML = `
+    <option value="">اختر السيارة</option>
+    ${cars.map(c => `
+      <option value="${c[0]}">
+        ${c[2]} - ${c[5]} ${c[4]}
+      </option>
+    `).join("")}
+  `;
+}
 
 /* =============================
    تحميل الفئات
@@ -271,7 +311,6 @@ async function loadAvailableTimes(){
 
   timeSelect.innerHTML = `<option value="">اختر الوقت</option>`;
 
-  /* من 10 صباحًا إلى 11:30 مساءً */
   for(let h = 10; h <= 23; h++){
     const hour = h.toString().padStart(2, "0");
     ["00","30"].forEach(min => {
@@ -282,7 +321,6 @@ async function loadAvailableTimes(){
     });
   }
 
-  /* من 12:00 إلى 03:00 فجراً */
   ["00:00","00:30","01:00","01:30","02:00","02:30","03:00"].forEach(t => {
     if(!countByTime[t] || countByTime[t] < 6){
       timeSelect.innerHTML += `<option value="${t}">${formatTime(t)}</option>`;
@@ -294,6 +332,7 @@ async function loadAvailableTimes(){
    إنشاء الحجز
 ============================= */
 async function addBooking(){
+  const car = document.getElementById("car").value;
   const category = document.getElementById("category").value;
   const service = document.getElementById("service").value;
   const branch = document.getElementById("branch").value;
@@ -301,7 +340,7 @@ async function addBooking(){
   const rawDate = document.getElementById("date").value;
   const rawTime = document.getElementById("time").value;
 
-  if(!category || !service || !branch || !rawDate || !rawTime){
+  if(!car || !category || !service || !branch || !rawDate || !rawTime){
     showToast("الرجاء تعبئة جميع الحقول", "error");
     return;
   }
@@ -314,7 +353,7 @@ async function addBooking(){
   const res = await apiPost({
     action: "addBooking",
     phone: String(CUSTOMER.phone),
-    membership: CUSTOMER.membership,
+    membership: car,   // ← عضوية السيارة المختارة
     service,
     date,
     time,
