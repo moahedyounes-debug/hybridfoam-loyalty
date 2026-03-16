@@ -82,21 +82,53 @@ let PHONE = CUSTOMER ? CUSTOMER.phone : null;
 })();
 
 /* =============================
-   تنسيق التاريخ والوقت
+   دالة موحدة: اليوم + التاريخ + الوقت
 ============================= */
-function formatDate(dateStr){
-  const d = new Date(dateStr);
-  if (isNaN(d)) return dateStr; // لو التاريخ جاهز أصلاً
+function parseBookingDateTime(rawDate, rawTime) {
+  let day = "";
+  let date = "";
+  let time = "";
 
-  const month = d.toLocaleString("en-US", { month: "short" });
-  const day = String(d.getDate()).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${month}/${day}/${year}`;
-}
+  /* معالجة التاريخ */
+  let jsDate = null;
 
-function formatTime(timeStr){
-  if(!timeStr) return timeStr;
-  return timeStr.slice(0,5); // HH:MM
+  if (rawDate) {
+    // ISO مثل 2026-03-15
+    if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+      jsDate = new Date(rawDate);
+    }
+    // نص مثل Mar/17/2026
+    else if (isNaN(rawDate)) {
+      jsDate = new Date(rawDate);
+    }
+  }
+
+  if (jsDate && !isNaN(jsDate)) {
+    day = jsDate.toLocaleDateString("ar-SA", { weekday: "long" });
+    const month = jsDate.toLocaleString("en-US", { month: "short" });
+    const d = String(jsDate.getDate()).padStart(2, "0");
+    const y = jsDate.getFullYear();
+    date = `${month}/${d}/${y}`;
+  }
+
+  /* معالجة الوقت */
+  if (rawTime) {
+    // 12 ساعة مثل 4:30 PM
+    if (rawTime.includes("AM") || rawTime.includes("PM")) {
+      const t = new Date("2000-01-01 " + rawTime);
+      if (!isNaN(t)) {
+        const hh = String(t.getHours()).padStart(2, "0");
+        const mm = String(t.getMinutes()).padStart(2, "0");
+        time = `${hh}:${mm}`;
+      }
+    }
+    // 24 ساعة مثل 14:30
+    else if (/^\d{1,2}:\d{2}/.test(rawTime)) {
+      time = rawTime.slice(0, 5);
+    }
+  }
+
+  return { day, date, time };
 }
 
 /* =============================
@@ -118,24 +150,18 @@ window.onload = async function(){
   box.innerHTML = bookings.map(b => {
 
     const service = b[2];
-    const date = formatDate(b[3]);
 
-    let rawTime = b[4];
+    const dt = parseBookingDateTime(b[3], b[4]);
 
-    // معالجة الوقت لو كان رقم Excel
-    if (!isNaN(rawTime)) {
-      const excelTime = Number(rawTime);
-      const totalMinutes = Math.round(excelTime * 24 * 60);
-      const hh = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
-      const mm = String(totalMinutes % 60).padStart(2, "0");
-      rawTime = `${hh}:${mm}`;
-    }
+    const day  = dt.day;
+    const date = dt.date;
+    const time = dt.time;
 
-    const time = formatTime(rawTime);
     const status = b[5];
 
     return `
       <div class="booking-card">
+        <b>${day}</b><br>
         الخدمة: ${service}<br>
         التاريخ: ${date}<br>
         الوقت: ${time}<br>
