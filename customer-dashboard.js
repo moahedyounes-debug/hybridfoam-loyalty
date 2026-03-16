@@ -25,6 +25,24 @@ function formatDateSmart(value) {
   return `${month}/${day}/${year}`;
 }
 
+function formatTimeSmart(value) {
+  if (!value) return "";
+
+  if (typeof value === "string" && value.includes(":")) {
+    return value.slice(0, 5);
+  }
+
+  if (!isNaN(value)) {
+    const excelTime = Number(value);
+    const totalMinutes = Math.round(excelTime * 24 * 60);
+    const hh = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
+    const mm = String(totalMinutes % 60).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+
+  return value;
+}
+
 /* =============================
    تنسيق الوقت (Excel + نص)
 ============================= */
