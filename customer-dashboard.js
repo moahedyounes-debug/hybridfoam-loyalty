@@ -210,28 +210,44 @@ async function loadLastVisit() {
 /* =============================
    الحجوزات
 ============================= */
-async function loadBookings() {
+async function loadBookings(){
   const box = document.getElementById("bookingsBox");
   const res = await apiGetBookingsByPhone(PHONE);
 
-  if (!res.success || !res.bookings.length) {
+  if(!res.success || !res.bookings.length){
     box.innerHTML = "لا توجد حجوزات.";
     return;
   }
 
+  // تحويل البيانات
   const bookings = res.bookings.map(b => b.data);
-  const last = bookings[bookings.length - 1];
+
+  // ترتيب الحجوزات حسب التاريخ والوقت
+  bookings.sort((a, b) => {
+    const dateA = new Date(a[3] + " " + a[4]);
+    const dateB = new Date(b[3] + " " + b[4]);
+    return dateB - dateA; // الأحدث أولاً
+  });
+
+  const last = bookings[0];
 
   const service = last[2];
   const date = formatDateSmart(last[3]);
   const time = formatTimeSmart(last[4]);
 
+  // استخراج اليوم
+  const dayName = new Date(last[3]).toLocaleDateString("ar-SA", { weekday: "long" });
+
   box.classList.remove("empty");
 
   box.innerHTML = `
     <div style="font-size:14px;margin-bottom:6px;">${bookings.length} حجز</div>
+
     <div style="font-size:14px;">
-      آخر حجز: ${service} • ${date} ${time}
+      <b>${dayName}</b><br>
+      التاريخ: ${date}<br>
+      الوقت: ${time}<br>
+      الخدمة: ${service}
     </div>
   `;
 }
