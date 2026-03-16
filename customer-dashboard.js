@@ -1,48 +1,31 @@
 /* =============================
    تنسيق التاريخ (Excel + نص + ISO)
 ============================= */
-function formatDateSmart(value) {
-  if (!value) return "";
-
-  if (isNaN(value)) {
-    const d = new Date(value);
-    if (!isNaN(d)) {
-      const month = d.toLocaleString("en-US", { month: "short" });
-      const day = String(d.getDate()).padStart(2, "0");
-      const year = d.getFullYear();
-      return `${month}/${day}/${year}`;
-    }
-    return value;
-  }
-
-  const excelDate = Number(value);
-  const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
-
-  const month = jsDate.toLocaleString("en-US", { month: "short" });
-  const day = String(jsDate.getDate()).padStart(2, "0");
-  const year = jsDate.getFullYear();
-
-  return `${month}/${day}/${year}`;
-}
-
 function formatTimeSmart(value) {
   if (!value) return "";
 
+  // لو نص جاهز HH:MM
   if (typeof value === "string" && value.includes(":")) {
     return value.slice(0, 5);
   }
 
+  // لو رقم Excel
   if (!isNaN(value)) {
     const excelTime = Number(value);
+
+    // تجاهل القيم الغلط مثل -1899 أو 1899 أو أي رقم خارج نطاق الوقت
+    if (excelTime <= 0 || excelTime >= 1) {
+      return ""; // لا نعرض وقت خاطئ
+    }
+
     const totalMinutes = Math.round(excelTime * 24 * 60);
     const hh = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
     const mm = String(totalMinutes % 60).padStart(2, "0");
     return `${hh}:${mm}`;
   }
 
-  return value;
+  return "";
 }
-
 
 /* =============================
    تحميل بيانات العميل
