@@ -250,8 +250,8 @@ async function loadBookings(){
   const last = bookings[0];
 
   const service = last[2];
-const date = formatDateSmart(b[3]);
-const time = formatTimeSmart(rawTime);
+  const date = formatDateSmart(last[3]);
+  const time = formatTimeSmart(last[4]);
 
   // استخراج اليوم
   const dayName = new Date(last[3]).toLocaleDateString("ar-SA", { weekday: "long" });
